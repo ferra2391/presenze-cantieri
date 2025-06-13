@@ -20,7 +20,7 @@ const cantieri = [
   "Cantiere E - Recanati"
 ];
 
-const backendUrl = "https://script.google.com/macros/s/AKfycbzKvYR7zNlNnsoKj5wnOt7sh8QZQUJbUwb0PyuFywkejmMzZq7Sc5mslwsHlAcqD3FJ/exec";
+const backendUrl = "https://script.google.com/macros/s/AKfycbwM5HSxNq213EeFULrElwMM4PswP5e7cYYwr4xouAhrmTOfm9pWU5n3W6OmolN406tM/exec";
 
 let stato = {
   loggedIn: false,
