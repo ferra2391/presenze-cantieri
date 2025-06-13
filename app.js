@@ -1,54 +1,19 @@
 
-const dipendenti = [
-  { nome: "Mario Rossi", username: "mrossi", password: "1234" },
-  { nome: "Luca Bianchi", username: "lbianchi", password: "abcd" },
-  { nome: "Giulia Verdi", username: "gverdi", password: "pass1" },
-  { nome: "Anna Neri", username: "aneri", password: "ciao1" },
-  { nome: "Paolo Gallo", username: "pgallo", password: "work1" },
-  { nome: "Franco Blu", username: "fblu", password: "blue1" },
-  { nome: "Sara Rosa", username: "srosa", password: "rosa22" },
-  { nome: "Elena Gialli", username: "egialli", password: "yellow" },
-  { nome: "Marco Marrone", username: "mmarrone", password: "marrone" },
-  { nome: "Laura Viola", username: "lviola", password: "viola1" }
+const operai = [
+  { nome: "Mario Rossi", username: "mario", password: "1234" },
+  { nome: "Luca Bianchi", username: "luca", password: "1234" },
+  { nome: "Giulia Verdi", username: "giulia", password: "1234" }
 ];
 
-const cantieri = [
-  "Cantiere A - Macerata",
-  "Cantiere B - Civitanova",
-  "Cantiere C - Tolentino",
-  "Cantiere D - Corridonia",
-  "Cantiere E - Recanati"
-];
+const backendUrl = "https://script.google.com/macros/s/AKfycbztrL-_qpimx__Mgo6ILq853OLogy_Pa8W8rl36ujpKXAJlBQ-p0NaMsWG84r4ZR8W3/exec";
 
-const backendUrl = "https://script.google.com/macros/s/AKfycbwM5HSxNq213EeFULrElwMM4PswP5e7cYYwr4xouAhrmTOfm9pWU5n3W6OmolN406tM/exec";
-
-let stato = {
-  loggedIn: false,
-  currentUser: null,
-  checkInTime: null,
-  checkOutTime: null,
-  position: null
-};
-
-function getGPS(callback) {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((pos) => {
-      stato.position = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      };
-      callback();
-    }, callback);
-  } else {
-    callback();
-  }
-}
+let currentUser = null;
 
 function renderLogin() {
   document.getElementById("root").innerHTML = `
     <h2>Login Operaio</h2>
-    <input placeholder="Username" id="user">
-    <input type="password" placeholder="Password" id="pass">
+    <input id="user" placeholder="Username" />
+    <input id="pass" placeholder="Password" type="password" />
     <button onclick="login()">Accedi</button>
   `;
 }
@@ -56,73 +21,47 @@ function renderLogin() {
 function login() {
   const u = document.getElementById("user").value;
   const p = document.getElementById("pass").value;
-  const found = dipendenti.find(d => d.username === u && d.password === p);
+  const found = operai.find(o => o.username === u && o.password === p);
   if (found) {
-    stato.loggedIn = true;
-    stato.currentUser = found;
-    renderDashboard();
+    currentUser = found;
+    renderMain();
   } else {
     alert("Credenziali errate");
   }
 }
 
-function renderDashboard() {
-  const nome = stato.currentUser.nome;
-  let opzioni = cantieri.map(c => `<option value="${c}">${c}</option>`).join("");
+function renderMain() {
   document.getElementById("root").innerHTML = `
-    <h2>Benvenuto, ${nome}</h2>
-    <label>Cantiere:</label>
-    <select id="cantiere">${opzioni}</select><br><br>
-    <button onclick="checkIn()" ${stato.checkInTime ? "disabled" : ""}>Inizio Turno</button>
-    <button onclick="checkOut()" ${stato.checkOutTime || !stato.checkInTime ? "disabled" : ""}>Fine Turno</button>
+    <h2>Ciao, ${currentUser.nome}</h2>
+    <input id="cantiere" placeholder="Cantiere" />
+    <button onclick="checkIn()">Check-in</button>
+    <button onclick="checkOut()">Check-out</button>
   `;
 }
 
-function sendData(data) {
+function invia(tipo) {
+  const cantiere = document.getElementById("cantiere").value;
+  const now = new Date().toISOString();
+  const payload = {
+    nome: currentUser.nome,
+    username: currentUser.username,
+    cantiere: cantiere,
+    tipo: tipo,
+    ora: now
+  };
   const form = new URLSearchParams();
-  form.append("payload", JSON.stringify(data));
-
+  form.append("payload", JSON.stringify(payload));
   fetch(backendUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: form.toString()
-  }).then(res => res.json()).then(r => console.log(r));
-}
-
-function checkIn() {
-  getGPS(() => {
-    const now = new Date().toISOString();
-    stato.checkInTime = now;
-    sendData({
-      nome: stato.currentUser.nome,
-      username: stato.currentUser.username,
-      cantiere: document.getElementById("cantiere").value,
-      checkInTime: now,
-      checkInLat: stato.position?.lat,
-      checkInLng: stato.position?.lng
-    });
-    alert("Check-in alle " + now);
-    renderDashboard();
+  }).then(res => res.json()).then(r => {
+    alert(tipo + " registrato alle " + now);
+    document.getElementById("cantiere").value = "";
   });
 }
 
-function checkOut() {
-  getGPS(() => {
-    const now = new Date().toISOString();
-    stato.checkOutTime = now;
-    sendData({
-      nome: stato.currentUser.nome,
-      username: stato.currentUser.username,
-      cantiere: document.getElementById("cantiere").value,
-      checkOutTime: now,
-      checkOutLat: stato.position?.lat,
-      checkOutLng: stato.position?.lng
-    });
-    alert("Check-out alle " + now);
-    renderDashboard();
-  });
-}
+function checkIn() { invia("check-in"); }
+function checkOut() { invia("check-out"); }
 
 renderLogin();
