@@ -5,6 +5,12 @@ const operai = [
   { nome: "Giulia Verdi", username: "giulia", password: "1234" }
 ];
 
+let cantieri = [
+  "Cantiere A - Macerata",
+  "Cantiere B - Civitanova",
+  "Cantiere C - Tolentino"
+];
+
 const backendUrl = "https://script.google.com/macros/s/AKfycbztrL-_qpimx__Mgo6ILq853OLogy_Pa8W8rl36ujpKXAJlBQ-p0NaMsWG84r4ZR8W3/exec";
 
 let currentUser = null;
@@ -31,22 +37,34 @@ function login() {
 }
 
 function renderMain() {
+  let opzioni = cantieri.map(c => `<option value="${c}">${c}</option>`).join("");
   document.getElementById("root").innerHTML = `
     <h2>Ciao, ${currentUser.nome}</h2>
-    <input id="cantiere" placeholder="Cantiere" />
-    <button onclick="checkIn()">Check-in</button>
-    <button onclick="checkOut()">Check-out</button>
+    <label for="cantiere">Scegli il cantiere:</label>
+    <select id="cantiere">${opzioni}</select>
+    <div class="small">oppure aggiungi nuovo:</div>
+    <input id="newCantiere" placeholder="Nuovo cantiere" />
+    <button onclick="aggiungiCantiere()">Aggiungi Cantiere</button>
+    <button onclick="inserisci()">Inserisci</button>
   `;
 }
 
-function invia(tipo) {
+function aggiungiCantiere() {
+  const nuovo = document.getElementById("newCantiere").value.trim();
+  if (nuovo && !cantieri.includes(nuovo)) {
+    cantieri.push(nuovo);
+    renderMain();
+    document.getElementById("cantiere").value = nuovo;
+  }
+}
+
+function inserisci() {
   const cantiere = document.getElementById("cantiere").value;
   const now = new Date().toISOString();
   const payload = {
     nome: currentUser.nome,
     username: currentUser.username,
     cantiere: cantiere,
-    tipo: tipo,
     ora: now
   };
   const form = new URLSearchParams();
@@ -56,12 +74,8 @@ function invia(tipo) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: form.toString()
   }).then(res => res.json()).then(r => {
-    alert(tipo + " registrato alle " + now);
-    document.getElementById("cantiere").value = "";
+    alert("Registrazione effettuata alle " + now);
   });
 }
-
-function checkIn() { invia("check-in"); }
-function checkOut() { invia("check-out"); }
 
 renderLogin();
