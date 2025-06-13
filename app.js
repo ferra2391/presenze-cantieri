@@ -60,6 +60,7 @@ function aggiungiCantiere() {
 
 function inserisci() {
   const cantiere = document.getElementById("cantiere").value;
+  if (!cantiere) return alert("Seleziona un cantiere.");
   const now = new Date().toISOString();
   const payload = {
     nome: currentUser.nome,
@@ -74,7 +75,9 @@ function inserisci() {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: form.toString()
   }).then(res => res.json()).then(r => {
-    alert("Registrazione effettuata alle " + now);
+    alert("✅ Dato registrato!");
+    currentUser = null;
+    renderLogin();
   });
 }
 
