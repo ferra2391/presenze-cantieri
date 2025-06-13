@@ -79,10 +79,15 @@ function renderDashboard() {
 }
 
 function sendData(data) {
+  const form = new URLSearchParams();
+  form.append("payload", JSON.stringify(data));
+
   fetch(backendUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: form.toString()
   }).then(res => res.json()).then(r => console.log(r));
 }
 
