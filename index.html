@@ -45,6 +45,7 @@
 
     <div id="form" style="display:none;">
       <h3>Compila Presenza</h3>
+      <input type="date" id="data" value="2025-06-16">
       <select id="cantiere">
         <option value="">-- Seleziona Cantiere --</option>
         <option value="Visso">Visso</option>
@@ -84,15 +85,17 @@
       }
 
       function invia() {
+        const data = document.getElementById("data").value;
         const cantiere = document.getElementById("cantiere").value;
         const lavorazione = document.getElementById("lavorazione").value;
 
-        if (!cantiere || !lavorazione) {
+        if (!data || !cantiere || !lavorazione) {
           alert("Compila tutti i campi.");
           return;
         }
 
         const dati = {
+          data,
           operaio: utente,
           user: utente,
           cantiere,
