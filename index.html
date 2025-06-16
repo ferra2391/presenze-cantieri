@@ -88,6 +88,7 @@
     </div>
 
     <button onclick="invia()">Invia</button>
+    <div id="ultimi7" style="margin-top:20px;"></div>
   </div>
 
   <script>
@@ -128,7 +129,67 @@
       document.getElementById("multiOperai").style.display = "block";
     }
 
+    
     function invia() {
+      const data = document.getElementById("data").value;
+      const orari = document.getElementById("orari").value;
+      const cantiere = document.getElementById("cantiere").value;
+      const lavorazione = document.getElementById("lavorazione").value;
+      const selezione = document.getElementById("operaio");
+      let operaiSelezionati = [];
+
+      if (document.getElementById("multiOperai").style.display === "block") {
+        operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+      } else {
+        operaiSelezionati = [nomeOperaio];
+      }
+
+      if (!data || !cantiere || !lavorazione || !orari || operaiSelezionati.length === 0) {
+        alert("Compila tutti i campi.");
+        return;
+      }
+
+      operaiSelezionati.forEach(nome => {
+        const dati = {
+          data,
+          orari,
+          operaio: nome,
+          user: utente,
+          cantiere,
+          lavorazione
+        };
+
+        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify(dati),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      });
+
+      setTimeout(caricaUltimi7, 1000); // Delay per permettere salvataggio
+    }
+
+    function caricaUltimi7() {
+      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&username=" + utente)
+        .then(r => r.json())
+        .then(dati => {
+          let html = "<h4>Ultimi 7 giorni:</h4>";
+          if (dati.presenze && dati.presenze.length > 0) {
+            html += "<ul>";
+            dati.presenze.forEach(r => {
+              html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
+            });
+            html += "</ul>";
+          } else {
+            html += "<p>Nessun dato trovato</p>";
+          }
+          document.getElementById("ultimi7").innerHTML = html;
+        });
+    }
+    
       const data = document.getElementById("data").value;
       const orari = document.getElementById("orari").value;
       const cantiere = document.getElementById("cantiere").value;
