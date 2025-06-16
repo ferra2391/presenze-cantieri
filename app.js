@@ -1,4 +1,4 @@
-const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec"; // Inserisci qui l'URL copiato da Apps Script
+const URL_WEB_APP = "https://script.google.com/macros/library/d/17W6R8TJ1X_dGMUontjQRFOXtUOeYVWKXHOWaN7bXdPEUdlS18fyOhIx9/2"; // Inserisci qui l'URL copiato da Apps Script
 
 function login() {
   const user = document.getElementById("user").value;
