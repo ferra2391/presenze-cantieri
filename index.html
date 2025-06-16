@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Presenze Cantiere</title>
+  </head>
+  <body>
+    <h2>Login</h2>
+    <input type="text" id="user" placeholder="Utente">
+    <input type="password" id="pass" placeholder="Password">
+    <button onclick="login()">Accedi</button>
+
+    <div id="form" style="display:none;">
+      <h3>Compila Presenza</h3>
+      <input type="date" id="data">
+      <input type="text" id="operaio" placeholder="Nome Operaio">
+      <input type="text" id="cantiere" placeholder="Cantiere">
+      <input type="text" id="lavorazione" placeholder="Lavorazione">
+      <button onclick="invia()">Invia</button>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
