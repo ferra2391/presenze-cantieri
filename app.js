@@ -32,7 +32,5 @@ function invia() {
     headers: {
       "Content-Type": "application/json",
     },
-  })
-    .then(() => alert("✅ Dati inseriti correttamente!"))
-    .catch(err => alert("Errore invio dati"));
+  });
 }
