@@ -16,6 +16,11 @@ function invia() {
   const cantiere = document.getElementById("cantiere").value;
   const lavorazione = document.getElementById("lavorazione").value;
 
+  if (!operaio || !cantiere || !lavorazione) {
+    alert("Compila tutti i campi.");
+    return;
+  }
+
   const dati = {
     operaio,
     user: "mario",
