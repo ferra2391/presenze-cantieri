@@ -33,6 +33,6 @@ function invia() {
       "Content-Type": "application/json",
     },
   })
-    .then(() => alert("Dati inviati (risposta non leggibile in no-cors)"))
+    .then(() => alert("✅ Dati inseriti correttamente!"))
     .catch(err => alert("Errore invio dati"));
 }
