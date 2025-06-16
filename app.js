@@ -13,7 +13,7 @@ let cantieri = [
   "Cantiere Ospedale Civitanova"
 ];
 
-const backendUrl = "https://script.google.com/macros/s/YOUR_NEW_SCRIPT_ID/exec";
+const backendUrl = "https://script.google.com/macros/s/AKfycbztrL-_qpimx__Mgo6ILq853OLogy_Pa8W8rl36ujpKXAJlBQ-p0NaMsWG84r4ZR8W3/exec";
 
 let currentUser = null;
 
