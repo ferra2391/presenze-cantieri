@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbxI_Jnf6D8bteWYlb_VjeayQhTt3n9E0cZtj-9Ddat1WAbVrHyEg-BuyrLXk7zBphjP/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxk8vqKLh4Kk5jtwt_xvurfgT-kmwWwXT37nLl58ajm_X9SWxS72sRIDotu6ux4yXsr/exec";
 
 const operai = {
   "mata": "max321",
