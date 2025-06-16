@@ -1,22 +1,76 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <title>Controllo Operai</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inserimento Dati Cantiere</title>
   <style>
-    body { font-family: sans-serif; padding: 1rem; margin: auto; max-width: 500px; background: #f4f4f4; }
-    h2 { text-align: center; color: #333; }
-    .box { background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    input, select, button, textarea { width: 100%; padding: 0.6rem; margin: 0.5rem 0; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc; }
-    button { background: #007BFF; color: white; border: none; }
-    .rosso { color: red; font-weight: bold; text-align: center; margin-top: 1rem; }
-    .small { font-size: 0.85rem; color: #666; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    input, select, textarea, button {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
-  <script defer src="app.js"></script>
 </head>
 <body>
-  <div class="box" id="root">Caricamento...</div>
+  <div class="container">
+    <h2>Inserimento dati cantiere</h2>
+
+    <label for="user">User (login):</label>
+    <input type="text" id="user" placeholder="es. maro">
+
+    <label for="cantiere">Cantiere:</label>
+    <select id="cantiere">
+      <option>Visso</option>
+      <option>Salvatori</option>
+      <option>Petetta.G - Sarnano</option>
+      <option>Romagnoli</option>
+      <option>Pierangeli</option>
+      <option>Petetta.G - Sant'Angelo</option>
+      <option>Rommozzi</option>
+      <option>Biondi</option>
+      <option>Galassi</option>
+      <option>Alidori</option>
+      <option>Rioli</option>
+      <option>Farroni</option>
+      <option>Biaggi</option>
+      <option>Fermani</option>
+      <option>Casa Luca Appezzana</option>
+    </select>
+
+    <label for="lavorazione">Descrizione lavorazione:</label>
+    <textarea id="lavorazione" placeholder="es. armatura pilastri"></textarea>
+
+    <label for="operai">Inserisci nomi operai (separati da virgola):</label>
+    <input type="text" id="operai" placeholder="es. Mario Ronconi, Kevin Ronconi">
+
+    <button onclick="inviaDati()">✅ Invia Dati</button>
+  </div>
+
+  <script src="main.js"></script>
 </body>
 </html>
