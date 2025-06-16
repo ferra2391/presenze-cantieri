@@ -69,14 +69,32 @@
     </div>
 
     <script>
+      const utenti = {
+  "mata": { password: "max321", nome: "Massimo Tarantino" },
+  "pata": { password: "pasq@85", nome: "Pasquale Tarantino" },
+  "maez": { password: "maja44", nome: "Maja Ebuka Matthew Ezigbo" },
+  "saac": { password: "sam!90", nome: "Samir Achlih" },
+  "oot": { password: "teo007", nome: "Otelli Otello" },
+  "emma": { password: "manu12", nome: "Emanuele Massucci" },
+  "maro": { password: "ronco33", nome: "Mario Ronconi" },
+  "kero": { password: "kevx88", nome: "Kevin Ronconi" },
+  "ahaz": { password: "zrik77", nome: "Ahmed Azrikem" },
+  "abaq": { password: "aziz@19", nome: "Abdelaziz Aqriqeb" },
+  "maru": { password: "matt34", nome: "Matteo Russo" },
+  "guha": { password: "gus123", nome: "Gus Harding" },
+  "gigr": { password: "giox55", nome: "Giammario Grilli" }
+};
+
       let utente = "";
+      let nomeOperaio = "";
 
       function login() {
         const user = document.getElementById("user").value;
         const pass = document.getElementById("pass").value;
 
-        if (user === "mario" && pass === "1234") {
+        if (utenti[user] && utenti[user].password === pass) {
           utente = user;
+          nomeOperaio = utenti[user].nome;
           document.getElementById("login").style.display = "none";
           document.getElementById("form").style.display = "block";
         } else {
@@ -96,7 +114,7 @@
 
         const dati = {
           data,
-          operaio: utente,
+          operaio: nomeOperaio,
           user: utente,
           cantiere,
           lavorazione
