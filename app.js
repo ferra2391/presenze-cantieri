@@ -13,7 +13,7 @@ let cantieri = [
   "Cantiere Ospedale Civitanova"
 ];
 
-const backendUrl = "https://script.google.com/macros/s/AKfycbztrL-_qpimx__Mgo6ILq853OLogy_Pa8W8rl36ujpKXAJlBQ-p0NaMsWG84r4ZR8W3/exec";
+const backendUrl = "https://script.google.com/macros/s/YOUR_NEW_SCRIPT_ID/exec";
 
 let currentUser = null;
 
@@ -33,6 +33,7 @@ function login() {
   if (found) {
     currentUser = found;
     renderInserimento();
+    renderVerifica();
   } else {
     alert("Credenziali errate");
   }
@@ -98,6 +99,51 @@ function inserisciMultiplo() {
       lavorazioni: lavorazioni,
       cantiere: cantiere,
       ora: now
+    };
+    inviaDati(payload);
+  });
+}
+
+function renderVerifica() {
+  fetch(backendUrl + "?checkPresenze=1&username=" + currentUser.username)
+    .then(r => r.json())
+    .then(data => {
+      const contenitore = document.createElement("div");
+      if (data.completo) {
+        contenitore.innerHTML = `<div style="color:green; text-align:center; margin-top:1rem;">✅ Dati degli ultimi 7 giorni completi</div>`;
+      } else {
+        contenitore.innerHTML = `<div class="rosso" onclick="correggiDati()">❌ Negli ultimi 7 giorni mancano dati. Clicca per completare.</div>`;
+      }
+      document.body.appendChild(contenitore);
+    });
+}
+
+function correggiDati() {
+  const date = ["2025-06-07", "2025-06-09", "2025-06-11"];
+  const checkboxes = date.map(d => `<label><input type="checkbox" value="${d}"> ${d}</label>`).join("<br>");
+  document.getElementById("root").innerHTML = `
+    <h2>Dati mancanti</h2>
+    <div class="small">Seleziona una o più date mancanti:</div>
+    ${checkboxes}
+    <textarea id="lavorazioniMancanti" rows="3" placeholder="Lavorazioni svolte..."></textarea>
+    <button onclick="inserisciRecupero()">Inserisci dati</button>
+    <button onclick="renderInserimento()">Indietro</button>
+  `;
+}
+
+function inserisciRecupero() {
+  const lavorazioni = document.getElementById("lavorazioniMancanti").value;
+  const selezionate = [...document.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value);
+  if (!lavorazioni || selezionate.length === 0) return alert("Inserisci lavorazioni e seleziona almeno una data");
+  const cantiere = prompt("Inserisci nome cantiere per queste date:");
+  if (!cantiere) return;
+  selezionate.forEach(data => {
+    const payload = {
+      nome: currentUser.nome,
+      username: currentUser.username,
+      lavorazioni: lavorazioni,
+      cantiere: cantiere,
+      ora: data + "T08:00:00"
     };
     inviaDati(payload);
   });
