@@ -36,14 +36,15 @@
     </style>
   </head>
   <body>
-    <h2>Login</h2>
-    <input type="text" id="user" placeholder="Utente">
-    <input type="password" id="pass" placeholder="Password">
-    <button onclick="login()">Accedi</button>
+    <div id="login">
+      <h2>Login</h2>
+      <input type="text" id="user" placeholder="Utente">
+      <input type="password" id="pass" placeholder="Password">
+      <button onclick="login()">Accedi</button>
+    </div>
 
     <div id="form" style="display:none;">
       <h3>Compila Presenza</h3>
-      <input type="text" id="operaio" placeholder="Nome Operaio">
       <select id="cantiere">
         <option value="">-- Seleziona Cantiere --</option>
         <option value="Visso">Visso</option>
@@ -66,6 +67,47 @@
       <button onclick="invia()">Invia</button>
     </div>
 
-    <script src="app.js"></script>
+    <script>
+      let utente = "";
+
+      function login() {
+        const user = document.getElementById("user").value;
+        const pass = document.getElementById("pass").value;
+
+        if (user === "mario" && pass === "1234") {
+          utente = user;
+          document.getElementById("login").style.display = "none";
+          document.getElementById("form").style.display = "block";
+        } else {
+          alert("Credenziali errate");
+        }
+      }
+
+      function invia() {
+        const cantiere = document.getElementById("cantiere").value;
+        const lavorazione = document.getElementById("lavorazione").value;
+
+        if (!cantiere || !lavorazione) {
+          alert("Compila tutti i campi.");
+          return;
+        }
+
+        const dati = {
+          operaio: utente,
+          user: utente,
+          cantiere,
+          lavorazione
+        };
+
+        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify(dati),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      }
+    </script>
   </body>
 </html>
