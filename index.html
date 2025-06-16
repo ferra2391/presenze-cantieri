@@ -3,72 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inserimento Dati Cantiere</title>
+  <title>Gestione Cantieri - Login</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 20px;
+      background: #f2f2f2;
+      padding: 0;
+      margin: 0;
     }
     .container {
       max-width: 700px;
-      margin: auto;
+      margin: 50px auto;
       background: white;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     input, select, textarea, button {
       width: 100%;
       margin-bottom: 15px;
       padding: 10px;
-      font-size: 16px;
       border-radius: 5px;
       border: 1px solid #ccc;
+      font-size: 16px;
     }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
+    .hidden { display: none; }
+    .record-list {
+      font-size: 14px;
+      color: #444;
+      background: #eee;
+      padding: 10px;
+      border-radius: 5px;
+      white-space: pre-wrap;
     }
-    button:hover {
-      background-color: #0056b3;
+    .status {
+      font-weight: bold;
+      padding: 10px;
     }
+    .green { color: green; }
+    .red { color: red; cursor: pointer; }
+    .inline-btn { display: inline-block; margin: 5px 0; background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Inserimento dati cantiere</h2>
+  <div class="container" id="loginContainer">
+    <h2>Login Operaio</h2>
+    <input type="text" id="loginUser" placeholder="Username">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button onclick="handleLogin()">Accedi</button>
+    <div id="loginError" class="red hidden">Credenziali errate</div>
+  </div>
 
-    <label for="user">User (login):</label>
-    <input type="text" id="user" placeholder="es. maro">
-
+  <div class="container hidden" id="formContainer">
+    <h2>Inserimento dati</h2>
     <label for="cantiere">Cantiere:</label>
-    <select id="cantiere">
-      <option>Visso</option>
-      <option>Salvatori</option>
-      <option>Petetta.G - Sarnano</option>
-      <option>Romagnoli</option>
-      <option>Pierangeli</option>
-      <option>Petetta.G - Sant'Angelo</option>
-      <option>Rommozzi</option>
-      <option>Biondi</option>
-      <option>Galassi</option>
-      <option>Alidori</option>
-      <option>Rioli</option>
-      <option>Farroni</option>
-      <option>Biaggi</option>
-      <option>Fermani</option>
-      <option>Casa Luca Appezzana</option>
-    </select>
+    <select id="cantiere"></select>
+    <button class="inline-btn" onclick="aggiungiCantiere()">➕ Aggiungi cantiere NON presente</button>
 
     <label for="lavorazione">Descrizione lavorazione:</label>
     <textarea id="lavorazione" placeholder="es. armatura pilastri"></textarea>
 
-    <label for="operai">Inserisci nomi operai (separati da virgola):</label>
-    <input type="text" id="operai" placeholder="es. Mario Ronconi, Kevin Ronconi">
+    <label for="altriOperai">Seleziona altri operai (oltre a te):</label>
+    <input type="text" id="altriOperai" placeholder="Mario Ronconi, Kevin Ronconi">
 
-    <button onclick="inviaDati()">✅ Invia Dati</button>
+    <button class="inline-btn" onclick="inviaDati()">✅ Inserisci</button>
+
+    <div id="statusBox" class="status"></div>
+
+    <h3>Attività ultimi 7 giorni</h3>
+    <div id="recordList" class="record-list"></div>
   </div>
 
   <script src="main.js"></script>
