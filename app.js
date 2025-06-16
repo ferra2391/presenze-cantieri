@@ -12,13 +12,11 @@ function login() {
 }
 
 function invia() {
-  const data = document.getElementById("data").value;
   const operaio = document.getElementById("operaio").value;
   const cantiere = document.getElementById("cantiere").value;
   const lavorazione = document.getElementById("lavorazione").value;
 
   const dati = {
-    data,
     operaio,
     user: "mario",
     cantiere,
