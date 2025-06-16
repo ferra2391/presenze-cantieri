@@ -17,6 +17,10 @@ const backendUrl = "https://script.google.com/macros/s/AKfycbztrL-_qpimx__Mgo6IL
 
 let currentUser = null;
 
+function mostraCampoNuovoCantiere() {
+  document.getElementById("campoNuovoCantiere").style.display = "block";
+}
+
 function renderLogin() {
   document.getElementById("root").innerHTML = `
     <h2>Login Operaio</h2>
@@ -44,8 +48,8 @@ function renderInserimento() {
   document.getElementById("root").innerHTML = `
     <h2>Dati giornalieri</h2>
     <select id="cantiere"><option value="">-- Seleziona un cantiere --</option>${cantiereOptions}</select>
-    <div class="rosso">+ Inserisci un cantiere non in elenco</div>
-    <input id="nuovoCantiere" placeholder="Nuovo cantiere (opzionale)" />
+    <button class="rosso" onclick="mostraCampoNuovoCantiere()">+ Inserisci un cantiere non in elenco</button>
+    <div id="campoNuovoCantiere" style="display:none;"><input id="nuovoCantiere" placeholder="Nuovo cantiere (opzionale)" />
     <textarea id="lavorazioni" rows="3" placeholder="Descrizione lavorazioni..."></textarea>
     <button onclick="inserisciDatoSingolo()">Inserisci</button>
     <button onclick="renderMultiplo()">Inserisci dati per altro operaio</button>
@@ -74,8 +78,8 @@ function renderMultiplo() {
   document.getElementById("root").innerHTML = `
     <h2>Dati per altri operai</h2>
     <select id="cantiere"><option value="">-- Seleziona un cantiere --</option>${cantieri.map(c => `<option value="${c}">${c}</option>`).join("")}</select>
-    <div class="rosso">+ Inserisci un cantiere non in elenco</div>
-    <input id="nuovoCantiere" placeholder="Nuovo cantiere (opzionale)" />
+    <button class="rosso" onclick="mostraCampoNuovoCantiere()">+ Inserisci un cantiere non in elenco</button>
+    <div id="campoNuovoCantiere" style="display:none;"><input id="nuovoCantiere" placeholder="Nuovo cantiere (opzionale)" />
     <textarea id="lavorazioni" rows="3" placeholder="Descrizione lavorazioni..."></textarea>
     <div class="small">Seleziona gli operai per cui vuoi inserire i dati:</div>
     ${checkboxes}
