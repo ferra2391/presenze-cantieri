@@ -46,7 +46,63 @@
   <div id="form" style="display:none;">
     <h3>Compila Presenza</h3>
     <input type="date" id="data" value="2025-06-16">
-    <input type="text" id="orari" value="8:00 - 17:00" placeholder="Orario di lavoro">
+    
+<div id="orariContainer">
+  <label for="oraInizio">Orario Inizio:</label>
+  <div style="display: flex; gap: 10px;">
+    <select id="oraInizioOra">
+      <option value="06">06</option>
+      <option value="07">07</option>
+      <option value="08">08</option>
+      <option value="09">09</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+      <option value="13">13</option>
+      <option value="14">14</option>
+      <option value="15">15</option>
+      <option value="16">16</option>
+      <option value="17">17</option>
+      <option value="18">18</option>
+      <option value="19">19</option>
+      <option value="20">20</option>
+    </select>
+    <select id="oraInizioMinuti">
+      <option value="00">00</option>
+      <option value="15">15</option>
+      <option value="30">30</option>
+      <option value="45">45</option>
+    </select>
+  </div>
+
+  <label for="oraFine" style="margin-top:10px;">Orario Fine:</label>
+  <div style="display: flex; gap: 10px;">
+    <select id="oraFineOra">
+      <option value="06">06</option>
+      <option value="07">07</option>
+      <option value="08">08</option>
+      <option value="09">09</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+      <option value="13">13</option>
+      <option value="14">14</option>
+      <option value="15">15</option>
+      <option value="16">16</option>
+      <option value="17">17</option>
+      <option value="18">18</option>
+      <option value="19">19</option>
+      <option value="20">20</option>
+    </select>
+    <select id="oraFineMinuti">
+      <option value="00">00</option>
+      <option value="15">15</option>
+      <option value="30">30</option>
+      <option value="45">45</option>
+    </select>
+  </div>
+</div>
+
     <select id="cantiere">
       <option value="">-- Seleziona Cantiere --</option>
       <option value="Visso">Visso</option>
@@ -86,7 +142,6 @@
         nomeOperaio = utenti[user].nome;
         document.getElementById("login").style.display = "none";
         document.getElementById("form").style.display = "block";
-        document.getElementById("data").value = new Date().toISOString().split("T")[0];
         caricaUltimi7();
       } else {
         alert("Credenziali errate");
