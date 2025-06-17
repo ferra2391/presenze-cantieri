@@ -1,25 +1,73 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <title>Presenze Cantiere</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    h2 {
+      text-align: center;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #form {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
   <div id="login">
-    <input type="text" id="user" placeholder="Utente" />
-    <input type="password" id="pass" placeholder="Password" />
+    <h2>Login</h2>
+    <input type="text" id="user" placeholder="Utente">
+    <input type="password" id="pass" placeholder="Password">
     <button onclick="login()">Accedi</button>
   </div>
 
   <div id="form" style="display:none;">
-    <input type="date" id="data" />
-    <input type="text" id="orari" value="8:00 - 17:00" />
-    <select id="cantiere"><option value="Test">Test</option></select>
-    <input type="text" id="lavorazione" placeholder="Lavorazione" />
+    <h3>Compila Presenza</h3>
+    <input type="date" id="data" value="2025-06-16">
+    <input type="text" id="orari" value="8:00 - 17:00" placeholder="Orario di lavoro">
+    <select id="cantiere">
+      <option value="">-- Seleziona Cantiere --</option>
+      <option value="Visso">Visso</option>
+      <option value="Salvatori">Salvatori</option>
+      <option value="Petetta.G - Sarnano">Petetta.G - Sarnano</option>
+      <option value="Romagnoli">Romagnoli</option>
+      <option value="Pierangeli">Pierangeli</option>
+      <option value="Petetta.G - Sant'Angelo">Petetta.G - Sant'Angelo</option>
+      <option value="Rommozzi">Rommozzi</option>
+      <option value="Biondi">Biondi</option>
+      <option value="Galassi">Galassi</option>
+      <option value="Alidori">Alidori</option>
+      <option value="Rioli">Rioli</option>
+      <option value="Farroni">Farroni</option>
+      <option value="Biaggi">Biaggi</option>
+      <option value="Fermani">Fermani</option>
+      <option value="Casa Luca Appezzana">Casa Luca Appezzana</option>
+    </select>
+    <input type="text" id="lavorazione" placeholder="Lavorazione">
     <button onclick="invia()">Invia</button>
-    <div id="ultimi7"></div>
+    <div id="ultimi7" style="margin-top:20px;"></div>
   </div>
 
   <script>
