@@ -6,34 +6,18 @@
   <title>Presenze Cantiere</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f2f2f2;
-    }
-    h2 {
-      text-align: center;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
+    h2 { text-align: center; }
     input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      box-sizing: border-box;
-      font-size: 16px;
+      width: 100%; padding: 12px; margin: 10px 0;
+      box-sizing: border-box; font-size: 16px;
     }
     button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
+      background-color: #007BFF; color: white;
+      border: none; cursor: pointer; border-radius: 5px;
     }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #form {
-      margin-top: 20px;
-    }
+    button:hover { background-color: #0056b3; }
+    #form { margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -47,35 +31,25 @@
   <div id="form" style="display:none;">
     <h3>Compila Presenza</h3>
     <input type="date" id="data">
-
-    <div id="orariContainer">
-      <label for="oraInizio">Orario Inizio:</label>
-      <div style="display: flex; gap: 10px;">
-        <select id="oraInizioOra">
-          <option value="08" selected>08</option>
-        </select>
-        <select id="oraInizioMinuti">
-          <option value="00" selected>00</option>
-        </select>
-      </div>
-
-      <label for="oraFine" style="margin-top:10px;">Orario Fine:</label>
-      <div style="display: flex; gap: 10px;">
-        <select id="oraFineOra">
-          <option value="17" selected>17</option>
-        </select>
-        <select id="oraFineMinuti">
-          <option value="00" selected>00</option>
-        </select>
-      </div>
-    </div>
-
+    <input type="text" id="orari" value="8:00 - 17:00">
     <select id="cantiere">
       <option value="">-- Seleziona Cantiere --</option>
       <option value="Visso">Visso</option>
       <option value="Salvatori">Salvatori</option>
+      <option value="Petetta.G - Sarnano">Petetta.G - Sarnano</option>
+      <option value="Romagnoli">Romagnoli</option>
+      <option value="Pierangeli">Pierangeli</option>
+      <option value="Petetta.G - Sant'Angelo">Petetta.G - Sant'Angelo</option>
+      <option value="Rommozzi">Rommozzi</option>
+      <option value="Biondi">Biondi</option>
+      <option value="Galassi">Galassi</option>
+      <option value="Alidori">Alidori</option>
+      <option value="Rioli">Rioli</option>
+      <option value="Farroni">Farroni</option>
+      <option value="Biaggi">Biaggi</option>
+      <option value="Fermani">Fermani</option>
+      <option value="Casa Luca Appezzana">Casa Luca Appezzana</option>
     </select>
-
     <input type="text" id="lavorazione" placeholder="Lavorazione">
     <button onclick="invia()">Invia</button>
     <div id="ultimi7" style="margin-top:20px;"></div>
@@ -85,7 +59,6 @@
 const utenti = {
   "mata": { password: "max321", nome: "Massimo Tarantino" }
 };
-
 let utente = "";
 let nomeOperaio = "";
 
@@ -98,16 +71,16 @@ function login() {
     document.getElementById("login").style.display = "none";
     document.getElementById("form").style.display = "block";
     document.getElementById("data").value = new Date().toISOString().split("T")[0];
+    caricaUltimi7();
   } else {
     alert("Credenziali errate");
   }
 }
 
 function invia() {
-  const orari = `${document.getElementById("oraInizioOra").value}:${document.getElementById("oraInizioMinuti").value} - ${document.getElementById("oraFineOra").value}:${document.getElementById("oraFineMinuti").value}`;
   const dati = {
     data: document.getElementById("data").value,
-    orari: orari,
+    orari: document.getElementById("orari").value,
     cantiere: document.getElementById("cantiere").value,
     lavorazione: document.getElementById("lavorazione").value,
     operaio: nomeOperaio,
@@ -119,6 +92,26 @@ function invia() {
     body: JSON.stringify(dati),
     headers: { "Content-Type": "application/json" }
   });
+  setTimeout(caricaUltimi7, 1000);
+}
+
+function caricaUltimi7() {
+  fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&username=" + utente)
+    .then(r => r.json())
+    .then(dati => {
+      let html = "<h4>Ultimi 7 giorni:</h4>";
+      if (dati.presenze && dati.presenze.length > 0) {
+        html += "<ul>";
+        dati.presenze.forEach(r => {
+          const dataPulita = new Date(r.data).toLocaleDateString("it-IT");
+          html += `<li>${dataPulita} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
+        });
+        html += "</ul>";
+      } else {
+        html += "<p>Nessun dato trovato</p>";
+      }
+      document.getElementById("ultimi7").innerHTML = html;
+    });
 }
 </script>
 </body>
