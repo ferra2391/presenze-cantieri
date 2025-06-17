@@ -33,11 +33,6 @@
     #form {
       margin-top: 20px;
     }
-    .orari-box {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
   </style>
 </head>
 <body>
@@ -52,16 +47,17 @@
     <h3>Compila Presenza</h3>
     <input type="date" id="data">
 
-    <label>Orario Inizio:</label>
-    <div class="orari-box">
-      <select id="oraInizioOra"></select>
-      <select id="oraInizioMinuti"></select>
-    </div>
-
-    <label>Orario Fine:</label>
-    <div class="orari-box">
-      <select id="oraFineOra"></select>
-      <select id="oraFineMinuti"></select>
+    <div id="orariContainer">
+      <label>Orario Inizio:</label>
+      <div style="display: flex; gap: 10px;">
+        <select id="oraInizioOra"></select>
+        <select id="oraInizioMinuti"></select>
+      </div>
+      <label style="margin-top:10px;">Orario Fine:</label>
+      <div style="display: flex; gap: 10px;">
+        <select id="oraFineOra"></select>
+        <select id="oraFineMinuti"></select>
+      </div>
     </div>
 
     <select id="cantiere">
@@ -83,8 +79,12 @@
       <option value="Casa Luca Appezzana">Casa Luca Appezzana</option>
     </select>
 
-    <input type="text" id="lavorazione" placeholder="Lavorazione">
+    <button onclick="mostraCantiereLibero()">➕ Cantiere non presente</button>
+    <div id="cantiereLibero" style="display:none;">
+      <input type="text" id="cantiereAltro" placeholder="Inserisci nome cantiere">
+    </div>
 
+    <input type="text" id="lavorazione" placeholder="Lavorazione">
     <button onclick="invia()">Invia</button>
     <div id="ultimi7" style="margin-top:20px;"></div>
   </div>
@@ -93,14 +93,12 @@
 const utenti = {
   "mata": { password: "max321", nome: "Massimo Tarantino" }
 };
-
 let utente = "";
 let nomeOperaio = "";
 
 function login() {
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
-
   if (utenti[user] && utenti[user].password === pass) {
     utente = user;
     nomeOperaio = utenti[user].nome;
@@ -113,16 +111,22 @@ function login() {
   }
 }
 
+function mostraCantiereLibero() {
+  document.getElementById("cantiereLibero").style.display = "block";
+}
+
 function invia() {
+  const data = document.getElementById("data").value;
   const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
   const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
-  const orari = `${oraInizio} - ${oraFine}`;
+  const orari = oraInizio + " - " + oraFine;
+  const lavorazione = document.getElementById("lavorazione").value;
+  let cantiere = document.getElementById("cantiere").value;
+  const altro = document.getElementById("cantiereAltro").value;
+  if (altro.trim() !== "") cantiere = altro.trim();
 
   const dati = {
-    data: document.getElementById("data").value,
-    orari,
-    cantiere: document.getElementById("cantiere").value,
-    lavorazione: document.getElementById("lavorazione").value,
+    data, orari, cantiere, lavorazione,
     operaio: nomeOperaio,
     user: utente
   };
@@ -133,7 +137,6 @@ function invia() {
     body: JSON.stringify(dati),
     headers: { "Content-Type": "application/json" }
   });
-
   setTimeout(caricaUltimi7, 1000);
 }
 
@@ -156,21 +159,17 @@ function caricaUltimi7() {
     });
 }
 
-window.onload = function() {
-  const ore = [...Array(15).keys()].map(i => String(i + 6).padStart(2, "0"));
+window.onload = () => {
+  const oraInizioOra = document.getElementById("oraInizioOra");
+  const oraFineOra = document.getElementById("oraFineOra");
+  for (let i = 6; i <= 20; i++) {
+    oraInizioOra.innerHTML += `<option value="${String(i).padStart(2,'0')}" ${i===8?'selected':''}>${String(i).padStart(2,'0')}</option>`;
+    oraFineOra.innerHTML += `<option value="${String(i).padStart(2,'0')}" ${i===17?'selected':''}>${String(i).padStart(2,'0')}</option>`;
+  }
   const minuti = ["00", "15", "30", "45"];
-  const oraInizio = document.getElementById("oraInizioOra");
-  const oraFine = document.getElementById("oraFineOra");
-  const minInizio = document.getElementById("oraInizioMinuti");
-  const minFine = document.getElementById("oraFineMinuti");
-
-  ore.forEach(h => {
-    oraInizio.innerHTML += `<option value="${h}" ${h === "08" ? "selected" : ""}>${h}</option>`;
-    oraFine.innerHTML += `<option value="${h}" ${h === "17" ? "selected" : ""}>${h}</option>`;
-  });
   minuti.forEach(m => {
-    minInizio.innerHTML += `<option value="${m}">${m}</option>`;
-    minFine.innerHTML += `<option value="${m}">${m}</option>`;
+    document.getElementById("oraInizioMinuti").innerHTML += `<option value="${m}">${m}</option>`;
+    document.getElementById("oraFineMinuti").innerHTML += `<option value="${m}">${m}</option>`;
   });
 };
 </script>
