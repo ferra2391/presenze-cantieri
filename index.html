@@ -1,333 +1,168 @@
+
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Presenze Cantiere</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>Presenze Cantieri</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f2f2f2;
-    }
-    h2 {
-      text-align: center;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      box-sizing: border-box;
-      font-size: 16px;
-    }
-    button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #form {
-      margin-top: 20px;
-    }
+    body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
+    #form { display: none; }
+    select, input, button { display: block; margin-top: 10px; width: 100%; padding: 8px; font-size: 16px; }
+    #multiOperai { display: none; margin-top: 10px; }
   </style>
 </head>
 <body>
   <div id="login">
     <h2>Login</h2>
-    <input type="text" id="user" placeholder="Utente">
+    <input type="text" id="user" placeholder="Username">
     <input type="password" id="pass" placeholder="Password">
     <button onclick="login()">Accedi</button>
   </div>
 
-  <div id="form" style="display:none;">
-    <h3>Compila Presenza</h3>
-    <input type="date" id="data" value="2025-06-16">
-    <input type="text" id="orari" value="8:00 - 17:00" placeholder="Orario di lavoro">
-    <select id="cantiere">
-      <option value="">-- Seleziona Cantiere --</option>
-      <option value="Visso">Visso</option>
-<option value="Salvatori">Salvatori</option>
-<option value="Petetta.G - Sarnano">Petetta.G - Sarnano</option>
-<option value="Romagnoli">Romagnoli</option>
-<option value="Pierangeli">Pierangeli</option>
-<option value="Petetta.G - Sant'Angelo">Petetta.G - Sant'Angelo</option>
-<option value="Rommozzi">Rommozzi</option>
-<option value="Biondi">Biondi</option>
-<option value="Galassi">Galassi</option>
-<option value="Alidori">Alidori</option>
-<option value="Rioli">Rioli</option>
-<option value="Farroni">Farroni</option>
-<option value="Biaggi">Biaggi</option>
-<option value="Fermani">Fermani</option>
-<option value="Casa Luca Appezzana">Casa Luca Appezzana</option>
-    </select>
-    <input type="text" id="lavorazione" placeholder="Lavorazione">
+  <div id="form">
+    <h2>Inserimento Dati</h2>
+    <label for="data">Data:</label>
+    <input type="date" id="data">
 
-    <button onclick="mostraOperai()">➕ Inserisci dati per altri operai</button>
-    <div id="multiOperai" style="display:none;">
-      <label>Seleziona altri operai:</label>
-      <select id="operaio" multiple size="5">
-        <option value="Massimo Tarantino">Massimo Tarantino</option>
-<option value="Pasquale Tarantino">Pasquale Tarantino</option>
-<option value="Maja Ebuka Matthew Ezigbo">Maja Ebuka Matthew Ezigbo</option>
-<option value="Samir Achlih">Samir Achlih</option>
-<option value="Otelli Otello">Otelli Otello</option>
-<option value="Emanuele Massucci">Emanuele Massucci</option>
-<option value="Mario Ronconi">Mario Ronconi</option>
-<option value="Kevin Ronconi">Kevin Ronconi</option>
-<option value="Ahmed Azrikem">Ahmed Azrikem</option>
-<option value="Abdelaziz Aqriqeb">Abdelaziz Aqriqeb</option>
-<option value="Matteo Russo">Matteo Russo</option>
-<option value="Gus Harding">Gus Harding</option>
-<option value="Giammario Grilli">Giammario Grilli</option>
-      </select>
-    </div>
+    <label for="orari">Orari:</label>
+    <select id="orari">
+      <option>8:00 - 17:00</option>
+      <option>7:30 - 16:30</option>
+      <option>9:00 - 18:00</option>
+      <option>8:00 - 12:00</option>
+      <option>13:00 - 17:00</option>
+      <option>Altro...</option>
+    </select>
+    <input type="text" id="orariCustom" placeholder="Inserisci orario personalizzato" style="display:none;">
+
+    <label for="cantiere">Cantiere:</label>
+    <input type="text" id="cantiere">
+
+    <label for="lavorazione">Lavorazione:</label>
+    <input type="text" id="lavorazione">
+
+    <button onclick="mostraOperai()">Inserisci dati per altri operai</button>
+    <select id="operaio" multiple>
+      <option>Massimo Tarantino</option>
+      <option>Pasquale Tarantino</option>
+      <option>Maja Ebuka Matthew Ezigbo</option>
+      <option>Samir Achlih</option>
+      <option>Otelli Otello</option>
+      <option>Emanuele Massucci</option>
+      <option>Mario Ronconi</option>
+      <option>Kevin Ronconi</option>
+      <option>Ahmed Azrikem</option>
+      <option>Abdelaziz Aqriqeb</option>
+      <option>Matteo Russo</option>
+      <option>Gus Harding</option>
+      <option>Giammario Grilli</option>
+    </select>
 
     <button onclick="invia()">Invia</button>
-    <div id="ultimi7" style="margin-top:20px;"></div>
+    <div id="ultimi7"></div>
   </div>
 
-  <script>
-    const utenti = {
-      "mata": { password: "max321", nome: "Massimo Tarantino" },
-      "pata": { password: "pasq@85", nome: "Pasquale Tarantino" },
-      "maez": { password: "maja44", nome: "Maja Ebuka Matthew Ezigbo" },
-      "saac": { password: "sam!90", nome: "Samir Achlih" },
-      "oot":  { password: "teo007", nome: "Otelli Otello" },
-      "emma": { password: "manu12", nome: "Emanuele Massucci" },
-      "maro": { password: "ronco33", nome: "Mario Ronconi" },
-      "kero": { password: "kevx88", nome: "Kevin Ronconi" },
-      "ahaz": { password: "zrik77", nome: "Ahmed Azrikem" },
-      "abaq": { password: "aziz@19", nome: "Abdelaziz Aqriqeb" },
-      "maru": { password: "matt34", nome: "Matteo Russo" },
-      "guha": { password: "gus123", nome: "Gus Harding" },
-      "gigr": { password: "giox55", nome: "Giammario Grilli" }
+<script>
+const utenti = {
+  "mata": { password: "max321", nome: "Massimo Tarantino" },
+  "pata": { password: "pasq@85", nome: "Pasquale Tarantino" },
+  "maez": { password: "maja44", nome: "Maja Ebuka Matthew Ezigbo" },
+  "saac": { password: "sam!90", nome: "Samir Achlih" },
+  "oot":  { password: "teo007", nome: "Otelli Otello" },
+  "emma": { password: "manu12", nome: "Emanuele Massucci" },
+  "maro": { password: "ronco33", nome: "Mario Ronconi" },
+  "kero": { password: "kevx88", nome: "Kevin Ronconi" },
+  "ahaz": { password: "zrik77", nome: "Ahmed Azrikem" },
+  "abaq": { password: "aziz@19", nome: "Abdelaziz Aqriqeb" },
+  "maru": { password: "matt34", nome: "Matteo Russo" },
+  "guha": { password: "gus123", nome: "Gus Harding" },
+  "gigr": { password: "giox55", nome: "Giammario Grilli" }
+};
+
+let utente = "";
+let nomeOperaio = "";
+
+function login() {
+  const user = document.getElementById("user").value;
+  const pass = document.getElementById("pass").value;
+
+  if (utenti[user] && utenti[user].password === pass) {
+    utente = user;
+    nomeOperaio = utenti[user].nome;
+    document.getElementById("login").style.display = "none";
+    document.getElementById("form").style.display = "block";
+    document.getElementById("data").valueAsDate = new Date();
+    caricaUltimi7();
+  } else {
+    alert("Credenziali errate");
+  }
+}
+
+document.getElementById("orari").addEventListener("change", function () {
+  document.getElementById("orariCustom").style.display = this.value === "Altro..." ? "inline-block" : "none";
+});
+
+function mostraOperai() {
+  document.getElementById("multiOperai").style.display = "block";
+}
+
+function invia() {
+  const data = document.getElementById("data").value;
+  let orari = document.getElementById("orari").value;
+  if (orari === "Altro...") {
+    orari = document.getElementById("orariCustom").value;
+  }
+  const cantiere = document.getElementById("cantiere").value;
+  const lavorazione = document.getElementById("lavorazione").value;
+  const selezione = document.getElementById("operaio");
+  let operaiSelezionati = [];
+
+  if (document.getElementById("multiOperai").style.display === "block") {
+    operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+  } else {
+    operaiSelezionati = [nomeOperaio];
+  }
+
+  operaiSelezionati.forEach(nome => {
+    const dati = {
+      data,
+      orari,
+      operaio: nome,
+      user: utente,
+      cantiere,
+      lavorazione
     };
 
-    let utente = "";
-    let nomeOperaio = "";
-
-    function login() {
-      const user = document.getElementById("user").value;
-      const pass = document.getElementById("pass").value;
-
-      if (utenti[user] && utenti[user].password === pass) {
-        utente = user;
-        nomeOperaio = utenti[user].nome;
-        document.getElementById("login").style.display = "none";
-        document.getElementById("form").style.display = "block";
-      } else {
-        alert("Credenziali errate");
-      }
-    }
-
-    function mostraOperai() {
-      document.getElementById("multiOperai").style.display = "block";
-    }
-
-    
-    function invia() {
-      const data = document.getElementById("data").value;
-      const orari = document.getElementById("orari").value;
-      const cantiere = document.getElementById("cantiere").value;
-      const lavorazione = document.getElementById("lavorazione").value;
-      const selezione = document.getElementById("operaio");
-      let operaiSelezionati = [];
-
-      if (document.getElementById("multiOperai").style.display === "block") {
-        operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-      } else {
-        operaiSelezionati = [nomeOperaio];
-      }
-
-      if (!data || !cantiere || !lavorazione || !orari || operaiSelezionati.length === 0) {
-        alert("Compila tutti i campi.");
-        return;
-      }
-
-      operaiSelezionati.forEach(nome => {
-        const dati = {
-          data,
-          orari,
-          operaio: nome,
-          user: utente,
-          cantiere,
-          lavorazione
-        };
-
-        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-          method: "POST",
-          mode: "no-cors",
-          body: JSON.stringify(dati),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-      });
-
-      setTimeout(caricaUltimi7, 1000); // Delay per permettere salvataggio
-    }
-
-    function caricaUltimi7() {
-      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&username=" + utente)
-        .then(r => r.json())
-        .then(dati => {
-          let html = "<h4>Ultimi 7 giorni:</h4>";
-          if (dati.presenze && dati.presenze.length > 0) {
-            html += "<ul>";
-            dati.presenze.forEach(r => {
-              html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
-            });
-            html += "</ul>";
-          } else {
-            html += "<p>Nessun dato trovato</p>";
-          }
-          document.getElementById("ultimi7").innerHTML = html;
-        });
-    }
-    
-      const data = document.getElementById("data").value;
-      const orari = document.getElementById("orari").value;
-      const cantiere = document.getElementById("cantiere").value;
-      const lavorazione = document.getElementById("lavorazione").value;
-      const selezione = document.getElementById("operaio");
-      let operaiSelezionati = [];
-
-      if (document.getElementById("multiOperai").style.display === "block") {
-        operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-      } else {
-        operaiSelezionati = [nomeOperaio];
-      }
-
-      if (!data || !cantiere || !lavorazione || !orari || operaiSelezionati.length === 0) {
-        alert("Compila tutti i campi.");
-        return;
-      }
-
-      operaiSelezionati.forEach(nome => {
-        const dati = {
-          data,
-          orari,
-          operaio: nome,
-          user: utente,
-          cantiere,
-          lavorazione
-        };
-
-        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-          method: "POST",
-          mode: "no-cors",
-          body: JSON.stringify(dati),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-      });
-    }
-  </script>
-
-<script>
-  const utenti = {
-    "mata": { password: "max321", nome: "Massimo Tarantino" },
-    "pata": { password: "pasq@85", nome: "Pasquale Tarantino" },
-    "maez": { password: "maja44", nome: "Maja Ebuka Matthew Ezigbo" },
-    "saac": { password: "sam!90", nome: "Samir Achlih" },
-    "oot":  { password: "teo007", nome: "Otelli Otello" },
-    "emma": { password: "manu12", nome: "Emanuele Massucci" },
-    "maro": { password: "ronco33", nome: "Mario Ronconi" },
-    "kero": { password: "kevx88", nome: "Kevin Ronconi" },
-    "ahaz": { password: "zrik77", nome: "Ahmed Azrikem" },
-    "abaq": { password: "aziz@19", nome: "Abdelaziz Aqriqeb" },
-    "maru": { password: "matt34", nome: "Matteo Russo" },
-    "guha": { password: "gus123", nome: "Gus Harding" },
-    "gigr": { password: "giox55", nome: "Giammario Grilli" }
-  };
-
-  let utente = "";
-  let nomeOperaio = "";
-
-  function login() {
-    const user = document.getElementById("user").value;
-    const pass = document.getElementById("pass").value;
-
-    if (utenti[user] && utenti[user].password === pass) {
-      utente = user;
-      nomeOperaio = utenti[user].nome;
-      document.getElementById("login").style.display = "none";
-      document.getElementById("form").style.display = "block";
-      caricaUltimi7(); // carica subito
-    } else {
-      alert("Credenziali errate");
-    }
-  }
-
-  function mostraOperai() {
-    document.getElementById("multiOperai").style.display = "block";
-  }
-
-  function invia() {
-    const data = document.getElementById("data").value;
-    const orari = document.getElementById("orari").value;
-    const cantiere = document.getElementById("cantiere").value;
-    const lavorazione = document.getElementById("lavorazione").value;
-    const selezione = document.getElementById("operaio");
-    let operaiSelezionati = [];
-
-    if (document.getElementById("multiOperai").style.display === "block") {
-      operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-    } else {
-      operaiSelezionati = [nomeOperaio];
-    }
-
-    if (!data || !cantiere || !lavorazione || !orari || operaiSelezionati.length === 0) {
-      alert("Compila tutti i campi.");
-      return;
-    }
-
-    operaiSelezionati.forEach(nome => {
-      const dati = {
-        data,
-        orari,
-        operaio: nome,
-        user: utente,
-        cantiere,
-        lavorazione
-      };
-
-      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify(dati),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify(dati),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
+  });
 
-    setTimeout(caricaUltimi7, 1000);
-  }
+  setTimeout(caricaUltimi7, 1000);
+}
 
-  function caricaUltimi7() {
-    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&username=" + utente)
-      .then(r => r.json())
-      .then(dati => {
-        let html = "<h4>Ultimi 7 giorni:</h4>";
-        if (dati.presenze && dati.presenze.length > 0) {
-          html += "<ul>";
-          dati.presenze.forEach(r => {
-            html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
-          });
-          html += "</ul>";
-        } else {
-          html += "<p>Nessun dato trovato</p>";
-        }
-        document.getElementById("ultimi7").innerHTML = html;
-      });
-  }
+function caricaUltimi7() {
+  fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&username=" + utente)
+    .then(r => r.json())
+    .then(dati => {
+      let html = "<h4>Ultimi 7 giorni:</h4>";
+      if (dati.presenze && dati.presenze.length > 0) {
+        html += "<ul>";
+        dati.presenze.forEach(r => {
+          html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
+        });
+        html += "</ul>";
+      } else {
+        html += "<p>Nessun dato trovato</p>";
+      }
+      document.getElementById("ultimi7").innerHTML = html;
+    });
+}
 </script>
 </body>
 </html>
