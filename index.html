@@ -121,6 +121,12 @@
       <option value="Fermani">Fermani</option>
       <option value="Casa Luca Appezzana">Casa Luca Appezzana</option>
     </select>
+    
+    <button onclick="mostraCantiereLibero()">➕ Cantiere non presente</button>
+    <div id="cantiereLibero" style="display:none;">
+      <input type="text" id="cantiereAltro" placeholder="Inserisci nome cantiere">
+    </div>
+
     <input type="text" id="lavorazione" placeholder="Lavorazione">
     
     <button onclick="mostraOperai()">➕ Inserisci dati per altri operai</button>
@@ -209,6 +215,10 @@
   
   function mostraOperai() {
     document.getElementById("multiOperai").style.display = "block";
+  }
+
+  function mostraCantiereLibero() {
+    document.getElementById("cantiereLibero").style.display = "block";
   }
 </script>
 </body>
