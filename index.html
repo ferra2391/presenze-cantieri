@@ -206,9 +206,8 @@
         .then(dati => {
           let html = "<h4>Ultimi 7 giorni:</h4>";
           if (dati.presenze && dati.presenze.length > 0) {
-            const presenzeFiltrate = dati.presenze.filter(r => r.operaio === nomeOperaio);
             html += "<ul>";
-            presenzeFiltrate.forEach(r => {
+            dati.presenze.forEach(r => {
               const dataPulita = new Date(r.data).toLocaleDateString("it-IT");
               html += `<li>${dataPulita} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
             });
