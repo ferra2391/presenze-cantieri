@@ -122,6 +122,27 @@
       <option value="Casa Luca Appezzana">Casa Luca Appezzana</option>
     </select>
     <input type="text" id="lavorazione" placeholder="Lavorazione">
+    
+    <button onclick="mostraOperai()">➕ Inserisci dati per altri operai</button>
+    <div id="multiOperai" style="display:none;">
+      <label>Seleziona altri operai:</label>
+      <select id="operaio" multiple size="5">
+        <option value="Massimo Tarantino">Massimo Tarantino</option>
+        <option value="Pasquale Tarantino">Pasquale Tarantino</option>
+        <option value="Maja Ebuka Matthew Ezigbo">Maja Ebuka Matthew Ezigbo</option>
+        <option value="Samir Achlih">Samir Achlih</option>
+        <option value="Otelli Otello">Otelli Otello</option>
+        <option value="Emanuele Massucci">Emanuele Massucci</option>
+        <option value="Mario Ronconi">Mario Ronconi</option>
+        <option value="Kevin Ronconi">Kevin Ronconi</option>
+        <option value="Ahmed Azrikem">Ahmed Azrikem</option>
+        <option value="Abdelaziz Aqriqeb">Abdelaziz Aqriqeb</option>
+        <option value="Matteo Russo">Matteo Russo</option>
+        <option value="Gus Harding">Gus Harding</option>
+        <option value="Giammario Grilli">Giammario Grilli</option>
+      </select>
+    </div>
+
     <button onclick="invia()">Invia</button>
     <div id="ultimi7" style="margin-top:20px;"></div>
   </div>
@@ -185,6 +206,10 @@
           document.getElementById("ultimi7").innerHTML = html;
         });
     }
-  </script>
+  
+  function mostraOperai() {
+    document.getElementById("multiOperai").style.display = "block";
+  }
+</script>
 </body>
 </html>
