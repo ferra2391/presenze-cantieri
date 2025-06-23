@@ -88,14 +88,16 @@
     <input type="text" id="lavorazione" placeholder="Lavorazione">
 
     <button onclick="mostraOperai()">➕ Inserisci dati per altri operai</button>
-    <div id="multiOperai" style="display:none;">
-      <label>Seleziona altri operai:</label>
+<div id="multiOperai" style="display:none;">
+  <label>Seleziona altri operai:</label>
+  <select id="operaio" multiple size="6" style="margin-top: 10px;"></select>
 
-      <div style="margin-top:10px;">
-        <label>Oppure inserisci un nuovo operaio:</label>
-        <input type="text" id="nuovoOperaio" placeholder="Inserisci nuovo operaio">
-      </div>
-    </div>
+  <div style="margin-top:10px;">
+    <label>Oppure inserisci un nuovo operaio:</label>
+    <input type="text" id="nuovoOperaio" placeholder="Inserisci nuovo operaio">
+  </div>
+</div>
+
 
     <button onclick="invia()">Invia</button>
     <div id="ultimi7" style="margin-top:20px;"></div>
