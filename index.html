@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -80,22 +79,21 @@
           lista.innerHTML = "";
 
           cantieri.forEach(r => {
-            if (r["Nome Cantiere"]) {
-              const nome = r["Nome Cantiere"];
-              const opt = document.createElement("option");
-              opt.value = nome;
-              opt.textContent = nome;
-              select.appendChild(opt);
+            const nome = r["Nome Cantiere"];
+            if (!nome) return;
+            const opt = document.createElement("option");
+            opt.value = nome;
+            opt.textContent = nome;
+            select.appendChild(opt);
 
-              if (ruolo === "amministratore") {
-                const li = document.createElement("li");
-                li.textContent = nome + " ";
-                const btn = document.createElement("button");
-                btn.textContent = "❌";
-                btn.onclick = () => rimuoviCantiere(nome);
-                li.appendChild(btn);
-                lista.appendChild(li);
-              }
+            if (ruolo === "amministratore") {
+              const li = document.createElement("li");
+              li.textContent = nome + " ";
+              const btn = document.createElement("button");
+              btn.textContent = "❌";
+              btn.onclick = () => rimuoviCantiere(nome);
+              li.appendChild(btn);
+              lista.appendChild(li);
             }
           });
 
@@ -117,14 +115,14 @@
     function aggiungiCantiere() {
       const nuovo = document.getElementById("nuovoCantiere").value.trim();
       if (!nuovo) return alert("Inserisci un nome valido");
-      fetch("https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec?addCantiere=" + encodeURIComponent(nuovo));
+      fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?addCantiere=" + encodeURIComponent(nuovo));
       alert("Cantiere aggiunto (se lo script è attivo)");
       location.reload();
     }
 
     function rimuoviCantiere(nome) {
       if (!confirm("Eliminare " + nome + "?")) return;
-      fetch("https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec?removeCantiere=" + encodeURIComponent(nome));
+      fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?removeCantiere=" + encodeURIComponent(nome));
       alert("Cantiere eliminato (se lo script è attivo)");
       location.reload();
     }
