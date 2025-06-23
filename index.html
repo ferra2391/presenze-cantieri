@@ -133,6 +133,7 @@
         document.getElementById("form").style.display = "block";
         document.getElementById("data").value = new Date().toISOString().split("T")[0];
         popolaOrari();
+        caricaCantieri();
         caricaUltimi7();
       } else {
         alert("Credenziali errate");
@@ -155,6 +156,22 @@
         fineMin.innerHTML += `<option value="${min}">${min}</option>`;
       });
     }
+function caricaCantieri() {
+  fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
+    .then(r => r.json())
+    .then(data => {
+      const select = document.getElementById("cantiere");
+      select.innerHTML = '<option value="">-- Seleziona Cantiere --</option>';
+      data.forEach(r => {
+        if (r["Cantiere"]) {
+          const opt = document.createElement("option");
+          opt.value = r["Cantiere"];
+          opt.textContent = r["Cantiere"];
+          select.appendChild(opt);
+        }
+      });
+    });
+}
 
     function mostraCantiereLibero() {
       document.getElementById("cantiereLibero").style.display = "block";
