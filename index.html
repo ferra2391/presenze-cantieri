@@ -115,14 +115,14 @@
     function aggiungiCantiere() {
       const nuovo = document.getElementById("nuovoCantiere").value.trim();
       if (!nuovo) return alert("Inserisci un nome valido");
-      fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?addCantiere=" + encodeURIComponent(nuovo));
+      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?addCantiere=" + encodeURIComponent(nuovo));
       alert("Cantiere aggiunto (se lo script è attivo)");
       location.reload();
     }
 
     function rimuoviCantiere(nome) {
       if (!confirm("Eliminare " + nome + "?")) return;
-      fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?removeCantiere=" + encodeURIComponent(nome));
+      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?removeCantiere=" + encodeURIComponent(nome));
       alert("Cantiere eliminato (se lo script è attivo)");
       location.reload();
     }
