@@ -90,21 +90,7 @@
     <button onclick="mostraOperai()">➕ Inserisci dati per altri operai</button>
     <div id="multiOperai" style="display:none;">
       <label>Seleziona altri operai:</label>
-      <select id="operaio" multiple size="6">
-        <option value="Massimo Tarantino">Massimo Tarantino</option>
-        <option value="Pasquale Tarantino">Pasquale Tarantino</option>
-        <option value="Maja Ebuka Matthew Ezigbo">Maja Ebuka Matthew Ezigbo</option>
-        <option value="Samir Achlih">Samir Achlih</option>
-        <option value="Otelli Otello">Otelli Otello</option>
-        <option value="Emanuele Massucci">Emanuele Massucci</option>
-        <option value="Mario Ronconi">Mario Ronconi</option>
-        <option value="Kevin Ronconi">Kevin Ronconi</option>
-        <option value="Ahmed Azrikem">Ahmed Azrikem</option>
-        <option value="Abdelaziz Aqriqeb">Abdelaziz Aqriqeb</option>
-        <option value="Matteo Russo">Matteo Russo</option>
-        <option value="Gus Harding">Gus Harding</option>
-        <option value="Giammario Grilli">Giammario Grilli</option>
-      </select>
+
       <div style="margin-top:10px;">
         <label>Oppure inserisci un nuovo operaio:</label>
         <input type="text" id="nuovoOperaio" placeholder="Inserisci nuovo operaio">
@@ -134,6 +120,7 @@
         document.getElementById("data").value = new Date().toISOString().split("T")[0];
         popolaOrari();
         caricaCantieri();
+        caricaOperai();
         caricaUltimi7();
       } else {
         alert("Credenziali errate");
@@ -167,6 +154,22 @@ function caricaCantieri() {
           const opt = document.createElement("option");
           opt.value = r["Cantiere"];
           opt.textContent = r["Cantiere"];
+          select.appendChild(opt);
+        }
+      });
+    });
+}
+function caricaOperai() {
+  fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+    .then(r => r.json())
+    .then(data => {
+      const select = document.getElementById("operaio");
+      select.innerHTML = "";
+      data.forEach(r => {
+        if (r["Nome"]) {
+          const opt = document.createElement("option");
+          opt.value = r["Nome"];
+          opt.textContent = r["Nome"];
           select.appendChild(opt);
         }
       });
