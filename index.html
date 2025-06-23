@@ -200,13 +200,19 @@ function caricaOperai() {
       const selezione = document.getElementById("operaio");
       let operaiSelezionati = [];
 
-      if (document.getElementById("multiOperai").style.display === "block") {
-        operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-        if (nuovo) operaiSelezionati.push(nuovo);
-      } else {
-        operaiSelezionati = [nomeOperaio];
-      }
+if (document.getElementById("multiOperai").style.display === "block") {
+  operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+  const nuovo = document.getElementById("nuovoOperaio").value.trim();
+  if (nuovo) operaiSelezionati.push(nuovo);
+
+  // Se non è stato selezionato o scritto nulla, usa il loggato
+  if (operaiSelezionati.length === 0) {
+    operaiSelezionati = [nomeOperaio];
+  }
+} else {
+  operaiSelezionati = [nomeOperaio];
+}
+
 
       operaiSelezionati.forEach(nome => {
         const dati = {
