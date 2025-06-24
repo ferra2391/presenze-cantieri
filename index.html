@@ -253,7 +253,7 @@ function caricaUltimi7() {
       if (dati.presenze && dati.presenze.length > 0) {
         html += "<ul>";
         dati.presenze.forEach(r => {
-          const dataPulita = new Date(r.data).toLocaleDateString("it-IT");
+          const dataPulita = r.data;
           html += `<li>${dataPulita} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
         });
         html += "</ul>";
