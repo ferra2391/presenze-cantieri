@@ -244,24 +244,25 @@ if (document.getElementById("multiOperai").style.display === "block") {
       alert("Dati correttamente inseriti");
     }
 
-    function caricaUltimi7() {
-      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&username=" + utente)
-        .then(r => r.json())
-        .then(dati => {
-          let html = "<h4>Ultimi 7 eventi:</h4>";
-          if (dati.presenze && dati.presenze.length > 0) {
-            html += "<ul>";
-            dati.presenze.forEach(r => {
-              const dataPulita = new Date(r.data).toLocaleDateString("it-IT");
-              html += `<li>${dataPulita} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
-            });
-            html += "</ul>";
-          } else {
-            html += "<p>Nessun dato trovato</p>";
-          }
-          document.getElementById("ultimi7").innerHTML = html;
+   function caricaUltimi7() {
+  fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
+    .then(r => r.json())
+    .then(dati => {
+      let html = "<h4>Ultimi 7 eventi:</h4>";
+      if (dati.presenze && dati.presenze.length > 0) {
+        html += "<ul>";
+        dati.presenze.forEach(r => {
+          const dataPulita = new Date(r.data).toLocaleDateString("it-IT");
+          html += `<li>${dataPulita} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
         });
-    }
+        html += "</ul>";
+      } else {
+        html += "<p>Nessun dato trovato</p>";
+      }
+      document.getElementById("ultimi7").innerHTML = html;
+    });
+}
+
   </script>
 </body>
 </html>
