@@ -105,4 +105,13 @@
           });
         })
         .catch(() => {
-          document.
+          const lista = document.getElementById("listaCantieri");
+          lista.innerHTML = "<li>Errore nel caricamento.</li>";
+        });
+    }
+
+    // Caricamento iniziale
+    window.onload = caricaCantieri;
+  </script>
+</body>
+</html>
