@@ -106,9 +106,9 @@ function login() {
   fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
     .then(r => r.json())
     .then(data => {
-      const utenteTrovato = data.find(r => r["Username"] === userInput && r["Password"] === passInput);
+      const utenteTrovato = data.find(r => r["User"] === userInput && r["Password"] === passInput);
       if (utenteTrovato) {
-        utente = utenteTrovato["Username"];
+        utente = utenteTrovato["User"];
         nomeOperaio = utenteTrovato["Nome Operaio"] || utenteTrovato["Nome"]; // fallback se colonna è "Nome"
         document.getElementById("login").style.display = "none";
         document.getElementById("form").style.display = "block";
