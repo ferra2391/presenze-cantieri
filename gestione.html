@@ -134,6 +134,7 @@
       const nome = document.getElementById("userNome").value.trim();
       const ruolo = document.getElementById("userRuolo").value.trim();
       const msg = document.getElementById("messaggioUtente");
+      localStorage.setItem("ruolo", ruolo); // ✅ Salva il ruolo per uso immediato
 
       if (!user || !password || !nome || !ruolo) {
         msg.textContent = "⚠️ Compila tutti i campi";
