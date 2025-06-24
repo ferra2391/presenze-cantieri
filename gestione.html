@@ -188,12 +188,18 @@ function caricaUtenti() {
     window.onload = () => {
       caricaCantieri();
       caricaUtenti();
+  const oggi = new Date().toISOString().split("T")[0];
+  document.getElementById("dataSelezionata").value = oggi;
+
+  if (localStorage.getItem("ruolo") === "admin") {
+    caricaRiepilogo(); // 👈 carica subito il riepilogo di oggi
+  }
     };
   </script>
   <hr>
 <div id="riepilogoPresenze" style="display:none;">
   <h3>📋 Riepilogo Presenze Giornaliero</h3>
-  <input type="date" id="dataSelezionata">
+  <input type="date" id="dataSelezionata" value="">
   <button onclick="caricaRiepilogo()">Mostra riepilogo</button>
   <div id="outputRiepilogo" style="margin-top:20px;"></div>
 </div>
