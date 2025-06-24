@@ -10,7 +10,7 @@
       background-color: #f2f2f2;
       padding: 20px;
     }
-    h2 {
+    h2, h3 {
       text-align: center;
     }
     input, button {
@@ -35,18 +35,17 @@
       margin-top: 20px;
       font-weight: bold;
     }
+    #elencoCantieri {
+      margin-top: 30px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    ul {
+      padding-left: 20px;
+    }
   </style>
-  #elencoCantieri {
-  margin-top: 30px;
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-ul {
-  padding-left: 20px;
-}
-
 </head>
 <body>
 
@@ -56,12 +55,14 @@ ul {
   <button onclick="inserisciCantiere()">Aggiungi Cantiere</button>
 
   <div id="messaggio"></div>
-<div id="elencoCantieri">
-  <h3>Cantieri Attualmente Registrati</h3>
-  <ul id="listaCantieri">
-    <li>Caricamento in corso...</li>
-  </ul>
-</div>
+
+  <div id="elencoCantieri">
+    <h3>Cantieri Attualmente Registrati</h3>
+    <ul id="listaCantieri">
+      <li>Caricamento in corso...</li>
+    </ul>
+  </div>
+
   <script>
     function inserisciCantiere() {
       const nome = document.getElementById("nomeCantiere").value.trim();
@@ -81,33 +82,27 @@ ul {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dati)
       });
-function caricaCantieri() {
-  fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
-    .then(response => response.json())
-    .then(data => {
-      const lista = document.getElementById("listaCantieri");
-      lista.innerHTML = "";
-      data.forEach(row => {
-        if (row["Cantiere"]) {
-          const li = document.createElement("li");
-          li.textContent = row["Cantiere"];
-          lista.appendChild(li);
-        }
-      });
-    })
-    .catch(() => {
-      document.getElementById("listaCantieri").innerHTML = "<li>Errore nel caricamento</li>";
-    });
-}
-
-// Carica i cantieri appena la pagina si apre
-window.onload = caricaCantieri;
 
       messaggio.textContent = "✅ Cantiere aggiunto con successo!";
       messaggio.style.color = "green";
       document.getElementById("nomeCantiere").value = "";
-    }
-  </script>
 
-</body>
-</html>
+      setTimeout(caricaCantieri, 1000); // Ricarica lista
+    }
+
+    function caricaCantieri() {
+      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
+        .then(response => response.json())
+        .then(data => {
+          const lista = document.getElementById("listaCantieri");
+          lista.innerHTML = "";
+          data.forEach(row => {
+            if (row["Cantiere"]) {
+              const li = document.createElement("li");
+              li.textContent = row["Cantiere"];
+              lista.appendChild(li);
+            }
+          });
+        })
+        .catch(() => {
+          document.
