@@ -114,7 +114,7 @@ function login() {
         const ruolo = utenteTrovato["Ruolo"] || "";
 
         // Mostra benvenuto
-        document.getElementById("benvenuto").innerText = `Benvenuto, ${nomeOperaio} (${ruolo})`;
+        document.getElementById("benvenuto").innerText = `Benvenuto, ${nomeOperaio} `;
 
         // Mostra/Nasconde gestione cantiere
         if (ruolo.toLowerCase() !== "amministratore") {
