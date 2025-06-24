@@ -143,7 +143,7 @@
 
       const dati = {
         nuovoUtente: true,
-        user: user,
+        User: user,
         Password: password,
         Nome: nome,
         Ruolo: ruolo
@@ -167,19 +167,23 @@
       setTimeout(caricaUtenti, 1000);
     }
 
-    function caricaUtenti() {
-      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-        .then(response => response.json())
-        .then(data => {
-          const lista = document.getElementById("listaUtenti");
-          lista.innerHTML = "";
-          data.forEach(row => {
-            const li = document.createElement("li");
-            li.textContent = `${row["Nome Operaio"]} (${row.user}, ${row.Ruolo})`;
-            lista.appendChild(li);
-          });
-        });
-    }
+function caricaUtenti() {
+  fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+    .then(response => response.json())
+    .then(data => {
+      const lista = document.getElementById("listaUtenti");
+      lista.innerHTML = "";
+      data.forEach(row => {
+        const nome = row["Nome"] || "undefined";
+        const username = row["User"] || "undefined";
+        const ruolo = row["Ruolo"] || "undefined";
+        const li = document.createElement("li");
+        li.textContent = `${nome} (${username}, ${ruolo})`;
+        lista.appendChild(li);
+      });
+    });
+}
+
 
     window.onload = () => {
       caricaCantieri();
