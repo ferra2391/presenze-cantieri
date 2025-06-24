@@ -66,7 +66,7 @@
   <hr>
   <h2>Gestione Utenti</h2>
 
-  <input type="text" id="userUsername" placeholder="Username">
+  <input type="text" id="useruser" placeholder="user">
   <input type="text" id="userPassword" placeholder="Password">
   <input type="text" id="userNome" placeholder="Nome e Cognome">
   <input type="text" id="userRuolo" placeholder="Ruolo">
@@ -129,13 +129,13 @@
     }
 
     function aggiungiUtente() {
-      const username = document.getElementById("userUsername").value.trim();
+      const user = document.getElementById("useruser").value.trim();
       const password = document.getElementById("userPassword").value.trim();
       const nome = document.getElementById("userNome").value.trim();
       const ruolo = document.getElementById("userRuolo").value.trim();
       const msg = document.getElementById("messaggioUtente");
 
-      if (!username || !password || !nome || !ruolo) {
+      if (!user || !password || !nome || !ruolo) {
         msg.textContent = "⚠️ Compila tutti i campi";
         msg.style.color = "red";
         return;
@@ -143,7 +143,7 @@
 
       const dati = {
         nuovoUtente: true,
-        Username: username,
+        user: user,
         Password: password,
         Nome: nome,
         Ruolo: ruolo
@@ -159,7 +159,7 @@
       msg.textContent = "✅ Utente aggiunto!";
       msg.style.color = "green";
 
-      document.getElementById("userUsername").value = "";
+      document.getElementById("useruser").value = "";
       document.getElementById("userPassword").value = "";
       document.getElementById("userNome").value = "";
       document.getElementById("userRuolo").value = "";
@@ -175,7 +175,7 @@
           lista.innerHTML = "";
           data.forEach(row => {
             const li = document.createElement("li");
-            li.textContent = `${row["Nome Operaio"]} (${row.Username}, ${row.Ruolo})`;
+            li.textContent = `${row["Nome Operaio"]} (${row.user}, ${row.Ruolo})`;
             lista.appendChild(li);
           });
         });
