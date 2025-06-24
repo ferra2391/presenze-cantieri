@@ -84,9 +84,10 @@
 
 
     <button onclick="invia()">Invia</button>
-    <button onclick="window.location.href='gestione.html'" style="background-color: #28a745; margin-top: 10px;">
+<button id="btnGestione" onclick="window.location.href='gestione.html'" style="background-color: #28a745; margin-top: 10px;">
   Vai alla Gestione Cantiere
 </button>
+<div id="benvenuto" style="margin-top: 20px; font-weight: bold; color: #333;"></div>
 
     <div id="ultimi7" style="margin-top:20px;"></div>
   </div>
@@ -109,7 +110,18 @@ function login() {
       const utenteTrovato = data.find(r => r["User"] === userInput && r["Password"] === passInput);
       if (utenteTrovato) {
         utente = utenteTrovato["User"];
-        nomeOperaio = utenteTrovato["Nome Operaio"] || utenteTrovato["Nome"]; // fallback se colonna è "Nome"
+        nomeOperaio = utenteTrovato["Nome"];
+        const ruolo = utenteTrovato["Ruolo"] || "";
+
+        // Mostra benvenuto
+        document.getElementById("benvenuto").innerText = `Benvenuto, ${nomeOperaio} (${ruolo})`;
+
+        // Mostra/Nasconde gestione cantiere
+        if (ruolo.toLowerCase() !== "amministratore") {
+          document.getElementById("btnGestione").style.display = "none";
+        }
+
+        // Visualizza form
         document.getElementById("login").style.display = "none";
         document.getElementById("form").style.display = "block";
         document.getElementById("data").value = new Date().toISOString().split("T")[0];
@@ -122,6 +134,7 @@ function login() {
       }
     });
 }
+
 
 
     function popolaOrari() {
