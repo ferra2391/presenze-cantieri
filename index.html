@@ -99,12 +99,17 @@
     let utente = "";
     let nomeOperaio = "";
 
-    function login() {
-      const user = document.getElementById("user").value;
-      const pass = document.getElementById("pass").value;
-      if (utenti[user] && utenti[user].password === pass) {
-        utente = user;
-        nomeOperaio = utenti[user].nome;
+function login() {
+  const userInput = document.getElementById("user").value.trim();
+  const passInput = document.getElementById("pass").value.trim();
+
+  fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+    .then(r => r.json())
+    .then(data => {
+      const utenteTrovato = data.find(r => r["Username"] === userInput && r["Password"] === passInput);
+      if (utenteTrovato) {
+        utente = utenteTrovato["Username"];
+        nomeOperaio = utenteTrovato["Nome Operaio"] || utenteTrovato["Nome"]; // fallback se colonna è "Nome"
         document.getElementById("login").style.display = "none";
         document.getElementById("form").style.display = "block";
         document.getElementById("data").value = new Date().toISOString().split("T")[0];
@@ -115,7 +120,9 @@
       } else {
         alert("Credenziali errate");
       }
-    }
+    });
+}
+
 
     function popolaOrari() {
       const inizioOra = document.getElementById("oraInizioOra");
