@@ -190,5 +190,54 @@ function caricaUtenti() {
       caricaUtenti();
     };
   </script>
+  <hr>
+<div id="riepilogoPresenze" style="display:none;">
+  <h3>📋 Riepilogo Presenze Giornaliero</h3>
+  <input type="date" id="dataSelezionata">
+  <button onclick="caricaRiepilogo()">Mostra riepilogo</button>
+  <div id="outputRiepilogo" style="margin-top:20px;"></div>
+</div>
+
+<script>
+  const ruoloUtenteCorrente = localStorage.getItem("ruolo") || "operaio"; // esempio di salvataggio lato client
+
+  if (ruoloUtenteCorrente === "admin") {
+    document.getElementById("riepilogoPresenze").style.display = "block";
+  }
+
+  function caricaRiepilogo() {
+    const data = document.getElementById("dataSelezionata").value;
+    if (!data) {
+      alert("Seleziona una data.");
+      return;
+    }
+
+    fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1&data=${data}`)
+      .then(res => res.json())
+      .then(dati => {
+        const out = document.getElementById("outputRiepilogo");
+        let html = "<h4>✅ Operai che hanno compilato:</h4><ul>";
+        dati.compilati.forEach(p => {
+          html += `<li><b>${p.nome}</b> → ${p.cantiere} – ${p.lavorazione}</li>`;
+        });
+        html += "</ul>";
+
+        if (dati.mancanti.length > 0) {
+          html += "<h4>⚠️ Operai mancanti:</h4><ul>";
+          dati.mancanti.forEach(n => html += `<li>${n}</li>`);
+          html += "</ul>";
+        } else {
+          html += "<p><i>Tutti gli operai hanno registrato la presenza.</i></p>";
+        }
+
+        out.innerHTML = html;
+      })
+      .catch(err => {
+        document.getElementById("outputRiepilogo").innerHTML = "Errore nel caricamento.";
+        console.error(err);
+      });
+  }
+</script>
+
 </body>
 </html>
