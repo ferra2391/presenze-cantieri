@@ -30,12 +30,12 @@
     button:hover {
       background-color: #218838;
     }
-    #messaggio {
+    #messaggio, #messaggioUtente {
       text-align: center;
       margin-top: 20px;
       font-weight: bold;
     }
-    #elencoCantieri {
+    #elencoCantieri, #elencoUtenti {
       margin-top: 30px;
       background: white;
       padding: 15px;
@@ -59,6 +59,24 @@
   <div id="elencoCantieri">
     <h3>Cantieri Attualmente Registrati</h3>
     <ul id="listaCantieri">
+      <li>Caricamento in corso...</li>
+    </ul>
+  </div>
+
+  <hr>
+  <h2>Gestione Utenti</h2>
+
+  <input type="text" id="userUsername" placeholder="Username">
+  <input type="text" id="userPassword" placeholder="Password">
+  <input type="text" id="userNome" placeholder="Nome e Cognome">
+  <input type="text" id="userRuolo" placeholder="Ruolo">
+  <button onclick="aggiungiUtente()">Aggiungi Utente</button>
+
+  <div id="messaggioUtente"></div>
+
+  <div id="elencoUtenti">
+    <h3>Utenti Registrati</h3>
+    <ul id="listaUtenti">
       <li>Caricamento in corso...</li>
     </ul>
   </div>
@@ -87,7 +105,7 @@
       messaggio.style.color = "green";
       document.getElementById("nomeCantiere").value = "";
 
-      setTimeout(caricaCantieri, 1000); // Ricarica lista
+      setTimeout(caricaCantieri, 1000);
     }
 
     function caricaCantieri() {
@@ -110,8 +128,63 @@
         });
     }
 
-    // Caricamento iniziale
-    window.onload = caricaCantieri;
+    function aggiungiUtente() {
+      const username = document.getElementById("userUsername").value.trim();
+      const password = document.getElementById("userPassword").value.trim();
+      const nome = document.getElementById("userNome").value.trim();
+      const ruolo = document.getElementById("userRuolo").value.trim();
+      const msg = document.getElementById("messaggioUtente");
+
+      if (!username || !password || !nome || !ruolo) {
+        msg.textContent = "⚠️ Compila tutti i campi";
+        msg.style.color = "red";
+        return;
+      }
+
+      const dati = {
+        nuovoUtente: true,
+        Username: username,
+        Password: password,
+        Nome: nome,
+        Ruolo: ruolo
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dati)
+      });
+
+      msg.textContent = "✅ Utente aggiunto!";
+      msg.style.color = "green";
+
+      document.getElementById("userUsername").value = "";
+      document.getElementById("userPassword").value = "";
+      document.getElementById("userNome").value = "";
+      document.getElementById("userRuolo").value = "";
+
+      setTimeout(caricaUtenti, 1000);
+    }
+
+    function caricaUtenti() {
+      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+        .then(response => response.json())
+        .then(data => {
+          const lista = document.getElementById("listaUtenti");
+          lista.innerHTML = "";
+          data.forEach(row => {
+            const li = document.createElement("li");
+            li.textContent = `${row["Nome Operaio"]} (${row.Username}, ${row.Ruolo})`;
+            lista.appendChild(li);
+          });
+        });
+    }
+
+    window.onload = () => {
+      caricaCantieri();
+      caricaUtenti();
+    };
   </script>
 </body>
 </html>
