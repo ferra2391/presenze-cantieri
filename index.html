@@ -61,11 +61,13 @@
       color: #555;
       margin-top: 15px;
     }
-    #importaBox {
-      background: #eef6ec;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px dashed #28a745;
+#importaBox {
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
     }
     #ultimaLavorazione {
       background-color: #fff;
@@ -88,7 +90,12 @@
   </style>
 </head>
 <body>
-  <div id="benvenuto"></div>
+  
+<div id="benvenuto">
+  <div id="messaggioBenvenuto"></div>
+  <div style="font-size: 14px; color: #777; margin-top: 4px;">🎯 Ancora un piccolo sforzo</div>
+</div>
+
   <div id="login">
     <h2>🔐 Login</h2>
     <input type="text" id="user" placeholder="🔑 Utente">
@@ -127,7 +134,7 @@
 
     <input type="text" id="lavorazione" placeholder="🌍 Lavorazione">
 
-    <button onclick="mostraOperai()">➕ Inserisci dati per altri operai</button>
+    <button onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
     <div id="multiOperai" style="display:none;">
       <label class="section-label">👥 Seleziona altri operai:</label>
       <select id="operaio" multiple size="6" style="margin-top: 10px;"></select>
@@ -162,7 +169,7 @@
             nomeOperaio = utenteTrovato["Nome"];
             const ruolo = utenteTrovato["Ruolo"] || "";
             localStorage.setItem("ruolo", ruolo);
-            document.getElementById("benvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
+            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
             if (ruolo.toLowerCase() !== "amministratore") {
               document.getElementById("btnGestione").style.display = "none";
             }
