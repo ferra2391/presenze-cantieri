@@ -112,7 +112,7 @@ function login() {
         utente = utenteTrovato["User"];
         nomeOperaio = utenteTrovato["Nome"];
         const ruolo = utenteTrovato["Ruolo"] || "";
-
+localStorage.setItem("ruolo", ruolo); // 👈 NECESSARIO per mostrare riepilogo
         // Mostra benvenuto
         document.getElementById("benvenuto").innerText = `Benvenuto, ${nomeOperaio} `;
 
