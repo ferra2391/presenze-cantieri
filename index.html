@@ -170,7 +170,7 @@
       </div>
     </div>
 
-    <button onclick="invia()" id="btnInvia">📄 Invia Presenza</button>
+    <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
     <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
 
     <div id="ultimi7" style="margin-top:20px;"></div>
@@ -361,11 +361,32 @@ function mostraOperai() {
         alert("Nessuna lavorazione precedente trovata.");
       }
     }
+    function mostraModal() {
+  document.getElementById("modalConferma").style.display = "block";
+}
+
+function chiudiModal() {
+  document.getElementById("modalConferma").style.display = "none";
+}
+
+function confermaInvio() {
+  chiudiModal(); // Chiude la modale
+  invia();       // Esegue la funzione di invio vera e propria
+}
+
   </script>
 <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px;">
   © 2025 Davide Ferrarini — Tutti i diritti riservati
 </footer>
 
     </div> <!-- chiusura .container -->
+  <div id="modalConferma" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.4); z-index:9999;">
+  <div style="background:white; max-width:400px; margin:100px auto; padding:20px; border-radius:10px; text-align:center;">
+    <p style="font-size:18px;">Vuoi confermare l'invio della presenza?</p>
+    <button onclick="confermaInvio()" style="background-color:#28a745; color:white; padding:10px 20px; margin:10px; border:none; border-radius:6px;">✅ Conferma</button>
+    <button onclick="chiudiModal()" style="background-color:#ccc; padding:10px 20px; border:none; border-radius:6px;">❌ Annulla</button>
+  </div>
+</div>
+
 </body>
 </html>
