@@ -251,13 +251,17 @@
         });
     }
 
-    function mostraCantiereLibero() {
-      document.getElementById("cantiereLibero").style.display = "block";
-    }
+function mostraCantiereLibero() {
+  const div = document.getElementById("cantiereLibero");
+  div.style.display = (div.style.display === "block") ? "none" : "block";
+}
 
-    function mostraOperai() {
-      document.getElementById("multiOperai").style.display = "block";
-    }
+
+function mostraOperai() {
+  const div = document.getElementById("multiOperai");
+  div.style.display = (div.style.display === "block") ? "none" : "block";
+}
+
 
     function invia() {
       const data = document.getElementById("data").value;
