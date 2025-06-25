@@ -186,17 +186,16 @@ function caricaUtenti() {
 }
 
 
-    window.onload = () => {
-      caricaCantieri();
-      caricaUtenti();
+window.onload = () => {
+  caricaCantieri();
+  caricaUtenti();
   const oggi = new Date().toISOString().split("T")[0];
   document.getElementById("dataSelezionata").value = oggi;
-
-
-    };
+  caricaRiepilogo(); // carica già il riepilogo del giorno
+};
   </script>
   <hr>
-<div id="riepilogoPresenze" style="display:none;">
+<div id="riepilogoPresenze">
   <h3>📋 Riepilogo Presenze Giornaliero</h3>
   <input type="date" id="dataSelezionata" value="">
   <button onclick="caricaRiepilogo()">Mostra riepilogo</button>
@@ -204,11 +203,6 @@ function caricaUtenti() {
 </div>
 
 <script>
-  const ruoloUtenteCorrente = localStorage.getItem("ruolo") || "operaio"; // esempio di salvataggio lato client
-
-  if (ruoloUtenteCorrente === "admin") {
-    document.getElementById("riepilogoPresenze").style.display = "block";
-  }
 
   function caricaRiepilogo() {
     const data = document.getElementById("dataSelezionata").value;
