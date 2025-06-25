@@ -192,9 +192,7 @@ function caricaUtenti() {
   const oggi = new Date().toISOString().split("T")[0];
   document.getElementById("dataSelezionata").value = oggi;
 
-  if (localStorage.getItem("ruolo") === "admin") {
-    caricaRiepilogo(); // 👈 carica subito il riepilogo di oggi
-  }
+
     };
   </script>
   <hr>
