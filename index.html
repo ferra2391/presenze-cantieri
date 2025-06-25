@@ -34,6 +34,22 @@
     #form {
       margin-top: 20px;
     }
+     /* ✅ Pulsante Invia personalizzato */
+  #btnInvia {
+    background: linear-gradient(to right, #28a745, #218838);
+    border: none;
+    padding: 14px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease;
+  }
+
+  #btnInvia:hover {
+    background: linear-gradient(to right, #218838, #1e7e34);
+  }
   </style>
 </head>
 <body>
@@ -89,7 +105,7 @@
 </div>
 
 
-    <button onclick="invia()">Invia</button>
+    <button onclick="invia()" id="btnInvia">✅ Invia Presenza</button>
 <button id="btnGestione" onclick="window.location.href='gestione.html'" style="background-color: #28a745; margin-top: 10px;">
   Vai alla Gestione Cantiere
 </button>
