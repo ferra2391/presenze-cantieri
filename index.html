@@ -68,7 +68,7 @@
   border: 1px solid #28a745;
 }
 
-    }
+    
     #ultimaLavorazione {
       background-color: #fff;
       padding: 10px;
@@ -87,13 +87,27 @@
     li {
       margin-bottom: 6px;
     }
+    #cantiere {
+  border: 2px solid #007BFF;
+  background-color: #eef4ff;
+  font-weight: bold;
+  color: #0056b3;
+}
+    #btnCantiereAltro {
+  background-color: #d1d1d1;
+  color: #333;
+  font-weight: normal;
+}
+#btnCantiereAltro:hover {
+  background-color: #bbb;
+}
+
   </style>
 </head>
 <body>
   
 <div id="benvenuto">
   <div id="messaggioBenvenuto"></div>
-  <div style="font-size: 14px; color: #777; margin-top: 4px;">🎯 Ancora un piccolo sforzo</div>
 </div>
 
   <div id="login">
@@ -121,7 +135,7 @@
 
     <select id="cantiere"></select>
 
-    <button onclick="mostraCantiereLibero()">🏠​ Cantiere non presente</button>
+    <button id="btnCantiereAltro" onclick="mostraCantiereLibero()">🏠 Cantiere non presente</button>
     <div id="cantiereLibero" style="display:none;">
       <input type="text" id="cantiereAltro" placeholder="🏢 Inserisci nome cantiere">
     </div>
