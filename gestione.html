@@ -51,8 +51,16 @@
 
   <h2>Gestione Cantieri</h2>
 
+  <div id="riepilogoPresenze" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); margin-bottom: 20px;">
+    <h3>📋 Riepilogo Presenze Giornaliero</h3>
+    <input type="date" id="dataSelezionata" value="">
+    <button onclick="caricaRiepilogo()">Mostra riepilogo</button>
+    <div id="outputRiepilogo" style="margin-top:20px;"></div>
+  </div>
+
   <input type="text" id="nomeCantiere" placeholder="Inserisci nome cantiere">
   <button onclick="inserisciCantiere()">Aggiungi Cantiere</button>
+
 
   <div id="messaggio"></div>
 
@@ -194,13 +202,7 @@ window.onload = () => {
   caricaRiepilogo(); // carica già il riepilogo del giorno
 };
   </script>
-  <hr>
-<div id="riepilogoPresenze">
-  <h3>📋 Riepilogo Presenze Giornaliero</h3>
-  <input type="date" id="dataSelezionata" value="">
-  <button onclick="caricaRiepilogo()">Mostra riepilogo</button>
-  <div id="outputRiepilogo" style="margin-top:20px;"></div>
-</div>
+
 
 <script>
 
