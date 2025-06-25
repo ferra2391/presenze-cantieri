@@ -114,7 +114,7 @@
 
     <select id="cantiere"></select>
 
-    <button onclick="mostraCantiereLibero()">➕ Cantiere non presente</button>
+    <button onclick="mostraCantiereLibero()">🏠​ Cantiere non presente</button>
     <div id="cantiereLibero" style="display:none;">
       <input type="text" id="cantiereAltro" placeholder="🏢 Inserisci nome cantiere">
     </div>
@@ -145,7 +145,186 @@
   </div>
 
   <script>
-    // JS invariato: incolla qui il tuo script completo come già usato
+    let utente = "";
+    let nomeOperaio = "";
+    let ultimoTestoLavorazione = "";
+
+    function login() {
+      const userInput = document.getElementById("user").value.trim();
+      const passInput = document.getElementById("pass").value.trim();
+
+      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+        .then(r => r.json())
+        .then(data => {
+          const utenteTrovato = data.find(r => r["User"] === userInput && r["Password"] === passInput);
+          if (utenteTrovato) {
+            utente = utenteTrovato["User"];
+            nomeOperaio = utenteTrovato["Nome"];
+            const ruolo = utenteTrovato["Ruolo"] || "";
+            localStorage.setItem("ruolo", ruolo);
+            document.getElementById("benvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
+            if (ruolo.toLowerCase() !== "amministratore") {
+              document.getElementById("btnGestione").style.display = "none";
+            }
+            document.getElementById("login").style.display = "none";
+            document.getElementById("form").style.display = "block";
+            document.getElementById("data").value = new Date().toISOString().split("T")[0];
+            caricaUltimaLavorazione(utente);
+            popolaOrari();
+            caricaCantieri();
+            caricaOperai();
+            caricaUltimi7();
+          } else {
+            alert("Credenziali errate");
+          }
+        });
+    }
+
+    function popolaOrari() {
+      const inizioOra = document.getElementById("oraInizioOra");
+      const inizioMin = document.getElementById("oraInizioMinuti");
+      const fineOra = document.getElementById("oraFineOra");
+      const fineMin = document.getElementById("oraFineMinuti");
+      for (let h = 6; h <= 20; h++) {
+        const hh = String(h).padStart(2, "0");
+        inizioOra.innerHTML += `<option value="${hh}" ${hh=="08"?"selected":""}>${hh}</option>`;
+        fineOra.innerHTML += `<option value="${hh}" ${hh=="17"?"selected":""}>${hh}</option>`;
+      }
+      ["00", "15", "30", "45"].forEach(min => {
+        inizioMin.innerHTML += `<option value="${min}">${min}</option>`;
+        fineMin.innerHTML += `<option value="${min}">${min}</option>`;
+      });
+    }
+
+    function caricaCantieri() {
+      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
+        .then(r => r.json())
+        .then(data => {
+          const select = document.getElementById("cantiere");
+          select.innerHTML = '<option value="">-- Seleziona Cantiere --</option>';
+          data.forEach(r => {
+            if (r["Cantiere"]) {
+              const opt = document.createElement("option");
+              opt.value = r["Cantiere"];
+              opt.textContent = r["Cantiere"];
+              select.appendChild(opt);
+            }
+          });
+        });
+    }
+
+    function caricaOperai() {
+      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+        .then(r => r.json())
+        .then(data => {
+          const select = document.getElementById("operaio");
+          select.innerHTML = "";
+          data.forEach(r => {
+            if (r["Nome"]) {
+              const opt = document.createElement("option");
+              opt.value = r["Nome"];
+              opt.textContent = r["Nome"];
+              select.appendChild(opt);
+            }
+          });
+        });
+    }
+
+    function mostraCantiereLibero() {
+      document.getElementById("cantiereLibero").style.display = "block";
+    }
+
+    function mostraOperai() {
+      document.getElementById("multiOperai").style.display = "block";
+    }
+
+    function invia() {
+      const data = document.getElementById("data").value;
+      const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
+      const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
+      const orari = oraInizio + " - " + oraFine;
+
+      let cantiere = document.getElementById("cantiere").value;
+      const cantiereAltro = document.getElementById("cantiereAltro").value;
+      if (cantiereAltro) cantiere = cantiereAltro;
+
+      const lavorazione = document.getElementById("lavorazione").value;
+      const selezione = document.getElementById("operaio");
+      let operaiSelezionati = [];
+
+      if (document.getElementById("multiOperai").style.display === "block") {
+        operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+        const nuovo = document.getElementById("nuovoOperaio").value.trim();
+        if (nuovo) operaiSelezionati.push(nuovo);
+        if (operaiSelezionati.length === 0) {
+          operaiSelezionati = [nomeOperaio];
+        }
+      } else {
+        operaiSelezionati = [nomeOperaio];
+      }
+
+      operaiSelezionati.forEach(nome => {
+        const dati = {
+          data,
+          orari,
+          cantiere,
+          lavorazione,
+          operaio: nome,
+          user: utente
+        };
+
+        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify(dati),
+          headers: { "Content-Type": "application/json" }
+        });
+      });
+
+      setTimeout(caricaUltimi7, 1000);
+      alert("Dati correttamente inseriti");
+    }
+
+    function caricaUltimi7() {
+      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
+        .then(r => r.json())
+        .then(dati => {
+          let html = "<h4>Ultimi 7 eventi:</h4>";
+          if (dati.presenze && dati.presenze.length > 0) {
+            html += "<ul>";
+            dati.presenze.forEach(r => {
+              html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
+            });
+            html += "</ul>";
+          } else {
+            html += "<p>Nessun dato trovato</p>";
+          }
+          document.getElementById("ultimi7").innerHTML = html;
+        });
+    }
+
+    function caricaUltimaLavorazione(username) {
+      fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
+        .then(r => r.text())
+        .then(data => {
+          const el = document.getElementById("ultimaLavorazione");
+          if (data && data.trim() !== "") {
+            el.textContent = data;
+            ultimoTestoLavorazione = data;
+          } else {
+            el.textContent = "(Nessuna lavorazione trovata)";
+            ultimoTestoLavorazione = "";
+          }
+        });
+    }
+
+    function importaLavorazione() {
+      if (ultimoTestoLavorazione) {
+        document.getElementById("lavorazione").value = ultimoTestoLavorazione;
+      } else {
+        alert("Nessuna lavorazione precedente trovata.");
+      }
+    }
   </script>
 </body>
 </html>
