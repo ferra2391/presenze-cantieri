@@ -68,6 +68,11 @@
     <div id="cantiereLibero" style="display:none;">
       <input type="text" id="cantiereAltro" placeholder="Inserisci nome cantiere">
     </div>
+<div id="importaBox" style="margin-bottom: 10px;">
+  <h4>Importa lavorazione precedente</h4>
+  <p id="ultimaLavorazione" style="background-color: #eaeaea; padding: 8px; border-radius: 5px;">(Nessuna lavorazione trovata)</p>
+  <button type="button" onclick="importaLavorazione()">📥 Importa lavorazione</button>
+</div>
 
     <input type="text" id="lavorazione" placeholder="Lavorazione">
 
@@ -125,6 +130,8 @@ localStorage.setItem("ruolo", ruolo); // 👈 NECESSARIO per mostrare riepilogo
         document.getElementById("login").style.display = "none";
         document.getElementById("form").style.display = "block";
         document.getElementById("data").value = new Date().toISOString().split("T")[0];
+        caricaUltimaLavorazione(utente); // 🔁 Carica lavorazione precedente
+
         popolaOrari();
         caricaCantieri();
         caricaOperai();
@@ -264,7 +271,32 @@ function caricaUltimi7() {
     });
 }
 
+let ultimoTestoLavorazione = "";
+
+function caricaUltimaLavorazione(username) {
+  fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
+    .then(r => r.text())
+    .then(data => {
+      const el = document.getElementById("ultimaLavorazione");
+      if (data && data.trim() !== "") {
+        el.textContent = data;
+        ultimoTestoLavorazione = data;
+      } else {
+        el.textContent = "(Nessuna lavorazione trovata)";
+        ultimoTestoLavorazione = "";
+      }
+    });
+}
+
+function importaLavorazione() {
+  if (ultimoTestoLavorazione) {
+    document.getElementById("lavorazione").value = ultimoTestoLavorazione;
+  } else {
+    alert("Nessuna lavorazione precedente trovata.");
+  }
+}
 
   </script>
+  
 </body>
 </html>
