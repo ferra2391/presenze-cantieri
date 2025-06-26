@@ -110,11 +110,12 @@
 }
 
 .checkboxAssente {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 15px;
-  white-space: nowrap;
+  gap: 2px;
+  font-size: 14px;
+  margin-left: 0;
+  padding: 0;
 }
 
 .checkboxAssente input[type="checkbox"] {
@@ -195,15 +196,15 @@
 
 
     <div id="importaBox">
-  <h4>🧠 Lavorazioni eseguite</h4>
+  <h4> 💅​ Lavorazioni eseguite</h4>
   <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
   <div class="importa-riga">
-    <input list="suggerimentiLavorazioni" id="lavorazione" placeholder="💅​ Lavorazioni e suggerimenti" />
+    <input list="suggerimentiLavorazioni" id="lavorazione" placeholder="🧠​ Lavorazioni e suggerimenti" />
     <datalist id="suggerimentiLavorazioni"></datalist>
-    <label class="checkboxAssente">
-      <input type="checkbox" id="chkAssente" onchange="toggleAssente()" />
-      <span>🚫 Assente</span>
-      </label>
+<label class="checkboxAssente">
+  <input type="checkbox" id="chkAssente" onchange="toggleAssente()" />
+  <span>🚫 Assente</span>
+</label>
   </div>
 </div>
 
