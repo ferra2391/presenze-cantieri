@@ -241,7 +241,7 @@
   document.querySelector("#importaBox h4").textContent = d.lavTitolo;
   document.querySelector("#importaBox .sottotitolo").textContent = d.lavRecenti;
   document.querySelector("button[onclick='mostraOperai()']").textContent = d.altriOperai;
-  document.querySelector("label.section-label[for='operaio']").textContent = d.altriOperai;
+  document.querySelectorAll(".section-label")[2].textContent = d.altriOperai;
   document.getElementById("nuovoOperaio").placeholder = d.nuovoOperaio;
   document.getElementById("btnInvia").textContent = d.invia;
   document.getElementById("btnGestione").textContent = d.gestione;
@@ -250,7 +250,10 @@
 
     let nomeOperaio = "";
     let ultimoTestoLavorazione = "";
-
+    
+function eseguiLogin() {
+  login();
+}
     function login() {
       const userInput = document.getElementById("user").value.trim();
       const passInput = document.getElementById("pass").value.trim();
