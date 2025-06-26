@@ -107,19 +107,7 @@
   border: 1px solid #ccc;
   border-radius: 8px;
   background: #fff;
-}
 
-.checkboxAssente {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 14px;
-  margin-left: 0;
-  padding: 0;
-}
-
-.checkboxAssente input[type="checkbox"] {
-  transform: scale(1.2);
 }
 
     
@@ -201,10 +189,6 @@
   <div class="importa-riga">
     <input list="suggerimentiLavorazioni" id="lavorazione" placeholder="🧠​ Lavorazioni e suggerimenti" />
     <datalist id="suggerimentiLavorazioni"></datalist>
-<label class="checkboxAssente">
-  <input type="checkbox" id="chkAssente" onchange="toggleAssente()" />
-  <span>🚫 Assente</span>
-</label>
   </div>
 </div>
 
@@ -430,17 +414,7 @@ function confermaInvio() {
   chiudiModal(); // Chiude la modale
   invia();       // Esegue la funzione di invio vera e propria
 }
-function toggleAssente() {
-  const isChecked = document.getElementById("chkAssente").checked;
-  const campoLavorazione = document.getElementById("lavorazione");
-  if (isChecked) {
-    campoLavorazione.disabled = true;
-    campoLavorazione.value = "Assente";
-  } else {
-    campoLavorazione.disabled = false;
-    campoLavorazione.value = "";
-  }
-}
+
 function caricaSuggerimentiLavorazioni() {
   fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
     .then(r => r.json())
