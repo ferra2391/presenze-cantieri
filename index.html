@@ -70,38 +70,38 @@
     }
 
 #importaBox {
-  background: #eef6ec;
+  background: #e9fbe9;
   padding: 16px;
   border-radius: 10px;
-  border-left: 5px solid #28a745;
   margin-top: 10px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #b7e4b6;
 }
 
 #importaBox h4 {
   margin-top: 0;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   color: #1e7e34;
   font-size: 18px;
   font-weight: bold;
 }
 
 #importaBox .sottotitolo {
-  margin: 0 0 10px 0;
+  margin: 0 0 12px 0;
   font-size: 14px;
-  color: #555;
+  color: #444;
 }
 
 .importa-riga {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
   align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 #importaBox input[list] {
-  flex: 1 1 200px;
+  flex: 1 1 250px;
   padding: 12px;
   font-size: 16px;
   border: 1px solid #ccc;
@@ -110,11 +110,15 @@
 }
 
 .checkboxAssente {
-  white-space: nowrap;
-  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.checkboxAssente input[type="checkbox"] {
+  transform: scale(1.2);
 }
 
     
@@ -191,10 +195,10 @@
 
 
     <div id="importaBox">
-  <h4>🧠 Importa ultime lavorazioni</h4>
+  <h4>🧠 Lavorazioni eseguite</h4>
   <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
   <div class="importa-riga">
-    <input list="suggerimentiLavorazioni" id="lavorazione" placeholder="💅​ Lavorazione" />
+    <input list="suggerimentiLavorazioni" id="lavorazione" placeholder="💅​ Lavorazioni e suggerimenti" />
     <datalist id="suggerimentiLavorazioni"></datalist>
     <label class="checkboxAssente">
       <input type="checkbox" id="chkAssente" onchange="toggleAssente()"> 🚫 Assente
