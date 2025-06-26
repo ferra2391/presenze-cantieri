@@ -153,16 +153,12 @@
       <button type="button" onclick="importaLavorazione()">⏬​ Importa lavorazione</button>
     </div>
 
-<div style="display: flex; align-items: center; gap: 10px;">
-  <div style="flex:1; position: relative;">
-    <input type="text" id="lavorazione" placeholder="💅​ Lavorazioni" style="width: 100%;">
-  </div>
-  <div style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-    <input type="checkbox" id="chkAssente" onchange="toggleAssente()" style="transform: scale(1.3);">
-    <label for="chkAssente" style="font-size: 15px; color: #b00020;">🚫 Assente</label>
-  </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+  <input type="text" id="lavorazione" placeholder="💅​ Lavorazioni" style="flex:1;">
+  <label style="white-space: nowrap;">
+    <input type="checkbox" id="chkAssente" onchange="toggleAssente()"> 🚫 Assente
+  </label>
 </div>
-
 
 
     <button onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
@@ -204,7 +200,7 @@
             nomeOperaio = utenteTrovato["Nome"];
             const ruolo = utenteTrovato["Ruolo"] || "";
             localStorage.setItem("ruolo", ruolo);
-            document.getElementById("messaggioBenvenuto").innerText = Benvenuto, ${nomeOperaio};
+            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
             if (ruolo.toLowerCase() !== "amministratore") {
               document.getElementById("btnGestione").style.display = "none";
             }
@@ -229,12 +225,12 @@
       const fineMin = document.getElementById("oraFineMinuti");
       for (let h = 6; h <= 20; h++) {
         const hh = String(h).padStart(2, "0");
-        inizioOra.innerHTML += <option value="${hh}" ${hh=="08"?"selected":""}>${hh}</option>;
-        fineOra.innerHTML += <option value="${hh}" ${hh=="17"?"selected":""}>${hh}</option>;
+        inizioOra.innerHTML += `<option value="${hh}" ${hh=="08"?"selected":""}>${hh}</option>`;
+        fineOra.innerHTML += `<option value="${hh}" ${hh=="17"?"selected":""}>${hh}</option>`;
       }
       ["00", "15", "30", "45"].forEach(min => {
-        inizioMin.innerHTML += <option value="${min}">${min}</option>;
-        fineMin.innerHTML += <option value="${min}">${min}</option>;
+        inizioMin.innerHTML += `<option value="${min}">${min}</option>`;
+        fineMin.innerHTML += `<option value="${min}">${min}</option>`;
       });
     }
 
@@ -341,7 +337,7 @@ document.getElementById("cantiere").selectedIndex = 0;
           if (dati.presenze && dati.presenze.length > 0) {
             html += "<ul>";
             dati.presenze.forEach(r => {
-              html += <li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>;
+              html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
             });
             html += "</ul>";
           } else {
@@ -352,7 +348,7 @@ document.getElementById("cantiere").selectedIndex = 0;
     }
 
     function caricaUltimaLavorazione(username) {
-      fetch(https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username})
+      fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
         .then(r => r.text())
         .then(data => {
           const el = document.getElementById("ultimaLavorazione");
