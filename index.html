@@ -151,6 +151,15 @@
 <div id="benvenuto">
   <div id="messaggioBenvenuto"></div>
 </div>
+    
+<div style="text-align: right; margin-bottom: 10px;">
+  <label for="languageSelect">🌐 Language:</label>
+  <select id="languageSelect" onchange="cambiaLingua()">
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="en">🇬🇧 English</option>
+    <option value="fr">🇫🇷 Français</option>
+  </select>
+</div>
 
   <div id="login">
     <h2>🔐 Login</h2>
@@ -217,6 +226,28 @@
 
   <script>
     let utente = "";
+    function cambiaLingua() {
+  const lang = document.getElementById("languageSelect").value;
+  const d = dizionario[lang];
+
+  document.querySelector("h2").textContent = d.login;
+  document.getElementById("user").placeholder = d.utente;
+  document.getElementById("pass").placeholder = d.password;
+  document.querySelector("button[onclick='login()']").textContent = d.accedi;
+  document.querySelector("h3").textContent = d.presenza;
+  document.querySelectorAll(".section-label")[0].textContent = d.orarioInizio;
+  document.querySelectorAll(".section-label")[1].textContent = d.orarioFine;
+  document.getElementById("btnCantiereAltro").textContent = d.altroCantiere;
+  document.querySelector("#importaBox h4").textContent = d.lavTitolo;
+  document.querySelector("#importaBox .sottotitolo").textContent = d.lavRecenti;
+  document.querySelector("button[onclick='mostraOperai()']").textContent = d.altriOperai;
+  document.querySelector("label.section-label[for='operaio']").textContent = d.altriOperai;
+  document.getElementById("nuovoOperaio").placeholder = d.nuovoOperaio;
+  document.getElementById("btnInvia").textContent = d.invia;
+  document.getElementById("btnGestione").textContent = d.gestione;
+  document.getElementById("ultimi7").querySelector("h4")?.textContent = d.ultimiEventi;
+}
+
     let nomeOperaio = "";
     let ultimoTestoLavorazione = "";
 
@@ -432,6 +463,80 @@ window.addEventListener("DOMContentLoaded", () => {
   caricaSuggerimentiLavorazioni();
 });
 
+
+const dizionario = {
+  it: {
+    login: "🔐 Login",
+    utente: "🔑 Utente",
+    password: "🔒 Password",
+    accedi: "🔓 Accedi",
+    benvenuto: "Benvenuto,",
+    presenza: "📅 Compila Presenza",
+    orarioInizio: "⏰ Orario Inizio:",
+    orarioFine: "⏰ Orario Fine:",
+    selezionaCantiere: "-- Seleziona Cantiere --",
+    altroCantiere: "🏠 Cantiere non presente",
+    lavRecenti: "💡 Scegli tra le lavorazioni recenti o scrivine una nuova:",
+    lavTitolo: "💅​ Lavorazioni eseguite",
+    altriOperai: "👏🏼​ Inserisci dati per altri operai",
+    nuovoOperaio: "👷 Inserisci nuovo operaio",
+    invia: "📄 Invia Presenza",
+    gestione: "📅 Vai alla Gestione Cantiere",
+    ultimiEventi: "Ultimi 7 eventi:",
+    nessunDato: "Nessun dato trovato",
+    confermaInvio: "Vuoi confermare l'invio della presenza?",
+    conferma: "✅ Conferma",
+    annulla: "❌ Annulla"
+  },
+  en: {
+    login: "🔐 Login",
+    utente: "🔑 Username",
+    password: "🔒 Password",
+    accedi: "🔓 Login",
+    benvenuto: "Welcome,",
+    presenza: "📅 Submit Attendance",
+    orarioInizio: "⏰ Start Time:",
+    orarioFine: "⏰ End Time:",
+    selezionaCantiere: "-- Select Site --",
+    altroCantiere: "🏠 Site not listed",
+    lavRecenti: "💡 Choose from recent tasks or write a new one:",
+    lavTitolo: "💅​ Tasks performed",
+    altriOperai: "👏🏼​ Add other workers",
+    nuovoOperaio: "👷 Enter new worker",
+    invia: "📄 Submit",
+    gestione: "📅 Go to Site Management",
+    ultimiEventi: "Last 7 events:",
+    nessunDato: "No data found",
+    confermaInvio: "Confirm attendance submission?",
+    conferma: "✅ Confirm",
+    annulla: "❌ Cancel"
+  },
+  fr: {
+    login: "🔐 Connexion",
+    utente: "🔑 Utilisateur",
+    password: "🔒 Mot de passe",
+    accedi: "🔓 Se connecter",
+    benvenuto: "Bienvenue,",
+    presenza: "📅 Enregistrer la présence",
+    orarioInizio: "⏰ Heure de début:",
+    orarioFine: "⏰ Heure de fin:",
+    selezionaCantiere: "-- Sélectionner un chantier --",
+    altroCantiere: "🏠 Chantier non listé",
+    lavRecenti: "💡 Choisissez parmi les travaux récents ou ajoutez-en un nouveau :",
+    lavTitolo: "💅​ Travaux effectués",
+    altriOperai: "👏🏼​ Ajouter d'autres ouvriers",
+    nuovoOperaio: "👷 Saisir un nouvel ouvrier",
+    invia: "📄 Soumettre",
+    gestione: "📅 Accéder à la gestion du chantier",
+    ultimiEventi: "7 derniers événements:",
+    nessunDato: "Aucune donnée trouvée",
+    confermaInvio: "Confirmer la soumission de la présence ?",
+    conferma: "✅ Confirmer",
+    annulla: "❌ Annuler"
+  }
+};
+
+    
   </script>
 <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px;">
   © 2025 Davide Ferrarini — Tutti i diritti riservati
