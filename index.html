@@ -165,7 +165,7 @@
     <h2>🔐 Login</h2>
     <input type="text" id="user" placeholder="🔑 Utente">
     <input type="password" id="pass" placeholder="🔒 Password">
-    <button onclick="login()">🔓 Accedi</button>
+    <button onclick="eseguiLogin()">🔓 Accedi</button>
   </div>
 
   <div id="form" style="display:none;">
@@ -233,7 +233,7 @@
   document.querySelector("h2").textContent = d.login;
   document.getElementById("user").placeholder = d.utente;
   document.getElementById("pass").placeholder = d.password;
-  document.querySelector("button[onclick='login()']").textContent = d.accedi;
+  document.querySelector("button[onclick='eseguiLogin()']").textContent = d.accedi;
   document.querySelector("h3").textContent = d.presenza;
   document.querySelectorAll(".section-label")[0].textContent = d.orarioInizio;
   document.querySelectorAll(".section-label")[1].textContent = d.orarioFine;
