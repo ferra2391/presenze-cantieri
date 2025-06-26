@@ -147,18 +147,18 @@
       <input type="text" id="cantiereAltro" placeholder="🏢 Inserisci nome cantiere">
     </div>
 
-    <div id="importaBox">
-      <h4>📃 Importa lavorazione precedente</h4>
-      <p id="ultimaLavorazione">(Nessuna lavorazione trovata)</p>
-      <button type="button" onclick="importaLavorazione()">⏬​ Importa lavorazione</button>
-    </div>
-
-    <div style="display: flex; align-items: center; gap: 10px;">
-  <input type="text" id="lavorazione" placeholder="💅​ Lavorazioni" style="flex:1;">
-  <label style="white-space: nowrap;">
-    <input type="checkbox" id="chkAssente" onchange="toggleAssente()"> 🚫 Assente
-  </label>
+<div id="importaBox">
+  <h4>🧠 Importa ultime lavorazioni</h4>
+  <p>💡 Puoi scegliere tra le ultime lavorazioni registrate o scriverne una nuova:</p>
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <input list="suggerimentiLavorazioni" id="lavorazione" placeholder="💅​ Lavorazioni" style="flex:1;">
+    <datalist id="suggerimentiLavorazioni"></datalist>
+    <label style="white-space: nowrap;">
+      <input type="checkbox" id="chkAssente" onchange="toggleAssente()"> 🚫 Assente
+    </label>
+  </div>
 </div>
+
 
 
     <button onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
@@ -392,6 +392,22 @@ function toggleAssente() {
     campoLavorazione.value = "";
   }
 }
+function caricaSuggerimentiLavorazioni() {
+  fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
+    .then(r => r.json())
+    .then(data => {
+      const lista = document.getElementById("suggerimentiLavorazioni");
+      lista.innerHTML = "";
+      data.slice(0, 10).forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item;
+        lista.appendChild(opt);
+      });
+    });
+}
+window.addEventListener("DOMContentLoaded", () => {
+  caricaSuggerimentiLavorazioni();
+});
 
   </script>
 <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px;">
