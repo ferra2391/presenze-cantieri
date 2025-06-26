@@ -153,7 +153,13 @@
       <button type="button" onclick="importaLavorazione()">⏬​ Importa lavorazione</button>
     </div>
 
-    <input type="text" id="lavorazione" placeholder="💅​ Lavorazioni">
+    <div style="display: flex; align-items: center; gap: 10px;">
+  <input type="text" id="lavorazione" placeholder="💅​ Lavorazioni" style="flex:1;">
+  <label style="white-space: nowrap;">
+    <input type="checkbox" id="chkAssente" onchange="toggleAssente()"> 🚫 Assente
+  </label>
+</div>
+
 
     <button onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
 <div id="multiOperai" style="display:none;">
@@ -374,6 +380,17 @@ function chiudiModal() {
 function confermaInvio() {
   chiudiModal(); // Chiude la modale
   invia();       // Esegue la funzione di invio vera e propria
+}
+function toggleAssente() {
+  const isChecked = document.getElementById("chkAssente").checked;
+  const campoLavorazione = document.getElementById("lavorazione");
+  if (isChecked) {
+    campoLavorazione.disabled = true;
+    campoLavorazione.value = "Assente";
+  } else {
+    campoLavorazione.disabled = false;
+    campoLavorazione.value = "";
+  }
 }
 
   </script>
