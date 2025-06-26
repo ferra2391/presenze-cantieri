@@ -204,7 +204,7 @@
             nomeOperaio = utenteTrovato["Nome"];
             const ruolo = utenteTrovato["Ruolo"] || "";
             localStorage.setItem("ruolo", ruolo);
-            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
+            document.getElementById("messaggioBenvenuto").innerText = Benvenuto, ${nomeOperaio};
             if (ruolo.toLowerCase() !== "amministratore") {
               document.getElementById("btnGestione").style.display = "none";
             }
@@ -229,12 +229,12 @@
       const fineMin = document.getElementById("oraFineMinuti");
       for (let h = 6; h <= 20; h++) {
         const hh = String(h).padStart(2, "0");
-        inizioOra.innerHTML += `<option value="${hh}" ${hh=="08"?"selected":""}>${hh}</option>`;
-        fineOra.innerHTML += `<option value="${hh}" ${hh=="17"?"selected":""}>${hh}</option>`;
+        inizioOra.innerHTML += <option value="${hh}" ${hh=="08"?"selected":""}>${hh}</option>;
+        fineOra.innerHTML += <option value="${hh}" ${hh=="17"?"selected":""}>${hh}</option>;
       }
       ["00", "15", "30", "45"].forEach(min => {
-        inizioMin.innerHTML += `<option value="${min}">${min}</option>`;
-        fineMin.innerHTML += `<option value="${min}">${min}</option>`;
+        inizioMin.innerHTML += <option value="${min}">${min}</option>;
+        fineMin.innerHTML += <option value="${min}">${min}</option>;
       });
     }
 
@@ -341,7 +341,7 @@ document.getElementById("cantiere").selectedIndex = 0;
           if (dati.presenze && dati.presenze.length > 0) {
             html += "<ul>";
             dati.presenze.forEach(r => {
-              html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
+              html += <li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>;
             });
             html += "</ul>";
           } else {
@@ -352,7 +352,7 @@ document.getElementById("cantiere").selectedIndex = 0;
     }
 
     function caricaUltimaLavorazione(username) {
-      fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
+      fetch(https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username})
         .then(r => r.text())
         .then(data => {
           const el = document.getElementById("ultimaLavorazione");
@@ -396,69 +396,6 @@ function toggleAssente() {
     campoLavorazione.value = "";
   }
 }
-// 🔽 AUTOCOMPLETE LAVORAZIONI RECENTI 🔽
-let listaSuggerimenti = [];
-
-function caricaSuggerimenti() {
-  fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
-    .then(r => r.json())
-    .then(data => {
-      listaSuggerimenti = data;
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const input = document.getElementById("lavorazione");
-  const suggerimentiBox = document.createElement("div");
-  suggerimentiBox.style.border = "1px solid #ccc";
-  suggerimentiBox.style.position = "absolute";
-  suggerimentiBox.style.background = "#fff";
-  suggerimentiBox.style.zIndex = "9999";
-  suggerimentiBox.style.width = "100%";
-  suggerimentiBox.style.maxHeight = "200px";
-  suggerimentiBox.style.overflowY = "auto";
-  suggerimentiBox.style.display = "none";
-  suggerimentiBox.style.borderRadius = "6px";
-  suggerimentiBox.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
-  input.parentNode.appendChild(suggerimentiBox);
-
-  input.addEventListener("input", function () {
-    const valore = input.value.toLowerCase();
-    suggerimentiBox.innerHTML = "";
-    if (valore.length < 2) {
-      suggerimentiBox.style.display = "none";
-      return;
-    }
-
-    const filtrati = listaSuggerimenti.filter(x => x.toLowerCase().includes(valore));
-    if (filtrati.length > 0) {
-      filtrati.forEach(r => {
-        const item = document.createElement("div");
-        item.textContent = r;
-        item.style.padding = "10px";
-        item.style.cursor = "pointer";
-        item.addEventListener("click", () => {
-          input.value = r;
-          suggerimentiBox.style.display = "none";
-        });
-        item.addEventListener("mouseover", () => {
-          item.style.backgroundColor = "#eef6ec";
-        });
-        item.addEventListener("mouseout", () => {
-          item.style.backgroundColor = "#fff";
-        });
-        suggerimentiBox.appendChild(item);
-      });
-      suggerimentiBox.style.display = "block";
-    } else {
-      suggerimentiBox.style.display = "none";
-    }
-  });
-
-  input.addEventListener("blur", () => setTimeout(() => suggerimentiBox.style.display = "none", 150));
-
-  caricaSuggerimenti(); // carica dati all’avvio
-});
 
   </script>
 <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px;">
