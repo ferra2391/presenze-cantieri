@@ -421,7 +421,7 @@ function caricaSuggerimentiLavorazioni() {
     .then(data => {
       const lista = document.getElementById("suggerimentiLavorazioni");
       lista.innerHTML = "";
-      data.slice(0, 10).forEach(item => {
+      data.slice(0, 15).forEach(item => {
         const opt = document.createElement("option");
         opt.value = item;
         lista.appendChild(opt);
