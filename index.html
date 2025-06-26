@@ -161,7 +161,7 @@
   </select>
 </div>
 
-  <div id="login">
+  <div id="loginBox">
     <h2>🔐 Login</h2>
     <input type="text" id="user" placeholder="🔑 Utente">
     <input type="password" id="pass" placeholder="🔒 Password">
@@ -268,7 +268,7 @@
             if (ruolo.toLowerCase() !== "amministratore") {
               document.getElementById("btnGestione").style.display = "none";
             }
-            document.getElementById("login").style.display = "none";
+            document.getElementById("loginBox").style.display = "none";
             document.getElementById("form").style.display = "block";
             document.getElementById("data").value = new Date().toISOString().split("T")[0];
             caricaUltimaLavorazione(utente);
