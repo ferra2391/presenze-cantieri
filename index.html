@@ -7,18 +7,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
-      
       font-family: 'Roboto', sans-serif;
       background: #f9fafb;
       padding: 20px;
       margin: 0;
     }
     .container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 0 10px;
-}
-
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 10px;
+    }
     h2, h3 {
       text-align: center;
       color: #333;
@@ -68,55 +66,40 @@
       color: #555;
       margin-top: 15px;
     }
-
-#importaBox {
-  background: #e9fbe9;
-  padding: 16px;
-  border-radius: 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  border: 1px solid #b7e4b6;
-}
-
-#importaBox h4 {
-  margin-top: 0;
-  margin-bottom: 6px;
-  color: #1e7e34;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-#importaBox .sottotitolo {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: #444;
-}
-
-.importa-riga {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-#importaBox input[list] {
-  flex: 1 1 250px;
-  padding: 12px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-
-}
-
-    
-    #ultimaLavorazione {
-      background-color: #fff;
-      padding: 10px;
+    #importaBox {
+      background: #e9fbe9;
+      padding: 16px;
+      border-radius: 10px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      border: 1px solid #b7e4b6;
+    }
+    #importaBox h4 {
+      margin-top: 0;
+      margin-bottom: 6px;
+      color: #1e7e34;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #importaBox .sottotitolo {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: #444;
+    }
+    .importa-riga {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    #importaBox input[list] {
+      flex: 1 1 250px;
+      padding: 12px;
+      font-size: 16px;
       border: 1px solid #ccc;
-      border-radius: 5px;
-      margin: 10px 0;
+      border-radius: 8px;
+      background: #fff;
     }
     #btnGestione {
       background-color: #17a2b8;
@@ -130,429 +113,55 @@
       margin-bottom: 6px;
     }
     #cantiere {
-  border: 2px solid #007BFF;
-  background-color: #eef4ff;
-  font-weight: bold;
-  color: #0056b3;
-}
+      border: 2px solid #007BFF;
+      background-color: #eef4ff;
+      font-weight: bold;
+      color: #0056b3;
+    }
     #btnCantiereAltro {
-  background-color: #d1d1d1;
-  color: #333;
-  font-weight: normal;
-}
-#btnCantiereAltro:hover {
-  background-color: #bbb;
-}
-
+      background-color: #d1d1d1;
+      color: #333;
+      font-weight: normal;
+    }
+    #btnCantiereAltro:hover {
+      background-color: #bbb;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-<div id="benvenuto">
-  <div id="messaggioBenvenuto"></div>
-</div>
-    
-<div style="text-align: right; margin-bottom: 10px;">
-  <label for="languageSelect">🌐 Language:</label>
-  <select id="languageSelect" onchange="cambiaLingua()">
-    <option value="it">🇮🇹 Italiano</option>
-    <option value="en">🇬🇧 English</option>
-    <option value="fr">🇫🇷 Français</option>
-  </select>
-</div>
-
-  <div id="loginBox">
-    <h2>🔐 Login</h2>
-    <input type="text" id="user" placeholder="🔑 Utente">
-    <input type="password" id="pass" placeholder="🔒 Password">
-    <button onclick="eseguiLogin()">🔓 Accedi</button>
-  </div>
-
-  <div id="form" style="display:none;">
-    <h3>📅 Compila Presenza</h3>
-    <input type="date" id="data">
-    <div id="orariContainer">
-      <label class="section-label">⏰ Orario Inizio:</label>
-      <div style="display: flex; gap: 10px;">
-        <select id="oraInizioOra"></select>
-        <select id="oraInizioMinuti"></select>
-      </div>
-      <label class="section-label">⏰ Orario Fine:</label>
-      <div style="display: flex; gap: 10px;">
-        <select id="oraFineOra"></select>
-        <select id="oraFineMinuti"></select>
-      </div>
+    <div id="benvenuto">
+      <div id="messaggioBenvenuto"></div>
     </div>
 
-    <select id="cantiere"></select>
-
-    <button id="btnCantiereAltro" onclick="mostraCantiereLibero()">🏠 Cantiere non presente</button>
-    <div id="cantiereLibero" style="display:none;">
-      <input type="text" id="cantiereAltro" placeholder="🏢 Inserisci nome cantiere">
+    <div style="text-align: right; margin-bottom: 10px;">
+      <label for="languageSelect">🌐 Language:</label>
+      <select id="languageSelect" onchange="cambiaLingua()">
+        <option value="it">🇮🇹 Italiano</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="fr">🇫🇷 Français</option>
+      </select>
     </div>
 
-
-    <div id="importaBox">
-  <h4> 💅​ Lavorazioni eseguite</h4>
-  <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
-  <div class="importa-riga">
-    <input list="suggerimentiLavorazioni" id="lavorazione" placeholder="🧠​ Lavorazioni e suggerimenti" />
-    <datalist id="suggerimentiLavorazioni"></datalist>
-  </div>
-</div>
-
-
-
-    <button onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
-<div id="multiOperai" style="display:none;">
-  <p style="margin-bottom: 6px; font-size: 14px; color: #555; background: #fff3cd; border-left: 5px solid #ffc107; padding: 10px; border-radius: 6px;">
-    ⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.
-  </p>
-  <label class="section-label">👥 Seleziona altri operai:</label>
-
-      <select id="operaio" multiple size="6" style="margin-top: 10px;"></select>
-
-      <div style="margin-top:10px;">
-        <label class="section-label">➕ Oppure inserisci un nuovo operaio:</label>
-        <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio">
-      </div>
+    <div id="loginBox">
+      <h2>🔐 Login</h2>
+      <input type="text" id="user" placeholder="🔑 Utente">
+      <input type="password" id="pass" placeholder="🔒 Password">
+      <button onclick="login()">🔓 Accedi</button>
     </div>
 
-    <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
-    <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
-
-    <div id="ultimi7" style="margin-top:20px;"></div>
+    <!-- FORM e script verranno inseriti nella versione completa seguente -->
   </div>
-
+  
+  <!-- Script JS da includere separatamente o in fondo al body -->
   <script>
-    let utente = "";
     function cambiaLingua() {
-  const lang = document.getElementById("languageSelect").value;
-  const d = dizionario[lang];
-
-  document.querySelector("h2").textContent = d.login;
-  document.getElementById("user").placeholder = d.utente;
-  document.getElementById("pass").placeholder = d.password;
-  document.querySelector("button[onclick='eseguiLogin()']").textContent = d.accedi;
-  document.querySelector("h3").textContent = d.presenza;
-  document.querySelectorAll(".section-label")[0].textContent = d.orarioInizio;
-  document.querySelectorAll(".section-label")[1].textContent = d.orarioFine;
-  document.getElementById("btnCantiereAltro").textContent = d.altroCantiere;
-  document.querySelector("#importaBox h4").textContent = d.lavTitolo;
-  document.querySelector("#importaBox .sottotitolo").textContent = d.lavRecenti;
-  document.querySelector("button[onclick='mostraOperai()']").textContent = d.altriOperai;
-  document.querySelectorAll(".section-label")[2].textContent = d.altriOperai;
-  document.getElementById("nuovoOperaio").placeholder = d.nuovoOperaio;
-  document.getElementById("btnInvia").textContent = d.invia;
-  document.getElementById("btnGestione").textContent = d.gestione;
-  document.getElementById("ultimi7").querySelector("h4")?.textContent = d.ultimiEventi;
-}
-
-    let nomeOperaio = "";
-    let ultimoTestoLavorazione = "";
-    
-function eseguiLogin() {
-  login();
-}
+      const lang = document.getElementById("languageSelect").value;
+      alert("Lingua cambiata: " + lang); // Solo a scopo di test
+    }
     function login() {
-      const userInput = document.getElementById("user").value.trim();
-      const passInput = document.getElementById("pass").value.trim();
-
-      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-        .then(r => r.json())
-        .then(data => {
-          const utenteTrovato = data.find(r => r["User"] === userInput && r["Password"] === passInput);
-          if (utenteTrovato) {
-            utente = utenteTrovato["User"];
-            nomeOperaio = utenteTrovato["Nome"];
-            const ruolo = utenteTrovato["Ruolo"] || "";
-            localStorage.setItem("ruolo", ruolo);
-            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
-            if (ruolo.toLowerCase() !== "amministratore") {
-              document.getElementById("btnGestione").style.display = "none";
-            }
-            document.getElementById("loginBox").style.display = "none";
-            document.getElementById("form").style.display = "block";
-            document.getElementById("data").value = new Date().toISOString().split("T")[0];
-            caricaUltimaLavorazione(utente);
-            popolaOrari();
-            caricaCantieri();
-            caricaOperai();
-            caricaUltimi7();
-          } else {
-            alert("Credenziali errate");
-          }
-        });
+      alert("Login eseguito"); // Dummy function di test
     }
-
-    function popolaOrari() {
-      const inizioOra = document.getElementById("oraInizioOra");
-      const inizioMin = document.getElementById("oraInizioMinuti");
-      const fineOra = document.getElementById("oraFineOra");
-      const fineMin = document.getElementById("oraFineMinuti");
-      for (let h = 6; h <= 20; h++) {
-        const hh = String(h).padStart(2, "0");
-        inizioOra.innerHTML += `<option value="${hh}" ${hh=="08"?"selected":""}>${hh}</option>`;
-        fineOra.innerHTML += `<option value="${hh}" ${hh=="17"?"selected":""}>${hh}</option>`;
-      }
-      ["00", "15", "30", "45"].forEach(min => {
-        inizioMin.innerHTML += `<option value="${min}">${min}</option>`;
-        fineMin.innerHTML += `<option value="${min}">${min}</option>`;
-      });
-    }
-
-    function caricaCantieri() {
-      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
-        .then(r => r.json())
-        .then(data => {
-          const select = document.getElementById("cantiere");
-          select.innerHTML = '<option value="">-- Seleziona Cantiere --</option>';
-          data.forEach(r => {
-            if (r["Cantiere"]) {
-              const opt = document.createElement("option");
-              opt.value = r["Cantiere"];
-              opt.textContent = r["Cantiere"];
-              select.appendChild(opt);
-            }
-          });
-        });
-    }
-
-    function caricaOperai() {
-      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-        .then(r => r.json())
-        .then(data => {
-          const select = document.getElementById("operaio");
-          select.innerHTML = "";
-          data.forEach(r => {
-            if (r["Nome"]) {
-              const opt = document.createElement("option");
-              opt.value = r["Nome"];
-              opt.textContent = r["Nome"];
-              select.appendChild(opt);
-            }
-          });
-        });
-    }
-
-function mostraCantiereLibero() {
-  const div = document.getElementById("cantiereLibero");
-  div.style.display = (div.style.display === "block") ? "none" : "block";
-}
-
-
-function mostraOperai() {
-  const div = document.getElementById("multiOperai");
-  div.style.display = (div.style.display === "block") ? "none" : "block";
-}
-
-
-    function invia() {
-      const data = document.getElementById("data").value;
-      const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
-      const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
-      const orari = oraInizio + " - " + oraFine;
-
-      let cantiere = document.getElementById("cantiere").value;
-      const cantiereAltro = document.getElementById("cantiereAltro").value;
-      if (cantiereAltro) cantiere = cantiereAltro;
-
-      const lavorazione = document.getElementById("lavorazione").value;
-      const selezione = document.getElementById("operaio");
-      let operaiSelezionati = [];
-
-      if (document.getElementById("multiOperai").style.display === "block") {
-        operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-        if (nuovo) operaiSelezionati.push(nuovo);
-        if (operaiSelezionati.length === 0) {
-          operaiSelezionati = [nomeOperaio];
-        }
-      } else {
-        operaiSelezionati = [nomeOperaio];
-      }
-
-      operaiSelezionati.forEach(nome => {
-        const dati = {
-          data,
-          orari,
-          cantiere,
-          lavorazione,
-          operaio: nome,
-          user: utente
-        };
-
-        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-          method: "POST",
-          mode: "no-cors",
-          body: JSON.stringify(dati),
-          headers: { "Content-Type": "application/json" }
-        });
-      });
-
-      setTimeout(caricaUltimi7, 1000);
-      alert("Dati correttamente inseriti");
-      document.getElementById("lavorazione").value = "";
-document.getElementById("cantiere").selectedIndex = 0;
-    }
-
-    function caricaUltimi7() {
-      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
-        .then(r => r.json())
-        .then(dati => {
-          let html = "<h4>Ultimi 7 eventi:</h4>";
-          if (dati.presenze && dati.presenze.length > 0) {
-            html += "<ul>";
-            dati.presenze.forEach(r => {
-              html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
-            });
-            html += "</ul>";
-          } else {
-            html += "<p>Nessun dato trovato</p>";
-          }
-          document.getElementById("ultimi7").innerHTML = html;
-        });
-    }
-
-    function caricaUltimaLavorazione(username) {
-      fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
-        .then(r => r.text())
-        .then(data => {
-          const el = document.getElementById("ultimaLavorazione");
-          if (data && data.trim() !== "") {
-            el.textContent = data;
-            ultimoTestoLavorazione = data;
-          } else {
-            el.textContent = "(Nessuna lavorazione trovata)";
-            ultimoTestoLavorazione = "";
-          }
-        });
-    }
-
-    function importaLavorazione() {
-      if (ultimoTestoLavorazione) {
-        document.getElementById("lavorazione").value = ultimoTestoLavorazione;
-      } else {
-        alert("Nessuna lavorazione precedente trovata.");
-      }
-    }
-    function mostraModal() {
-  document.getElementById("modalConferma").style.display = "block";
-}
-
-function chiudiModal() {
-  document.getElementById("modalConferma").style.display = "none";
-}
-
-function confermaInvio() {
-  chiudiModal(); // Chiude la modale
-  invia();       // Esegue la funzione di invio vera e propria
-}
-
-function caricaSuggerimentiLavorazioni() {
-  fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
-    .then(r => r.json())
-    .then(data => {
-      const lista = document.getElementById("suggerimentiLavorazioni");
-      lista.innerHTML = "";
-      data.slice(0, 15).forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item;
-        lista.appendChild(opt);
-      });
-    });
-}
-window.addEventListener("DOMContentLoaded", () => {
-  caricaSuggerimentiLavorazioni();
-});
-
-
-const dizionario = {
-  it: {
-    login: "🔐 Login",
-    utente: "🔑 Utente",
-    password: "🔒 Password",
-    accedi: "🔓 Accedi",
-    benvenuto: "Benvenuto,",
-    presenza: "📅 Compila Presenza",
-    orarioInizio: "⏰ Orario Inizio:",
-    orarioFine: "⏰ Orario Fine:",
-    selezionaCantiere: "-- Seleziona Cantiere --",
-    altroCantiere: "🏠 Cantiere non presente",
-    lavRecenti: "💡 Scegli tra le lavorazioni recenti o scrivine una nuova:",
-    lavTitolo: "💅​ Lavorazioni eseguite",
-    altriOperai: "👏🏼​ Inserisci dati per altri operai",
-    nuovoOperaio: "👷 Inserisci nuovo operaio",
-    invia: "📄 Invia Presenza",
-    gestione: "📅 Vai alla Gestione Cantiere",
-    ultimiEventi: "Ultimi 7 eventi:",
-    nessunDato: "Nessun dato trovato",
-    confermaInvio: "Vuoi confermare l'invio della presenza?",
-    conferma: "✅ Conferma",
-    annulla: "❌ Annulla"
-  },
-  en: {
-    login: "🔐 Login",
-    utente: "🔑 Username",
-    password: "🔒 Password",
-    accedi: "🔓 Login",
-    benvenuto: "Welcome,",
-    presenza: "📅 Submit Attendance",
-    orarioInizio: "⏰ Start Time:",
-    orarioFine: "⏰ End Time:",
-    selezionaCantiere: "-- Select Site --",
-    altroCantiere: "🏠 Site not listed",
-    lavRecenti: "💡 Choose from recent tasks or write a new one:",
-    lavTitolo: "💅​ Tasks performed",
-    altriOperai: "👏🏼​ Add other workers",
-    nuovoOperaio: "👷 Enter new worker",
-    invia: "📄 Submit",
-    gestione: "📅 Go to Site Management",
-    ultimiEventi: "Last 7 events:",
-    nessunDato: "No data found",
-    confermaInvio: "Confirm attendance submission?",
-    conferma: "✅ Confirm",
-    annulla: "❌ Cancel"
-  },
-  fr: {
-    login: "🔐 Connexion",
-    utente: "🔑 Utilisateur",
-    password: "🔒 Mot de passe",
-    accedi: "🔓 Se connecter",
-    benvenuto: "Bienvenue,",
-    presenza: "📅 Enregistrer la présence",
-    orarioInizio: "⏰ Heure de début:",
-    orarioFine: "⏰ Heure de fin:",
-    selezionaCantiere: "-- Sélectionner un chantier --",
-    altroCantiere: "🏠 Chantier non listé",
-    lavRecenti: "💡 Choisissez parmi les travaux récents ou ajoutez-en un nouveau :",
-    lavTitolo: "💅​ Travaux effectués",
-    altriOperai: "👏🏼​ Ajouter d'autres ouvriers",
-    nuovoOperaio: "👷 Saisir un nouvel ouvrier",
-    invia: "📄 Soumettre",
-    gestione: "📅 Accéder à la gestion du chantier",
-    ultimiEventi: "7 derniers événements:",
-    nessunDato: "Aucune donnée trouvée",
-    confermaInvio: "Confirmer la soumission de la présence ?",
-    conferma: "✅ Confirmer",
-    annulla: "❌ Annuler"
-  }
-};
-
-    
   </script>
-<footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px;">
-  © 2025 Davide Ferrarini — Tutti i diritti riservati
-</footer>
-
-    </div> <!-- chiusura .container -->
-  <div id="modalConferma" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.4); z-index:9999;">
-  <div style="background:white; max-width:400px; margin:100px auto; padding:20px; border-radius:10px; text-align:center;">
-    <p style="font-size:18px;">Vuoi confermare l'invio della presenza?</p>
-    <button onclick="confermaInvio()" style="background-color:#28a745; color:white; padding:10px 20px; margin:10px; border:none; border-radius:6px;">✅ Conferma</button>
-    <button onclick="chiudiModal()" style="background-color:#ccc; padding:10px 20px; border:none; border-radius:6px;">❌ Annulla</button>
-  </div>
-</div>
-
 </body>
 </html>
