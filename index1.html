@@ -313,54 +313,95 @@ function mostraOperai() {
 }
 
 
-    function invia() {
-      const data = document.getElementById("data").value;
-      const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
-      const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
-      const orari = oraInizio + " - " + oraFine;
+   function invia() {
+    const data = document.getElementById("data").value;
+    const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
+    const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
+    const orari = oraInizio + " - " + oraFine;
 
-      let cantiere = document.getElementById("cantiere").value;
-      const cantiereAltro = document.getElementById("cantiereAltro").value;
-      if (cantiereAltro) cantiere = cantiereAltro;
+    let cantiereSelezionato = document.getElementById("cantiere").value;
+    const cantiereAltroInput = document.getElementById("cantiereAltro");
+    const cantiereAltroValore = cantiereAltroInput.value.trim();
+    
+    // Determina il valore finale del cantiere
+    let cantiere = "";
+    if (document.getElementById("cantiereLibero").style.display === "block") {
+        // Se il campo "Cantiere non presente" è visibile, usa il suo valore
+        cantiere = cantiereAltroValore;
+    } else {
+        // Altrimenti, usa il valore selezionato dalla dropdown
+        cantiere = cantiereSelezionato;
+    }
 
-      const lavorazione = document.getElementById("lavorazione").value;
-      const selezione = document.getElementById("operaio");
-      let operaiSelezionati = [];
+    const lavorazione = document.getElementById("lavorazione").value.trim(); // Aggiunto .trim() per rimuovere spazi
+    const selezioneOperai = document.getElementById("operaio");
+    let operaiSelezionati = [];
 
-      if (document.getElementById("multiOperai").style.display === "block") {
-        operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+    // --- Validazione dei campi obbligatori ---
+    if (!data) {
+        alert("Per favore, inserisci la data.");
+        return;
+    }
+    if (!oraInizio || !oraFine) {
+        alert("Per favore, seleziona l'orario di inizio e fine.");
+        return;
+    }
+
+    // Il campo lavorazione è sempre obbligatorio
+    if (!lavorazione) {
+        alert("Per favore, inserisci la lavorazione.");
+        return;
+    }
+
+    // Controllo cantiere: è obbligatorio a meno che la lavorazione sia "Assente"
+    if (lavorazione.toLowerCase() !== "assente") {
+        if (!cantiere) { // Se sia cantiereSelezionato che cantiereAltroValore sono vuoti
+            alert("Il campo 'Cantiere' è obbligatorio, a meno che la lavorazione sia 'Assente'.");
+            return;
+        }
+    } else {
+        // Se la lavorazione è "Assente", assicurati che il cantiere sia vuoto per coerenza
+        cantiere = ""; 
+    }
+
+    // --- Fine validazione ---
+
+    // Logica per determinare gli operai da inviare
+    if (document.getElementById("multiOperai").style.display === "block") {
+        operaiSelezionati = Array.from(selezioneOperai.selectedOptions).map(opt => opt.value);
         const nuovo = document.getElementById("nuovoOperaio").value.trim();
         if (nuovo) operaiSelezionati.push(nuovo);
         if (operaiSelezionati.length === 0) {
-          operaiSelezionati = [nomeOperaio];
+            operaiSelezionati = [nomeOperaio]; 
         }
-      } else {
+    } else {
         operaiSelezionati = [nomeOperaio];
-      }
-
-      operaiSelezionati.forEach(nome => {
-        const dati = {
-          data,
-          orari,
-          cantiere,
-          lavorazione,
-          operaio: nome,
-          user: utente
-        };
-
-        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-          method: "POST",
-          mode: "no-cors",
-          body: JSON.stringify(dati),
-          headers: { "Content-Type": "application/json" }
-        });
-      });
-
-      setTimeout(caricaUltimi7, 1000);
-      alert("Dati correttamente inseriti");
-      document.getElementById("lavorazione").value = "";
-document.getElementById("cantiere").selectedIndex = 0;
     }
+    
+    // Se la lavorazione è "Assente", e l'utente ha comunque messo un cantiere, 
+    // lo notifichiamo (opzionale, ma utile per chiarezza).
+    if (lavorazione.toLowerCase() === "assente" && cantiere !== "") {
+        const confermaAssenteCantiere = confirm("Hai inserito 'Assente' come lavorazione ma hai specificato un cantiere. Il cantiere non verrà salvato. Vuoi continuare?");
+        if (!confermaAssenteCantiere) {
+            return; // L'utente ha annullato
+        }
+        cantiere = ""; // Forza il cantiere a essere vuoto se lavorazione è "Assente"
+    }
+
+    // Chiamata alla modale di conferma
+    mostraModal();
+
+    // La logica di invio dati vera e propria avverrà in `confermaInvio()` dopo la conferma dell'utente
+    window.datiDaInviare = { // Memorizzo i dati in una variabile globale temporanea
+        data,
+        orari,
+        cantiere,
+        lavorazione,
+        operai: operaiSelezionati,
+        utente: utente
+    };
+}
+
 
     function caricaUltimi7() {
       fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
@@ -411,8 +452,48 @@ function chiudiModal() {
 }
 
 function confermaInvio() {
-  chiudiModal(); // Chiude la modale
-  invia();       // Esegue la funzione di invio vera e propria
+    chiudiModal(); 
+
+    const { data, orari, cantiere, lavorazione, operai, utente } = window.datiDaInviare;
+
+    operai.forEach(nome => {
+        const dati = {
+            data,
+            orari,
+            cantiere,
+            lavorazione,
+            operaio: nome,
+            user: utente
+        };
+
+        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(dati),
+            headers: { "Content-Type": "application/json" }
+        })
+        .then(() => {
+            console.log(`Dati inviati per ${nome}`);
+        })
+        .catch(error => {
+            console.error(`Errore durante l'invio per ${nome}:`, error);
+            alert(`Si è verificato un errore durante l'invio dei dati per ${nome}.`);
+        });
+    });
+
+    delete window.datiDaInviare;
+
+    setTimeout(() => {
+        caricaUltimi7();
+        alert("Dati correttamente inseriti.");
+        document.getElementById("lavorazione").value = "";
+        document.getElementById("cantiere").selectedIndex = 0;
+        document.getElementById("cantiereAltro").value = ""; 
+        document.getElementById("cantiereLibero").style.display = "none"; 
+        document.getElementById("nuovoOperaio").value = ""; 
+        document.getElementById("operaio").selectedIndex = -1; 
+        document.getElementById("multiOperai").style.display = "none"; 
+    }, 500); 
 }
 
 function caricaSuggerimentiLavorazioni() {
