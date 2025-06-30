@@ -314,53 +314,65 @@ function mostraOperai() {
 
 
     function invia() {
-      const data = document.getElementById("data").value;
-      const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
-      const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
-      const orari = oraInizio + " - " + oraFine;
+  const data = document.getElementById("data").value;
+  const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
+  const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
+  const orari = oraInizio + " - " + oraFine;
 
-      let cantiere = document.getElementById("cantiere").value;
-      const cantiereAltro = document.getElementById("cantiereAltro").value;
-      if (cantiereAltro) cantiere = cantiereAltro;
+  let cantiere = document.getElementById("cantiere").value;
+  const cantiereAltro = document.getElementById("cantiereAltro").value;
+  if (cantiereAltro) cantiere = cantiereAltro;
 
-      const lavorazione = document.getElementById("lavorazione").value;
-      const selezione = document.getElementById("operaio");
-      let operaiSelezionati = [];
+  const lavorazione = document.getElementById("lavorazione").value.trim();
+  if (!lavorazione) {
+    alert("⚠️ Devi inserire la lavorazione.");
+    return;
+  }
 
-      if (document.getElementById("multiOperai").style.display === "block") {
-        operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-        if (nuovo) operaiSelezionati.push(nuovo);
-        if (operaiSelezionati.length === 0) {
-          operaiSelezionati = [nomeOperaio];
-        }
-      } else {
-        operaiSelezionati = [nomeOperaio];
-      }
+  // Se la lavorazione NON è 'Assente', il cantiere è obbligatorio
+  if (lavorazione.toLowerCase() !== "assente" && !cantiere) {
+    alert("⚠️ Devi selezionare o indicare il nome del cantiere.");
+    return;
+  }
 
-      operaiSelezionati.forEach(nome => {
-        const dati = {
-          data,
-          orari,
-          cantiere,
-          lavorazione,
-          operaio: nome,
-          user: utente
-        };
+  const selezione = document.getElementById("operaio");
+  let operaiSelezionati = [];
 
-        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-          method: "POST",
-          mode: "no-cors",
-          body: JSON.stringify(dati),
-          headers: { "Content-Type": "application/json" }
-        });
-      });
-
-      setTimeout(caricaUltimi7, 1000);
-      alert("Dati correttamente inseriti");
-      document.getElementById("lavorazione").value = "";
-document.getElementById("cantiere").selectedIndex = 0;
+  if (document.getElementById("multiOperai").style.display === "block") {
+    operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+    const nuovo = document.getElementById("nuovoOperaio").value.trim();
+    if (nuovo) operaiSelezionati.push(nuovo);
+    if (operaiSelezionati.length === 0) {
+      operaiSelezionati = [nomeOperaio];
     }
+  } else {
+    operaiSelezionati = [nomeOperaio];
+  }
+
+  operaiSelezionati.forEach(nome => {
+    const dati = {
+      data,
+      orari,
+      cantiere,
+      lavorazione,
+      operaio: nome,
+      user: utente
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify(dati),
+      headers: { "Content-Type": "application/json" }
+    });
+  });
+
+  setTimeout(caricaUltimi7, 1000);
+  alert("✅ Dati correttamente inseriti");
+  document.getElementById("lavorazione").value = "";
+  document.getElementById("cantiere").selectedIndex = 0;
+}
+
 
     function caricaUltimi7() {
       fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
