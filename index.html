@@ -209,7 +209,7 @@
       </div>
     </div>
 
-    <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
+    <button onclick="invia()" id="btnInvia">📄 Invia Presenza</button>
     <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
 
     <div id="ultimi7" style="margin-top:20px;"></div>
@@ -467,19 +467,32 @@ function confermaInvio() {
         };
 
         fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(dati),
-            headers: { "Content-Type": "application/json" }
-        })
-        .then(() => {
-            console.log(`Dati inviati per ${nome}`);
-        })
-        .catch(error => {
-            console.error(`Errore durante l'invio per ${nome}:`, error);
-            alert(`Si è verificato un errore durante l'invio dei dati per ${nome}.`);
-        });
-    });
+    method: "POST",
+    // NESSUN 'mode: "no-cors"'
+    body: JSON.stringify(dati),
+    headers: { "Content-Type": "application/json" }
+})
+.then(res => {
+    // Controlliamo se la risposta del server indica un errore (es. status 500)
+    if (!res.ok) {
+        throw new Error(`Errore dal server: ${res.statusText}`);
+    }
+    return res.json(); // Attendiamo la risposta in formato JSON dal nostro script
+})
+.then(data => {
+    // Ora possiamo leggere la risposta dello script
+    if(data.status === "success") {
+        console.log(`Dati inviati con successo per ${nome}. Messaggio: ${data.message}`);
+    } else {
+        // Se lo script risponde con un errore gestito da noi
+        throw new Error(`Errore nello script di Google: ${data.message}`);
+    }
+})
+.catch(error => {
+    // Questo cattura sia errori di rete sia errori lanciati da noi
+    console.error(`Errore durante l'invio per ${nome}:`, error);
+    alert(`Si è verificato un errore durante l'invio dei dati per ${nome}. Controlla la console per dettagli.`);
+});
 
     delete window.datiDaInviare;
 
