@@ -415,8 +415,46 @@ function mostraOperai() {
       }
     }
     function mostraModal() {
+  // Raccogli i dati inseriti
+  const data = document.getElementById("data").value;
+  const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
+  const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
+  const orari = oraInizio + " - " + oraFine;
+
+  let cantiere = document.getElementById("cantiere").value;
+  const cantiereAltro = document.getElementById("cantiereAltro").value;
+  if (cantiereAltro) cantiere = cantiereAltro;
+
+  const lavorazione = document.getElementById("lavorazione").value;
+
+  let operai = "";
+  if (document.getElementById("multiOperai").style.display === "block") {
+    const selezione = document.getElementById("operaio");
+    const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+    const nuovo = document.getElementById("nuovoOperaio").value.trim();
+    if (nuovo) selezionati.push(nuovo);
+    operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
+  } else {
+    operai = nomeOperaio;
+  }
+
+  // compone il riepilogo
+  const riepilogoHTML = `
+    <ul style="padding-left:20px; text-align:left;">
+      <li><strong>Data:</strong> ${data}</li>
+      <li><strong>Orari:</strong> ${orari}</li>
+      <li><strong>Cantiere:</strong> ${cantiere || "(nessuno)"}</li>
+      <li><strong>Lavorazione:</strong> ${lavorazione}</li>
+      <li><strong>Operai:</strong> ${operai}</li>
+    </ul>
+  `;
+
+  document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
+
+  // mostra la modale
   document.getElementById("modalConferma").style.display = "block";
 }
+
 
 function chiudiModal() {
   document.getElementById("modalConferma").style.display = "none";
@@ -453,6 +491,7 @@ window.addEventListener("DOMContentLoaded", () => {
   <div id="modalConferma" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.4); z-index:9999;">
   <div style="background:white; max-width:400px; margin:100px auto; padding:20px; border-radius:10px; text-align:center;">
     <p style="font-size:18px;">Vuoi confermare l'invio della presenza?</p>
+    <div id="riepilogoDati" style="font-size:14px; color:#333; text-align:left; margin-top:10px;"></div>
     <button onclick="confermaInvio()" style="background-color:#28a745; color:white; padding:10px 20px; margin:10px; border:none; border-radius:6px;">✅ Conferma</button>
     <button onclick="chiudiModal()" style="background-color:#ccc; padding:10px 20px; border:none; border-radius:6px;">❌ Annulla</button>
   </div>
