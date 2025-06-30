@@ -148,6 +148,23 @@
 </head>
 <body>
   <div class="container">
+    <div id="notifica" style="
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #28a745;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  font-size: 16px;
+  z-index: 99999;
+">
+✅ Dati correttamente inseriti
+</div>
+
 <div id="benvenuto">
   <div id="messaggioBenvenuto"></div>
 </div>
@@ -463,7 +480,17 @@ function chiudiModal() {
 function confermaInvio() {
   chiudiModal(); // Chiude la modale
   invia();       // Esegue la funzione di invio vera e propria
+
+  // Mostra la notifica
+  const n = document.getElementById("notifica");
+  n.style.display = "block";
+
+  // Nasconde la notifica dopo 4 secondi
+  setTimeout(() => {
+    n.style.display = "none";
+  }, 4000);
 }
+
 
 function caricaSuggerimentiLavorazioni() {
   fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
