@@ -380,7 +380,7 @@ function mostraOperai() {
 
     fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
       method: "POST",
-
+      mode: "no-cors",
       body: JSON.stringify(dati),
       headers: { "Content-Type": "application/json" }
     });
@@ -479,73 +479,19 @@ function chiudiModal() {
   document.getElementById("modalConferma").style.display = "none";
 }
 
-async function confermaInvio() {
+function confermaInvio() {
   chiudiModal(); // Chiude la modale
+  invia();       // Esegue la funzione di invio vera e propria
 
-  const data = document.getElementById("data").value;
-  const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
-  const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
-  const orari = oraInizio + " - " + oraFine;
+  // Mostra la notifica
+  const n = document.getElementById("notifica");
+  n.style.display = "block";
 
-  let cantiere = document.getElementById("cantiere").value;
-  const cantiereAltro = document.getElementById("cantiereAltro").value;
-  if (cantiereAltro) cantiere = cantiereAltro;
-
-  const lavorazione = document.getElementById("lavorazione").value.trim();
-
-  let operai = "";
-  if (document.getElementById("multiOperai").style.display === "block") {
-    const selezione = document.getElementById("operaio");
-    const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-    const nuovo = document.getElementById("nuovoOperaio").value.trim();
-    if (nuovo) selezionati.push(nuovo);
-    operai = selezionati.join(", ");
-  } else {
-    operai = nomeOperaio;
-  }
-
-  const dati = {
-    data,
-    orari,
-    cantiere,
-    lavorazione,
-    operaio: operai,
-    user: utente
-  };
-
-  try {
-    const resp = await fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-      method: "POST",
-      body: JSON.stringify(dati),
-      headers: { "Content-Type": "application/json" }
-    });
-
-    const risposta = await resp.json();
-
-    if (risposta.duplicato) {
-      alert("⚠️ Attenzione: questo operaio risulta già registrato oggi, ma la presenza è stata comunque inserita.");
-    }
-
-    // Mostra la notifica verde
-    const n = document.getElementById("notifica");
-    n.style.display = "block";
-    setTimeout(() => {
-      n.style.display = "none";
-    }, 4000);
-
-    // Aggiorna ultimi eventi
-    setTimeout(caricaUltimi7, 1000);
-
-    // Reset campi
-    document.getElementById("lavorazione").value = "";
-    document.getElementById("cantiere").selectedIndex = 0;
-
-  } catch (err) {
-    alert("Errore di comunicazione con il server");
-    console.log(err);
-  }
+  // Nasconde la notifica dopo 4 secondi
+  setTimeout(() => {
+    n.style.display = "none";
+  }, 4000);
 }
-
 
 
 function caricaSuggerimentiLavorazioni() {
