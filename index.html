@@ -180,55 +180,26 @@
 
   <div id="form" style="display:none;">
     <h3>📅 Compila Presenza</h3>
-    <div style="
-  background: #e9f2fb;
-  padding: 16px;
-  border-radius: 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  border: 1px solid #b6d4f4;
-">
-  <label class="section-label">📅 Data:</label>
-  <input type="date" id="data" style="margin-bottom: 10px;">
-  
-  <label class="section-label">⏰ Orario Inizio:</label>
-  <div style="display: flex; gap: 10px;">
-    <select id="oraInizioOra"></select>
-    <select id="oraInizioMinuti"></select>
-  </div>
-  <label class="section-label">⏰ Orario Fine:</label>
-  <div style="display: flex; gap: 10px;">
-    <select id="oraFineOra"></select>
-    <select id="oraFineMinuti"></select>
-  </div>
-  <p style="margin-top:10px; margin-bottom:6px; font-size:14px; color:#555; background:#fff3cd; border-left:5px solid #ffc107; padding:10px; border-radius:6px;">
-    💰 NB: pausa pranzo ed extra calcolati in automatico
-  </p>
-</div>
-
-
+    <input type="date" id="data">
+    <div id="orariContainer">
+      <label class="section-label">⏰ Orario Inizio:</label>
+      <div style="display: flex; gap: 10px;">
+        <select id="oraInizioOra"></select>
+        <select id="oraInizioMinuti"></select>
+      </div>
+      <label class="section-label">⏰ Orario Fine:</label>
+      <div style="display: flex; gap: 10px;">
+        <select id="oraFineOra"></select>
+        <select id="oraFineMinuti"></select>
+      </div>
     </div>
 
-<div style="
-  background: #f3f3f3;
-  padding: 16px;
-  border-radius: 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  border: 1px solid #ccc;
-">
-  <label class="section-label">🏠 Cantiere:</label>
-  <select id="cantiere"></select>
-  <button id="btnCantiereAltro" onclick="mostraCantiereLibero()" style="margin-top: 10px;">
-    🏠 Cantiere non presente
-  </button>
-  <div id="cantiereLibero" style="display:none; margin-top:10px;">
-    <input type="text" id="cantiereAltro" placeholder="🏢 Inserisci nome cantiere">
-  </div>
-</div>
+    <select id="cantiere"></select>
 
+    <button id="btnCantiereAltro" onclick="mostraCantiereLibero()">🏠 Cantiere non presente</button>
+    <div id="cantiereLibero" style="display:none;">
+      <input type="text" id="cantiereAltro" placeholder="🏢 Inserisci nome cantiere">
+    </div>
 
 
     <div id="importaBox">
