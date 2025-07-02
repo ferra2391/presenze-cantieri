@@ -181,21 +181,33 @@
   <div id="form" style="display:none;">
     <h3>📅 Compila Presenza</h3>
     <input type="date" id="data">
-    <div id="orariContainer">
-      <label class="section-label">⏰ Orario Inizio:</label>
-      <div style="display: flex; gap: 10px;">
-        <select id="oraInizioOra"></select>
-        <select id="oraInizioMinuti"></select>
-      </div>
-      <label class="section-label">⏰ Orario Fine:</label>
-      <div style="display: flex; gap: 10px;">
-        <select id="oraFineOra"></select>
-        <select id="oraFineMinuti"></select>
-      </div>
-      <p style="margin-bottom: 6px; font-size: 14px; color: #555; background: #fff3cd; border-left: 5px solid #ffc107; padding: 10px; border-radius: 6px;">
-  💰 NB: pausa pranzo ed extra calcolati in automatico
-</p>
-    </div>
+    <label class="section-label">➕ Ore extra lavorate:</label>
+<select id="oreExtra">
+  <option value="0" selected>0</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value="10">10</option>
+</select>
+
+  <label class="section-label">🏗️ Numero di cantieri lavorati:</label>
+<select id="numeroCantieri" onchange="generaCampiCantieri()">
+  <option value="1" selected>1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+</select>
+<div id="cantieriMultipli"></div>
+
+  
+</select>
 
     <select id="cantiere"></select>
 
@@ -273,21 +285,7 @@
         });
     }
 
-    function popolaOrari() {
-      const inizioOra = document.getElementById("oraInizioOra");
-      const inizioMin = document.getElementById("oraInizioMinuti");
-      const fineOra = document.getElementById("oraFineOra");
-      const fineMin = document.getElementById("oraFineMinuti");
-      for (let h = 6; h <= 20; h++) {
-        const hh = String(h).padStart(2, "0");
-        inizioOra.innerHTML += `<option value="${hh}" ${hh=="08"?"selected":""}>${hh}</option>`;
-        fineOra.innerHTML += `<option value="${hh}" ${hh=="17"?"selected":""}>${hh}</option>`;
-      }
-      ["00", "15", "30", "45"].forEach(min => {
-        inizioMin.innerHTML += `<option value="${min}">${min}</option>`;
-        fineMin.innerHTML += `<option value="${min}">${min}</option>`;
-      });
-    }
+    
 
     function caricaCantieri() {
       fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
@@ -328,6 +326,23 @@ function mostraCantiereLibero() {
   div.style.display = (div.style.display === "block") ? "none" : "block";
 }
 
+    function generaCampiCantieri() {
+  const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
+  const container = document.getElementById("cantieriMultipli");
+  container.innerHTML = ""; // svuota per rigenerare
+
+  for (let i = 1; i <= nCantieri; i++) {
+    container.innerHTML += `
+      <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9;">
+        <label class="section-label">🏗️ Cantiere ${i}:</label>
+        <input type="text" id="cantiere_${i}" placeholder="Nome cantiere ${i}">
+        <label class="section-label">🔨 Lavorazione ${i}:</label>
+        <input type="text" id="lavorazione_${i}" placeholder="Descrivi lavorazione ${i}">
+      </div>
+    `;
+  }
+}
+
 
 function mostraOperai() {
   const div = document.getElementById("multiOperai");
@@ -336,10 +351,54 @@ function mostraOperai() {
 
 
     function invia() {
-  const data = document.getElementById("data").value;
-  const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
-  const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
-  const orari = oraInizio + " - " + oraFine;
+   const orari = "08:00 - 17:00";
+const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
+const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+for (let i = 1; i <= numeroCantieri; i++) {
+  let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
+  let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
+
+  // se vuoto, blocca
+  if (!nomeCantiere || !lavorazioneCantiere) {
+    alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
+    return;
+  }
+
+  // calcolo ore
+  const oreCalcolate = (8 / numeroCantieri) + oreExtra;
+
+  // multioperai come prima
+  let operaiSelezionati = [];
+  if (document.getElementById("multiOperai").style.display === "block") {
+    operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
+    const nuovo = document.getElementById("nuovoOperaio").value.trim();
+    if (nuovo) operaiSelezionati.push(nuovo);
+    if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
+  } else {
+    operaiSelezionati = [nomeOperaio];
+  }
+
+  operaiSelezionati.forEach(nome => {
+    const dati = {
+      data,
+      orari,
+      cantiere: nomeCantiere,
+      lavorazione: lavorazioneCantiere,
+      ore: oreCalcolate,
+      operaio: nome,
+      user: utente
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify(dati),
+      headers: { "Content-Type": "application/json" }
+    });
+  });
+
+}
+
 
   let cantiere = document.getElementById("cantiere").value;
   const cantiereAltro = document.getElementById("cantiereAltro").value;
@@ -438,10 +497,8 @@ function mostraOperai() {
     }
     function mostraModal() {
   // Raccogli i dati inseriti
-  const data = document.getElementById("data").value;
-  const oraInizio = document.getElementById("oraInizioOra").value + ":" + document.getElementById("oraInizioMinuti").value;
-  const oraFine = document.getElementById("oraFineOra").value + ":" + document.getElementById("oraFineMinuti").value;
-  const orari = oraInizio + " - " + oraFine;
+const orari = "08:00 - 17:00";
+
 
   let cantiere = document.getElementById("cantiere").value;
   const cantiereAltro = document.getElementById("cantiereAltro").value;
