@@ -217,16 +217,6 @@
     </div>
 
 
-    <div id="importaBox">
-  <h4> 💅​ Lavorazioni eseguite</h4>
-  <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
-  <div class="importa-riga">
-    <input list="suggerimentiLavorazioni" id="lavorazione" placeholder="🧠​ Lavorazioni e suggerimenti" />
-    <datalist id="suggerimentiLavorazioni"></datalist>
-  </div>
-</div>
-
-
 
     <button onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
 <div id="multiOperai" style="display:none;">
@@ -329,19 +319,27 @@ function mostraCantiereLibero() {
     function generaCampiCantieri() {
   const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
   const container = document.getElementById("cantieriMultipli");
-  container.innerHTML = ""; // svuota per rigenerare
+  container.innerHTML = "";
 
   for (let i = 1; i <= nCantieri; i++) {
     container.innerHTML += `
       <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9;">
         <label class="section-label">🏗️ Cantiere ${i}:</label>
         <input type="text" id="cantiere_${i}" placeholder="Nome cantiere ${i}">
-        <label class="section-label">🔨 Lavorazione ${i}:</label>
-        <input type="text" id="lavorazione_${i}" placeholder="Descrivi lavorazione ${i}">
+        
+        <div id="importaBox_${i}" style="background:#e9fbe9; margin-top:10px; padding:12px; border-radius:10px; border:1px solid #b7e4b6;">
+          <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
+          <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
+          <div class="importa-riga">
+            <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
+            <datalist id="suggerimentiLavorazioni"></datalist>
+          </div>
+        </div>
       </div>
     `;
   }
 }
+
 
 
 function mostraOperai() {
