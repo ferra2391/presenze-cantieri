@@ -306,10 +306,11 @@ function caricaCantieri() {
         });
     }
 
-function mostraCantiereLibero() {
-  const div = document.getElementById("cantiereLibero");
+function mostraCantiereLibero(index) {
+  const div = document.getElementById(`cantiereLibero_${index}`);
   div.style.display = (div.style.display === "block") ? "none" : "block";
 }
+
 
     function generaCampiCantieri() {
   const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
@@ -317,29 +318,33 @@ function mostraCantiereLibero() {
   container.innerHTML = "";
 
   for (let i = 1; i <= nCantieri; i++) {
-    let selectHtml = `<select id="cantiere_${i}">`;
-    selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
-    elencoCantieri.forEach(nome => {
-      selectHtml += `<option value="${nome}">${nome}</option>`;
-    });
-    selectHtml += `</select>`;
+  let selectHtml = `<select id="cantiere_${i}">`;
+  selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
+  elencoCantieri.forEach(nome => {
+    selectHtml += `<option value="${nome}">${nome}</option>`;
+  });
+  selectHtml += `</select>`;
 
-    container.innerHTML += `
-      <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9;">
-        <label class="section-label">🏗️ Cantiere ${i}:</label>
-        ${selectHtml}
-        
-        <div id="importaBox_${i}" style="background:#e9fbe9; margin-top:10px; padding:12px; border-radius:10px; border:1px solid #b7e4b6;">
-          <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
-          <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
-          <div class="importa-riga">
-            <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
-            <datalist id="suggerimentiLavorazioni"></datalist>
-          </div>
+  container.innerHTML += `
+    <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9;">
+      <label class="section-label">🏗️ Cantiere ${i}:</label>
+      ${selectHtml}
+      <button type="button" onclick="mostraCantiereLibero(${i})" style="background-color:#d1d1d1; margin-top:6px;">🏠 Cantiere non presente</button>
+      <div id="cantiereLibero_${i}" style="display:none;">
+        <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Inserisci nome cantiere ${i}">
+      </div>
+
+      <div id="importaBox_${i}" style="background:#e9fbe9; margin-top:10px; padding:12px; border-radius:10px; border:1px solid #b7e4b6;">
+        <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
+        <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
+        <div class="importa-riga">
+          <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
+          <datalist id="suggerimentiLavorazioni"></datalist>
         </div>
       </div>
-    `;
-  }
+    </div>
+  `;
+}
 }
 
 
