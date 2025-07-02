@@ -242,6 +242,8 @@
     let utente = "";
     let nomeOperaio = "";
     let ultimoTestoLavorazione = "";
+    let elencoCantieri = [];
+
 
     function login() {
       const userInput = document.getElementById("user").value.trim();
@@ -276,22 +278,16 @@
 
     
 
-    function caricaCantieri() {
-      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
-        .then(r => r.json())
-        .then(data => {
-          const select = document.getElementById("cantiere");
-          select.innerHTML = '<option value="">-- Seleziona Cantiere --</option>';
-          data.forEach(r => {
-            if (r["Cantiere"]) {
-              const opt = document.createElement("option");
-              opt.value = r["Cantiere"];
-              opt.textContent = r["Cantiere"];
-              select.appendChild(opt);
-            }
-          });
-        });
-    }
+function caricaCantieri() {
+  fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
+    .then(r => r.json())
+    .then(data => {
+      elencoCantieri = data
+        .filter(r => r["Cantiere"])
+        .map(r => r["Cantiere"]);
+    });
+}
+
 
     function caricaOperai() {
       fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
@@ -321,10 +317,17 @@ function mostraCantiereLibero() {
   container.innerHTML = "";
 
   for (let i = 1; i <= nCantieri; i++) {
+    let selectHtml = `<select id="cantiere_${i}">`;
+    selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
+    elencoCantieri.forEach(nome => {
+      selectHtml += `<option value="${nome}">${nome}</option>`;
+    });
+    selectHtml += `</select>`;
+
     container.innerHTML += `
       <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9;">
         <label class="section-label">🏗️ Cantiere ${i}:</label>
-        <input type="text" id="cantiere_${i}" placeholder="Nome cantiere ${i}">
+        ${selectHtml}
         
         <div id="importaBox_${i}" style="background:#e9fbe9; margin-top:10px; padding:12px; border-radius:10px; border:1px solid #b7e4b6;">
           <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
@@ -338,6 +341,7 @@ function mostraCantiereLibero() {
     `;
   }
 }
+
 
 
 
