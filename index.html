@@ -269,6 +269,7 @@
             caricaCantieri();
             caricaOperai();
             caricaUltimi7();
+            caricaRiepilogoAdmin(); 
               generaCampiCantieri();
           } else {
             alert("Credenziali errate");
@@ -530,6 +531,30 @@ function caricaSuggerimentiLavorazioni() {
       });
     });
 }
+    function caricaRiepilogoAdmin() {
+  const ruolo = localStorage.getItem("ruolo");
+  if (ruolo && ruolo.toLowerCase() === "amministratore") {
+    document.getElementById("riepilogoAdmin").style.display = "block";
+    
+    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1")
+      .then(r => r.json())
+      .then(dati => {
+        let compilati = dati.compilati || [];
+        let mancanti = dati.mancanti || [];
+        
+        document.getElementById("riepilogoCompilati").innerHTML = `
+          <h4>✅ Compilati:</h4>
+          <ul>${compilati.map(op => `<li>${op}</li>`).join("")}</ul>
+        `;
+        
+        document.getElementById("riepilogoMancanti").innerHTML = `
+          <h4>⛔ Mancanti:</h4>
+          <ul>${mancanti.map(op => `<li>${op}</li>`).join("")}</ul>
+        `;
+      });
+  }
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   caricaSuggerimentiLavorazioni();
 });
@@ -539,6 +564,13 @@ window.addEventListener("DOMContentLoaded", () => {
   © 2025 Davide Ferrarini — Tutti i diritti riservati
 </footer>
 
+<div id="riepilogoAdmin" style="display:none; margin-top:30px;">
+  <h3>📝 Riepilogo presenze odierne</h3>
+  <div id="riepilogoCompilati" style="margin-bottom:20px;"></div>
+  <div id="riepilogoMancanti"></div>
+</div>
+
+    
     </div> <!-- chiusura .container -->
   <div id="modalConferma" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.4); z-index:9999;">
   <div style="background:white; max-width:400px; margin:100px auto; padding:20px; border-radius:10px; text-align:center;">
