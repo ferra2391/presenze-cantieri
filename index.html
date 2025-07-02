@@ -352,6 +352,7 @@ function mostraOperai() {
 
     function invia() {
    const orari = "08:00 - 17:00";
+      const data = document.getElementById("data").value;  // <-- AGGIUNGI QUESTA RIGA
 const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
 const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
 for (let i = 1; i <= numeroCantieri; i++) {
