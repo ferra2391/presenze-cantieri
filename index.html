@@ -535,9 +535,11 @@ function caricaSuggerimentiLavorazioni() {
   const ruolo = localStorage.getItem("ruolo");
   if (ruolo && ruolo.toLowerCase() === "amministratore") {
     document.getElementById("riepilogoAdmin").style.display = "block";
+
     
-    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1")
-      .then(r => r.json())
+    const oggiISO = new Date().toISOString().split("T")[0];
+fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1&data=" + oggiISO)
+    .then(r => r.json())
       .then(dati => {
         let compilati = dati.compilati || [];
         let mancanti = dati.mancanti || [];
@@ -560,15 +562,19 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
   </script>
-<footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px;">
-  © 2025 Davide Ferrarini — Tutti i diritti riservati
-</footer>
 
 <div id="riepilogoAdmin" style="display:none; margin-top:30px;">
   <h3>📝 Riepilogo presenze odierne</h3>
   <div id="riepilogoCompilati" style="margin-bottom:20px;"></div>
   <div id="riepilogoMancanti"></div>
 </div>
+
+    
+<footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px;">
+  © 2025 Davide Ferrarini — Tutti i diritti riservati
+</footer>
+
+
 
     
     </div> <!-- chiusura .container -->
