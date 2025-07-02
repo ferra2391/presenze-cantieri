@@ -286,6 +286,7 @@ function caricaCantieri() {
       elencoCantieri = data
         .filter(r => r["Cantiere"])
         .map(r => r["Cantiere"]);
+      generaCampiCantieri(); // <<< qui! appena popolato l'array
     });
 }
 
