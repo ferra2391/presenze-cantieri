@@ -349,24 +349,27 @@ function mostraOperai() {
 
 
     function invia() {
-   const orari = "08:00 - 17:00";
-      const data = document.getElementById("data").value;  // <-- AGGIUNGI QUESTA RIGA
+   const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+const data = document.getElementById("data").value;
+const orari = "08:00 - 17:00";
 const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
-const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+
 for (let i = 1; i <= numeroCantieri; i++) {
   let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
   let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
 
-  // se vuoto, blocca
   if (!nomeCantiere || !lavorazioneCantiere) {
     alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
     return;
   }
 
-  // calcolo ore
-  const oreCalcolate = (8 / numeroCantieri) + oreExtra;
+  let oreCalcolate = 8 / numeroCantieri;
 
-  // multioperai come prima
+  // se è l'ultimo cantiere, aggiunge le ore extra
+  if (i === numeroCantieri) {
+    oreCalcolate += oreExtra;
+  }
+
   let operaiSelezionati = [];
   if (document.getElementById("multiOperai").style.display === "block") {
     operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
@@ -395,6 +398,7 @@ for (let i = 1; i <= numeroCantieri; i++) {
       headers: { "Content-Type": "application/json" }
     });
   });
+}
 
 }
 
