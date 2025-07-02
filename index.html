@@ -495,15 +495,8 @@ for (let i = 1; i <= numeroCantieri; i++) {
       }
     }
     function mostraModal() {
-  // Raccogli i dati inseriti
-const orari = "08:00 - 17:00";
-
-
-  let cantiere = document.getElementById("cantiere").value;
-  const cantiereAltro = document.getElementById("cantiereAltro").value;
-  if (cantiereAltro) cantiere = cantiereAltro;
-
-  const lavorazione = document.getElementById("lavorazione").value;
+  const orari = "08:00 - 17:00";
+  const data = document.getElementById("data").value;
 
   let operai = "";
   if (document.getElementById("multiOperai").style.display === "block") {
@@ -516,22 +509,30 @@ const orari = "08:00 - 17:00";
     operai = nomeOperaio;
   }
 
-  // compone il riepilogo
+  const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+  let dettagliCantieri = "";
+
+  for (let i = 1; i <= numeroCantieri; i++) {
+    const nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
+    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
+    dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
+  }
+
   const riepilogoHTML = `
     <ul style="padding-left:20px; text-align:left;">
       <li><strong>Data:</strong> ${data}</li>
       <li><strong>Orari:</strong> ${orari}</li>
-      <li><strong>Cantiere:</strong> ${cantiere || "(nessuno)"}</li>
-      <li><strong>Lavorazione:</strong> ${lavorazione}</li>
       <li><strong>Operai:</strong> ${operai}</li>
+      <li><strong>Dettaglio Cantieri:</strong>
+        <ul>${dettagliCantieri}</ul>
+      </li>
     </ul>
   `;
 
   document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
-
-  // mostra la modale
   document.getElementById("modalConferma").style.display = "block";
 }
+
 
 
 function chiudiModal() {
