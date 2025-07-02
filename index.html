@@ -209,7 +209,6 @@
   
 </select>
 
-    <select id="cantiere"></select>
 
     <button id="btnCantiereAltro" onclick="mostraCantiereLibero()">🏠 Cantiere non presente</button>
     <div id="cantiereLibero" style="display:none;">
@@ -265,7 +264,7 @@
             document.getElementById("form").style.display = "block";
             document.getElementById("data").value = new Date().toISOString().split("T")[0];
             caricaUltimaLavorazione(utente);
-            popolaOrari();
+            
             caricaCantieri();
             caricaOperai();
             caricaUltimi7();
@@ -402,59 +401,6 @@ for (let i = 1; i <= numeroCantieri; i++) {
 
 }
 
-
-  let cantiere = document.getElementById("cantiere").value;
-  const cantiereAltro = document.getElementById("cantiereAltro").value;
-  if (cantiereAltro) cantiere = cantiereAltro;
-
-  const lavorazione = document.getElementById("lavorazione").value.trim();
-  if (!lavorazione) {
-    alert("⚠️ Devi inserire la lavorazione.");
-    return;
-  }
-
-  // Se la lavorazione NON è 'Assente', il cantiere è obbligatorio
-  if (lavorazione.toLowerCase() !== "assente" && !cantiere) {
-    alert("⚠️ Devi selezionare o indicare il nome del cantiere.");
-    return;
-  }
-
-  const selezione = document.getElementById("operaio");
-  let operaiSelezionati = [];
-
-  if (document.getElementById("multiOperai").style.display === "block") {
-    operaiSelezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-    const nuovo = document.getElementById("nuovoOperaio").value.trim();
-    if (nuovo) operaiSelezionati.push(nuovo);
-    if (operaiSelezionati.length === 0) {
-      operaiSelezionati = [nomeOperaio];
-    }
-  } else {
-    operaiSelezionati = [nomeOperaio];
-  }
-
-  operaiSelezionati.forEach(nome => {
-    const dati = {
-      data,
-      orari,
-      cantiere,
-      lavorazione,
-      operaio: nome,
-      user: utente
-    };
-
-    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify(dati),
-      headers: { "Content-Type": "application/json" }
-    });
-  });
-
-  setTimeout(caricaUltimi7, 1000);
-
-  document.getElementById("lavorazione").value = "";
-  document.getElementById("cantiere").selectedIndex = 0;
 }
 
 
@@ -491,13 +437,7 @@ for (let i = 1; i <= numeroCantieri; i++) {
         });
     }
 
-    function importaLavorazione() {
-      if (ultimoTestoLavorazione) {
-        document.getElementById("lavorazione").value = ultimoTestoLavorazione;
-      } else {
-        alert("Nessuna lavorazione precedente trovata.");
-      }
-    }
+
     function mostraModal() {
   const orari = "08:00 - 17:00";
   const data = document.getElementById("data").value;
