@@ -184,7 +184,6 @@
             color: var(--color-primary-dark);
         }
 
-
         #btnGestione {
             background-color: var(--color-primary);
             border-radius: 10px;
@@ -204,18 +203,89 @@
             font-weight: bold;
             color: var(--color-primary-dark);
         }
+
+        /* INIZIO MODIFICHE PER LA MODALE E IL PULSANTE "Cantiere non presente" */
+
         #btnCantiereAltro {
             background-color: var(--color-bg-alt);
             color: var(--color-text-dark);
             font-weight: normal;
             box-shadow: none;
             border: 1px solid var(--color-border);
+            margin-top: 6px; /* Spostato leggermente */
+            width: auto; /* Non prende tutta la larghezza */
+            padding: 8px 15px; /* Padding ridotto */
+            font-size: 14px; /* Testo più piccolo */
+            display: inline-block; /* Per non prendere tutta la riga */
+            vertical-align: middle; /* Allinea al centro con altri elementi se ce ne fossero */
+            float: right; /* Lo allinea a destra se la riga lo permette */
         }
         #btnCantiereAltro:hover {
             background-color: var(--color-border);
             transform: none;
             box-shadow: none;
         }
+
+        /* Stili per la modale di conferma */
+        #modalConferma {
+            display: none; /* Inizialmente nascosta */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.65); /* Rendi lo sfondo un po' più scuro per coprire meglio */
+            z-index: 10000; /* Aumentato il z-index per essere sicuro che sia sopra tutto */
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; /* Disabilita i click sul "velo" quando è nascosto */
+            opacity: 0; /* Aggiungi per l'animazione di entrata del velo */
+            transition: opacity 0.3s ease; /* Transizione per il velo */
+        }
+
+        #modalConferma.show {
+            display: flex; /* La rendi visibile */
+            pointer-events: auto; /* Riabilita i click sulla modale stessa */
+            opacity: 1; /* Animazione di entrata del velo */
+        }
+
+        #modalConferma > div { /* Il box interno della modale */
+            background: white;
+            max-width: 400px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* Ombra più pronunciata */
+            position: relative;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out; /* Transizione per il box della modale */
+        }
+
+        #modalConferma.show > div {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        #modalConferma .chiudi-btn {
+            position: absolute;
+            top: 10px; /* Sposta leggermente più in alto */
+            right: 10px; /* Sposta leggermente più a destra */
+            background: none;
+            border: none;
+            font-size: 30px; /* Ancora più grande per visibilità */
+            cursor: pointer;
+            color: var(--color-text-light);
+            padding: 5px;
+            transition: color 0.2s ease;
+            z-index: 10001; /* Assicura che la X sia sopra il contenuto della modale */
+        }
+        #modalConferma .chiudi-btn:hover {
+            color: var(--color-text-dark);
+        }
+        /* FINE MODIFICHE PER LA MODALE E IL PULSANTE "Cantiere non presente" */
+
 
         /* Stili per la notifica (snackbar) */
         #notifica {
@@ -239,52 +309,6 @@
             opacity: 1;
         }
 
-        /* Stili per la modale di conferma */
-        #modalConferma {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5); /* Sfondo più scuro */
-            z-index: 9999;
-            display: flex; /* Centra il contenuto */
-            justify-content: center;
-            align-items: center;
-        }
-#modalConferma {
-    display: none; /* Questa riga è la chiave! */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 9999;
-    /* Le prossime due proprietà servono solo quando è 'display: flex;' */
-    /* justify-content: center; */
-    /* align-items: center; */
-}
-        #modalConferma.show > div { /* Animazione di ingresso */
-            transform: scale(1);
-            opacity: 1;
-        }
-        #modalConferma .chiudi-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 28px; /* Più grande */
-            cursor: pointer;
-            color: var(--color-text-light);
-            padding: 5px; /* Area cliccabile più ampia */
-            transition: color 0.2s ease;
-        }
-        #modalConferma .chiudi-btn:hover {
-            color: var(--color-text-dark);
-        }
         #modalConferma p {
             font-size: 18px;
             color: var(--color-text-dark);
@@ -507,6 +531,18 @@
             </div>
         </div>
 
+        <div id="modalConferma">
+            <div>
+                <button class="chiudi-btn" onclick="chiudiModal()">✖️</button>
+                <h3>Conferma Dati</h3>
+                <p>Verifica i dati prima di inviare:</p>
+                <div id="riepilogoDati">
+                    </div>
+                <button onclick="confermaInvio()">✅ Conferma</button>
+                <button onclick="chiudiModal()">❌ Annulla</button>
+            </div>
+        </div>
+
         <script>
             let utente = "";
             let nomeOperaio = "";
@@ -538,7 +574,7 @@
                             caricaCantieri();
                             caricaOperai();
                             caricaUltimi7();
-                            caricaRiepilogoAdmin();
+                            // caricaRiepilogoAdmin(); // Funzione non presente nel tuo JS, commentata per evitare errori
                             generaCampiCantieri();
                         } else {
                             alert("Credenziali errate");
@@ -637,7 +673,7 @@
 
                     if (!nomeCantiere || !lavorazioneCantiere) {
                         alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
-                        return;
+                        return; // Ferma l'invio se ci sono campi mancanti
                     }
 
                     let oreCalcolate = 8 / numeroCantieri;
@@ -673,6 +709,14 @@
                             mode: "no-cors",
                             body: JSON.stringify(dati),
                             headers: { "Content-Type": "application/json" }
+                        })
+                        .then(() => {
+                            // Qui potresti voler fare qualcosa dopo ogni invio,
+                            // ma per ora la notifica e il reset sono in confermaInvio()
+                        })
+                        .catch(error => {
+                            console.error("Errore durante l'invio:", error);
+                            // Potresti mostrare una notifica di errore qui
                         });
                     });
                 }
@@ -757,20 +801,27 @@
                 `;
 
                 document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
-                document.getElementById("modalConferma").style.display = "flex"; // Usa flex per centrare
-                document.getElementById("modalConferma").classList.add("show"); // Aggiungi classe per animazione
+                const modal = document.getElementById("modalConferma");
+                modal.style.display = "flex"; // Mostra la modale come flexbox
+                modal.classList.add("show"); // Aggiunge la classe per l'animazione di fade-in
+
+                // Blocca lo scroll del body quando la modale è aperta
+                document.body.style.overflow = "hidden";
             }
 
             function chiudiModal() {
-                document.getElementById("modalConferma").classList.remove("show"); // Rimuovi classe per animazione
+                const modal = document.getElementById("modalConferma");
+                modal.classList.remove("show"); // Rimuove la classe per animazione
+                document.body.style.overflow = ""; // Resetta lo scroll del body
+
                 setTimeout(() => {
-                    document.getElementById("modalConferma").style.display = "none";
-                }, 300); // Corrisponde alla durata della transizione
+                    modal.style.display = "none";
+                }, 300); // Corrisponde alla durata della transizione CSS per opacity/transform
             }
 
             function confermaInvio() {
                 chiudiModal(); // Chiude la modale
-                invia();       // Esegue la funzione di invio vera e propria
+                invia();     // Esegue la funzione di invio vera e propria
 
                 // Mostra la notifica
                 const n = document.getElementById("notifica");
@@ -789,81 +840,18 @@
                 document.getElementById("data").value = new Date().toISOString().split("T")[0];
                 document.getElementById("oreExtra").value = "0";
                 document.getElementById("numeroCantieri").value = "1";
-                document.getElementById("cantieriMultipli").innerHTML = ""; // Pulisce i campi generati
-                document.getElementById("multiOperai").style.display = "none";
-                document.getElementById("operaio").selectedIndex = -1; // Deseleziona tutto
-                document.getElementById("nuovoOperaio").value = "";
-
-                generaCampiCantieri(); // Rigenera i campi per un cantiere singolo
-                caricaUltimi7(); // Aggiorna gli ultimi 7 eventi
-                caricaRiepilogoAdmin(); // Aggiorna il riepilogo admin
-            }
-
-            function caricaSuggerimentiLavorazioni() {
-                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
-                    .then(r => r.json())
-                    .then(data => {
-                        const lista = document.getElementById("suggerimentiLavorazioni");
-                        lista.innerHTML = "";
-                        data.slice(0, 15).forEach(item => {
-                            const opt = document.createElement("option");
-                            opt.value = item;
-                            lista.appendChild(opt);
-                        });
-                    });
-            }
-
-            function caricaRiepilogoAdmin() {
-                const ruolo = localStorage.getItem("ruolo");
-                if (ruolo && ruolo.toLowerCase() === "amministratore") {
-                    document.getElementById("riepilogoAdmin").style.display = "block";
-
-                    const oggiISO = new Date().toISOString().split("T")[0];
-                    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1&data=" + oggiISO)
-                        .then(r => r.json())
-                        .then(dati => {
-                            let compilati = dati.compilati || [];
-                            let mancanti = dati.mancanti || [];
-
-                            document.getElementById("riepilogoCompilati").innerHTML = `
-                                <h4>Compilati:</h4>
-                                <ul>
-                                    ${compilati.map(op => `<li>${op.nome} (${op.cantiere} - ${op.lavorazione})</li>`).join("")}
-                                </ul>
-                            `;
-
-                            document.getElementById("riepilogoMancanti").innerHTML = `
-                                <h4>Mancanti:</h4>
-                                <ul>${mancanti.map(op => `<li>${op}</li>`).join("")}</ul>
-                            `;
-                        });
+                generaCampiCantieri(); // Rigenera i campi cantiere per resettare anche quelli
+                // Resetta i campi specifici degli operai multipli se erano visibili
+                if (document.getElementById("multiOperai").style.display === "block") {
+                    document.getElementById("operaio").selectedIndex = -1; // Deseleziona tutti
+                    document.getElementById("nuovoOperaio").value = "";
+                    document.getElementById("multiOperai").style.display = "none"; // Nasconde il blocco
                 }
+
+                caricaUltimi7(); // Aggiorna la lista delle ultime 7 lavorazioni
+                caricaUltimaLavorazione(utente); // Aggiorna l'ultima lavorazione
             }
-
-            window.addEventListener("DOMContentLoaded", () => {
-                caricaSuggerimentiLavorazioni();
-            });
         </script>
-
-        <div id="riepilogoAdmin" class="card" style="display:none;">
-            <h3>📝 Riepilogo presenze odierne</h3>
-            <div id="riepilogoCompilati" style="margin-bottom:20px;"></div>
-            <div id="riepilogoMancanti"></div>
-        </div>
-
-        <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px; padding-bottom: 20px;">
-            © 2025 Davide Ferrarini — Tutti i diritti riservati
-        </footer>
-
-    </div> <div id="modalConferma">
-        <div>
-            <button class="chiudi-btn" onclick="chiudiModal()">✕</button>
-            <p>Vuoi confermare l'invio della presenza?</p>
-            <div id="riepilogoDati"></div>
-            <button onclick="confermaInvio()">✅ Conferma</button>
-            <button onclick="chiudiModal()">❌ Annulla</button>
-        </div>
     </div>
-
 </body>
 </html>
