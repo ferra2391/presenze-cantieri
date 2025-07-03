@@ -530,6 +530,18 @@ function confermaInvio() {
   setTimeout(() => {
     n.style.display = "none";
   }, 4000);
+// Resetta i campi dopo invio
+  document.getElementById("data").value = new Date().toISOString().split("T")[0];
+  document.getElementById("oreExtra").value = "0";
+  document.getElementById("numeroCantieri").value = "1";
+  document.getElementById("cantieriMultipli").innerHTML = "";
+  document.getElementById("multiOperai").style.display = "none";
+  document.getElementById("operaio").selectedIndex = -1;
+  document.getElementById("nuovoOperaio").value = "";
+  if (document.getElementById("multiploPresenze")) {
+      document.getElementById("multiploPresenze").value = 1;
+  }
+  generaCampiCantieri();
 }
 
 
