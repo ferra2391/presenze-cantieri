@@ -447,20 +447,10 @@
 
             <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
                 <div style="flex:1;">
-                    <label class="section-label" for="oreExtra">➕ Ore extra:</label>
-                    <select id="oreExtra">
-                        <option value="0" selected>0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                        <option value="10">10</option>
-                    </select>
+                    ok
+<label class="section-label" for="oreLavorate">🕒 Ore lavorate:</label>
+<input type="number" id="oreLavorate" min="1" max="24" value="8" />
+
                 </div>
                 <div style="flex:1;">
                     <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
@@ -620,62 +610,55 @@
             }
 
             function invia() {
-                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-                const data = document.getElementById("data").value;
-                const orari = "08:00 - 17:00";
-                const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
+const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+const data = document.getElementById("data").value;
+const orari = "08:00 - 17:00";
+const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
 
-                for (let i = 1; i <= numeroCantieri; i++) {
-                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
-                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+for (let i = 1; i <= numeroCantieri; i++) {
+    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
+    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+    if (nomeCantiereAltro) {
+        nomeCantiere = nomeCantiereAltro;
+    }
+    let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
 
-                    if (nomeCantiereAltro) {
-                        nomeCantiere = nomeCantiereAltro;
-                    }
+    if (!nomeCantiere || !lavorazioneCantiere) {
+        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
+        return;
+    }
 
-                    let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
+    let oreCalcolate = oreLavorate / numeroCantieri;
 
-                    if (!nomeCantiere || !lavorazioneCantiere) {
-                        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
-                        return;
-                    }
+    let operaiSelezionati = [];
+    if (document.getElementById("multiOperai").style.display === "block") {
+        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
+        const nuovo = document.getElementById("nuovoOperaio").value.trim();
+        if (nuovo) operaiSelezionati.push(nuovo);
+        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
+    } else {
+        operaiSelezionati = [nomeOperaio];
+    }
 
-                    let oreCalcolate = 8 / numeroCantieri;
+    operaiSelezionati.forEach(nome => {
+        const dati = {
+            data,
+            orari,
+            cantiere: nomeCantiere,
+            lavorazione: lavorazioneCantiere,
+            ore: oreCalcolate,
+            operaio: nome,
+            user: utente
+        };
+        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(dati),
+            headers: { "Content-Type": "application/json" }
+        });
+    });
+}
 
-                    // se è l'ultimo cantiere, aggiunge le ore extra
-                    if (i === numeroCantieri) {
-                        oreCalcolate += oreExtra;
-                    }
-
-                    let operaiSelezionati = [];
-                    if (document.getElementById("multiOperai").style.display === "block") {
-                        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
-                        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-                        if (nuovo) operaiSelezionati.push(nuovo);
-                        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
-                    } else {
-                        operaiSelezionati = [nomeOperaio];
-                    }
-
-                    operaiSelezionati.forEach(nome => {
-                        const dati = {
-                            data,
-                            orari,
-                            cantiere: nomeCantiere,
-                            lavorazione: lavorazioneCantiere,
-                            ore: oreCalcolate,
-                            operaio: nome,
-                            user: utente
-                        };
-
-                        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-                            method: "POST",
-                            mode: "no-cors",
-                            body: JSON.stringify(dati),
-                            headers: { "Content-Type": "application/json" }
-                        });
-                    });
-                }
             }
 
             function caricaUltimi7() {
@@ -712,9 +695,10 @@
             }
 
             function mostraModal() {
-                const orariBase = "08:00 - 17:00";
-                const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
-                let orari = orariBase;
+const orariBase = "08:00 - 17:00";
+const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
+let orari = `${orariBase} (${oreLavorate} ore lavorate)`;
+
                 if (oreExtra > 0) {
                     orari += ` + ${oreExtra} ore extra`;
                 }
