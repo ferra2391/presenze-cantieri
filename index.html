@@ -1,1555 +1,857 @@
 <!DOCTYPE html>
-
 <html lang="it">
-
 <head>
-
-    <meta charset="UTF-8" />
-
-    <title>Presenze Cantiere</title>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-
-    <style>
-
-        /* Variabili CSS per una gestione più semplice dei colori e stili */
-
-        :root {
-
-            --color-primary: hsl(210, 100%, 40%); /* Blu principale */
-
-            --color-primary-dark: hsl(210, 100%, 30%); /* Blu più scuro */
-
-            --color-accent: hsl(140, 60%, 40%); /* Verde per azioni positive */
-
-            --color-accent-dark: hsl(140, 60%, 30%); /* Verde più scuro */
-
-            --color-warning: hsl(40, 90%, 60%); /* Giallo per avvisi */
-
-            --color-text-dark: hsl(210, 10%, 20%); /* Testo scuro */
-
-            --color-text-light: hsl(210, 5%, 50%); /* Testo grigio chiaro */
-
-            --color-bg-light: hsl(210, 20%, 98%); /* Sfondo chiaro generale */
-
-            --color-bg-alt: hsl(210, 10%, 95%); /* Grigio leggero per sezioni */
-
-            --color-border: hsl(210, 15%, 85%); /* Bordo sottile */
-
-            --color-success-bg: hsl(140, 60%, 95%); /* Sfondo verde chiaro per successo */
-
-            --color-success-border: hsl(140, 60%, 75%); /* Bordo verde per successo */
-
-            --color-warning-bg: hsl(40, 90%, 95%); /* Sfondo giallo chiaro per avvisi */
-
-            --color-warning-border: hsl(40, 90%, 80%); /* Bordo giallo per avvisi */
-
-
-
-            --border-radius-base: 8px; /* Raggio dei bordi standard */
-
-            --shadow-light: 0 1px 3px rgba(0,0,0,0.05);
-
-            --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
-
-            --shadow-strong: 0 8px 16px rgba(0,0,0,0.15);
-
-        }
-
-
-
-        body {
-
-            font-family: 'Roboto', sans-serif;
-
-            background: var(--color-bg-light);
-
-            color: var(--color-text-dark);
-
-            padding: 20px;
-
-            margin: 0;
-
-        }
-
-
-
-        .container {
-
-            max-width: 500px;
-
-            margin: 0 auto;
-
-            padding: 0 10px;
-
-        }
-
-
-
-        h2, h3 {
-
-            text-align: center;
-
-            color: var(--color-primary-dark);
-
-            margin-bottom: 20px;
-
-        }
-
-
-
-        input, select, button {
-
-            width: 100%;
-
-            padding: 14px;
-
-            margin: 10px 0;
-
-            font-size: 16px;
-
-            border: 1px solid var(--color-border);
-
-            border-radius: var(--border-radius-base);
-
-            box-sizing: border-box;
-
-            box-shadow: var(--shadow-light);
-
-        }
-
-
-
-        input:focus, select:focus, button:focus {
-
-            outline: none;
-
-            border-color: var(--color-primary);
-
-            box-shadow: 0 0 0 3px hsla(210, 100%, 40%, 0.2);
-
-        }
-
-
-
-        button {
-
-            background-color: var(--color-primary);
-
-            color: white;
-
-            border: none;
-
-            cursor: pointer;
-
-            font-weight: bold;
-
-            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-
-            box-shadow: var(--shadow-medium);
-
-        }
-
-
-
-        button:hover {
-
-            background-color: var(--color-primary-dark);
-
-            transform: translateY(-2px);
-
-            box-shadow: var(--shadow-strong);
-
-        }
-
-
-
-        #form {
-
-            margin-top: 20px;
-
-        }
-
-
-
-        #benvenuto {
-
-            text-align: center;
-
-            margin-bottom: 20px;
-
-            font-weight: bold;
-
-            color: var(--color-text-dark);
-
-            font-size: 20px;
-
-        }
-
-
-
-        #btnInvia {
-
-            background: linear-gradient(to right, var(--color-accent), var(--color-accent-dark));
-
-            font-size: 18px;
-
-            font-weight: bold;
-
-            border-radius: 10px; /* leggermente più arrotondato */
-
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombra più pronunciata */
-
-        }
-
-        #btnInvia:hover {
-
-            background: linear-gradient(to right, var(--color-accent-dark), hsl(140, 60%, 25%));
-
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
-
-        }
-
-
-
-        .section-label {
-
-            font-weight: bold;
-
-            color: var(--color-text-dark);
-
-            margin-top: 15px;
-
-            display: block; /* Per assicurare che il margine funzioni */
-
-            margin-bottom: 5px; /* Spazio sotto l'etichetta */
-
-        }
-
-
-
-        .card { /* Stile generico per le card */
-
-            background-color: white;
-
-            padding: 15px;
-
-            border-radius: var(--border-radius-base);
-
-            box-shadow: var(--shadow-medium);
-
-            border: 1px solid var(--color-border);
-
-            margin-top: 20px;
-
-        }
-
-
-
-        #importaBox {
-
-            background: var(--color-success-bg);
-
-            padding: 16px;
-
-            border-radius: var(--border-radius-base);
-
-            margin-top: 10px;
-
-            margin-bottom: 10px;
-
-            box-shadow: var(--shadow-light);
-
-            border: 1px solid var(--color-success-border);
-
-        }
-
-
-
-        #importaBox h4 {
-
-            margin-top: 0;
-
-            margin-bottom: 6px;
-
-            color: var(--color-accent-dark);
-
-            font-size: 18px;
-
-            font-weight: bold;
-
-        }
-
-
-
-        #importaBox .sottotitolo {
-
-            margin: 0 0 12px 0;
-
-            font-size: 14px;
-
-            color: var(--color-text-light);
-
-        }
-
-
-
-        .importa-riga {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 12px;
-
-            flex-wrap: wrap;
-
-        }
-
-
-
-        #importaBox input[list] {
-
-            flex: 1 1 250px;
-
-            padding: 12px;
-
-            font-size: 16px;
-
-            border: 1px solid var(--color-border);
-
-            border-radius: var(--border-radius-base);
-
-            background: #fff;
-
-        }
-
-
-
-        #ultimaLavorazioneBox {
-
-            background-color: #f0f7ff; /* Sfondo leggermente blu */
-
-            padding: 12px 15px;
-
-            border: 1px solid #cce0ff;
-
-            border-radius: var(--border-radius-base);
-
-            margin: 15px 0;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-            box-shadow: var(--shadow-light);
-
-        }
-
-        #ultimaLavorazioneBox p {
-
-            margin: 0;
-
-            font-size: 14px;
-
-            color: var(--color-text-light);
-
-        }
-
-        #ultimaLavorazioneBox strong {
-
-            font-size: 16px;
-
-            color: var(--color-primary-dark);
-
-        }
-
-
-
-
-
-        #btnGestione {
-
-            background-color: var(--color-primary);
-
-            border-radius: 10px;
-
-            font-weight: bold;
-
-        }
-
-
-
-        ul {
-
-            padding-left: 20px;
-
-        }
-
-        li {
-
-            margin-bottom: 6px;
-
-        }
-
-
-
-        #cantiere { /* Non usato in questo HTML, ma per coerenza */
-
-            border: 2px solid var(--color-primary);
-
-            background-color: #eef4ff;
-
-            font-weight: bold;
-
-            color: var(--color-primary-dark);
-
-        }
-
-        #btnCantiereAltro {
-
-            background-color: var(--color-bg-alt);
-
-            color: var(--color-text-dark);
-
-            font-weight: normal;
-
-            box-shadow: none;
-
-            border: 1px solid var(--color-border);
-
-        }
-
-        #btnCantiereAltro:hover {
-
-            background-color: var(--color-border);
-
-            transform: none;
-
-            box-shadow: none;
-
-        }
-
-
-
-        /* Stili per la notifica (snackbar) */
-
-        #notifica {
-
-            display: none;
-
-            position: fixed;
-
-            bottom: 30px;
-
-            left: 50%;
-
-            transform: translateX(-50%) translateY(50px) scale(0.9); /* Inizia più in basso e più piccolo */
-
-            opacity: 0;
-
-            background-color: var(--color-accent);
-
-            color: white;
-
-            padding: 16px 30px;
-
-            border-radius: 12px;
-
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-
-            font-size: 18px;
-
-            z-index: 99999;
-
-            transition: all 0.5s ease-out; /* Animazione più fluida */
-
-        }
-
-        #notifica.show { /* Classe per mostrare la notifica */
-
-            transform: translateX(-50%) translateY(0) scale(1);
-
-            opacity: 1;
-
-        }
-
-
-
-        /* Stili per la modale di conferma */
+    <meta charset="UTF-8" />
+    <title>Presenze Cantiere</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Variabili CSS per una gestione più semplice dei colori e stili */
+        :root {
+            --color-primary: hsl(210, 100%, 40%); /* Blu principale */
+            --color-primary-dark: hsl(210, 100%, 30%); /* Blu più scuro */
+            --color-accent: hsl(140, 60%, 40%); /* Verde per azioni positive */
+            --color-accent-dark: hsl(140, 60%, 30%); /* Verde più scuro */
+            --color-warning: hsl(40, 90%, 60%); /* Giallo per avvisi */
+            --color-text-dark: hsl(210, 10%, 20%); /* Testo scuro */
+            --color-text-light: hsl(210, 5%, 50%); /* Testo grigio chiaro */
+            --color-bg-light: hsl(210, 20%, 98%); /* Sfondo chiaro generale */
+            --color-bg-alt: hsl(210, 10%, 95%); /* Grigio leggero per sezioni */
+            --color-border: hsl(210, 15%, 85%); /* Bordo sottile */
+            --color-success-bg: hsl(140, 60%, 95%); /* Sfondo verde chiaro per successo */
+            --color-success-border: hsl(140, 60%, 75%); /* Bordo verde per successo */
+            --color-warning-bg: hsl(40, 90%, 95%); /* Sfondo giallo chiaro per avvisi */
+            --color-warning-border: hsl(40, 90%, 80%); /* Bordo giallo per avvisi */
+
+            --border-radius-base: 8px; /* Raggio dei bordi standard */
+            --shadow-light: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
+            --shadow-strong: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--color-bg-light);
+            color: var(--color-text-dark);
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+
+        h2, h3 {
+            text-align: center;
+            color: var(--color-primary-dark);
+            margin-bottom: 20px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-base);
+            box-sizing: border-box;
+            box-shadow: var(--shadow-light);
+        }
+
+        input:focus, select:focus, button:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px hsla(210, 100%, 40%, 0.2);
+        }
+
+        button {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow-medium);
+        }
+
+        button:hover {
+            background-color: var(--color-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        #form {
+            margin-top: 20px;
+        }
+
+        #benvenuto {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: var(--color-text-dark);
+            font-size: 20px;
+        }
+
+        #btnInvia {
+            background: linear-gradient(to right, var(--color-accent), var(--color-accent-dark));
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px; /* leggermente più arrotondato */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombra più pronunciata */
+        }
+        #btnInvia:hover {
+            background: linear-gradient(to right, var(--color-accent-dark), hsl(140, 60%, 25%));
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .section-label {
+            font-weight: bold;
+            color: var(--color-text-dark);
+            margin-top: 15px;
+            display: block; /* Per assicurare che il margine funzioni */
+            margin-bottom: 5px; /* Spazio sotto l'etichetta */
+        }
+
+        .card { /* Stile generico per le card */
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--border-radius-base);
+            box-shadow: var(--shadow-medium);
+            border: 1px solid var(--color-border);
+            margin-top: 20px;
+        }
+
+        #importaBox {
+            background: var(--color-success-bg);
+            padding: 16px;
+            border-radius: var(--border-radius-base);
+            margin-top: 10px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--color-success-border);
+        }
+
+        #importaBox h4 {
+            margin-top: 0;
+            margin-bottom: 6px;
+            color: var(--color-accent-dark);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #importaBox .sottotitolo {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: var(--color-text-light);
+        }
+
+        .importa-riga {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #importaBox input[list] {
+            flex: 1 1 250px;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-base);
+            background: #fff;
+        }
+
+        #ultimaLavorazioneBox {
+            background-color: #f0f7ff; /* Sfondo leggermente blu */
+            padding: 12px 15px;
+            border: 1px solid #cce0ff;
+            border-radius: var(--border-radius-base);
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-light);
+        }
+        #ultimaLavorazioneBox p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--color-text-light);
+        }
+        #ultimaLavorazioneBox strong {
+            font-size: 16px;
+            color: var(--color-primary-dark);
+        }
+
+
+        #btnGestione {
+            background-color: var(--color-primary);
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+
+        #cantiere { /* Non usato in questo HTML, ma per coerenza */
+            border: 2px solid var(--color-primary);
+            background-color: #eef4ff;
+            font-weight: bold;
+            color: var(--color-primary-dark);
+        }
+        #btnCantiereAltro {
+            background-color: var(--color-bg-alt);
+            color: var(--color-text-dark);
+            font-weight: normal;
+            box-shadow: none;
+            border: 1px solid var(--color-border);
+        }
+        #btnCantiereAltro:hover {
+            background-color: var(--color-border);
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Stili per la notifica (snackbar) */
+        #notifica {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(50px) scale(0.9); /* Inizia più in basso e più piccolo */
+            opacity: 0;
+            background-color: var(--color-accent);
+            color: white;
+            padding: 16px 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            font-size: 18px;
+            z-index: 99999;
+            transition: all 0.5s ease-out; /* Animazione più fluida */
+        }
+        #notifica.show { /* Classe per mostrare la notifica */
+            transform: translateX(-50%) translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        /* Stili per la modale di conferma */
 
 #modalConferma {
-
-    display: none; /* Questa riga è la chiave! */
-
-    position: fixed;
-
-    top: 0;
-
-    left: 0;
-
-    width: 100%;
-
-    height: 100%;
-
-    background-color: rgba(0,0,0,0.5);
-
-    z-index: 9999;
-
-    /* Le prossime due proprietà servono solo quando è 'display: flex;' */
-
-    /* justify-content: center; */
-
-    /* align-items: center; */
-
+    display: none; /* Questa riga è la chiave! */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 9999;
+    /* Le prossime due proprietà servono solo quando è 'display: flex;' */
+    /* justify-content: center; */
+    /* align-items: center; */
 }
-
-        #modalConferma.show > div { /* Animazione di ingresso */
-
-            transform: scale(1);
-
-            opacity: 1;
-
-        }
-
-        #modalConferma .chiudi-btn {
-
-            position: absolute;
-
-            top: 15px;
-
-            right: 15px;
-
-            background: none;
-
-            border: none;
-
-            font-size: 28px; /* Più grande */
-
-            cursor: pointer;
-
-            color: var(--color-text-light);
-
-            padding: 5px; /* Area cliccabile più ampia */
-
-            transition: color 0.2s ease;
-
-        }
-
-        #modalConferma .chiudi-btn:hover {
-
-            color: var(--color-text-dark);
-
-        }
-
-        #modalConferma p {
-
-            font-size: 18px;
-
-            color: var(--color-text-dark);
-
-            margin-bottom: 20px;
-
-        }
-
-        #riepilogoDati {
-
-            background-color: var(--color-bg-alt);
-
-            padding: 15px;
-
-            border-radius: var(--border-radius-base);
-
-            border: 1px solid var(--color-border);
-
-            margin-top: 15px;
-
-            margin-bottom: 20px;
-
-            text-align: left; /* Assicurati che il testo sia allineato a sinistra */
-
-            color: var(--color-text-dark);
-
-            font-size: 15px;
-
-        }
-
-        #riepilogoDati ul {
-
-            padding-left: 15px;
-
-            margin: 0;
-
-            list-style: none; /* Rimuovi i pallini di default */
-
-        }
-
-        #riepilogoDati li {
-
-            margin-bottom: 8px;
-
-            padding-left: 0;
-
-            line-height: 1.4;
-
-        }
-
-        #riepilogoDati ul ul { /* Per i dettagli dei cantieri annidati */
-
-            margin-top: 5px;
-
-            padding-left: 20px;
-
-        }
-
-        #modalConferma button {
-
-            padding: 10px 25px;
-
-            margin: 0 8px;
-
-            font-size: 16px;
-
-            border-radius: 8px;
-
-            box-shadow: var(--shadow-light); /* Ombra più leggera per i bottoni della modale */
-
-        }
-
-        #modalConferma button:first-of-type { /* Conferma */
-
-            background-color: var(--color-accent);
-
-        }
-
-        #modalConferma button:first-of-type:hover {
-
-            background-color: var(--color-accent-dark);
-
-            transform: translateY(-1px);
-
-        }
-
-        #modalConferma button:last-of-type { /* Annulla */
-
-            background-color: #ccc;
-
-            color: var(--color-text-dark);
-
-        }
-
-        #modalConferma button:last-of-type:hover {
-
-            background-color: #bbb;
-
-            transform: translateY(-1px);
-
-        }
-
-
-
-        /* Stili per il messaggio di avviso "multi operai" */
-
-        .warning-message {
-
-            margin-bottom: 10px;
-
-            font-size: 14px;
-
-            color: var(--color-text-dark);
-
-            background: var(--color-warning-bg);
-
-            border-left: 5px solid var(--color-warning-border);
-
-            padding: 12px;
-
-            border-radius: var(--border-radius-base);
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-        }
-
-        .warning-message strong {
-
-            color: var(--color-warning);
-
-        }
-
-
-
-        /* Stili per Riepilogo Admin */
-
-        #riepilogoAdmin {
-
-            background-color: white;
-
-            padding: 20px;
-
-            border-radius: 10px;
-
-            box-shadow: var(--shadow-medium);
-
-            border: 1px solid var(--color-border);
-
-            margin-top: 30px;
-
-        }
-
-        #riepilogoAdmin h3 {
-
-            color: var(--color-primary-dark);
-
-            border-bottom: 1px solid var(--color-border); /* Bordo più sottile */
-
-            padding-bottom: 10px;
-
-            margin-bottom: 20px;
-
-            text-align: left; /* Allinea a sinistra */
-
-        }
-
-        #riepilogoAdmin h4 {
-
-            margin-top: 20px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            color: var(--color-text-dark);
-
-            font-size: 17px;
-
-        }
-
-        #riepilogoAdmin #riepilogoCompilati h4::before { content: '✅'; }
-
-        #riepilogoAdmin #riepilogoMancanti h4::before { content: '⛔'; }
-
-
-
-        #riepilogoAdmin ul {
-
-            list-style: none; /* Rimuove i pallini di default */
-
-            padding-left: 0;
-
-        }
-
-        #riepilogoAdmin li {
-
-            padding: 8px 0;
-
-            border-bottom: 1px dashed var(--color-border);
-
-            color: var(--color-text-dark);
-
-        }
-
-        #riepilogoAdmin li:last-child {
-
-            border-bottom: none;
-
-        }
-
-
-
-        /* Responsive adjustments */
-
-        @media (max-width: 600px) {
-
-            body {
-
-                padding: 10px;
-
-            }
-
-            .container {
-
-                padding: 0;
-
-            }
-
-            input, select, button {
-
-                padding: 12px;
-
-                font-size: 15px;
-
-            }
-
-            #notifica {
-
-                width: calc(100% - 40px);
-
-                font-size: 16px;
-
-                padding: 14px 20px;
-
-                bottom: 15px;
-
-            }
-
-            #modalConferma > div {
-
-                margin: 50px 10px;
-
-                padding: 20px;
-
-            }
-
-        }
-
-    </style>
-
+        #modalConferma.show > div { /* Animazione di ingresso */
+            transform: scale(1);
+            opacity: 1;
+        }
+        #modalConferma .chiudi-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 28px; /* Più grande */
+            cursor: pointer;
+            color: var(--color-text-light);
+            padding: 5px; /* Area cliccabile più ampia */
+            transition: color 0.2s ease;
+        }
+        #modalConferma .chiudi-btn:hover {
+            color: var(--color-text-dark);
+        }
+        #modalConferma p {
+            font-size: 18px;
+            color: var(--color-text-dark);
+            margin-bottom: 20px;
+        }
+        #riepilogoDati {
+            background-color: var(--color-bg-alt);
+            padding: 15px;
+            border-radius: var(--border-radius-base);
+            border: 1px solid var(--color-border);
+            margin-top: 15px;
+            margin-bottom: 20px;
+            text-align: left; /* Assicurati che il testo sia allineato a sinistra */
+            color: var(--color-text-dark);
+            font-size: 15px;
+        }
+        #riepilogoDati ul {
+            padding-left: 15px;
+            margin: 0;
+            list-style: none; /* Rimuovi i pallini di default */
+        }
+        #riepilogoDati li {
+            margin-bottom: 8px;
+            padding-left: 0;
+            line-height: 1.4;
+        }
+        #riepilogoDati ul ul { /* Per i dettagli dei cantieri annidati */
+            margin-top: 5px;
+            padding-left: 20px;
+        }
+        #modalConferma button {
+            padding: 10px 25px;
+            margin: 0 8px;
+            font-size: 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-light); /* Ombra più leggera per i bottoni della modale */
+        }
+        #modalConferma button:first-of-type { /* Conferma */
+            background-color: var(--color-accent);
+        }
+        #modalConferma button:first-of-type:hover {
+            background-color: var(--color-accent-dark);
+            transform: translateY(-1px);
+        }
+        #modalConferma button:last-of-type { /* Annulla */
+            background-color: #ccc;
+            color: var(--color-text-dark);
+        }
+        #modalConferma button:last-of-type:hover {
+            background-color: #bbb;
+            transform: translateY(-1px);
+        }
+
+        /* Stili per il messaggio di avviso "multi operai" */
+        .warning-message {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--color-text-dark);
+            background: var(--color-warning-bg);
+            border-left: 5px solid var(--color-warning-border);
+            padding: 12px;
+            border-radius: var(--border-radius-base);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .warning-message strong {
+            color: var(--color-warning);
+        }
+
+        /* Stili per Riepilogo Admin */
+        #riepilogoAdmin {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid var(--color-border);
+            margin-top: 30px;
+        }
+        #riepilogoAdmin h3 {
+            color: var(--color-primary-dark);
+            border-bottom: 1px solid var(--color-border); /* Bordo più sottile */
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: left; /* Allinea a sinistra */
+        }
+        #riepilogoAdmin h4 {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-text-dark);
+            font-size: 17px;
+        }
+        #riepilogoAdmin #riepilogoCompilati h4::before { content: '✅'; }
+        #riepilogoAdmin #riepilogoMancanti h4::before { content: '⛔'; }
+
+        #riepilogoAdmin ul {
+            list-style: none; /* Rimuove i pallini di default */
+            padding-left: 0;
+        }
+        #riepilogoAdmin li {
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--color-border);
+            color: var(--color-text-dark);
+        }
+        #riepilogoAdmin li:last-child {
+            border-bottom: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 0;
+            }
+            input, select, button {
+                padding: 12px;
+                font-size: 15px;
+            }
+            #notifica {
+                width: calc(100% - 40px);
+                font-size: 16px;
+                padding: 14px 20px;
+                bottom: 15px;
+            }
+            #modalConferma > div {
+                margin: 50px 10px;
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-
-    <div class="container">
-
-        <datalist id="suggerimentiLavorazioni"></datalist>
-
-
-
-        <div id="notifica">
-
-            ✅ <strong>Dati inseriti correttamente</strong>
-
-        </div>
-
-
-
-        <div id="benvenuto">
-
-            <div id="messaggioBenvenuto"></div>
-
-        </div>
-
-
-
-        <div id="login" class="card">
-
-            <h2>🔐 Login</h2>
-
-            <input type="text" id="user" placeholder="🔑 Utente">
-
-            <input type="password" id="pass" placeholder="🔒 Password">
-
-            <button onclick="login()">🔓 Accedi</button>
-
-        </div>
-
-
-
-        <div id="form" style="display:none;">
-
-            <h3>📅 Compila Presenza</h3>
-
-
-
-            <label class="section-label" for="data">Data:</label>
-
-            <input type="date" id="data">
-
-
-
-            <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
-
-                <div style="flex:1;">
-
-                    <label class="section-label" for="oreExtra">➕ Ore extra:</label>
-
-                    <select id="oreExtra">
-
-                        <option value="0" selected>0</option>
-
-                        <option value="1">1</option>
-
-                        <option value="2">2</option>
-
-                        <option value="3">3</option>
-
-                        <option value="4">4</option>
-
-                        <option value="5">5</option>
-
-                        <option value="6">6</option>
-
-                        <option value="7">7</option>
-
-                        <option value="8">8</option>
-
-                        <option value="9">9</option>
-
-                        <option value="10">10</option>
-
-                    </select>
-
-                </div>
-
-                <div style="flex:1;">
-
-                    <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
-
-                    <select id="numeroCantieri" onchange="generaCampiCantieri()">
-
-                        <option value="1" selected>1</option>
-
-                        <option value="2">2</option>
-
-                        <option value="3">3</option>
-
-                        <option value="4">4</option>
-
-                        <option value="5">5</option>
-
-                    </select>
-
-                </div>
-
-            </div>
-
-
-
-            <div id="cantieriMultipli"></div>
-
-
-
-            <button id="btnMultiOperai" onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
-
-
-
-            <div id="multiOperai" class="card" style="display:none; margin-top:20px;">
-
-                <p class="warning-message">
-
-                    ⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.
-
-                </p>
-
-                <label class="section-label" for="operaio">👥 Seleziona altri operai:</label>
-
-                <select id="operaio" multiple size="6"></select>
-
-
-
-                <div style="margin-top:15px;">
-
-                    <label class="section-label" for="nuovoOperaio">➕ Oppure inserisci un nuovo operaio:</label>
-
-                    <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio">
-
-                </div>
-
-            </div>
-
-
-
-            <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
-
-            <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
-
-
-
-            <div id="ultimaLavorazioneBox">
-
-                <span style="font-size: 24px; color: var(--color-primary);">✨</span>
-
-                <div>
-
-                    <p>La tua ultima lavorazione registrata:</p>
-
-                    <strong id="ultimaLavorazione">Caricamento...</strong>
-
-                </div>
-
-            </div>
-
-
-
-            <div id="ultimi7" class="card">
-
-                <h4>Recentemente:</h4>
-
-            </div>
-
-        </div>
-
-
-
-        <script>
-
-            let utente = "";
-
-            let nomeOperaio = "";
-
-            let ultimoTestoLavorazione = "";
-
-            let elencoCantieri = [];
-
-
-
-            function login() {
-
-                const userInput = document.getElementById("user").value.trim();
-
-                const passInput = document.getElementById("pass").value.trim();
-
-
-
-                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-
-                    .then(r => r.json())
-
-                    .then(data => {
-
-                        const utenteTrovato = data.find(r => r["User"] === userInput && r["Password"] === passInput);
-
-                        if (utenteTrovato) {
-
-                            utente = utenteTrovato["User"];
-
-                            nomeOperaio = utenteTrovato["Nome"];
-
-                            const ruolo = utenteTrovato["Ruolo"] || "";
-
-                            localStorage.setItem("ruolo", ruolo);
-
-                            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
-
-                            if (ruolo.toLowerCase() !== "amministratore") {
-
-                                document.getElementById("btnGestione").style.display = "none";
-
-                            }
-
-                            document.getElementById("login").style.display = "none";
-
-                            document.getElementById("form").style.display = "block";
-
-                            document.getElementById("data").value = new Date().toISOString().split("T")[0];
-
-                            caricaUltimaLavorazione(utente);
-
-
-
-                            caricaCantieri();
-
-                            caricaOperai();
-
-                            caricaUltimi7();
-
-                            caricaRiepilogoAdmin();
-
-                            generaCampiCantieri();
-
-                        } else {
-
-                            alert("Credenziali errate");
-
-                        }
-
-                    });
-
-            }
-
-
-
-            function caricaCantieri() {
-
-                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
-
-                    .then(r => r.json())
-
-                    .then(data => {
-
-                        elencoCantieri = data
-
-                            .filter(r => r["Cantiere"])
-
-                            .map(r => r["Cantiere"]);
-
-                        generaCampiCantieri(); // Carica i cantieri dopo aver popolato l'array
-
-                    });
-
-            }
-
-
-
-            function caricaOperai() {
-
-                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-
-                    .then(r => r.json())
-
-                    .then(data => {
-
-                        const select = document.getElementById("operaio");
-
-                        select.innerHTML = "";
-
-                        data.forEach(r => {
-
-                            if (r["Nome"]) {
-
-                                const opt = document.createElement("option");
-
-                                opt.value = r["Nome"];
-
-                                opt.textContent = r["Nome"];
-
-                                select.appendChild(opt);
-
-                            }
-
-                        });
-
-                    });
-
-            }
-
-
-
-            function mostraCantiereLibero(index) {
-
-                const div = document.getElementById(`cantiereLibero_${index}`);
-
-                div.style.display = (div.style.display === "block") ? "none" : "block";
-
-            }
-
-
-
-            function generaCampiCantieri() {
-
-                const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
-
-                const container = document.getElementById("cantieriMultipli");
-
-                container.innerHTML = "";
-
-
-
-                for (let i = 1; i <= nCantieri; i++) {
-
-                    let selectHtml = `<select id="cantiere_${i}">`;
-
-                    selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
-
-                    elencoCantieri.forEach(nome => {
-
-                        selectHtml += `<option value="${nome}">${nome}</option>`;
-
-                    });
-
-                    selectHtml += `</select>`;
-
-
-
-                    container.innerHTML += `
-
-                        <div class="card" style="margin-top: 15px; padding: 15px;">
-
-                            <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
-
-                            ${selectHtml}
-
-                            <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Cantiere non presente</button>
-
-                            <div id="cantiereLibero_${i}" style="display:none;">
-
-                                <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Inserisci nome cantiere ${i}">
-
-                            </div>
-
-
-
-                            <div id="importaBox">
-
-                                <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
-
-                                <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
-
-                                <div class="importa-riga">
-
-                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }
-
-                document.getElementById("btnMultiOperai").style.display = (nCantieri === 1) ? "inline-block" : "none";
-
-            }
-
-
-
-            function mostraOperai() {
-
-                const div = document.getElementById("multiOperai");
-
-                div.style.display = (div.style.display === "block") ? "none" : "block";
-
-            }
-
-
-
-            function invia() {
-
-                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-
-                const data = document.getElementById("data").value;
-
-                const orari = "08:00 - 17:00";
-
-                const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
-
-
-
-                for (let i = 1; i <= numeroCantieri; i++) {
-
-                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
-
-                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
-
-
-
-                    if (nomeCantiereAltro) {
-
-                        nomeCantiere = nomeCantiereAltro;
-
-                    }
-
-
-
-                    let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
-
-
-
-                    if (!nomeCantiere || !lavorazioneCantiere) {
-
-                        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
-
-                        return;
-
-                    }
-
-
-
-                    let oreCalcolate = 8 / numeroCantieri;
-
-
-
-                    // se è l'ultimo cantiere, aggiunge le ore extra
-
-                    if (i === numeroCantieri) {
-
-                        oreCalcolate += oreExtra;
-
-                    }
-
-
-
-                    let operaiSelezionati = [];
-
-                    if (document.getElementById("multiOperai").style.display === "block") {
-
-                        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
-
-                        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-
-                        if (nuovo) operaiSelezionati.push(nuovo);
-
-                        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
-
-                    } else {
-
-                        operaiSelezionati = [nomeOperaio];
-
-                    }
-
-
-
-                    operaiSelezionati.forEach(nome => {
-
-                        const dati = {
-
-                            data,
-
-                            orari,
-
-                            cantiere: nomeCantiere,
-
-                            lavorazione: lavorazioneCantiere,
-
-                            ore: oreCalcolate,
-
-                            operaio: nome,
-
-                            user: utente
-
-                        };
-
-
-
-                        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-
-                            method: "POST",
-
-                            mode: "no-cors",
-
-                            body: JSON.stringify(dati),
-
-                            headers: { "Content-Type": "application/json" }
-
-                        });
-
-                    });
-
-                }
-
-            }
-
-
-
-            function caricaUltimi7() {
-
-                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
-
-                    .then(r => r.json())
-
-                    .then(dati => {
-
-                        let html = "<h4>Recentemente:</h4>";
-
-                        if (dati.presenze && dati.presenze.length > 0) {
-
-                            html += "<ul>";
-
-                            dati.presenze.forEach(r => {
-
-                                html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
-
-                            });
-
-                            html += "</ul>";
-
-                        } else {
-
-                            html += "<p>Nessun dato trovato</p>";
-
-                        }
-
-                        document.getElementById("ultimi7").innerHTML = html;
-
-                    });
-
-            }
-
-
-
-            function caricaUltimaLavorazione(username) {
-
-                fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
-
-                    .then(r => r.text())
-
-                    .then(data => {
-
-                        const el = document.getElementById("ultimaLavorazione");
-
-                        if (data && data.trim() !== "") {
-
-                            el.textContent = data;
-
-                            ultimoTestoLavorazione = data;
-
-                        } else {
-
-                            el.textContent = "(Nessuna lavorazione trovata)";
-
-                            ultimoTestoLavorazione = "";
-
-                        }
-
-                    });
-
-            }
-
-
-
-            function mostraModal() {
-
-                const orariBase = "08:00 - 17:00";
-
-                const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
-
-                let orari = orariBase;
-
-                if (oreExtra > 0) {
-
-                    orari += ` + ${oreExtra} ore extra`;
-
-                }
-
-
-
-                const data = document.getElementById("data").value;
-
-
-
-                let operai = "";
-
-                if (document.getElementById("multiOperai").style.display === "block") {
-
-                    const selezione = document.getElementById("operaio");
-
-                    const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-
-                    const nuovo = document.getElementById("nuovoOperaio").value.trim();
-
-                    if (nuovo) selezionati.push(nuovo);
-
-                    operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
-
-                } else {
-
-                    operai = nomeOperaio;
-
-                }
-
-
-
-                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-
-                let dettagliCantieri = "";
-
-
-
-                for (let i = 1; i <= numeroCantieri; i++) {
-
-                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
-
-                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
-
-                    if (nomeCantiereAltro) {
-
-                        nomeCantiere = nomeCantiereAltro;
-
-                    }
-
-                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
-
-                    dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
-
-                }
-
-
-
-                const riepilogoHTML = `
-
-                    <ul>
-
-                        <li><strong>Data:</strong> ${data}</li>
-
-                        <li><strong>Orari:</strong> ${orari}</li>
-
-                        <li><strong>Operai:</strong> ${operai}</li>
-
-                        <li><strong>Dettaglio Cantieri:</strong>
-
-                            <ul>${dettagliCantieri}</ul>
-
-                        </li>
-
-                    </ul>
-
-                `;
-
-
-
-                document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
-
-                document.getElementById("modalConferma").style.display = "flex"; // Usa flex per centrare
-
-                document.getElementById("modalConferma").classList.add("show"); // Aggiungi classe per animazione
-
-            }
-
-
-
-            function chiudiModal() {
-
-                document.getElementById("modalConferma").classList.remove("show"); // Rimuovi classe per animazione
-
-                setTimeout(() => {
-
-                    document.getElementById("modalConferma").style.display = "none";
-
-                }, 300); // Corrisponde alla durata della transizione
-
-            }
-
-
-
-            function confermaInvio() {
-
-                chiudiModal(); // Chiude la modale
-
-                invia();       // Esegue la funzione di invio vera e propria
-
-
-
-                // Mostra la notifica
-
-                const n = document.getElementById("notifica");
-
-                n.style.display = "block";
-
-                n.classList.add("show");
-
-
-
-                // Nasconde la notifica dopo 4 secondi
-
-                setTimeout(() => {
-
-                    n.classList.remove("show");
-
-                    setTimeout(() => {
-
-                        n.style.display = "none";
-
-                    }, 500); // Deve corrispondere alla transizione CSS
-
-                }, 3500);
-
-
-
-                // Resetta i campi dopo invio
-
-                document.getElementById("data").value = new Date().toISOString().split("T")[0];
-
-                document.getElementById("oreExtra").value = "0";
-
-                document.getElementById("numeroCantieri").value = "1";
+    <div class="container">
+        <datalist id="suggerimentiLavorazioni"></datalist>
+
+        <div id="notifica">
+            ✅ <strong>Dati inseriti correttamente</strong>
+        </div>
+
+        <div id="benvenuto">
+            <div id="messaggioBenvenuto"></div>
+        </div>
+
+        <div id="login" class="card">
+            <h2>🔐 Login</h2>
+            <input type="text" id="user" placeholder="🔑 Utente">
+            <input type="password" id="pass" placeholder="🔒 Password">
+            <button onclick="login()">🔓 Accedi</button>
+        </div>
+
+        <div id="form" style="display:none;">
+            <h3>📅 Compila Presenza</h3>
+
+            <label class="section-label" for="data">Data:</label>
+            <input type="date" id="data">
+
+            <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
+                <div style="flex:1;">
+                    <label class="section-label" for="oreExtra">➕ Ore extra:</label>
+                    <select id="oreExtra">
+                        <option value="0" selected>0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
+                    <select id="numeroCantieri" onchange="generaCampiCantieri()">
+                        <option value="1" selected>1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="cantieriMultipli"></div>
+
+            <button id="btnMultiOperai" onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
+
+            <div id="multiOperai" class="card" style="display:none; margin-top:20px;">
+                <p class="warning-message">
+                    ⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.
+                </p>
+                <label class="section-label" for="operaio">👥 Seleziona altri operai:</label>
+                <select id="operaio" multiple size="6"></select>
+
+                <div style="margin-top:15px;">
+                    <label class="section-label" for="nuovoOperaio">➕ Oppure inserisci un nuovo operaio:</label>
+                    <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio">
+                </div>
+            </div>
+
+            <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
+            <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
+
+            <div id="ultimaLavorazioneBox">
+                <span style="font-size: 24px; color: var(--color-primary);">✨</span>
+                <div>
+                    <p>La tua ultima lavorazione registrata:</p>
+                    <strong id="ultimaLavorazione">Caricamento...</strong>
+                </div>
+            </div>
+
+            <div id="ultimi7" class="card">
+                <h4>Recentemente:</h4>
+            </div>
+        </div>
+
+        <script>
+            let utente = "";
+            let nomeOperaio = "";
+            let ultimoTestoLavorazione = "";
+            let elencoCantieri = [];
+
+            function login() {
+                const userInput = document.getElementById("user").value.trim();
+                const passInput = document.getElementById("pass").value.trim();
+
+                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+                    .then(r => r.json())
+                    .then(data => {
+                        const utenteTrovato = data.find(r => r["User"] === userInput && r["Password"] === passInput);
+                        if (utenteTrovato) {
+                            utente = utenteTrovato["User"];
+                            nomeOperaio = utenteTrovato["Nome"];
+                            const ruolo = utenteTrovato["Ruolo"] || "";
+                            localStorage.setItem("ruolo", ruolo);
+                            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
+                            if (ruolo.toLowerCase() !== "amministratore") {
+                                document.getElementById("btnGestione").style.display = "none";
+                            }
+                            document.getElementById("login").style.display = "none";
+                            document.getElementById("form").style.display = "block";
+                            document.getElementById("data").value = new Date().toISOString().split("T")[0];
+                            caricaUltimaLavorazione(utente);
+
+                            caricaCantieri();
+                            caricaOperai();
+                            caricaUltimi7();
+                            caricaRiepilogoAdmin();
+                            generaCampiCantieri();
+                        } else {
+                            alert("Credenziali errate");
+                        }
+                    });
+            }
+
+            function caricaCantieri() {
+                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
+                    .then(r => r.json())
+                    .then(data => {
+                        elencoCantieri = data
+                            .filter(r => r["Cantiere"])
+                            .map(r => r["Cantiere"]);
+                        generaCampiCantieri(); // Carica i cantieri dopo aver popolato l'array
+                    });
+            }
+
+            function caricaOperai() {
+                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+                    .then(r => r.json())
+                    .then(data => {
+                        const select = document.getElementById("operaio");
+                        select.innerHTML = "";
+                        data.forEach(r => {
+                            if (r["Nome"]) {
+                                const opt = document.createElement("option");
+                                opt.value = r["Nome"];
+                                opt.textContent = r["Nome"];
+                                select.appendChild(opt);
+                            }
+                        });
+                    });
+            }
+
+            function mostraCantiereLibero(index) {
+                const div = document.getElementById(`cantiereLibero_${index}`);
+                div.style.display = (div.style.display === "block") ? "none" : "block";
+            }
+
+            function generaCampiCantieri() {
+                const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
+                const container = document.getElementById("cantieriMultipli");
+                container.innerHTML = "";
+
+                for (let i = 1; i <= nCantieri; i++) {
+                    let selectHtml = `<select id="cantiere_${i}">`;
+                    selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
+                    elencoCantieri.forEach(nome => {
+                        selectHtml += `<option value="${nome}">${nome}</option>`;
+                    });
+                    selectHtml += `</select>`;
+
+                    container.innerHTML += `
+                        <div class="card" style="margin-top: 15px; padding: 15px;">
+                            <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
+                            ${selectHtml}
+                            <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Cantiere non presente</button>
+                            <div id="cantiereLibero_${i}" style="display:none;">
+                                <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Inserisci nome cantiere ${i}">
+                            </div>
+
+                            <div id="importaBox">
+                                <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
+                                <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
+                                <div class="importa-riga">
+                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                document.getElementById("btnMultiOperai").style.display = (nCantieri === 1) ? "inline-block" : "none";
+            }
+
+            function mostraOperai() {
+                const div = document.getElementById("multiOperai");
+                div.style.display = (div.style.display === "block") ? "none" : "block";
+            }
+
+            function invia() {
+                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+                const data = document.getElementById("data").value;
+                const orari = "08:00 - 17:00";
+                const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
+
+                for (let i = 1; i <= numeroCantieri; i++) {
+                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
+                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+
+                    if (nomeCantiereAltro) {
+                        nomeCantiere = nomeCantiereAltro;
+                    }
+
+                    let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
+
+                    if (!nomeCantiere || !lavorazioneCantiere) {
+                        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
+                        return;
+                    }
+
+                    let oreCalcolate = 8 / numeroCantieri;
+
+                    // se è l'ultimo cantiere, aggiunge le ore extra
+                    if (i === numeroCantieri) {
+                        oreCalcolate += oreExtra;
+                    }
+
+                    let operaiSelezionati = [];
+                    if (document.getElementById("multiOperai").style.display === "block") {
+                        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
+                        const nuovo = document.getElementById("nuovoOperaio").value.trim();
+                        if (nuovo) operaiSelezionati.push(nuovo);
+                        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
+                    } else {
+                        operaiSelezionati = [nomeOperaio];
+                    }
+
+                    operaiSelezionati.forEach(nome => {
+                        const dati = {
+                            data,
+                            orari,
+                            cantiere: nomeCantiere,
+                            lavorazione: lavorazioneCantiere,
+                            ore: oreCalcolate,
+                            operaio: nome,
+                            user: utente
+                        };
+
+                        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+                            method: "POST",
+                            mode: "no-cors",
+                            body: JSON.stringify(dati),
+                            headers: { "Content-Type": "application/json" }
+                        });
+                    });
+                }
+            }
+
+            function caricaUltimi7() {
+                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
+                    .then(r => r.json())
+                    .then(dati => {
+                        let html = "<h4>Recentemente:</h4>";
+                        if (dati.presenze && dati.presenze.length > 0) {
+                            html += "<ul>";
+                            dati.presenze.forEach(r => {
+                                html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
+                            });
+                            html += "</ul>";
+                        } else {
+                            html += "<p>Nessun dato trovato</p>";
+                        }
+                        document.getElementById("ultimi7").innerHTML = html;
+                    });
+            }
+
+            function caricaUltimaLavorazione(username) {
+                fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
+                    .then(r => r.text())
+                    .then(data => {
+                        const el = document.getElementById("ultimaLavorazione");
+                        if (data && data.trim() !== "") {
+                            el.textContent = data;
+                            ultimoTestoLavorazione = data;
+                        } else {
+                            el.textContent = "(Nessuna lavorazione trovata)";
+                            ultimoTestoLavorazione = "";
+                        }
+                    });
+            }
+
+            function mostraModal() {
+                const orariBase = "08:00 - 17:00";
+                const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
+                let orari = orariBase;
+                if (oreExtra > 0) {
+                    orari += ` + ${oreExtra} ore extra`;
+                }
+
+                const data = document.getElementById("data").value;
+
+                let operai = "";
+                if (document.getElementById("multiOperai").style.display === "block") {
+                    const selezione = document.getElementById("operaio");
+                    const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+                    const nuovo = document.getElementById("nuovoOperaio").value.trim();
+                    if (nuovo) selezionati.push(nuovo);
+                    operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
+                } else {
+                    operai = nomeOperaio;
+                }
+
+                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+                let dettagliCantieri = "";
+
+                for (let i = 1; i <= numeroCantieri; i++) {
+                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
+                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+                    if (nomeCantiereAltro) {
+                        nomeCantiere = nomeCantiereAltro;
+                    }
+                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
+                    dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
+                }
+
+                const riepilogoHTML = `
+                    <ul>
+                        <li><strong>Data:</strong> ${data}</li>
+                        <li><strong>Orari:</strong> ${orari}</li>
+                        <li><strong>Operai:</strong> ${operai}</li>
+                        <li><strong>Dettaglio Cantieri:</strong>
+                            <ul>${dettagliCantieri}</ul>
+                        </li>
+                    </ul>
+                `;
+
+                document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
+                document.getElementById("modalConferma").style.display = "flex"; // Usa flex per centrare
+                document.getElementById("modalConferma").classList.add("show"); // Aggiungi classe per animazione
+            }
+
+            function chiudiModal() {
+                document.getElementById("modalConferma").classList.remove("show"); // Rimuovi classe per animazione
+                setTimeout(() => {
+                    document.getElementById("modalConferma").style.display = "none";
+                }, 300); // Corrisponde alla durata della transizione
+            }
+
+            function confermaInvio() {
+                chiudiModal(); // Chiude la modale
+                invia();       // Esegue la funzione di invio vera e propria
+
+                // Mostra la notifica
+                const n = document.getElementById("notifica");
+                n.style.display = "block";
+                n.classList.add("show");
+
+                // Nasconde la notifica dopo 4 secondi
+                setTimeout(() => {
+                    n.classList.remove("show");
+                    setTimeout(() => {
+                        n.style.display = "none";
+                    }, 500); // Deve corrispondere alla transizione CSS
+                }, 3500);
+
+                // Resetta i campi dopo invio
+                document.getElementById("data").value = new Date().toISOString().split("T")[0];
+                document.getElementById("oreExtra").value = "0";
+                document.getElementById("numeroCantieri").value = "1";
+                document.getElementById("cantieriMultipli").innerHTML = ""; // Pulisce i campi generati
+                document.getElementById("multiOperai").style.display = "none";
+                document.getElementById("operaio").selectedIndex = -1; // Deseleziona tutto
+                document.getElementById("nuovoOperaio").value = "";
+
+                generaCampiCantieri(); // Rigenera i campi per un cantiere singolo
+                caricaUltimi7(); // Aggiorna gli ultimi 7 eventi
+                caricaRiepilogoAdmin(); // Aggiorna il riepilogo admin
+            }
+
+            function caricaSuggerimentiLavorazioni() {
+                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
+                    .then(r => r.json())
+                    .then(data => {
+                        const lista = document.getElementById("suggerimentiLavorazioni");
+                        lista.innerHTML = "";
+                        data.slice(0, 15).forEach(item => {
+                            const opt = document.createElement("option");
+                            opt.value = item;
+                            lista.appendChild(opt);
+                        });
+                    });
+            }
+
+            function caricaRiepilogoAdmin() {
+                const ruolo = localStorage.getItem("ruolo");
+                if (ruolo && ruolo.toLowerCase() === "amministratore") {
+                    document.getElementById("riepilogoAdmin").style.display = "block";
+
+                    const oggiISO = new Date().toISOString().split("T")[0];
+                    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1&data=" + oggiISO)
+                        .then(r => r.json())
+                        .then(dati => {
+                            let compilati = dati.compilati || [];
+                            let mancanti = dati.mancanti || [];
+
+                            document.getElementById("riepilogoCompilati").innerHTML = `
+                                <h4>Compilati:</h4>
+                                <ul>
+                                    ${compilati.map(op => `<li>${op.nome} (${op.cantiere} - ${op.lavorazione})</li>`).join("")}
+                                </ul>
+                            `;
+
+                            document.getElementById("riepilogoMancanti").innerHTML = `
+                                <h4>Mancanti:</h4>
+                                <ul>${mancanti.map(op => `<li>${op}</li>`).join("")}</ul>
+                            `;
+                        });
+                }
+            }
+
+            window.addEventListener("DOMContentLoaded", () => {
+                caricaSuggerimentiLavorazioni();
+            });
+        </script>
+
+        <div id="riepilogoAdmin" class="card" style="display:none;">
+            <h3>📝 Riepilogo presenze odierne</h3>
+            <div id="riepilogoCompilati" style="margin-bottom:20px;"></div>
+            <div id="riepilogoMancanti"></div>
+        </div>
+
+        <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px; padding-bottom: 20px;">
+            © 2025 Davide Ferrarini — Tutti i diritti riservati
+        </footer>
+
+    </div> <div id="modalConferma">
+        <div>
+            <button class="chiudi-btn" onclick="chiudiModal()">✕</button>
+            <p>Vuoi confermare l'invio della presenza?</p>
+            <div id="riepilogoDati"></div>
+            <button onclick="confermaInvio()">✅ Conferma</button>
+            <button onclick="chiudiModal()">❌ Annulla</button>
+        </div>
+    </div>
+
+</body>
+</html>
