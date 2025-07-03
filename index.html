@@ -240,25 +240,32 @@
         }
 
         /* Stili per la modale di conferma */
-
 #modalConferma {
-    display: none;
+    display: none; /* Questa riga è la chiave! */
     position: fixed;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.5);
     z-index: 9999;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
     /* Le prossime due proprietà servono solo quando è 'display: flex;' */
     /* justify-content: center; */
     /* align-items: center; */
 }
+        #modalConferma > div { /* Il box interno della modale */
+            background: white;
+            max-width: 400px;
+            margin: auto; /* Centra verticalmente e orizzontalmente */
+            padding: 25px; /* Più padding */
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            transform: scale(0.9); /* Animazione di ingresso */
+            opacity: 0;
+            transition: all 0.3s ease-out;
+        }
         #modalConferma.show > div { /* Animazione di ingresso */
             transform: scale(1);
             opacity: 1;
@@ -761,35 +768,36 @@
                 }, 300); // Corrisponde alla durata della transizione
             }
 
-function confermaInvio() {
-    chiudiModal();
-    setTimeout(() => {
-        invia();
+            function confermaInvio() {
+                chiudiModal(); // Chiude la modale
+                invia();       // Esegue la funzione di invio vera e propria
 
-        const n = document.getElementById("notifica");
-        n.style.display = "block";
-        n.classList.add("show");
-        setTimeout(() => {
-            n.classList.remove("show");
-            setTimeout(() => {
-                n.style.display = "none";
-            }, 500);
-        }, 3500);
+                // Mostra la notifica
+                const n = document.getElementById("notifica");
+                n.style.display = "block";
+                n.classList.add("show");
 
-        // Resetta i campi
-        document.getElementById("data").value = new Date().toISOString().split("T")[0];
-        document.getElementById("oreExtra").value = "0";
-        document.getElementById("numeroCantieri").value = "1";
-        document.getElementById("cantieriMultipli").innerHTML = "";
-        document.getElementById("multiOperai").style.display = "none";
-        document.getElementById("operaio").selectedIndex = -1;
-        document.getElementById("nuovoOperaio").value = "";
-        generaCampiCantieri();
-        caricaUltimi7();
-        caricaRiepilogoAdmin();
-    }, 300);
-}
+                // Nasconde la notifica dopo 4 secondi
+                setTimeout(() => {
+                    n.classList.remove("show");
+                    setTimeout(() => {
+                        n.style.display = "none";
+                    }, 500); // Deve corrispondere alla transizione CSS
+                }, 3500);
 
+                // Resetta i campi dopo invio
+                document.getElementById("data").value = new Date().toISOString().split("T")[0];
+                document.getElementById("oreExtra").value = "0";
+                document.getElementById("numeroCantieri").value = "1";
+                document.getElementById("cantieriMultipli").innerHTML = ""; // Pulisce i campi generati
+                document.getElementById("multiOperai").style.display = "none";
+                document.getElementById("operaio").selectedIndex = -1; // Deseleziona tutto
+                document.getElementById("nuovoOperaio").value = "";
+
+                generaCampiCantieri(); // Rigenera i campi per un cantiere singolo
+                caricaUltimi7(); // Aggiorna gli ultimi 7 eventi
+                caricaRiepilogoAdmin(); // Aggiorna il riepilogo admin
+            }
 
             function caricaSuggerimentiLavorazioni() {
                 fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
@@ -833,8 +841,6 @@ function confermaInvio() {
             }
 
             window.addEventListener("DOMContentLoaded", () => {
-                    document.getElementById("notifica").style.display = "none";
-    document.getElementById("notifica").classList.remove("show");
                 caricaSuggerimentiLavorazioni();
             });
         </script>
