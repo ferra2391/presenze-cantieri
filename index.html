@@ -35,6 +35,7 @@
             color: var(--color-text-dark);
             padding: 20px;
             margin: 0;
+            box-sizing: border-box; /* Assicura che padding e border siano inclusi nella larghezza */
         }
 
         .container {
@@ -58,6 +59,7 @@
             border-radius: var(--border-radius-base);
             box-sizing: border-box;
             box-shadow: var(--shadow-light);
+            min-height: 48px; /* Assicura una buona dimensione per il tocco su mobile */
         }
 
         input:focus, select:focus, button:focus {
@@ -240,22 +242,23 @@
         }
 
         /* Stili per la modale di conferma */
-#modalConferma {
-    display: none; /* Questa riga è la chiave! */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 9999;
-    /* Le prossime due proprietà servono solo quando è 'display: flex;' */
-    /* justify-content: center; */
-    /* align-items: center; */
-}
+        #modalConferma {
+            display: none; /* Questa riga è la chiave! */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 9999;
+            /* Le prossime due proprietà servono solo quando è 'display: flex;' */
+            justify-content: center; /* Centra orizzontalmente */
+            align-items: center; /* Centra verticalmente */
+        }
         #modalConferma > div { /* Il box interno della modale */
             background: white;
             max-width: 400px;
+            width: 90%; /* Occupa il 90% della larghezza su schermi piccoli */
             margin: auto; /* Centra verticalmente e orizzontalmente */
             padding: 25px; /* Più padding */
             border-radius: 12px;
@@ -265,6 +268,7 @@
             transform: scale(0.9); /* Animazione di ingresso */
             opacity: 0;
             transition: all 0.3s ease-out;
+            box-sizing: border-box; /* Include padding e border nel calcolo della larghezza */
         }
         #modalConferma.show > div { /* Animazione di ingresso */
             transform: scale(1);
@@ -406,6 +410,7 @@
             input, select, button {
                 padding: 12px;
                 font-size: 15px;
+                min-height: 44px; /* Leggermente più piccolo ma ancora touch-friendly */
             }
             #notifica {
                 width: calc(100% - 40px);
@@ -414,8 +419,25 @@
                 bottom: 15px;
             }
             #modalConferma > div {
-                margin: 50px 10px;
+                margin: 20px 10px; /* Margine ridotto per lasciare più spazio */
                 padding: 20px;
+                width: calc(100% - 40px); /* Prende quasi tutta la larghezza */
+                max-height: 90vh; /* Limita l'altezza per evitare overflow */
+                overflow-y: auto; /* Permette lo scroll se il contenuto è troppo lungo */
+            }
+            #modalConferma p {
+                font-size: 16px; /* Font size leggermente ridotto nella modale */
+            }
+            #riepilogoDati {
+                font-size: 14px; /* Font size ridotto per il riepilogo dati */
+            }
+            #modalConferma button {
+                font-size: 15px;
+                padding: 8px 20px;
+                margin: 5px; /* Spazio ridotto tra i bottoni */
+            }
+            .importa-riga input[list] {
+                flex: 1 1 100%; /* L'input occupa tutta la larghezza disponibile */
             }
         }
     </style>
@@ -610,54 +632,54 @@
             }
 
             function invia() {
-const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-const data = document.getElementById("data").value;
-const orari = "08:00 - 17:00";
-const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
+                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+                const data = document.getElementById("data").value;
+                const orari = "08:00 - 17:00";
+                const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
 
-for (let i = 1; i <= numeroCantieri; i++) {
-    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
-    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
-    if (nomeCantiereAltro) {
-        nomeCantiere = nomeCantiereAltro;
-    }
-    let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
+                for (let i = 1; i <= numeroCantieri; i++) {
+                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
+                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+                    if (nomeCantiereAltro) {
+                        nomeCantiere = nomeCantiereAltro;
+                    }
+                    let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
 
-    if (!nomeCantiere || !lavorazioneCantiere) {
-        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
-        return;
-    }
+                    if (!nomeCantiere || !lavorazioneCantiere) {
+                        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
+                        return;
+                    }
 
-    let oreCalcolate = oreLavorate / numeroCantieri;
+                    let oreCalcolate = oreLavorate / numeroCantieri;
 
-    let operaiSelezionati = [];
-    if (document.getElementById("multiOperai").style.display === "block") {
-        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
-        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-        if (nuovo) operaiSelezionati.push(nuovo);
-        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
-    } else {
-        operaiSelezionati = [nomeOperaio];
-    }
+                    let operaiSelezionati = [];
+                    if (document.getElementById("multiOperai").style.display === "block") {
+                        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
+                        const nuovo = document.getElementById("nuovoOperaio").value.trim();
+                        if (nuovo) operaiSelezionati.push(nuovo);
+                        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
+                    } else {
+                        operaiSelezionati = [nomeOperaio];
+                    }
 
-    operaiSelezionati.forEach(nome => {
-        const dati = {
-            data,
-            orari,
-            cantiere: nomeCantiere,
-            lavorazione: lavorazioneCantiere,
-            ore: oreCalcolate,
-            operaio: nome,
-            user: utente
-        };
-        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(dati),
-            headers: { "Content-Type": "application/json" }
-        });
-    });
-}
+                    operaiSelezionati.forEach(nome => {
+                        const dati = {
+                            data,
+                            orari,
+                            cantiere: nomeCantiere,
+                            lavorazione: lavorazioneCantiere,
+                            ore: oreCalcolate,
+                            operaio: nome,
+                            user: utente
+                        };
+                        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+                            method: "POST",
+                            mode: "no-cors",
+                            body: JSON.stringify(dati),
+                            headers: { "Content-Type": "application/json" }
+                        });
+                    });
+                }
 
             }
 
@@ -694,51 +716,51 @@ for (let i = 1; i <= numeroCantieri; i++) {
                     });
             }
 
-function mostraModal() {
-    const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
-    const orari = `Ore lavorate: ${oreLavorate}`;
+            function mostraModal() {
+                const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
+                const orari = `Ore lavorate: ${oreLavorate}`;
 
-    const data = document.getElementById("data").value;
+                const data = document.getElementById("data").value;
 
-    let operai = "";
-    if (document.getElementById("multiOperai").style.display === "block") {
-        const selezione = document.getElementById("operaio");
-        const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-        if (nuovo) selezionati.push(nuovo);
-        operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
-    } else {
-        operai = nomeOperaio;
-    }
+                let operai = "";
+                if (document.getElementById("multiOperai").style.display === "block") {
+                    const selezione = document.getElementById("operaio");
+                    const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+                    const nuovo = document.getElementById("nuovoOperaio").value.trim();
+                    if (nuovo) selezionati.push(nuovo);
+                    operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
+                } else {
+                    operai = nomeOperaio;
+                }
 
-    const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-    let dettagliCantieri = "";
+                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+                let dettagliCantieri = "";
 
-    for (let i = 1; i <= numeroCantieri; i++) {
-        let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
-        const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
-        if (nomeCantiereAltro) {
-            nomeCantiere = nomeCantiereAltro;
-        }
-        const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
-        dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
-    }
+                for (let i = 1; i <= numeroCantieri; i++) {
+                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
+                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+                    if (nomeCantiereAltro) {
+                        nomeCantiere = nomeCantiereAltro;
+                    }
+                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
+                    dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
+                }
 
-    const riepilogoHTML = `
-        <ul>
-            <li><strong>Data:</strong> ${data}</li>
-            <li><strong>Ore:</strong> ${oreLavorate}</li>
-            <li><strong>Operai:</strong> ${operai}</li>
-            <li><strong>Dettaglio Cantieri:</strong>
-                <ul>${dettagliCantieri}</ul>
-            </li>
-        </ul>
-    `;
+                const riepilogoHTML = `
+                    <ul>
+                        <li><strong>Data:</strong> ${data}</li>
+                        <li><strong>Ore:</strong> ${oreLavorate}</li>
+                        <li><strong>Operai:</strong> ${operai}</li>
+                        <li><strong>Dettaglio Cantieri:</strong>
+                            <ul>${dettagliCantieri}</ul>
+                        </li>
+                    </ul>
+                `;
 
-    document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
-    document.getElementById("modalConferma").style.display = "flex"; // Usa flex per centrare
-    document.getElementById("modalConferma").classList.add("show"); // Aggiungi classe per animazione
-}
+                document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
+                document.getElementById("modalConferma").style.display = "flex"; // Usa flex per centrare
+                document.getElementById("modalConferma").classList.add("show"); // Aggiungi classe per animazione
+            }
 
 
             function chiudiModal() {
