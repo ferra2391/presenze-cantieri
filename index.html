@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8" />
-    <title>Presenze Cantiere</title>
+    <title data-translate-key="presenze_cantiere_title">Presenze Cantiere</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -16,428 +16,350 @@
             --color-text-dark: hsl(210, 10%, 20%); /* Testo scuro */
             --color-text-light: hsl(210, 5%, 50%); /* Testo grigio chiaro */
             --color-bg-light: hsl(210, 20%, 98%); /* Sfondo chiaro generale */
-            --color-bg-alt: hsl(210, 10%, 95%); /* Grigio leggero per sezioni */
-            --color-border: hsl(210, 15%, 85%); /* Bordo sottile */
-            --color-success-bg: hsl(140, 60%, 95%); /* Sfondo verde chiaro per successo */
-            --color-success-border: hsl(140, 60%, 75%); /* Bordo verde per successo */
-            --color-warning-bg: hsl(40, 90%, 95%); /* Sfondo giallo chiaro per avvisi */
-            --color-warning-border: hsl(40, 90%, 80%); /* Bordo giallo per avvisi */
-
-            --border-radius-base: 8px; /* Raggio dei bordi standard */
-            --shadow-light: 0 1px 3px rgba(0,0,0,0.05);
-            --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
-            --shadow-strong: 0 8px 16px rgba(0,0,0,0.15);
+            --color-bg-alt: hsl(210, 10%, 95%); /* Grigio più scuro per elementi secondari */
+            --border-radius: 8px;
+            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.3s;
         }
 
         body {
             font-family: 'Roboto', sans-serif;
-            background: var(--color-bg-light);
-            color: var(--color-text-dark);
-            padding: 20px;
             margin: 0;
-            box-sizing: border-box; /* Assicura che padding e border siano inclusi nella larghezza */
+            padding: 20px;
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Allinea in alto per scrollabilità */
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 0 10px;
-        }
-
-        h2, h3 {
-            text-align: center;
-            color: var(--color-primary-dark);
-            margin-bottom: 20px;
-        }
-
-        input, select, button {
             width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            font-size: 16px;
-            border: 1px solid var(--color-border);
-            border-radius: var(--border-radius-base);
+            max-width: 600px;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
             box-sizing: border-box;
-            box-shadow: var(--shadow-light);
-            min-height: 48px; /* Assicura una buona dimensione per il tocco su mobile */
         }
 
-        input:focus, select:focus, button:focus {
-            outline: none;
+        h1, h2, h3, h4 {
+            color: var(--color-primary-dark);
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background-color: var(--color-bg-alt);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        label.section-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--color-text-dark);
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="date"],
+        select {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            font-size: 1em;
+            background-color: #fff;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="date"]:focus,
+        select:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px hsla(210, 100%, 40%, 0.2);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        select[multiple] {
+            min-height: 120px;
+            padding: 10px;
         }
 
         button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            margin-top: 10px;
             background-color: var(--color-primary);
             color: white;
             border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1em;
             cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            box-shadow: var(--shadow-medium);
+            transition: background-color var(--transition-speed), transform var(--transition-speed);
         }
 
         button:hover {
             background-color: var(--color-primary-dark);
             transform: translateY(-2px);
-            box-shadow: var(--shadow-strong);
         }
 
-        #form {
-            margin-top: 20px;
+        button#btnGestione {
+            background-color: var(--color-accent);
+        }
+
+        button#btnGestione:hover {
+            background-color: var(--color-accent-dark);
+        }
+
+        button#btnCantiereAltro {
+            background-color: var(--color-warning);
+            font-size: 0.9em;
+            padding: 8px 15px;
+            margin-top: 10px;
+        }
+
+        button#btnCantiereAltro:hover {
+            background-color: hsl(40, 90%, 50%);
+        }
+
+        #notifica {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--color-accent);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #notifica.show {
+            opacity: 1;
         }
 
         #benvenuto {
             text-align: center;
+            font-size: 1.2em;
             margin-bottom: 20px;
+            color: var(--color-primary);
             font-weight: bold;
-            color: var(--color-text-dark);
-            font-size: 20px;
-        }
-
-        #btnInvia {
-            background: linear-gradient(to right, var(--color-accent), var(--color-accent-dark));
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px; /* leggermente più arrotondato */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombra più pronunciata */
-        }
-        #btnInvia:hover {
-            background: linear-gradient(to right, var(--color-accent-dark), hsl(140, 60%, 25%));
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
-        }
-
-        .section-label {
-            font-weight: bold;
-            color: var(--color-text-dark);
-            margin-top: 15px;
-            display: block; /* Per assicurare che il margine funzioni */
-            margin-bottom: 5px; /* Spazio sotto l'etichetta */
-        }
-
-        .card { /* Stile generico per le card */
-            background-color: white;
-            padding: 15px;
-            border-radius: var(--border-radius-base);
-            box-shadow: var(--shadow-medium);
-            border: 1px solid var(--color-border);
-            margin-top: 20px;
-        }
-
-        #importaBox {
-            background: var(--color-success-bg);
-            padding: 16px;
-            border-radius: var(--border-radius-base);
-            margin-top: 10px;
-            margin-bottom: 10px;
-            box-shadow: var(--shadow-light);
-            border: 1px solid var(--color-success-border);
-        }
-
-        #importaBox h4 {
-            margin-top: 0;
-            margin-bottom: 6px;
-            color: var(--color-accent-dark);
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        #importaBox .sottotitolo {
-            margin: 0 0 12px 0;
-            font-size: 14px;
-            color: var(--color-text-light);
-        }
-
-        .importa-riga {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        #importaBox input[list] {
-            flex: 1 1 250px;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid var(--color-border);
-            border-radius: var(--border-radius-base);
-            background: #fff;
         }
 
         #ultimaLavorazioneBox {
-            background-color: #f0f7ff; /* Sfondo leggermente blu */
-            padding: 12px 15px;
-            border: 1px solid #cce0ff;
-            border-radius: var(--border-radius-base);
-            margin: 15px 0;
             display: flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: var(--shadow-light);
+            justify-content: center;
+            gap: 15px;
+            background-color: var(--color-bg-alt);
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin-top: 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: center;
         }
+
         #ultimaLavorazioneBox p {
             margin: 0;
-            font-size: 14px;
             color: var(--color-text-light);
         }
-        #ultimaLavorazioneBox strong {
-            font-size: 16px;
-            color: var(--color-primary-dark);
-        }
 
-
-        #btnGestione {
-            background-color: var(--color-primary);
-            border-radius: 10px;
-            font-weight: bold;
-        }
-
-        ul {
-            padding-left: 20px;
-        }
-        li {
-            margin-bottom: 6px;
-        }
-
-        #cantiere { /* Non usato in questo HTML, ma per coerenza */
-            border: 2px solid var(--color-primary);
-            background-color: #eef4ff;
+        #ultimaLavorazione {
             font-weight: bold;
             color: var(--color-primary-dark);
-        }
-        #btnCantiereAltro {
-            background-color: var(--color-bg-alt);
-            color: var(--color-text-dark);
-            font-weight: normal;
-            box-shadow: none;
-            border: 1px solid var(--color-border);
-        }
-        #btnCantiereAltro:hover {
-            background-color: var(--color-border);
-            transform: none;
-            box-shadow: none;
+            font-size: 1.1em;
         }
 
-        /* Stili per la notifica (snackbar) */
-        #notifica {
-            display: none;
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(50px) scale(0.9); /* Inizia più in basso e più piccolo */
-            opacity: 0;
-            background-color: var(--color-accent);
-            color: white;
-            padding: 16px 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            font-size: 18px;
-            z-index: 99999;
-            transition: all 0.5s ease-out; /* Animazione più fluida */
-        }
-        #notifica.show { /* Classe per mostrare la notifica */
-            transform: translateX(-50%) translateY(0) scale(1);
-            opacity: 1;
+        #ultimi7 ul {
+            list-style: none;
+            padding: 0;
         }
 
-        /* Stili per la modale di conferma */
+        #ultimi7 li {
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            font-size: 0.95em;
+        }
+
+        /* Stile per il modale di conferma */
         #modalConferma {
-            display: none; /* Questa riga è la chiave! */
-            position: fixed;
-            top: 0;
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1001; /* Sit on top */
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 9999;
-            /* Le prossime due proprietà servono solo quando è 'display: flex;' */
-            justify-content: center; /* Centra orizzontalmente */
-            align-items: center; /* Centra verticalmente */
-        }
-        #modalConferma > div { /* Il box interno della modale */
-            background: white;
-            max-width: 400px;
-            width: 90%; /* Occupa il 90% della larghezza su schermi piccoli */
-            margin: auto; /* Centra verticalmente e orizzontalmente */
-            padding: 25px; /* Più padding */
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
-            transform: scale(0.9); /* Animazione di ingresso */
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px); /* Effetto sfocatura dietro */
             opacity: 0;
-            transition: all 0.3s ease-out;
-            box-sizing: border-box; /* Include padding e border nel calcolo della larghezza */
+            transition: opacity 0.3s ease-in-out;
         }
-        #modalConferma.show > div { /* Animazione di ingresso */
-            transform: scale(1);
+
+        #modalConferma.show {
             opacity: 1;
         }
-        #modalConferma .chiudi-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 28px; /* Più grande */
-            cursor: pointer;
-            color: var(--color-text-light);
-            padding: 5px; /* Area cliccabile più ampia */
-            transition: color 0.2s ease;
+
+        #modalConferma > div {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
         }
-        #modalConferma .chiudi-btn:hover {
-            color: var(--color-text-dark);
+
+        #modalConferma h4 {
+            color: var(--color-primary-dark);
+            margin-top: 0;
         }
-        #modalConferma p {
-            font-size: 18px;
-            color: var(--color-text-dark);
-            margin-bottom: 20px;
-        }
-        #riepilogoDati {
-            background-color: var(--color-bg-alt);
-            padding: 15px;
-            border-radius: var(--border-radius-base);
-            border: 1px solid var(--color-border);
-            margin-top: 15px;
-            margin-bottom: 20px;
-            text-align: left; /* Assicurati che il testo sia allineato a sinistra */
-            color: var(--color-text-dark);
-            font-size: 15px;
-        }
+
         #riepilogoDati ul {
-            padding-left: 15px;
-            margin: 0;
-            list-style: none; /* Rimuovi i pallini di default */
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            margin-bottom: 20px;
         }
+
         #riepilogoDati li {
             margin-bottom: 8px;
-            padding-left: 0;
             line-height: 1.4;
         }
-        #riepilogoDati ul ul { /* Per i dettagli dei cantieri annidati */
-            margin-top: 5px;
-            padding-left: 20px;
-        }
+
         #modalConferma button {
-            padding: 10px 25px;
-            margin: 0 8px;
-            font-size: 16px;
-            border-radius: 8px;
-            box-shadow: var(--shadow-light); /* Ombra più leggera per i bottoni della modale */
+            width: calc(50% - 10px);
+            display: inline-block;
+            margin: 10px 5px;
+            font-size: 1em;
         }
-        #modalConferma button:first-of-type { /* Conferma */
-            background-color: var(--color-accent);
+
+        #modalConferma button:last-of-type {
+            background-color: #dc3545; /* Rosso per annullare */
         }
-        #modalConferma button:first-of-type:hover {
-            background-color: var(--color-accent-dark);
-            transform: translateY(-1px);
-        }
-        #modalConferma button:last-of-type { /* Annulla */
-            background-color: #ccc;
-            color: var(--color-text-dark);
-        }
+
         #modalConferma button:last-of-type:hover {
-            background-color: #bbb;
-            transform: translateY(-1px);
+            background-color: #c82333;
         }
 
-        /* Stili per il messaggio di avviso "multi operai" */
+        .chiudi-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: auto;
+            padding: 0;
+            margin: 0;
+            transition: color 0.2s;
+        }
+
+        .chiudi-btn:hover,
+        .chiudi-btn:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .sottotitolo {
+            font-size: 0.9em;
+            color: var(--color-text-light);
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+
         .warning-message {
-            margin-bottom: 10px;
-            font-size: 14px;
+            background-color: var(--color-warning);
             color: var(--color-text-dark);
-            background: var(--color-warning-bg);
-            border-left: 5px solid var(--color-warning-border);
-            padding: 12px;
-            border-radius: var(--border-radius-base);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .warning-message strong {
-            color: var(--color-warning);
-        }
-
-        /* Stili per Riepilogo Admin */
-        #riepilogoAdmin {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: var(--shadow-medium);
-            border: 1px solid var(--color-border);
-            margin-top: 30px;
-        }
-        #riepilogoAdmin h3 {
-            color: var(--color-primary-dark);
-            border-bottom: 1px solid var(--color-border); /* Bordo più sottile */
-            padding-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
             margin-bottom: 20px;
-            text-align: left; /* Allinea a sinistra */
+            font-size: 0.9em;
         }
-        #riepilogoAdmin h4 {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--color-text-dark);
-            font-size: 17px;
-        }
-        #riepilogoAdmin #riepilogoCompilati h4::before { content: '✅'; }
-        #riepilogoAdmin #riepilogoMancanti h4::before { content: '⛔'; }
 
         #riepilogoAdmin ul {
-            list-style: none; /* Rimuove i pallini di default */
-            padding-left: 0;
-        }
-        #riepilogoAdmin li {
-            padding: 8px 0;
-            border-bottom: 1px dashed var(--color-border);
-            color: var(--color-text-dark);
-        }
-        #riepilogoAdmin li:last-child {
-            border-bottom: none;
+            list-style: none;
+            padding: 0;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 600px) {
+        #riepilogoAdmin li {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: var(--color-text-dark);
+        }
+
+        #riepilogoAdmin h4 {
+            text-align: left;
+            margin-bottom: 10px;
+            color: var(--color-primary);
+        }
+
+        /* Media queries per la responsività */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            button {
+                padding: 10px 15px;
+                font-size: 1em;
+            }
+
+            #modalConferma button {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
             body {
                 padding: 10px;
             }
+
             .container {
-                padding: 0;
+                padding: 15px;
             }
-            input, select, button {
-                padding: 12px;
-                font-size: 15px;
-                min-height: 44px; /* Leggermente più piccolo ma ancora touch-friendly */
+
+            h1, h2, h3, h4 {
+                font-size: 1.3em;
+                margin-bottom: 15px;
             }
-            #notifica {
-                width: calc(100% - 40px);
-                font-size: 16px;
-                padding: 14px 20px;
-                bottom: 15px;
-            }
-            #modalConferma > div {
-                margin: 20px 10px; /* Margine ridotto per lasciare più spazio */
-                padding: 20px;
-                width: calc(100% - 40px); /* Prende quasi tutta la larghezza */
-                max-height: 90vh; /* Limita l'altezza per evitare overflow */
-                overflow-y: auto; /* Permette lo scroll se il contenuto è troppo lungo */
-            }
-            #modalConferma p {
-                font-size: 16px; /* Font size leggermente ridotto nella modale */
-            }
-            #riepilogoDati {
-                font-size: 14px; /* Font size ridotto per il riepilogo dati */
-            }
-            #modalConferma button {
-                font-size: 15px;
-                padding: 8px 20px;
-                margin: 5px; /* Spazio ridotto tra i bottoni */
-            }
-            .importa-riga input[list] {
-                flex: 1 1 100%; /* L'input occupa tutta la larghezza disponibile */
+
+            input[type="text"],
+            input[type="password"],
+            input[type="date"],
+            select {
+                padding: 10px;
+                font-size: 0.9em;
             }
         }
     </style>
@@ -447,7 +369,7 @@
         <datalist id="suggerimentiLavorazioni"></datalist>
 
         <div id="notifica">
-            <strong>Dati inseriti correttamente</strong>
+            <strong data-translate-key="notification_success">Dati inseriti correttamente</strong>
         </div>
 
         <div id="benvenuto">
@@ -455,38 +377,41 @@
         </div>
 
         <div id="login" class="card">
-            <h2>🔐 Login</h2>
-            <input type="text" id="user" placeholder="🔑 Utente">
-            <input type="password" id="pass" placeholder="🔒 Password">
-            <button onclick="login()">🔓 Accedi</button>
+            <h2 data-translate-key="login_title">🔐 Login</h2>
+            <input type="text" id="user" placeholder="🔑 Utente" data-translate-placeholder="user_placeholder">
+            <input type="password" id="pass" placeholder="🔒 Password" data-translate-placeholder="pass_placeholder">
+            <button onclick="login()" data-translate-key="login_button">🔓 Accedi</button>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <img src="https://flagicons.lipis.dev/flags/4x3/it.svg" alt="Italiano" width="30" height="20" style="cursor: pointer; margin: 0 5px;" onclick="setLanguage('it')">
+                <img src="https://flagicons.lipis.dev/flags/4x3/gb.svg" alt="English" width="30" height="20" style="cursor: pointer; margin: 0 5px;" onclick="setLanguage('en')">
+                <img src="https://flagicons.lipis.dev/flags/4x3/fr.svg" alt="Français" width="30" height="20" style="cursor: pointer; margin: 0 5px;" onclick="setLanguage('fr')">
+            </div>
         </div>
 
         <div id="form" style="display:none;">
-            <h3>📅 Compila Presenza</h3>
+            <h3 data-translate-key="fill_presence_title">📅 Compila Presenza</h3>
 
-            <label class="section-label" for="data">Data:</label>
+            <label class="section-label" for="data" data-translate-key="date_label">Data:</label>
             <input type="date" id="data">
 
             <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
                 <div style="flex:1;">
-                
-<label class="section-label" for="oreLavorate">🕒 Ore lavorate:</label>
-<select id="oreLavorate">
-  <option value="4">4</option>
-  <option value="5">5</option>
-  <option value="6">6</option>
-  <option value="7">7</option>
-  <option value="8" selected>8</option>
-  <option value="9">9</option>
-  <option value="10">10</option>
-  <option value="11">11</option>
-  <option value="12">12</option>
-</select>
-
-
+                    <label class="section-label" for="oreLavorate" data-translate-key="hours_label">🕒 Ore lavorate:</label>
+                    <select id="oreLavorate">
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8" selected>8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                    </select>
                 </div>
                 <div style="flex:1;">
-                    <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
+                    <label class="section-label" for="numeroCantieri" data-translate-key="sites_label">🏗️ Cantieri:</label>
                     <select id="numeroCantieri" onchange="generaCampiCantieri()">
                         <option value="1" selected>1</option>
                         <option value="2">2</option>
@@ -498,385 +423,600 @@
             </div>
 
             <div id="cantieriMultipli"></div>
-
-            <button id="btnMultiOperai" onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
+            <button id="btnMultiOperai" onclick="mostraOperai()" data-translate-key="multi_workers_button">👏🏼​ Inserisci dati per altri operai</button>
 
             <div id="multiOperai" class="card" style="display:none; margin-top:20px;">
-                <p class="warning-message">
+                <p class="warning-message" data-translate-key="warning_message_multi_workers">
                     ⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.
                 </p>
-                <label class="section-label" for="operaio">👥 Seleziona altri operai:</label>
+                <label class="section-label" for="operaio" data-translate-key="select_other_workers_label">👥 Seleziona altri operai:</label>
                 <select id="operaio" multiple size="6"></select>
 
                 <div style="margin-top:15px;">
-                    <label class="section-label" for="nuovoOperaio">➕ Oppure inserisci un nuovo operaio:</label>
-                    <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio">
+                    <label class="section-label" for="nuovoOperaio" data-translate-key="or_insert_new_worker_label">➕ Oppure inserisci un nuovo operaio:</label>
+                    <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio" data-translate-placeholder="new_worker_placeholder">
                 </div>
             </div>
 
-            <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
-            <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
+            <button onclick="mostraModal()" id="btnInvia" data-translate-key="send_presence_button">📄 Invia Presenza</button>
+            <button id="btnGestione" onclick="window.location.href='gestione.html'" data-translate-key="go_to_management_button">📅 Vai alla Gestione Cantiere</button>
 
             <div id="ultimaLavorazioneBox">
                 <span style="font-size: 24px; color: var(--color-primary);">✨</span>
                 <div>
-                    <p>La tua ultima lavorazione registrata:</p>
-                    <strong id="ultimaLavorazione">Caricamento...</strong>
+                    <p data-translate-key="last_work_recorded">La tua ultima lavorazione registrata:</p>
+                    <strong id="ultimaLavorazione" data-translate-key="loading_text">Caricamento...</strong>
                 </div>
             </div>
 
             <div id="ultimi7" class="card">
-                <h4>Recentemente:</h4>
+                <h4 data-translate-key="recently_title">Recentemente:</h4>
             </div>
         </div>
 
-        <script>
-            let utente = "";
-            let nomeOperaio = "";
-            let ultimoTestoLavorazione = "";
-            let elencoCantieri = [];
-
-            function login() {
-                const userInput = document.getElementById("user").value.trim();
-                const passInput = document.getElementById("pass").value.trim();
-
-                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-                    .then(r => r.json())
-                    .then(data => {
-                        const utenteTrovato = data.find(r => r["User"] === userInput && r["Password"] === passInput);
-                        if (utenteTrovato) {
-                            utente = utenteTrovato["User"];
-                            nomeOperaio = utenteTrovato["Nome"];
-                            const ruolo = utenteTrovato["Ruolo"] || "";
-                            localStorage.setItem("ruolo", ruolo);
-                            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
-                            if (ruolo.toLowerCase() !== "amministratore") {
-                                document.getElementById("btnGestione").style.display = "none";
-                            }
-                            document.getElementById("login").style.display = "none";
-                            document.getElementById("form").style.display = "block";
-                            document.getElementById("data").value = new Date().toISOString().split("T")[0];
-                            caricaUltimaLavorazione(utente);
-
-                            caricaCantieri();
-                            caricaOperai();
-                            caricaUltimi7();
-                            caricaRiepilogoAdmin();
-                            generaCampiCantieri();
-                        } else {
-                            alert("Credenziali errate");
-                        }
-                    });
-            }
-
-            function caricaCantieri() {
-                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
-                    .then(r => r.json())
-                    .then(data => {
-                        elencoCantieri = data
-                            .filter(r => r["Cantiere"])
-                            .map(r => r["Cantiere"]);
-                        generaCampiCantieri(); // Carica i cantieri dopo aver popolato l'array
-                    });
-            }
-
-            function caricaOperai() {
-                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-                    .then(r => r.json())
-                    .then(data => {
-                        const select = document.getElementById("operaio");
-                        select.innerHTML = "";
-                        data.forEach(r => {
-                            if (r["Nome"]) {
-                                const opt = document.createElement("option");
-                                opt.value = r["Nome"];
-                                opt.textContent = r["Nome"];
-                                select.appendChild(opt);
-                            }
-                        });
-                    });
-            }
-
-            function mostraCantiereLibero(index) {
-                const div = document.getElementById(`cantiereLibero_${index}`);
-                div.style.display = (div.style.display === "block") ? "none" : "block";
-            }
-
-            function generaCampiCantieri() {
-                const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
-                const container = document.getElementById("cantieriMultipli");
-                container.innerHTML = "";
-
-                for (let i = 1; i <= nCantieri; i++) {
-                    let selectHtml = `<select id="cantiere_${i}">`;
-                    selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
-                    elencoCantieri.forEach(nome => {
-                        selectHtml += `<option value="${nome}">${nome}</option>`;
-                    });
-                    selectHtml += `</select>`;
-
-                    container.innerHTML += `
-                        <div class="card" style="margin-top: 15px; padding: 15px;">
-                            <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
-                            ${selectHtml}
-                            <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Cantiere non presente</button>
-                            <div id="cantiereLibero_${i}" style="display:none;">
-                                <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Inserisci nome cantiere ${i}">
-                            </div>
-
-                            <div id="importaBox">
-                                <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
-                                <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
-                                <div class="importa-riga">
-                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                document.getElementById("btnMultiOperai").style.display = (nCantieri === 1) ? "inline-block" : "none";
-            }
-
-            function mostraOperai() {
-                const div = document.getElementById("multiOperai");
-                div.style.display = (div.style.display === "block") ? "none" : "block";
-            }
-
-            function invia() {
-                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-                const data = document.getElementById("data").value;
-                const orari = "08:00 - 17:00";
-                const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
-
-                for (let i = 1; i <= numeroCantieri; i++) {
-                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
-                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
-                    if (nomeCantiereAltro) {
-                        nomeCantiere = nomeCantiereAltro;
-                    }
-                    let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
-
-                    if (!nomeCantiere || !lavorazioneCantiere) {
-                        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
-                        return;
-                    }
-
-                    let oreCalcolate = oreLavorate / numeroCantieri;
-
-                    let operaiSelezionati = [];
-                    if (document.getElementById("multiOperai").style.display === "block") {
-                        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
-                        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-                        if (nuovo) operaiSelezionati.push(nuovo);
-                        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
-                    } else {
-                        operaiSelezionati = [nomeOperaio];
-                    }
-
-                    operaiSelezionati.forEach(nome => {
-                        const dati = {
-                            data,
-                            orari,
-                            cantiere: nomeCantiere,
-                            lavorazione: lavorazioneCantiere,
-                            ore: oreCalcolate,
-                            operaio: nome,
-                            user: utente
-                        };
-                        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-                            method: "POST",
-                            mode: "no-cors",
-                            body: JSON.stringify(dati),
-                            headers: { "Content-Type": "application/json" }
-                        });
-                    });
-                }
-
-            }
-
-            function caricaUltimi7() {
-                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
-                    .then(r => r.json())
-                    .then(dati => {
-                        let html = "<h4>Recentemente:</h4>";
-                        if (dati.presenze && dati.presenze.length > 0) {
-                            html += "<ul>";
-                            dati.presenze.forEach(r => {
-                                html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
-                            });
-                            html += "</ul>";
-                        } else {
-                            html += "<p>Nessun dato trovato</p>";
-                        }
-                        document.getElementById("ultimi7").innerHTML = html;
-                    });
-            }
-
-            function caricaUltimaLavorazione(username) {
-                fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
-                    .then(r => r.text())
-                    .then(data => {
-                        const el = document.getElementById("ultimaLavorazione");
-                        if (data && data.trim() !== "") {
-                            el.textContent = data;
-                            ultimoTestoLavorazione = data;
-                        } else {
-                            el.textContent = "(Nessuna lavorazione trovata)";
-                            ultimoTestoLavorazione = "";
-                        }
-                    });
-            }
-
-            function mostraModal() {
-                const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
-                const orari = `Ore lavorate: ${oreLavorate}`;
-
-                const data = document.getElementById("data").value;
-
-                let operai = "";
-                if (document.getElementById("multiOperai").style.display === "block") {
-                    const selezione = document.getElementById("operaio");
-                    const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-                    const nuovo = document.getElementById("nuovoOperaio").value.trim();
-                    if (nuovo) selezionati.push(nuovo);
-                    operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
-                } else {
-                    operai = nomeOperaio;
-                }
-
-                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-                let dettagliCantieri = "";
-
-                for (let i = 1; i <= numeroCantieri; i++) {
-                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
-                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
-                    if (nomeCantiereAltro) {
-                        nomeCantiere = nomeCantiereAltro;
-                    }
-                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
-                    dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
-                }
-
-                const riepilogoHTML = `
-                    <ul>
-                        <li><strong>Data:</strong> ${data}</li>
-                        <li><strong>Ore:</strong> ${oreLavorate}</li>
-                        <li><strong>Operai:</strong> ${operai}</li>
-                        <li><strong>Dettaglio Cantieri:</strong>
-                            <ul>${dettagliCantieri}</ul>
-                        </li>
-                    </ul>
-                `;
-
-                document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
-                document.getElementById("modalConferma").style.display = "flex"; // Usa flex per centrare
-                document.getElementById("modalConferma").classList.add("show"); // Aggiungi classe per animazione
-            }
-
-
-            function chiudiModal() {
-                document.getElementById("modalConferma").classList.remove("show"); // Rimuovi classe per animazione
-                setTimeout(() => {
-                    document.getElementById("modalConferma").style.display = "none";
-                }, 300); // Corrisponde alla durata della transizione
-            }
-
-            function confermaInvio() {
-                chiudiModal(); // Chiude la modale
-                invia();       // Esegue la funzione di invio vera e propria
-
-                // Mostra la notifica
-                const n = document.getElementById("notifica");
-                n.style.display = "block";
-                n.classList.add("show");
-
-                // Nasconde la notifica dopo 4 secondi
-                setTimeout(() => {
-                    n.classList.remove("show");
-                    setTimeout(() => {
-                        n.style.display = "none";
-                    }, 500); // Deve corrispondere alla transizione CSS
-                }, 3500);
-
-                // Resetta i campi dopo invio
-                document.getElementById("data").value = new Date().toISOString().split("T")[0];
-                document.getElementById("oreLavorate").value = "8";
-                document.getElementById("numeroCantieri").value = "1";
-                document.getElementById("cantieriMultipli").innerHTML = ""; // Pulisce i campi generati
-                document.getElementById("multiOperai").style.display = "none";
-                document.getElementById("operaio").selectedIndex = -1; // Deseleziona tutto
-                document.getElementById("nuovoOperaio").value = "";
-
-                generaCampiCantieri(); // Rigenera i campi per un cantiere singolo
-                caricaUltimi7(); // Aggiorna gli ultimi 7 eventi
-                caricaRiepilogoAdmin(); // Aggiorna il riepilogo admin
-            }
-
-            function caricaSuggerimentiLavorazioni() {
-                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
-                    .then(r => r.json())
-                    .then(data => {
-                        const lista = document.getElementById("suggerimentiLavorazioni");
-                        lista.innerHTML = "";
-                        data.slice(0, 15).forEach(item => {
-                            const opt = document.createElement("option");
-                            opt.value = item;
-                            lista.appendChild(opt);
-                        });
-                    });
-            }
-
-            function caricaRiepilogoAdmin() {
-                const ruolo = localStorage.getItem("ruolo");
-                if (ruolo && ruolo.toLowerCase() === "amministratore") {
-                    document.getElementById("riepilogoAdmin").style.display = "block";
-
-                    const oggiISO = new Date().toISOString().split("T")[0];
-                    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1&data=" + oggiISO)
-                        .then(r => r.json())
-                        .then(dati => {
-                            let compilati = dati.compilati || [];
-                            let mancanti = dati.mancanti || [];
-
-                            document.getElementById("riepilogoCompilati").innerHTML = `
-                                <h4>Compilati:</h4>
-                                <ul>
-                                    ${compilati.map(op => `<li>${op.nome} (${op.cantiere} - ${op.lavorazione})</li>`).join("")}
-                                </ul>
-                            `;
-
-                            document.getElementById("riepilogoMancanti").innerHTML = `
-                                <h4>Mancanti:</h4>
-                                <ul>${mancanti.map(op => `<li>${op}</li>`).join("")}</ul>
-                            `;
-                        });
-                }
-            }
-
-            window.addEventListener("DOMContentLoaded", () => {
-                caricaSuggerimentiLavorazioni();
-            });
-        </script>
-
         <div id="riepilogoAdmin" class="card" style="display:none;">
-            <h3>📝 Riepilogo presenze odierne</h3>
-            <div id="riepilogoCompilati" style="margin-bottom:20px;"></div>
-            <div id="riepilogoMancanti"></div>
+            <h3 data-translate-key="today_presence_summary">📝 Riepilogo presenze odierne</h3>
+            <div id="riepilogoCompilati" style="margin-bottom:20px;">
+                <h4 data-translate-key="compiled_title">Compilati:</h4>
+                <ul></ul>
+            </div>
+            <div id="riepilogoMancanti">
+                <h4 data-translate-key="missing_title">Mancanti:</h4>
+                <ul></ul>
+            </div>
         </div>
 
         <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px; padding-bottom: 20px;">
-            © 2025 Davide Ferrarini — Tutti i diritti riservati
+            <span data-translate-key="footer_text">© 2025 Davide Ferrarini — Tutti i diritti riservati</span>
         </footer>
+    </div>
 
-    </div> <div id="modalConferma">
+    <div id="modalConferma">
         <div>
-            
-            <p>Vuoi confermare l'invio della presenza?</p>
+            <button class="chiudi-btn" onclick="chiudiModal()">×</button>
+            <p data-translate-key="confirm_modal_title">Vuoi confermare l'invio della presenza?</p>
             <div id="riepilogoDati"></div>
-            <button onclick="confermaInvio()">✅ Conferma</button>
-            <button onclick="chiudiModal()">❌ Annulla</button>
+            <button onclick="confermaInvio()" data-translate-key="confirm_button">✅ Conferma</button>
+            <button onclick="chiudiModal()" data-translate-key="cancel_button">❌ Annulla</button>
         </div>
     </div>
 
+    <script>
+        const translations = {
+            "it": {
+                "presenze_cantiere_title": "Presenze Cantiere",
+                "login_title": "🔐 Login",
+                "user_placeholder": "🔑 Utente",
+                "pass_placeholder": "🔒 Password",
+                "login_button": "🔓 Accedi",
+                "welcome_message": "Benvenuto, ",
+                "fill_presence_title": "📅 Compila Presenza",
+                "date_label": "Data:",
+                "hours_label": "🕒 Ore lavorate:",
+                "sites_label": "🏗️ Cantieri:",
+                "select_site_option": "-- Seleziona Cantiere --",
+                "site_not_present_button": "🏠 Cantiere non presente",
+                "site_name_placeholder": "🏢 Inserisci nome cantiere ",
+                "work_performed_title": "💅​ Lavorazioni eseguite per cantiere ",
+                "work_subtitle": "💡 Scegli tra le lavorazioni recenti o scrivine una nuova:",
+                "work_placeholder": "🧠​ Lavorazioni e suggerimenti",
+                "multi_workers_button": "👏🏼​ Inserisci dati per altri operai",
+                "warning_message_multi_workers": "⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.",
+                "select_other_workers_label": "👥 Seleziona altri operai:",
+                "or_insert_new_worker_label": "➕ Oppure inserisci un nuovo operaio:",
+                "new_worker_placeholder": "👷 Inserisci nuovo operaio",
+                "send_presence_button": "📄 Invia Presenza",
+                "go_to_management_button": "📅 Vai alla Gestione Cantiere",
+                "last_work_recorded": "La tua ultima lavorazione registrata:",
+                "loading_text": "Caricamento...",
+                "no_work_found": "(Nessuna lavorazione trovata)",
+                "recently_title": "Recentemente:",
+                "no_data_found": "Nessun dato trovato",
+                "notification_success": "Dati inseriti correttamente",
+                "confirm_modal_title": "Vuoi confermare l'invio della presenza?",
+                "confirm_button": "✅ Conferma",
+                "cancel_button": "❌ Annulla",
+                "summary_data_date": "Data:",
+                "summary_data_hours": "Ore:",
+                "summary_data_workers": "Operai:",
+                "summary_data_site_details": "Dettaglio Cantieri:",
+                "summary_data_site": "Cantiere",
+                "summary_data_work": "Lavorazione:",
+                "alert_fill_fields": "⚠️ Devi compilare cantiere e lavorazione per la riga ",
+                "error_credentials": "Credenziali errate",
+                "today_presence_summary": "📝 Riepilogo presenze odierne",
+                "compiled_title": "Compilati:",
+                "missing_title": "Mancanti:",
+                "footer_text": "© 2025 Davide Ferrarini — Tutti i diritti riservati"
+            },
+            "en": {
+                "presenze_cantiere_title": "Site Presence",
+                "login_title": "🔐 Login",
+                "user_placeholder": "🔑 User",
+                "pass_placeholder": "🔒 Password",
+                "login_button": "🔓 Login",
+                "welcome_message": "Welcome, ",
+                "fill_presence_title": "📅 Fill Presence",
+                "date_label": "Date:",
+                "hours_label": "🕒 Hours worked:",
+                "sites_label": "🏗️ Sites:",
+                "select_site_option": "-- Select Site --",
+                "site_not_present_button": "🏠 Site not listed",
+                "site_name_placeholder": "🏢 Enter site name ",
+                "work_performed_title": "💅​ Works performed for site ",
+                "work_subtitle": "💡 Choose from recent works or enter a new one:",
+                "work_placeholder": "🧠​ Works and suggestions",
+                "multi_workers_button": "👏🏼​ Enter data for other workers",
+                "warning_message_multi_workers": "⚠️ The selected workers will have the same work activities as specified above.",
+                "select_other_workers_label": "👥 Select other workers:",
+                "or_insert_new_worker_label": "➕ Or insert a new worker:",
+                "new_worker_placeholder": "👷 Enter new worker",
+                "send_presence_button": "📄 Send Presence",
+                "go_to_management_button": "📅 Go to Site Management",
+                "last_work_recorded": "Your last recorded work:",
+                "loading_text": "Loading...",
+                "no_work_found": "(No work found)",
+                "recently_title": "Recently:",
+                "no_data_found": "No data found",
+                "notification_success": "Data successfully submitted",
+                "confirm_modal_title": "Do you want to confirm the presence submission?",
+                "confirm_button": "✅ Confirm",
+                "cancel_button": "❌ Cancel",
+                "summary_data_date": "Date:",
+                "summary_data_hours": "Hours:",
+                "summary_data_workers": "Workers:",
+                "summary_data_site_details": "Site Details:",
+                "summary_data_site": "Site",
+                "summary_data_work": "Work:",
+                "alert_fill_fields": "⚠️ You must fill in site and work for row ",
+                "error_credentials": "Incorrect credentials",
+                "today_presence_summary": "📝 Today's presence summary",
+                "compiled_title": "Compiled:",
+                "missing_title": "Missing:",
+                "footer_text": "© 2025 Davide Ferrarini — All rights reserved"
+            },
+            "fr": {
+                "presenze_cantiere_title": "Présence sur le chantier",
+                "login_title": "🔐 Connexion",
+                "user_placeholder": "🔑 Utilisateur",
+                "pass_placeholder": "🔒 Mot de passe",
+                "login_button": "🔓 Se connecter",
+                "welcome_message": "Bienvenue, ",
+                "fill_presence_title": "📅 Remplir la présence",
+                "date_label": "Date:",
+                "hours_label": "🕒 Heures travaillées:",
+                "sites_label": "🏗️ Chantiers:",
+                "select_site_option": "-- Sélectionner un chantier --",
+                "site_not_present_button": "🏠 Chantier non listé",
+                "site_name_placeholder": "🏢 Saisir le nom du chantier ",
+                "work_performed_title": "💅​ Travaux effectués pour le chantier ",
+                "work_subtitle": "💡 Choisissez parmi les travaux récents ou entrez-en un nouveau :",
+                "work_placeholder": "🧠​ Travaux et suggestions",
+                "multi_workers_button": "👏🏼​ Entrez les données pour d'autres ouvriers",
+                "warning_message_multi_workers": "⚠️ Les mêmes activités de travail seront appliquées aux ouvriers sélectionnés comme spécifié ci-dessus.",
+                "select_other_workers_label": "👥 Sélectionner d'autres ouvriers :",
+                "or_insert_new_worker_label": "➕ Ou insérer un nouvel ouvrier :",
+                "new_worker_placeholder": "👷 Saisir un nouvel ouvrier",
+                "send_presence_button": "📄 Envoyer la présence",
+                "go_to_management_button": "📅 Aller à la gestion du chantier",
+                "last_work_recorded": "Votre dernier travail enregistré :",
+                "loading_text": "Chargement...",
+                "no_work_found": "(Aucun travail trouvé)",
+                "recently_title": "Récemment :",
+                "no_data_found": "Aucune donnée trouvée",
+                "notification_success": "Données soumises avec succès",
+                "confirm_modal_title": "Voulez-vous confirmer la soumission de présence?",
+                "confirm_button": "✅ Confirmer",
+                "cancel_button": "❌ Annuler",
+                "summary_data_date": "Date :",
+                "summary_data_hours": "Heures :",
+                "summary_data_workers": "Ouvriers :",
+                "summary_data_site_details": "Détails du chantier :",
+                "summary_data_site": "Chantier",
+                "summary_data_work": "Travail :",
+                "alert_fill_fields": "⚠️ Vous devez remplir le chantier et le travail pour la ligne ",
+                "error_credentials": "Identifiants incorrects",
+                "today_presence_summary": "📝 Récapitulatif des présences d'aujourd'hui",
+                "compiled_title": "Compilés :",
+                "missing_title": "Manquants :",
+                "footer_text": "© 2025 Davide Ferrarini — Tous droits réservés"
+            }
+        };
+
+        let utente = "";
+        let nomeOperaio = "";
+        let ultimoTestoLavorazione = "";
+        let elencoCantieri = [];
+        let currentLanguage = localStorage.getItem("lang") || "it"; // Lingua di default o quella salvata
+
+        // Funzione per tradurre l'interfaccia
+        function translatePage() {
+            const elements = document.querySelectorAll('[data-translate-key]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-translate-key');
+                if (translations[currentLanguage] && translations[currentLanguage][key]) {
+                    el.textContent = translations[currentLanguage][key];
+                }
+            });
+
+            const placeholderElements = document.querySelectorAll('[data-translate-placeholder]');
+            placeholderElements.forEach(el => {
+                const key = el.getAttribute('data-translate-placeholder');
+                if (translations[currentLanguage] && translations[currentLanguage][key]) {
+                    el.placeholder = translations[currentLanguage][key];
+                }
+            });
+
+            // Traduci il titolo della pagina
+            document.title = translations[currentLanguage]["presenze_cantiere_title"];
+
+            // Traduci il messaggio di benvenuto dopo il login
+            if (nomeOperaio) {
+                document.getElementById("messaggioBenvenuto").innerText = `${translations[currentLanguage]["welcome_message"]}${nomeOperaio}`;
+            }
+
+            // Aggiorna l'ultima lavorazione tradotta
+            document.getElementById("ultimaLavorazione").textContent = ultimoTestoLavorazione || translations[currentLanguage]["no_work_found"];
+
+            // Rigenera i campi dei cantieri per applicare le traduzioni
+            if (document.getElementById("form").style.display === "block") {
+                generaCampiCantieri(); // Rigenera i campi dei cantieri per applicare le traduzioni
+                caricaUltimi7(); // Potrebbe dover aggiornare anche questo
+                caricaRiepilogoAdmin(); // Anche questo
+            }
+
+             // Aggiorna i testi all'interno della modale di conferma
+            if (document.getElementById("modalConferma").style.display === "flex" || document.getElementById("modalConferma").classList.contains("show")) {
+                mostraModal(); // Richiama per rigenerare il contenuto tradotto
+            }
+        }
+
+        // Funzione per cambiare la lingua
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem("lang", lang);
+            translatePage();
+        }
+
+        // --- Funzioni esistenti modificate per la traduzione ---
+
+        function login() {
+            const userInput = document.getElementById("user").value.trim();
+            const passInput = document.getElementById("pass").value.trim();
+
+            fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+                .then(r => r.json())
+                .then(data => {
+                    const utenteTrovato = data.find(r => r["User"] === userInput && r["Password"] === passInput);
+                    if (utenteTrovato) {
+                        utente = utenteTrovato["User"];
+                        nomeOperaio = utenteTrovato["Nome"];
+                        const ruolo = utenteTrovato["Ruolo"] || "";
+                        localStorage.setItem("ruolo", ruolo);
+                        document.getElementById("messaggioBenvenuto").innerText = `${translations[currentLanguage]["welcome_message"]}${nomeOperaio}`;
+                        if (ruolo.toLowerCase() !== "amministratore") {
+                            document.getElementById("btnGestione").style.display = "none";
+                        }
+                        document.getElementById("login").style.display = "none";
+                        document.getElementById("form").style.display = "block";
+                        document.getElementById("data").value = new Date().toISOString().split("T")[0];
+                        caricaUltimaLavorazione(utente);
+
+                        caricaCantieri();
+                        caricaOperai();
+                        caricaUltimi7();
+                        caricaRiepilogoAdmin();
+                        generaCampiCantieri(); // Chiamata per inizializzare i campi con la lingua corretta
+                    } else {
+                        alert(translations[currentLanguage]["error_credentials"]);
+                    }
+                });
+        }
+
+        function caricaSuggerimentiLavorazioni() {
+            fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Lavorazioni")
+                .then(r => r.json())
+                .then(data => {
+                    const datalist = document.getElementById("suggerimentiLavorazioni");
+                    datalist.innerHTML = ''; // Pulisce le opzioni esistenti
+                    data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item.Lavorazione;
+                        datalist.appendChild(option);
+                    });
+                });
+        }
+
+        function caricaCantieri() {
+            fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
+                .then(r => r.json())
+                .then(data => {
+                    elencoCantieri = data.map(item => item.NomeCantiere);
+                    generaCampiCantieri(); // Rigenera i campi select con i nuovi cantieri e la lingua corrente
+                });
+        }
+
+        function caricaOperai() {
+            fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Operai")
+                .then(r => r.json())
+                .then(data => {
+                    const selectOperaio = document.getElementById("operaio");
+                    selectOperaio.innerHTML = '';
+                    data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item.Nome;
+                        option.textContent = item.Nome;
+                        selectOperaio.appendChild(option);
+                    });
+                });
+        }
+
+        function generaCampiCantieri() {
+            const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
+            const container = document.getElementById("cantieriMultipli");
+            container.innerHTML = "";
+
+            for (let i = 1; i <= nCantieri; i++) {
+                let selectHtml = `<select id="cantiere_${i}">`;
+                selectHtml += `<option value="">${translations[currentLanguage]["select_site_option"]}</option>`;
+                elencoCantieri.forEach(nome => {
+                    selectHtml += `<option value="${nome}">${nome}</option>`;
+                });
+                selectHtml += `</select>`;
+
+                container.innerHTML += `
+                    <div class="card" style="margin-top: 15px; padding: 15px;">
+                        <label class="section-label" for="cantiere_${i}">🏗️ ${translations[currentLanguage]["sites_label"].replace(':', '')} ${i}:</label>
+                        ${selectHtml}
+                        <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">${translations[currentLanguage]["site_not_present_button"]}</button>
+                        <div id="cantiereLibero_${i}" style="display:none;">
+                            <input type="text" id="cantiereAltro_${i}" placeholder="${translations[currentLanguage]["site_name_placeholder"]}${i}">
+                        </div>
+
+                        <div id="importaBox">
+                            <h4>💅​ ${translations[currentLanguage]["work_performed_title"]}${i}</h4>
+                            <p class="sottotitolo">💡 ${translations[currentLanguage]["work_subtitle"]}</p>
+                            <div class="importa-riga">
+                                <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="${translations[currentLanguage]["work_placeholder"]}" />
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            // Assicurati che il testo del pulsante sia tradotto correttamente
+            document.getElementById("btnMultiOperai").textContent = translations[currentLanguage]["multi_workers_button"];
+            document.getElementById("btnMultiOperai").style.display = (nCantieri === 1) ? "inline-block" : "none";
+        }
+
+        function mostraCantiereLibero(id) {
+            const divCantiereLibero = document.getElementById(`cantiereLibero_${id}`);
+            const selectCantiere = document.getElementById(`cantiere_${id}`);
+            const btnCantiereAltro = document.getElementById(`btnCantiereAltro`); // Tutti i bottoni hanno lo stesso ID, attenzione!
+            // Sarebbe meglio usare un ID unico per ogni bottone se intendi nasconderli/mostrarli singolarmente
+            // Per ora, nascondo la select e mostro l'input per il cantiere libero
+            if (divCantiereLibero.style.display === "none") {
+                divCantiereLibero.style.display = "block";
+                selectCantiere.style.display = "none";
+                // btnCantiereAltro.textContent = "Nascondi"; // Se vuoi cambiare il testo del bottone
+            } else {
+                divCantiereLibero.style.display = "none";
+                selectCantiere.style.display = "block";
+                // btnCantiereAltro.textContent = "Cantiere non presente";
+            }
+        }
+
+        function mostraOperai() {
+            const multiOperaiDiv = document.getElementById("multiOperai");
+            multiOperaiDiv.style.display = multiOperaiDiv.style.display === "none" ? "block" : "none";
+        }
+
+        function invia() {
+            const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+            const data = document.getElementById("data").value;
+            const orari = "08:00 - 17:00";
+            const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
+
+            for (let i = 1; i <= numeroCantieri; i++) {
+                let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
+                const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+                if (nomeCantiereAltro) {
+                    nomeCantiere = nomeCantiereAltro;
+                }
+                let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
+
+                if (!nomeCantiere || !lavorazioneCantiere) {
+                    alert(`${translations[currentLanguage]["alert_fill_fields"]}${i}`);
+                    return;
+                }
+
+                let oreCalcolate = oreLavorate / numeroCantieri;
+
+                let operaiSelezionati = [];
+                if (document.getElementById("multiOperai").style.display === "block") {
+                    operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
+                    const nuovo = document.getElementById("nuovoOperaio").value.trim();
+                    if (nuovo) operaiSelezionati.push(nuovo);
+                    if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
+                } else {
+                    operaiSelezionati = [nomeOperaio];
+                }
+
+                operaiSelezionati.forEach(nome => {
+                    const dati = {
+                        data,
+                        orari,
+                        cantiere: nomeCantiere,
+                        lavorazione: lavorazioneCantiere,
+                        ore: oreCalcolate,
+                        operaio: nome,
+                        user: utente
+                    };
+                    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+                        method: "POST",
+                        mode: "no-cors",
+                        body: JSON.stringify(dati),
+                        headers: { "Content-Type": "application/json" }
+                    });
+                });
+            }
+        }
+
+        function caricaUltimaLavorazione(username) {
+            fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
+                .then(r => r.text())
+                .then(data => {
+                    const el = document.getElementById("ultimaLavorazione");
+                    if (data && data.trim() !== "") {
+                        el.textContent = data;
+                        ultimoTestoLavorazione = data;
+                    } else {
+                        el.textContent = translations[currentLanguage]["no_work_found"];
+                        ultimoTestoLavorazione = "";
+                    }
+                });
+        }
+
+        function caricaUltimi7() {
+            fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
+                .then(r => r.json())
+                .then(dati => {
+                    let html = `<h4 data-translate-key="recently_title">${translations[currentLanguage]["recently_title"]}</h4>`;
+                    if (dati.presenze && dati.presenze.length > 0) {
+                        html += "<ul>";
+                        dati.presenze.forEach(r => {
+                            html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
+                        });
+                        html += "</ul>";
+                    } else {
+                        html += `<p data-translate-key="no_data_found">${translations[currentLanguage]["no_data_found"]}</p>`;
+                    }
+                    document.getElementById("ultimi7").innerHTML = html;
+                    translatePage(); // Per tradurre eventuali elementi nell'HTML dinamico
+                });
+        }
+
+        function mostraModal() {
+            const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
+            const data = document.getElementById("data").value;
+
+            let operai = "";
+            if (document.getElementById("multiOperai").style.display === "block") {
+                const selezione = document.getElementById("operaio");
+                const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+                const nuovo = document.getElementById("nuovoOperaio").value.trim();
+                if (nuovo) selezionati.push(nuovo);
+                operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
+            } else {
+                operai = nomeOperaio;
+            }
+
+            const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+            let dettagliCantieri = "";
+
+            for (let i = 1; i <= numeroCantieri; i++) {
+                let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || `(${translations[currentLanguage]["no_data_found"]})`;
+                const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+                if (nomeCantiereAltro) {
+                    nomeCantiere = nomeCantiereAltro;
+                }
+                const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || `(${translations[currentLanguage]["no_data_found"]})`;
+                dettagliCantieri += `<li><strong>${translations[currentLanguage]["summary_data_site"]} ${i}:</strong> ${nomeCantiere}<br><strong>${translations[currentLanguage]["summary_data_work"]}</strong> ${lavorazione}</li>`;
+            }
+
+            const riepilogoHTML = `
+                <ul>
+                    <li><strong>${translations[currentLanguage]["summary_data_date"]}</strong> ${data}</li>
+                    <li><strong>${translations[currentLanguage]["summary_data_hours"]}</strong> ${oreLavorate}</li>
+                    <li><strong>${translations[currentLanguage]["summary_data_workers"]}</strong> ${operai}</li>
+                    <li><strong>${translations[currentLanguage]["summary_data_site_details"]}</strong>
+                        <ul>${dettagliCantieri}</ul>
+                    </li>
+                </ul>
+            `;
+
+            document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
+            document.getElementById("modalConferma").style.display = "flex";
+            document.getElementById("modalConferma").classList.add("show");
+
+            // Traduci il testo del paragrafo principale della modale
+            document.querySelector("#modalConferma p").textContent = translations[currentLanguage]["confirm_modal_title"];
+            // Traduci i bottoni della modale (se non hanno già data-translate-key, che ora hanno)
+            document.querySelector("#modalConferma button.chiudi-btn").textContent = "×";
+            document.querySelector("#modalConferma button[data-translate-key='confirm_button']").textContent = translations[currentLanguage]["confirm_button"];
+            document.querySelector("#modalConferma button[data-translate-key='cancel_button']").textContent = translations[currentLanguage]["cancel_button"];
+        }
+
+        function chiudiModal() {
+            document.getElementById("modalConferma").classList.remove("show");
+            setTimeout(() => {
+                document.getElementById("modalConferma").style.display = "none";
+            }, 300); // Corrisponde alla durata della transizione CSS
+        }
+
+        function confermaInvio() {
+            chiudiModal();
+            invia();
+
+            const n = document.getElementById("notifica");
+            n.querySelector("strong").textContent = translations[currentLanguage]["notification_success"];
+            n.style.display = "block";
+            n.classList.add("show");
+
+            setTimeout(() => {
+                n.classList.remove("show");
+                setTimeout(() => {
+                    n.style.display = "none";
+                }, 500);
+            }, 3500);
+
+            // Resetta i campi del form
+            document.getElementById("data").value = new Date().toISOString().split("T")[0];
+            document.getElementById("oreLavorate").value = "8";
+            document.getElementById("numeroCantieri").value = "1";
+            document.getElementById("cantieriMultipli").innerHTML = "";
+            document.getElementById("multiOperai").style.display = "none";
+            document.getElementById("operaio").selectedIndex = -1;
+            document.getElementById("nuovoOperaio").value = "";
+
+            // Riaggiorna le sezioni dinamiche
+            generaCampiCantieri();
+            caricaUltimi7();
+            caricaRiepilogoAdmin();
+        }
+
+        function caricaRiepilogoAdmin() {
+            const ruolo = localStorage.getItem("ruolo");
+            if (ruolo && ruolo.toLowerCase() === "amministratore") {
+                document.getElementById("riepilogoAdmin").style.display = "block";
+                document.querySelector("#riepilogoAdmin h3").textContent = translations[currentLanguage]["today_presence_summary"];
+
+                const oggiISO = new Date().toISOString().split("T")[0];
+                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1&data=" + oggiISO)
+                    .then(r => r.json())
+                    .then(dati => {
+                        let compilati = dati.compilati || [];
+                        let mancanti = dati.mancanti || [];
+
+                        document.getElementById("riepilogoCompilati").innerHTML = `
+                            <h4 data-translate-key="compiled_title">✅ ${translations[currentLanguage]["compiled_title"]}</h4>
+                            <ul>
+                                ${compilati.map(op => `<li>${op.nome} (${op.cantiere} - ${op.lavorazione})</li>`).join("")}
+                            </ul>
+                        `;
+
+                        document.getElementById("riepilogoMancanti").innerHTML = `
+                            <h4 data-translate-key="missing_title">⛔ ${translations[currentLanguage]["missing_title"]}</h4>
+                            <ul>${mancanti.map(op => `<li>${op}</li>`).join("")}</ul>
+                        `;
+                    });
+            }
+        }
+
+        // --- Chiamata iniziale per tradurre la pagina al caricamento ---
+        window.addEventListener("DOMContentLoaded", () => {
+            caricaSuggerimentiLavorazioni();
+            translatePage(); // Traduci la pagina all'avvio
+        });
+    </script>
 </body>
 </html>
