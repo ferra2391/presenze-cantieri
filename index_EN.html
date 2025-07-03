@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8" />
-    <title>Presenze Cantiere</title>
+    <title>Site Attendance</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -456,21 +456,21 @@
 
         <div id="login" class="card">
             <h2>🔐 Login</h2>
-            <input type="text" id="user" placeholder="🔑 Utente">
+            <input type="text" id="user" placeholder="🔑 User">
             <input type="password" id="pass" placeholder="🔒 Password">
-            <button onclick="login()">🔓 Accedi</button>
+            <button onclick="login()">🔓 Login</button>
         </div>
 
         <div id="form" style="display:none;">
-            <h3>📅 Compila Presenza</h3>
+            <h3>📅 Fill in Attendance</h3>
 
-            <label class="section-label" for="data">Data:</label>
+            <label class="section-label" for="data">Date:</label>
             <input type="date" id="data">
 
             <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
                 <div style="flex:1;">
                 
-<label class="section-label" for="oreLavorate">🕒 Ore lavorate:</label>
+<label class="section-label" for="oreLavorate">🕒 Worked hours:</label>
 <select id="oreLavorate">
   <option value="4">4</option>
   <option value="5">5</option>
@@ -486,7 +486,7 @@
 
                 </div>
                 <div style="flex:1;">
-                    <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
+                    <label class="section-label" for="numeroCantieri">🏗️ Construction Sites:</label>
                     <select id="numeroCantieri" onchange="generaCampiCantieri()">
                         <option value="1" selected>1</option>
                         <option value="2">2</option>
@@ -499,34 +499,34 @@
 
             <div id="cantieriMultipli"></div>
 
-            <button id="btnMultiOperai" onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
+            <button id="btnMultiOperai" onclick="mostraOperai()">👏🏼​ Add data for other workers</button>
 
             <div id="multiOperai" class="card" style="display:none; margin-top:20px;">
                 <p class="warning-message">
-                    ⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.
+                    ⚠️ The same work will be applied to the selected workers.
                 </p>
-                <label class="section-label" for="operaio">👥 Seleziona altri operai:</label>
+                <label class="section-label" for="operaio">👥 Select other workers:</label>
                 <select id="operaio" multiple size="6"></select>
 
                 <div style="margin-top:15px;">
-                    <label class="section-label" for="nuovoOperaio">➕ Oppure inserisci un nuovo operaio:</label>
-                    <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio">
+                    <label class="section-label" for="nuovoOperaio">➕ Or enter a new worker:</label>
+                    <input type="text" id="nuovoOperaio" placeholder="👷 Enter new worker">
                 </div>
             </div>
 
-            <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
+            <button onclick="mostraModal()" id="btnInvia">📄 Send Attendance</button>
             <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
 
             <div id="ultimaLavorazioneBox">
                 <span style="font-size: 24px; color: var(--color-primary);">✨</span>
                 <div>
-                    <p>La tua ultima lavorazione registrata:</p>
-                    <strong id="ultimaLavorazione">Caricamento...</strong>
+                    <p>Your last recorded job:</p>
+                    <strong id="ultimaLavorazione">Loading...</strong>
                 </div>
             </div>
 
             <div id="ultimi7" class="card">
-                <h4>Recentemente:</h4>
+                <h4>Recently:</h4>
             </div>
         </div>
 
@@ -859,22 +859,22 @@
         </script>
 
         <div id="riepilogoAdmin" class="card" style="display:none;">
-            <h3>📝 Riepilogo presenze odierne</h3>
+            <h3>📝 Today's Attendance Summary</h3>
             <div id="riepilogoCompilati" style="margin-bottom:20px;"></div>
             <div id="riepilogoMancanti"></div>
         </div>
 
         <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px; padding-bottom: 20px;">
-            © 2025 Davide Ferrarini — Tutti i diritti riservati
+            © 2025 Davide Ferrarini — All rights reserved
         </footer>
 
     </div> <div id="modalConferma">
         <div>
             
-            <p>Vuoi confermare l'invio della presenza?</p>
+            <p>Do you want to confirm the attendance submission?</p>
             <div id="riepilogoDati"></div>
-            <button onclick="confermaInvio()">✅ Conferma</button>
-            <button onclick="chiudiModal()">❌ Annulla</button>
+            <button onclick="confermaInvio()">✅ Confirm</button>
+            <button onclick="chiudiModal()">❌ Cancel</button>
         </div>
     </div>
 
