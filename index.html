@@ -455,7 +455,13 @@ if (nomeCantiereAltro) {
 
 
     function mostraModal() {
-  const orari = "08:00 - 17:00";
+  const orariBase = "08:00 - 17:00";
+const oreExtra = parseInt(document.getElementById("oreExtra").value) || 0;
+let orari = orariBase;
+if (oreExtra > 0) {
+  orari += ` + ${oreExtra} ore extra`;
+}
+
   const data = document.getElementById("data").value;
 
   let operai = "";
@@ -483,16 +489,16 @@ if (nomeCantiereAltro) {
 }
 
 
-  const riepilogoHTML = `
-    <ul style="padding-left:20px; text-align:left;">
-      <li><strong>Data:</strong> ${data}</li>
-      <li><strong>Orari:</strong> ${orari}</li>
-      <li><strong>Operai:</strong> ${operai}</li>
-      <li><strong>Dettaglio Cantieri:</strong>
-        <ul>${dettagliCantieri}</ul>
-      </li>
-    </ul>
-  `;
+const riepilogoHTML = `
+  <ul style="padding-left:20px; text-align:left;">
+    <li><strong>Data:</strong> ${data}</li>
+    <li><strong>Orari:</strong> ${orari}</li>
+    <li><strong>Operai:</strong> ${operai}</li>
+    <li><strong>Dettaglio Cantieri:</strong>
+      <ul>${dettagliCantieri}</ul>
+    </li>
+  </ul>
+`;
 
   document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
   document.getElementById("modalConferma").style.display = "block";
@@ -545,11 +551,13 @@ fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8w
         let compilati = dati.compilati || [];
         let mancanti = dati.mancanti || [];
         
-        document.getElementById("riepilogoCompilati").innerHTML = `
-          <h4>✅ Compilati:</h4>
-          <ul>${compilati.map(op => `<li>${op}</li>`).join("")}</ul><ul>${compilati.map(op => `<li>${op.nome} (${op.cantiere} - ${op.lavorazione})</li>`).join("")}</ul>
+document.getElementById("riepilogoCompilati").innerHTML = `
+  <h4>✅ Compilati:</h4>
+  <ul>
+    ${compilati.map(op => `<li>${op.nome} (${op.cantiere} - ${op.lavorazione})</li>`).join("")}
+  </ul>
+`;
 
-        `;
         
         document.getElementById("riepilogoMancanti").innerHTML = `
           <h4>⛔ Mancanti:</h4>
