@@ -447,7 +447,7 @@
 
             <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
                 <div style="flex:1;">
-                    ok
+                
 <label class="section-label" for="oreLavorate">🕒 Ore lavorate:</label>
 <input type="number" id="oreLavorate" min="1" max="24" value="8" />
 
@@ -694,56 +694,52 @@ for (let i = 1; i <= numeroCantieri; i++) {
                     });
             }
 
-            function mostraModal() {
-const orariBase = "08:00 - 17:00";
-const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
-let orari = `${orariBase} (${oreLavorate} ore lavorate)`;
+function mostraModal() {
+    const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
+    const orari = `Ore lavorate: ${oreLavorate}`;
 
-                if (oreExtra > 0) {
-                    orari += ` + ${oreExtra} ore extra`;
-                }
+    const data = document.getElementById("data").value;
 
-                const data = document.getElementById("data").value;
+    let operai = "";
+    if (document.getElementById("multiOperai").style.display === "block") {
+        const selezione = document.getElementById("operaio");
+        const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
+        const nuovo = document.getElementById("nuovoOperaio").value.trim();
+        if (nuovo) selezionati.push(nuovo);
+        operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
+    } else {
+        operai = nomeOperaio;
+    }
 
-                let operai = "";
-                if (document.getElementById("multiOperai").style.display === "block") {
-                    const selezione = document.getElementById("operaio");
-                    const selezionati = Array.from(selezione.selectedOptions).map(opt => opt.value);
-                    const nuovo = document.getElementById("nuovoOperaio").value.trim();
-                    if (nuovo) selezionati.push(nuovo);
-                    operai = selezionati.length > 0 ? selezionati.join(", ") : nomeOperaio;
-                } else {
-                    operai = nomeOperaio;
-                }
+    const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+    let dettagliCantieri = "";
 
-                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-                let dettagliCantieri = "";
+    for (let i = 1; i <= numeroCantieri; i++) {
+        let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
+        const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+        if (nomeCantiereAltro) {
+            nomeCantiere = nomeCantiereAltro;
+        }
+        const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
+        dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
+    }
 
-                for (let i = 1; i <= numeroCantieri; i++) {
-                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
-                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
-                    if (nomeCantiereAltro) {
-                        nomeCantiere = nomeCantiereAltro;
-                    }
-                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
-                    dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
-                }
+    const riepilogoHTML = `
+        <ul>
+            <li><strong>Data:</strong> ${data}</li>
+            <li><strong>Ore:</strong> ${oreLavorate}</li>
+            <li><strong>Operai:</strong> ${operai}</li>
+            <li><strong>Dettaglio Cantieri:</strong>
+                <ul>${dettagliCantieri}</ul>
+            </li>
+        </ul>
+    `;
 
-                const riepilogoHTML = `
-                    <ul>
-                        <li><strong>Data:</strong> ${data}</li>
-                        <li><strong>Orari:</strong> ${orari}</li>
-                        <li><strong>Operai:</strong> ${operai}</li>
-                        <li><strong>Dettaglio Cantieri:</strong>
-                            <ul>${dettagliCantieri}</ul>
-                        </li>
-                    </ul>
-                `;
+    document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
+    document.getElementById("modalConferma").style.display = "flex"; // Usa flex per centrare
+    document.getElementById("modalConferma").classList.add("show"); // Aggiungi classe per animazione
+}
 
-                document.getElementById("riepilogoDati").innerHTML = riepilogoHTML;
-                document.getElementById("modalConferma").style.display = "flex"; // Usa flex per centrare
-                document.getElementById("modalConferma").classList.add("show"); // Aggiungi classe per animazione
-            }
 
             function chiudiModal() {
                 document.getElementById("modalConferma").classList.remove("show"); // Rimuovi classe per animazione
