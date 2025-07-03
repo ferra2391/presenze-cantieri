@@ -182,34 +182,36 @@
   <div id="form" style="display:none;">
     <h3>📅 Compila Presenza</h3>
     <input type="date" id="data">
-<div style="margin-top: 10px;">
-  <span class="section-label">➕ Ore extra lavorate:</span><br>
-  <select id="oreExtra" style="margin-top:4px;">
-    <option value="0" selected>0</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5">5</option>
-    <option value="6">6</option>
-    <option value="7">7</option>
-    <option value="8">8</option>
-    <option value="9">9</option>
-    <option value="10">10</option>
-  </select>
+    
+<div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
+  <div style="flex:1;">
+    <span class="section-label">➕ Ore extra:</span>
+    <select id="oreExtra" style="margin-top:4px;">
+      <option value="0" selected>0</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+    </select>
+  </div>
+  <div style="flex:1;">
+    <span class="section-label">🏗️ Cantieri:</span>
+    <select id="numeroCantieri" onchange="generaCampiCantieri()" style="margin-top:4px;">
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+  </div>
 </div>
 
-
- <div style="margin-top: 10px;">
-  <span class="section-label">🏗️ Numero di cantieri lavorati:</span><br>
-  <select id="numeroCantieri" onchange="generaCampiCantieri()" style="margin-top:4px;">
-    <option value="1" selected>1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5">5</option>
-  </select>
-</div>
 
 
 
