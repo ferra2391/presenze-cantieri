@@ -242,14 +242,19 @@
         /* Stili per la modale di conferma */
 
 #modalConferma {
-    display: none; /* Questa riga è la chiave! */
+    display: none;
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.5);
     z-index: 9999;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
     /* Le prossime due proprietà servono solo quando è 'display: flex;' */
     /* justify-content: center; */
     /* align-items: center; */
@@ -756,36 +761,35 @@
                 }, 300); // Corrisponde alla durata della transizione
             }
 
-            function confermaInvio() {
-                chiudiModal(); // Chiude la modale
-                invia();       // Esegue la funzione di invio vera e propria
+function confermaInvio() {
+    chiudiModal();
+    setTimeout(() => {
+        invia();
 
-                // Mostra la notifica
-                const n = document.getElementById("notifica");
-                n.style.display = "block";
-                n.classList.add("show");
+        const n = document.getElementById("notifica");
+        n.style.display = "block";
+        n.classList.add("show");
+        setTimeout(() => {
+            n.classList.remove("show");
+            setTimeout(() => {
+                n.style.display = "none";
+            }, 500);
+        }, 3500);
 
-                // Nasconde la notifica dopo 4 secondi
-                setTimeout(() => {
-                    n.classList.remove("show");
-                    setTimeout(() => {
-                        n.style.display = "none";
-                    }, 500); // Deve corrispondere alla transizione CSS
-                }, 3500);
+        // Resetta i campi
+        document.getElementById("data").value = new Date().toISOString().split("T")[0];
+        document.getElementById("oreExtra").value = "0";
+        document.getElementById("numeroCantieri").value = "1";
+        document.getElementById("cantieriMultipli").innerHTML = "";
+        document.getElementById("multiOperai").style.display = "none";
+        document.getElementById("operaio").selectedIndex = -1;
+        document.getElementById("nuovoOperaio").value = "";
+        generaCampiCantieri();
+        caricaUltimi7();
+        caricaRiepilogoAdmin();
+    }, 300);
+}
 
-                // Resetta i campi dopo invio
-                document.getElementById("data").value = new Date().toISOString().split("T")[0];
-                document.getElementById("oreExtra").value = "0";
-                document.getElementById("numeroCantieri").value = "1";
-                document.getElementById("cantieriMultipli").innerHTML = ""; // Pulisce i campi generati
-                document.getElementById("multiOperai").style.display = "none";
-                document.getElementById("operaio").selectedIndex = -1; // Deseleziona tutto
-                document.getElementById("nuovoOperaio").value = "";
-
-                generaCampiCantieri(); // Rigenera i campi per un cantiere singolo
-                caricaUltimi7(); // Aggiorna gli ultimi 7 eventi
-                caricaRiepilogoAdmin(); // Aggiorna il riepilogo admin
-            }
 
             function caricaSuggerimentiLavorazioni() {
                 fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
