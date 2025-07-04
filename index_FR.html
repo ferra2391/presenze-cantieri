@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8" />
-    <title>Presenze Cantiere</title>
+    <title>Participation aux Chantiers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -447,7 +447,7 @@
         <datalist id="suggerimentiLavorazioni"></datalist>
 
         <div id="notifica">
-            <strong>Dati inseriti correttamente</strong>
+            <strong>Données saisies correctement</strong>
         </div>
 
         <div id="benvenuto">
@@ -475,19 +475,19 @@
             <h2>🔐 Login</h2>
             <input type="text" id="user" placeholder="🔑 Utente">
             <input type="password" id="pass" placeholder="🔒 Password">
-            <button onclick="login()">🔓 Accedi</button>
+            <button onclick="login()">🔓 Se connecter</button>
         </div>
 
         <div id="form" style="display:none;">
-            <h3>📅 Compila Presenza</h3>
+            <h3>📅 Remplir la Présence</h3>
 
-            <label class="section-label" for="data">Data:</label>
+            <label class="section-label" for="data">Date:</label>
             <input type="date" id="data">
 
             <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
                 <div style="flex:1;">
                 
-<label class="section-label" for="oreLavorate">🕒 Ore lavorate:</label>
+<label class="section-label" for="oreLavorate">🕒 Heures travaillées :</label>
 <select id="oreLavorate">
   <option value="4">4</option>
   <option value="5">5</option>
@@ -516,7 +516,7 @@
 
             <div id="cantieriMultipli"></div>
 
-            <button id="btnMultiOperai" onclick="mostraOperai()">👏🏼​ Inserisci dati per altri operai</button>
+            <button id="btnMultiOperai" onclick="mostraOperai()">👏🏼​ Saisir des données pour d'autres travailleurs</button>
 
             <div id="multiOperai" class="card" style="display:none; margin-top:20px;">
                 <p class="warning-message">
@@ -531,19 +531,19 @@
                 </div>
             </div>
 
-            <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
-            <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
+            <button onclick="mostraModal()" id="btnInvia">📄 Envoyer la présence</button>
+            <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Accéder à la gestion de chantier</button>
 
             <div id="ultimaLavorazioneBox">
                 <span style="font-size: 24px; color: var(--color-primary);">✨</span>
                 <div>
-                    <p>La tua ultima lavorazione registrata:</p>
-                    <strong id="ultimaLavorazione">Caricamento...</strong>
+                    <p>Votre dernier travail enregistré :</p>
+                    <strong id="ultimaLavorazione">Chargement...</strong>
                 </div>
             </div>
 
             <div id="ultimi7" class="card">
-                <h4>Recentemente:</h4>
+                <h4>Dernièrement:</h4>
             </div>
         </div>
 
@@ -634,18 +634,18 @@
 
                     container.innerHTML += `
                         <div class="card" style="margin-top: 15px; padding: 15px;">
-                            <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
+                            <label class="section-label" for="cantiere_${i}">🏗️ Chantier de construction ${i}:</label>
                             ${selectHtml}
-                            <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Cantiere non presente</button>
+                            <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Chantier absent</button>
                             <div id="cantiereLibero_${i}" style="display:none;">
-                                <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Inserisci nome cantiere ${i}">
+                                <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Entrez le nom du chantier ${i}">
                             </div>
 
                             <div id="importaBox">
                                 <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
-                                <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
+                                <p class="sottotitolo">💡 Choisissez parmi des œuvres récentes ou écrivez-en une nouvelle:</p>
                                 <div class="importa-riga">
-                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
+                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Processus et suggestions" />
                                 </div>
                             </div>
                         </div>
@@ -674,7 +674,7 @@
                     let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
 
                     if (!nomeCantiere || !lavorazioneCantiere) {
-                        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
+                        alert(`⚠️ Vous devez renseigner le chantier et les travaux de la ligne ${i}`);
                         return;
                     }
 
@@ -696,7 +696,7 @@
                             orari,
                             cantiere: nomeCantiere,
                             lavorazione: lavorazioneCantiere,
-                            ore: oreCalcolate,
+                            Heures: oreCalcolate,
                             operaio: nome,
                             user: utente
                         };
@@ -723,7 +723,7 @@
                             });
                             html += "</ul>";
                         } else {
-                            html += "<p>Nessun dato trovato</p>";
+                            html += "<p>Aucune donnée trouvée</p>";
                         }
                         document.getElementById("ultimi7").innerHTML = html;
                     });
@@ -738,7 +738,7 @@
                             el.textContent = data;
                             ultimoTestoLavorazione = data;
                         } else {
-                            el.textContent = "(Nessuna lavorazione trovata)";
+                            el.textContent = "(Aucune œuvre trouvée)";
                             ultimoTestoLavorazione = "";
                         }
                     });
@@ -765,21 +765,21 @@
                 let dettagliCantieri = "";
 
                 for (let i = 1; i <= numeroCantieri; i++) {
-                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(nessuno)";
+                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "(aucun)";
                     const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
                     if (nomeCantiereAltro) {
                         nomeCantiere = nomeCantiereAltro;
                     }
-                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
-                    dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
+                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(aucun)";
+                    dettagliCantieri += `<li><strong>Chantier ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
                 }
 
                 const riepilogoHTML = `
                     <ul>
-                        <li><strong>Data:</strong> ${data}</li>
-                        <li><strong>Ore:</strong> ${oreLavorate}</li>
-                        <li><strong>Operai:</strong> ${operai}</li>
-                        <li><strong>Dettaglio Cantieri:</strong>
+                        <li><strong>Date:</strong> ${data}</li>
+                        <li><strong>Heures:</strong> ${oreLavorate}</li>
+                        <li><strong>Ouvriers:</strong> ${operai}</li>
+                        <li><strong>Détail du chantier:</strong>
                             <ul>${dettagliCantieri}</ul>
                         </li>
                     </ul>
@@ -856,14 +856,14 @@
                             let mancanti = dati.mancanti || [];
 
                             document.getElementById("riepilogoCompilati").innerHTML = `
-                                <h4>Compilati:</h4>
+                                <h4>Rempli:</h4>
                                 <ul>
                                     ${compilati.map(op => `<li>${op.nome} (${op.cantiere} - ${op.lavorazione})</li>`).join("")}
                                 </ul>
                             `;
 
                             document.getElementById("riepilogoMancanti").innerHTML = `
-                                <h4>Mancanti:</h4>
+                                <h4>Manquant:</h4>
                                 <ul>${mancanti.map(op => `<li>${op}</li>`).join("")}</ul>
                             `;
                         });
@@ -876,22 +876,22 @@
         </script>
 
         <div id="riepilogoAdmin" class="card" style="display:none;">
-            <h3>📝 Riepilogo presenze odierne</h3>
+            <h3>📝 Résumé de la présence d'aujourd'hui</h3>
             <div id="riepilogoCompilati" style="margin-bottom:20px;"></div>
             <div id="riepilogoMancanti"></div>
         </div>
 
         <footer style="text-align:center; font-size: 12px; color: #999; margin-top: 40px; padding-bottom: 20px;">
-            © 2025 Davide Ferrarini — Tutti i diritti riservati
+            © 2025 Davide Ferrarini — Tous droits réservés
         </footer>
 
     </div> <div id="modalConferma">
         <div>
             
-            <p>Vuoi confermare l'invio della presenza?</p>
+            <p>Voulez-vous confirmer la présence de l'envoi ?</p>
             <div id="riepilogoDati"></div>
-            <button onclick="confermaInvio()">✅ Conferma</button>
-            <button onclick="chiudiModal()">❌ Annulla</button>
+            <button onclick="confermaInvio()">✅ Il confirme</button>
+            <button onclick="chiudiModal()">❌ Annuler</button>
         </div>
     </div>
 
