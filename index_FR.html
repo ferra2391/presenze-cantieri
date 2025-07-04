@@ -566,7 +566,7 @@
                             nomeOperaio = utenteTrovato["Nome"];
                             const ruolo = utenteTrovato["Ruolo"] || "";
                             localStorage.setItem("ruolo", ruolo);
-                            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
+                            document.getElementById("messaggioBenvenuto").innerText = `Accueillir, ${nomeOperaio}`;
                             if (ruolo.toLowerCase() !== "amministratore") {
                                 document.getElementById("btnGestione").style.display = "none";
                             }
