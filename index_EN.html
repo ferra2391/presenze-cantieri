@@ -515,7 +515,7 @@
             </div>
 
             <button onclick="mostraModal()" id="btnInvia">📄 Send Attendance</button>
-            <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
+            <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Go to Construction Site Management</button>
 
             <div id="ultimaLavorazioneBox">
                 <span style="font-size: 24px; color: var(--color-primary);">✨</span>
@@ -609,7 +609,7 @@
 
                 for (let i = 1; i <= nCantieri; i++) {
                     let selectHtml = `<select id="cantiere_${i}">`;
-                    selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
+                    selectHtml += `<option value="">-- Select Construction Site --</option>`;
                     elencoCantieri.forEach(nome => {
                         selectHtml += `<option value="${nome}">${nome}</option>`;
                     });
@@ -657,7 +657,7 @@
                     let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
 
                     if (!nomeCantiere || !lavorazioneCantiere) {
-                        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
+                        alert(`⚠️ You must fill in the construction site and workmanship for the line ${i}`);
                         return;
                     }
 
@@ -698,7 +698,7 @@
                 fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
                     .then(r => r.json())
                     .then(dati => {
-                        let html = "<h4>Recentemente:</h4>";
+                        let html = "<h4>Lately:</h4>";
                         if (dati.presenze && dati.presenze.length > 0) {
                             html += "<ul>";
                             dati.presenze.forEach(r => {
@@ -706,7 +706,7 @@
                             });
                             html += "</ul>";
                         } else {
-                            html += "<p>Nessun dato trovato</p>";
+                            html += "<p>No data found</p>";
                         }
                         document.getElementById("ultimi7").innerHTML = html;
                     });
@@ -721,7 +721,7 @@
                             el.textContent = data;
                             ultimoTestoLavorazione = data;
                         } else {
-                            el.textContent = "(Nessuna lavorazione trovata)";
+                            el.textContent = "(No work found)";
                             ultimoTestoLavorazione = "";
                         }
                     });
@@ -839,7 +839,7 @@
                             let mancanti = dati.mancanti || [];
 
                             document.getElementById("riepilogoCompilati").innerHTML = `
-                                <h4>Compilati:</h4>
+                                <h4>Filled out:</h4>
                                 <ul>
                                     ${compilati.map(op => `<li>${op.nome} (${op.cantiere} - ${op.lavorazione})</li>`).join("")}
                                 </ul>
