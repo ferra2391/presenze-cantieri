@@ -447,7 +447,7 @@
         <datalist id="suggerimentiLavorazioni"></datalist>
 
         <div id="notifica">
-            <strong>Dati inseriti correttamente</strong>
+            <strong>Data entered successfully</strong>
         </div>
 
         <div id="benvenuto">
@@ -549,7 +549,7 @@
                             nomeOperaio = utenteTrovato["Nome"];
                             const ruolo = utenteTrovato["Ruolo"] || "";
                             localStorage.setItem("ruolo", ruolo);
-                            document.getElementById("messaggioBenvenuto").innerText = `Benvenuto, ${nomeOperaio}`;
+                            document.getElementById("messaggioBenvenuto").innerText = `Welcome, ${nomeOperaio}`;
                             if (ruolo.toLowerCase() !== "amministratore") {
                                 document.getElementById("btnGestione").style.display = "none";
                             }
@@ -619,9 +619,9 @@
                         <div class="card" style="margin-top: 15px; padding: 15px;">
                             <label class="section-label" for="cantiere_${i}">🏗️ Site ${i}:</label>
                             ${selectHtml}
-                            <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Cantiere non presente</button>
+                            <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Construction site not found</button>
                             <div id="cantiereLibero_${i}" style="display:none;">
-                                <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Inserisci nome cantiere ${i}">
+                                <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Enter the construction site name ${i}">
                             </div>
 
                             <div id="importaBox">
@@ -753,16 +753,16 @@
                     if (nomeCantiereAltro) {
                         nomeCantiere = nomeCantiereAltro;
                     }
-                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(nessuna)";
-                    dettagliCantieri += `<li><strong>Cantiere ${i}:</strong> ${nomeCantiere}<br><strong>Lavorazione:</strong> ${lavorazione}</li>`;
+                    const lavorazione = document.getElementById(`lavorazione_${i}`)?.value || "(none)";
+                    dettagliCantieri += `<li><strong>Site ${i}:</strong> ${nomeCantiere}<br><strong>Work item:</strong> ${lavorazione}</li>`;
                 }
 
                 const riepilogoHTML = `
                     <ul>
-                        <li><strong>Data:</strong> ${data}</li>
-                        <li><strong>Ore:</strong> ${oreLavorate}</li>
-                        <li><strong>Operai:</strong> ${operai}</li>
-                        <li><strong>Dettaglio Cantieri:</strong>
+                        <li><strong>Date:</strong> ${data}</li>
+                        <li><strong>Hours:</strong> ${oreLavorate}</li>
+                        <li><strong>Worker:</strong> ${operai}</li>
+                        <li><strong>Construction Site Details:</strong>
                             <ul>${dettagliCantieri}</ul>
                         </li>
                     </ul>
