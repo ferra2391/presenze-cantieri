@@ -617,7 +617,7 @@
 
                     container.innerHTML += `
                         <div class="card" style="margin-top: 15px; padding: 15px;">
-                            <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
+                            <label class="section-label" for="cantiere_${i}">🏗️ Site ${i}:</label>
                             ${selectHtml}
                             <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Cantiere non presente</button>
                             <div id="cantiereLibero_${i}" style="display:none;">
@@ -625,10 +625,10 @@
                             </div>
 
                             <div id="importaBox">
-                                <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
-                                <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
+                                <h4>💅​ Work performed per construction site ${i}</h4>
+                                <p class="sottotitolo">💡 Choose from recent work items or write a new one.:</p>
                                 <div class="importa-riga">
-                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
+                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Work items and suggestions" />
                                 </div>
                             </div>
                         </div>
