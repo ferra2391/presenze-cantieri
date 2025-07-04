@@ -715,7 +715,7 @@
                 fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
                     .then(r => r.json())
                     .then(dati => {
-                        let html = "<h4>Recentemente:</h4>";
+                        let html = "<h4>:مؤخرا</h4>";
                         if (dati.presenze && dati.presenze.length > 0) {
                             html += "<ul>";
                             dati.presenze.forEach(r => {
