@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <title>Site Attendance</title>
@@ -484,7 +484,9 @@
             <label class="section-label" for="data">Date:</label>
             <input type="date" id="data">
 
-            <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
+            <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:5px;">
+
+
                 <div style="flex:1;">
                 
 <label class="section-label" for="oreLavorate">🕒 Worked hours:</label>
@@ -531,6 +533,9 @@
                 </div>
             </div>
 
+																		
+																																																															 
+			
             <button onclick="mostraModal()" id="btnInvia">📄 Send Attendance</button>
             <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Go to Construction Site Management</button>
 
@@ -664,6 +669,8 @@
                 const data = document.getElementById("data").value;
                 const orari = "08:00 - 17:00";
                 const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
+				const note = document.getElementById("note").value.trim();														  
+
 
                 for (let i = 1; i <= numeroCantieri; i++) {
                     let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
@@ -698,7 +705,9 @@
                             lavorazione: lavorazioneCantiere,
                             ore: oreCalcolate,
                             operaio: nome,
-                            user: utente
+                            user: utente,
+                            note: note  // 👈 aggiunto qui
+															
                         };
                         fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
                             method: "POST",
@@ -823,6 +832,8 @@
                 document.getElementById("multiOperai").style.display = "none";
                 document.getElementById("operaio").selectedIndex = -1; // Deseleziona tutto
                 document.getElementById("nuovoOperaio").value = "";
+                document.getElementById("note").value = "";														   
+
 
                 generaCampiCantieri(); // Rigenera i campi per un cantiere singolo
                 caricaUltimi7(); // Aggiorna gli ultimi 7 eventi
