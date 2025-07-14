@@ -399,6 +399,44 @@
             border-bottom: none;
         }
 
+        textarea.lavorazione-autoresize {
+    width: 100%;
+    font-size: 16px;
+    line-height: 1.4;
+    padding: 12px;
+    resize: none;
+    overflow: hidden;
+    min-height: 44px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-base);
+    transition: height 0.1s ease-out;
+    background: white;
+}
+
+.suggerimenti-box {
+    position: absolute;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-base);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 14px;
+    width: calc(100% - 30px);
+    box-shadow: var(--shadow-medium);
+    margin-top: 4px;
+}
+
+.suggerimenti-box div {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.suggerimenti-box div:hover {
+    background-color: var(--color-bg-alt);
+}
+
         /* Responsive adjustments */
         @media (max-width: 600px) {
             body {
@@ -625,39 +663,47 @@
             }
 
             function generaCampiCantieri() {
-                const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
-                const container = document.getElementById("cantieriMultipli");
-                container.innerHTML = "";
+    const nCantieri = parseInt(document.getElementById("numeroCantieri").value);
+    const container = document.getElementById("cantieriMultipli");
+    container.innerHTML = "";
 
-                for (let i = 1; i <= nCantieri; i++) {
-                    let selectHtml = `<select id="cantiere_${i}">`;
-                    selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
-                    elencoCantieri.forEach(nome => {
-                        selectHtml += `<option value="${nome}">${nome}</option>`;
-                    });
-                    selectHtml += `</select>`;
+    for (let i = 1; i <= nCantieri; i++) {
+        let selectHtml = `<select id="cantiere_${i}">`;
+        selectHtml += `<option value="">-- Seleziona Cantiere --</option>`;
+        elencoCantieri.forEach(nome => {
+            selectHtml += `<option value="${nome}">${nome}</option>`;
+        });
+        selectHtml += `</select>`;
 
-                    container.innerHTML += `
-                        <div class="card" style="margin-top: 15px; padding: 15px;">
-                            <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
-                            ${selectHtml}
-                            <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Clicca QUI se il cantiere non è presente</button>
-                            <div id="cantiereLibero_${i}" style="display:none;">
-                                <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Inserisci nome cantiere ${i}">
-                            </div>
+        container.innerHTML += `
+            <div class="card" style="margin-top: 15px; padding: 15px; position:relative;">
+                <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
+                ${selectHtml}
+                <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Clicca QUI se il cantiere non è presente</button>
+                <div id="cantiereLibero_${i}" style="display:none;">
+                    <input type="text" id="cantiereAltro_${i}" placeholder="🏢 Inserisci nome cantiere ${i}">
+                </div>
 
-                            <div id="importaBox">
-                                <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
-                                <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
-                                <div class="importa-riga">
-                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                document.getElementById("btnMultiOperai").style.display = (nCantieri === 1) ? "inline-block" : "none";
-            }
+                <div id="importaBox">
+                    <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
+                    <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
+
+                    <textarea id="lavorazione_${i}" 
+                              class="lavorazione-autoresize" 
+                              placeholder="🧠​ Lavorazioni e suggerimenti"
+                              rows="1"
+                              oninput="autoResize(this); mostraSuggerimenti(this)"
+                              autocomplete="off"></textarea>
+
+                    <div class="suggerimenti-box" id="suggerimentiBox_${i}" style="display:none;"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    document.getElementById("btnMultiOperai").style.display = (nCantieri === 1) ? "inline-block" : "none";
+}
+
 
             function mostraOperai() {
                 const div = document.getElementById("multiOperai");
@@ -843,6 +889,7 @@
                 fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
                     .then(r => r.json())
                     .then(data => {
+                        window.lavorazioniRecenti = data;
                         const lista = document.getElementById("suggerimentiLavorazioni");
                         lista.innerHTML = "";
                         data.slice(0, 15).forEach(item => {
@@ -879,6 +926,51 @@
                         });
                 }
             }
+
+            function autoResize(textarea) {
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
+
+    setTimeout(() => {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            textarea.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    }, 100);
+}
+
+function mostraSuggerimenti(el) {
+    const index = el.id.split("_")[1];
+    const box = document.getElementById("suggerimentiBox_" + index);
+    const testo = el.value.toLowerCase();
+    const suggerimenti = window.lavorazioniRecenti || [];
+
+    if (!testo || suggerimenti.length === 0) {
+        box.style.display = "none";
+        return;
+    }
+
+    const filtrati = suggerimenti.filter(x => x.toLowerCase().includes(testo)).slice(0, 10);
+    if (filtrati.length === 0) {
+        box.style.display = "none";
+        return;
+    }
+
+    box.innerHTML = "";
+    filtrati.forEach(val => {
+        const div = document.createElement("div");
+        div.textContent = val;
+        div.onclick = () => {
+            el.value = val;
+            autoResize(el);
+            box.style.display = "none";
+        };
+        box.appendChild(div);
+    });
+
+    box.style.display = "block";
+}
+
 
             window.addEventListener("DOMContentLoaded", () => {
                 caricaSuggerimentiLavorazioni();
