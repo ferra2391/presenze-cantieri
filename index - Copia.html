@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Presenze Cantiere</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* Variabili CSS per una gestione più semplice dei colori e stili */
@@ -400,46 +399,6 @@
             border-bottom: none;
         }
 
-        .lavorazione-autoresize {
-  width: 100%;
-  font-size: 16px;
-  padding: 12px;
-  resize: none;
-  min-height: 44px;
-  box-sizing: border-box;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-base);
-  overflow-y: hidden;
-}
-
-.suggerimenti-box {
-  position: absolute;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-base);
-  z-index: 10;
-  max-height: 150px;
-  overflow-y: auto;
-  font-size: 14px;
-  width: 100%;
-  box-shadow: var(--shadow-medium);
-}
-.suggerimenti-box div {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-.suggerimenti-box div:hover {
-  background-color: var(--color-bg-alt);
-}
-
-        textarea.lavorazione-autoresize:focus {
-  min-height: 60px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-
-
         /* Responsive adjustments */
         @media (max-width: 600px) {
             body {
@@ -691,15 +650,7 @@
                                 <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
                                 <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
                                 <div class="importa-riga">
-
-                                
-                                    <textarea id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" 
-          oninput="autoResize(this); mostraSuggerimenti(this)"
-          rows="1" autocomplete="off" class="lavorazione-autoresize"></textarea>
-<div class="suggerimenti-box" id="suggerimentiBox_${i}" style="display:none;"></div>
-
-
-
+                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
                                 </div>
                             </div>
                         </div>
@@ -888,22 +839,19 @@
                 caricaRiepilogoAdmin(); // Aggiorna il riepilogo admin
             }
 
-          function caricaSuggerimentiLavorazioni() {
-    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
-        .then(r => r.json())
-        .then(data => {
-            window.lavorazioniRecenti = data; // 👈 messa al posto giusto
-
-            const lista = document.getElementById("suggerimentiLavorazioni");
-            lista.innerHTML = "";
-            data.slice(0, 15).forEach(item => {
-                const opt = document.createElement("option");
-                opt.value = item;
-                lista.appendChild(opt);
-            });
-        });
-}
-
+            function caricaSuggerimentiLavorazioni() {
+                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
+                    .then(r => r.json())
+                    .then(data => {
+                        const lista = document.getElementById("suggerimentiLavorazioni");
+                        lista.innerHTML = "";
+                        data.slice(0, 15).forEach(item => {
+                            const opt = document.createElement("option");
+                            opt.value = item;
+                            lista.appendChild(opt);
+                        });
+                    });
+            }
 
             function caricaRiepilogoAdmin() {
                 const ruolo = localStorage.getItem("ruolo");
@@ -931,58 +879,6 @@
                         });
                 }
             }
-
-
-function autoResize(textarea) {
-  textarea.style.height = 'auto';
-  textarea.style.overflowY = 'hidden'; // previene flicker
-  textarea.style.height = textarea.scrollHeight + 'px';
-
-  // workaround per mobile: forza il repaint
-  requestAnimationFrame(() => {
-    textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  });
-}
-
-
-function mostraSuggerimenti(el) {
-  const index = el.id.split("_")[1];
-  const box = document.getElementById("suggerimentiBox_" + index);
-  const testo = el.value.toLowerCase();
-  const suggerimenti = window.lavorazioniRecenti || [];
-
-  if (!testo || suggerimenti.length === 0) {
-    box.style.display = "none";
-    return;
-  }
-
-  const filtrati = suggerimenti.filter(x => x.toLowerCase().includes(testo)).slice(0, 10);
-  if (filtrati.length === 0) {
-    box.style.display = "none";
-    return;
-  }
-
-  box.innerHTML = "";
-  filtrati.forEach(val => {
-    const div = document.createElement("div");
-    div.textContent = val;
-    div.onclick = () => {
-      el.value = val;
-      autoResize(el);
-      box.style.display = "none";
-    };
-    box.appendChild(div);
-  });
-
-  const rect = el.getBoundingClientRect();
-  box.style.position = "absolute";
-  box.style.top = (el.offsetTop + el.offsetHeight) + "px";
-  box.style.left = el.offsetLeft + "px";
-  box.style.width = el.offsetWidth + "px";
-  box.style.display = "block";
-}
-
-            
 
             window.addEventListener("DOMContentLoaded", () => {
                 caricaSuggerimentiLavorazioni();
