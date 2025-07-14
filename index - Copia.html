@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <title>Presenze Cantiere</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* Variabili CSS per una gestione più semplice dei colori e stili */
@@ -430,6 +431,13 @@
 .suggerimenti-box div:hover {
   background-color: var(--color-bg-alt);
 }
+
+        textarea.lavorazione-autoresize:focus {
+  min-height: 60px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
 
 
         /* Responsive adjustments */
@@ -927,8 +935,15 @@
 
 function autoResize(textarea) {
   textarea.style.height = 'auto';
+  textarea.style.overflowY = 'hidden'; // previene flicker
   textarea.style.height = textarea.scrollHeight + 'px';
+
+  // workaround per mobile: forza il repaint
+  requestAnimationFrame(() => {
+    textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
 }
+
 
 function mostraSuggerimenti(el) {
   const index = el.id.split("_")[1];
