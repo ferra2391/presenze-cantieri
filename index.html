@@ -219,6 +219,24 @@
             box-shadow: none;
         }
 
+.shadow-span {
+    visibility: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 16px;
+    font-family: inherit;
+    line-height: 1.4;
+    padding: 12px;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+        
+
         /* Stili per la notifica (snackbar) */
         #notifica {
             display: none;
@@ -650,7 +668,14 @@
                                 <h4>💅​ Lavorazioni eseguite per cantiere ${i}</h4>
                                 <p class="sottotitolo">💡 Scegli tra le lavorazioni recenti o scrivine una nuova:</p>
                                 <div class="importa-riga">
-                                    <input list="suggerimentiLavorazioni" id="lavorazione_${i}" placeholder="🧠​ Lavorazioni e suggerimenti" />
+                                    <div style="position:relative;">
+  <input list="suggerimentiLavorazioni" id="lavorazione_${i}" 
+         placeholder="🧠​ Lavorazioni e suggerimenti" 
+         oninput="adattaInput(this)"
+         style="overflow:hidden; min-height:40px;" />
+  <div class="shadow-span" aria-hidden="true"></div>
+</div>
+
                                 </div>
                             </div>
                         </div>
@@ -879,6 +904,16 @@
                         });
                 }
             }
+
+
+function adattaInput(input) {
+    const span = input.nextElementSibling;
+    span.textContent = input.value || input.placeholder;
+    const altezza = span.offsetHeight;
+    input.style.height = altezza + "px";
+}
+
+            
 
             window.addEventListener("DOMContentLoaded", () => {
                 caricaSuggerimentiLavorazioni();
