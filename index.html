@@ -438,6 +438,28 @@ input, select, textarea, button {
     background-color: var(--color-bg-alt);
 }
 
+        .recent-data {
+    color: hsl(210, 100%, 35%);
+    font-weight: bold;
+}
+
+.recent-ore {
+    color: hsl(140, 60%, 35%);
+    font-weight: 500;
+}
+
+.recent-cantiere {
+    color: hsl(30, 70%, 40%);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.recent-lavorazione {
+    color: hsl(280, 50%, 45%);
+    font-style: italic;
+}
+
+
         /* Responsive adjustments */
         @media (max-width: 600px) {
             body {
@@ -773,23 +795,31 @@ input, select, textarea, button {
 
             }
 
-            function caricaUltimi7() {
-                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
-                    .then(r => r.json())
-                    .then(dati => {
-                        let html = "<h4>Recentemente:</h4>";
-                        if (dati.presenze && dati.presenze.length > 0) {
-                            html += "<ul>";
-                            dati.presenze.forEach(r => {
-                                html += `<li>${r.data} | ${r.orari} | ${r.cantiere} | ${r.lavorazione}</li>`;
-                            });
-                            html += "</ul>";
-                        } else {
-                            html += "<p>Nessun dato trovato</p>";
-                        }
-                        document.getElementById("ultimi7").innerHTML = html;
-                    });
+function caricaUltimi7() {
+    fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
+        .then(r => r.json())
+        .then(dati => {
+            let html = "<h4>Recentemente:</h4>";
+            if (dati.presenze && dati.presenze.length > 0) {
+                html += "<ul>";
+dati.presenze.forEach(r => {
+    html += `
+        <li>
+            <span class="recent-data">${r.data}</span> |
+            <span class="recent-ore">${r.ore} ore</span> |
+            <span class="recent-cantiere">${r.cantiere}</span> |
+            <span class="recent-lavorazione">${r.lavorazione}</span>
+        </li>`;
+});
+
+                html += "</ul>";
+            } else {
+                html += "<p>Nessun dato trovato</p>";
             }
+            document.getElementById("ultimi7").innerHTML = html;
+        });
+}
+
 
             function caricaUltimaLavorazione(username) {
                 fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getLastWork=1&username=${username}`)
