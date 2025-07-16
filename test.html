@@ -670,7 +670,7 @@ input, select, textarea, button {
                     });
             }
 
-  const ruoliUtenti = {}; // 👈 globale, serve anche altrove
+  let ruoliUtenti = {}; // 👈 globale, serve anche altrove
 
 function caricaOperai() {
     fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
