@@ -588,8 +588,8 @@ input, select, textarea, button {
                     ⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.
                 </p>
                 <label class="section-label" for="operaio">👥 Seleziona altri operai:</label>
-                <select id="operaio" multiple size="6"></select>
-
+                <select id="operaio" multiple size="6" onchange="gestisciMoltiplicatori()"></select>
+<div id="contenitoreMoltiplicatori" style="margin-top: 15px;"></div>
                 <div style="margin-top:15px;">
                     <label class="section-label" for="nuovoOperaio">➕ Oppure inserisci un nuovo operaio:</label>
                     <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio">
@@ -670,22 +670,29 @@ input, select, textarea, button {
                     });
             }
 
-            function caricaOperai() {
-                fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-                    .then(r => r.json())
-                    .then(data => {
-                        const select = document.getElementById("operaio");
-                        select.innerHTML = "";
-                        data.forEach(r => {
-                            if (r["Nome"]) {
-                                const opt = document.createElement("option");
-                                opt.value = r["Nome"];
-                                opt.textContent = r["Nome"];
-                                select.appendChild(opt);
-                            }
-                        });
-                    });
-            }
+  const ruoliUtenti = {}; // 👈 globale, serve anche altrove
+
+function caricaOperai() {
+    fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
+        .then(r => r.json())
+        .then(data => {
+            const select = document.getElementById("operaio");
+            select.innerHTML = "";
+            ruoliUtenti = {}; // reset
+
+            data.forEach(r => {
+                if (r["Nome"]) {
+                    const opt = document.createElement("option");
+                    opt.value = r["Nome"];
+                    opt.textContent = r["Nome"];
+                    select.appendChild(opt);
+
+                    ruoliUtenti[r["Nome"]] = r["Ruolo"]?.toUpperCase() || "OPERAIO";
+                }
+            });
+        });
+}
+
 
             function mostraCantiereLibero(index) {
                 const div = document.getElementById(`cantiereLibero_${index}`);
@@ -773,24 +780,30 @@ input, select, textarea, button {
                         operaiSelezionati = [nomeOperaio];
                     }
 
-                    operaiSelezionati.forEach(nome => {
-                        const dati = {
-                            data,
-                            orari,
-                            cantiere: nomeCantiere,
-                            lavorazione: lavorazioneCantiere,
-                            ore: oreCalcolate,
-                            operaio: nome,
-                            user: utente,
-                            note: note  // 👈 aggiunto qui
-                        };
-                        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-                            method: "POST",
-                            mode: "no-cors",
-                            body: JSON.stringify(dati),
-                            headers: { "Content-Type": "application/json" }
-                        });
-                    });
+operaiSelezionati.forEach(nome => {
+    const moltiplicatoreId = "moltiplicatore_" + nome.replace(/\s+/g, "_");
+    const moltiplicatore = parseInt(document.getElementById(moltiplicatoreId)?.value) || 1;
+
+    for (let i = 0; i < moltiplicatore; i++) {
+        const dati = {
+            data,
+            orari,
+            cantiere: nomeCantiere,
+            lavorazione: lavorazioneCantiere,
+            ore: oreCalcolate,
+            operaio: nome,
+            user: utente,
+            note: note
+        };
+        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(dati),
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+});
+
                 }
 
             }
@@ -1007,6 +1020,28 @@ function mostraSuggerimenti(el) {
     });
 
     box.style.display = "block";
+}
+
+
+            function gestisciMoltiplicatori() {
+    const container = document.getElementById("contenitoreMoltiplicatori");
+    container.innerHTML = "";
+
+    const selezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
+
+    selezionati.forEach(nome => {
+        if (ruoliUtenti[nome] === "SUB") {
+            const id = "moltiplicatore_" + nome.replace(/\s+/g, "_");
+
+            const blocco = document.createElement("div");
+            blocco.style.marginBottom = "10px";
+            blocco.innerHTML = `
+                <label style="font-weight:bold;">${nome} – Quante persone considero per questa ditta?</label>
+                <input type="number" id="${id}" value="1" min="1" max="10" style="width: 80px; margin-left: 10px;" />
+            `;
+            container.appendChild(blocco);
+        }
+    });
 }
 
 
