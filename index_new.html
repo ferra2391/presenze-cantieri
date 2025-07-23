@@ -648,6 +648,32 @@ input, select, textarea, button {
             <div id="ultimi7" class="card">
                 <h4>Recentemente:</h4>
             </div>
+
+
+
+    <!-- ⬅️ Altri elementi visibili solo dopo login -->
+
+    <!-- QUI INCOLLA LA MODALE -->
+    <div id="modalePresenza" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
+         background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:999;">
+      <h3>Modifica Presenza</h3>
+      <form id="formModifica">
+        <input type="hidden" id="modifica_id">
+        <label>Data: <input type="date" id="modifica_data"></label><br><br>
+        <label>Orari: <input type="text" id="modifica_orari"></label><br><br>
+        <label>Cantiere: <input type="text" id="modifica_cantiere"></label><br><br>
+        <label>Lavorazione: <input type="text" id="modifica_lavorazione"></label><br><br>
+        <label>Ore: <input type="number" id="modifica_ore"></label><br><br>
+        <label>Note: <textarea id="modifica_note" rows="3"></textarea></label><br><br>
+        <button type="button" onclick="salvaModificaPresenza()">💾 Salva</button>
+        <button type="button" onclick="chiudiModale()">❌ Annulla</button>
+      </form>
+    </div>
+
+</div> <!-- 👈 CHIUSURA del contenitore #contenuto -->
+
+            
+            
         </div>
 
         <script>
@@ -1188,26 +1214,7 @@ function inviaModifica() {
 }
 
 
-<!-- ✅ MODALE MODIFICA PRESENZA -->
-<div id="overlay" onclick="chiudiModale()"></div>
-<div id="modalePresenza">
-  <h2>✏️ Modifica Presenza</h2>
-  <input type="hidden" id="mod_id">
-  <label>Data</label>
-  <input type="date" id="mod_data"><br>
-  <label>Orari</label>
-  <input type="text" id="mod_orari"><br>
-  <label>Cantiere</label>
-  <input type="text" id="mod_cantiere"><br>
-  <label>Lavorazione</label>
-  <input type="text" id="mod_lavorazione"><br>
-  <label>Ore</label>
-  <input type="number" id="mod_ore" min="1" max="12"><br>
-  <label>Note</label>
-  <textarea id="mod_note"></textarea><br>
-  <button onclick="inviaModifica()">💾 Salva</button>
-  <button onclick="chiudiModale()">❌ Annulla</button>
-</div>
+
 
     
 </body>
