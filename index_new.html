@@ -874,7 +874,7 @@ function caricaUltimi7() {
                 dati.presenze.forEach(r => {
 html += `
   <li>
-    <a href="#" onclick="modificaPresenza('${r.id}')"
+    <a href="#" onclick="apriModifica('${r.id}')"
        class="recent-data">${r.data}</a> |
     <span class="recent-ore">${r.ore} ore</span> |
     <span class="recent-cantiere">${r.cantiere}</span> |
@@ -1129,6 +1129,7 @@ function mostraSuggerimenti(el) {
     </div>
 
 <script>
+
 function apriModifica(id) {
   fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getPresenza=1&id=${id}`)
     .then(res => res.json())
