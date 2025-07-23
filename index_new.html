@@ -1176,42 +1176,7 @@ function inviaModifica() {
 }
 </script>
 
-    function salvaModificaPresenza() {
-  const id = document.getElementById("modifica_id").value;
-  const data = document.getElementById("modifica_data").value;
-  const orari = document.getElementById("modifica_orari").value;
-  const cantiere = document.getElementById("modifica_cantiere").value;
-  const lavorazione = document.getElementById("modifica_lavorazione").value;
-  const ore = document.getElementById("modifica_ore").value;
-  const note = document.getElementById("modifica_note").value;
 
-  const payload = {
-    modifica: 1,
-    id: parseInt(id),
-    data,
-    orari,
-    cantiere,
-    lavorazione,
-    ore,
-    note
-  };
-
-  fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-    method: "POST",
-    body: JSON.stringify(payload),
-    headers: { "Content-Type": "application/json" }
-  })
-  .then(r => r.text())
-  .then(response => {
-    alert("Presenza aggiornata con successo!");
-    chiudiModale();
-    caricaUltimi7(); // 🔄 ricarica lista aggiornata
-  })
-  .catch(err => {
-    console.error("Errore salvataggio:", err);
-    alert("Errore nel salvataggio delle modifiche.");
-  });
-}
 
 
 
