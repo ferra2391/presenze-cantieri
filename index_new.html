@@ -670,7 +670,7 @@ input, select, textarea, button {
       <form id="formModifica">
         <input type="hidden" id="mod_id">
         <label>Data: <input type="date" id="mod_data"></label><br><br>
-        <label>Orari: <input type="text" id="mod_orari"></label><br><br>
+
         <label>Cantiere: <input type="text" id="mod_cantiere"></label><br><br>
         <label>Lavorazione: <input type="text" id="mod_lavorazione"></label><br><br>
         <label>Ore: <input type="number" id="mod_ore"></label><br><br>
@@ -1156,7 +1156,7 @@ function apriModifica(id) {
     .then(dati => {
       document.getElementById("mod_id").value = dati.id;
       document.getElementById("mod_data").value = dati.data.split("T")[0]; // ISO
-      document.getElementById("mod_orari").value = dati.orari;
+
       document.getElementById("mod_cantiere").value = dati.cantiere;
       document.getElementById("mod_lavorazione").value = dati.lavorazione;
       document.getElementById("mod_ore").value = dati.ore;
