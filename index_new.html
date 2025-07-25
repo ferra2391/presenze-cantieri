@@ -399,6 +399,36 @@ input, select, textarea, button {
         #riepilogoAdmin li:last-child {
             border-bottom: none;
         }
+#overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 998;
+}
+#modalePresenza {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 1em;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  display: none;
+  z-index: 999;
+  width: 90%;
+  max-width: 400px;
+}
+#modalePresenza input,
+#modalePresenza textarea {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 5px;
+}
+#modalePresenza button {
+  margin-right: 10px;
+}
 
         textarea.lavorazione-autoresize {
     width: 100%;
@@ -618,6 +648,42 @@ input, select, textarea, button {
             <div id="ultimi7" class="card">
                 <h4>Recentemente:</h4>
             </div>
+
+
+
+    <!-- ⬅️ Altri elementi visibili solo dopo login -->
+<div id="overlay" style="
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.3);
+  z-index:998;
+  display:none;">
+</div>
+
+    <!-- QUI INCOLLA LA MODALE -->
+    <div id="modalePresenza" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
+         background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:999;">
+      <h3>Modifica Presenza</h3>
+      <form id="formModifica">
+        <input type="hidden" id="mod_id">
+        <label>Data: <input type="date" id="mod_data"></label><br><br>
+        <label>Orari: <input type="text" id="mod_orari"></label><br><br>
+        <label>Cantiere: <input type="text" id="mod_cantiere"></label><br><br>
+        <label>Lavorazione: <input type="text" id="mod_lavorazione"></label><br><br>
+        <label>Ore: <input type="number" id="mod_ore"></label><br><br>
+        <label>Note: <textarea id="mod_note" rows="3"></textarea></label><br><br>
+        <button type="button" onclick="inviaModifica()">💾 Salva</button>
+        <button type="button" onclick="chiudiModale()">❌ Annulla</button>
+      </form>
+    </div>
+
+</div> <!-- 👈 CHIUSURA del contenitore #contenuto -->
+
+            
+            
         </div>
 
         <script>
@@ -747,66 +813,72 @@ function caricaOperai() {
                 div.style.display = (div.style.display === "block") ? "none" : "block";
             }
 
-            function invia() {
-                const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
-                const data = document.getElementById("data").value;
-                const orari = "08:00 - 17:00";
-                const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
-                const note = document.getElementById("note").value.trim();
+      function invia() {
+    const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
+    const data = document.getElementById("data").value;
+    const orari = "08:00 - 17:00";
+    const oreLavorate = parseInt(document.getElementById("oreLavorate").value) || 8;
+    const note = document.getElementById("note").value.trim();
 
+    const cantieriValidi = [];
 
-                for (let i = 1; i <= numeroCantieri; i++) {
-                    let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
-                    const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
-                    if (nomeCantiereAltro) {
-                        nomeCantiere = nomeCantiereAltro;
-                    }
-                    let lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value || "";
+    for (let i = 1; i <= numeroCantieri; i++) {
+        let nomeCantiere = document.getElementById(`cantiere_${i}`)?.value || "";
+        const nomeCantiereAltro = document.getElementById(`cantiereAltro_${i}`)?.value.trim() || "";
+        if (nomeCantiereAltro) {
+            nomeCantiere = nomeCantiereAltro;
+        }
+        const lavorazioneCantiere = document.getElementById(`lavorazione_${i}`)?.value.trim() || "";
 
-                    if (!nomeCantiere || !lavorazioneCantiere) {
-                        alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);
-                        return;
-                    }
+        if (!nomeCantiere || !lavorazioneCantiere) {
+            alert(`⚠️ Devi compilare *cantiere e lavorazione* per la riga ${i}`);
+            return; // ❌ blocca tutta la funzione
+        }
 
-                    let oreCalcolate = oreLavorate / numeroCantieri;
-
-                    let operaiSelezionati = [];
-                    if (document.getElementById("multiOperai").style.display === "block") {
-                        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
-                        const nuovo = document.getElementById("nuovoOperaio").value.trim();
-                        if (nuovo) operaiSelezionati.push(nuovo);
-                        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
-                    } else {
-                        operaiSelezionati = [nomeOperaio];
-                    }
-
-operaiSelezionati.forEach(nome => {
-    const moltiplicatoreId = "moltiplicatore_" + nome.replace(/\s+/g, "_");
-    const moltiplicatore = parseInt(document.getElementById(moltiplicatoreId)?.value) || 1;
-
-    for (let i = 0; i < moltiplicatore; i++) {
-        const dati = {
-            data,
-            orari,
-            cantiere: nomeCantiere,
-            lavorazione: lavorazioneCantiere,
-            ore: oreCalcolate,
-            operaio: nome,
-            user: utente,
-            note: note
-        };
-        fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(dati),
-            headers: { "Content-Type": "application/json" }
-        });
+        cantieriValidi.push({ nomeCantiere, lavorazioneCantiere });
     }
-});
 
-                }
+    // Calcolo ore per ciascun cantiere
+    const orePerCantiere = oreLavorate / cantieriValidi.length;
 
+    let operaiSelezionati = [];
+    if (document.getElementById("multiOperai").style.display === "block") {
+        operaiSelezionati = Array.from(document.getElementById("operaio").selectedOptions).map(opt => opt.value);
+        const nuovo = document.getElementById("nuovoOperaio").value.trim();
+        if (nuovo) operaiSelezionati.push(nuovo);
+        if (operaiSelezionati.length === 0) operaiSelezionati = [nomeOperaio];
+    } else {
+        operaiSelezionati = [nomeOperaio];
+    }
+
+    // Invio dati
+    cantieriValidi.forEach(({ nomeCantiere, lavorazioneCantiere }) => {
+        operaiSelezionati.forEach(nome => {
+            const moltiplicatoreId = "moltiplicatore_" + nome.replace(/\s+/g, "_");
+            const moltiplicatore = parseInt(document.getElementById(moltiplicatoreId)?.value) || 1;
+
+            for (let i = 0; i < moltiplicatore; i++) {
+                const dati = {
+                    data,
+                    orari,
+                    cantiere: nomeCantiere,
+                    lavorazione: lavorazioneCantiere,
+                    ore: orePerCantiere,
+                    operaio: nome,
+                    user: utente,
+                    note: note
+                };
+                fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify(dati),
+                    headers: { "Content-Type": "application/json" }
+                });
             }
+        });
+    });
+}
+
 
 function caricaUltimi7() {
     fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?checkPresenze=1&opName=" + encodeURIComponent(nomeOperaio))
@@ -816,13 +888,15 @@ function caricaUltimi7() {
             if (dati.presenze && dati.presenze.length > 0) {
                 html += "<ul>";
                 dati.presenze.forEach(r => {
-                    html += `
-                        <li>
-                            <span class="recent-data">${r.data}</span> |
-                            <span class="recent-ore">${r.ore} ore</span> |
-                            <span class="recent-cantiere">${r.cantiere}</span> |
-                            <span class="recent-lavorazione">${r.lavorazione}</span>
-                        </li>`;
+html += `
+  <li>
+    <a href="#" onclick="apriModifica('${r.id}')"
+       class="recent-data">${r.data}</a> |
+    <span class="recent-ore">${r.ore} ore</span> |
+    <span class="recent-cantiere">${r.cantiere}</span> |
+    <span class="recent-lavorazione">${r.lavorazione}</span>
+  </li>`;
+
                 });
                 html += "</ul>";
             } else {
@@ -1070,5 +1144,60 @@ function mostraSuggerimenti(el) {
         </div>
     </div>
 
+<script>
+
+function apriModifica(id) {
+  fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getPresenza=1&id=${id}`)
+    .then(res => res.json())
+    .then(dati => {
+      document.getElementById("mod_id").value = dati.id;
+      document.getElementById("mod_data").value = dati.data.split("T")[0]; // ISO
+      document.getElementById("mod_orari").value = dati.orari;
+      document.getElementById("mod_cantiere").value = dati.cantiere;
+      document.getElementById("mod_lavorazione").value = dati.lavorazione;
+      document.getElementById("mod_ore").value = dati.ore;
+      document.getElementById("mod_note").value = dati.note || "";
+
+      document.getElementById("overlay").style.display = "block";
+      document.getElementById("modalePresenza").style.display = "block";
+    });
+}
+
+function chiudiModale() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("modalePresenza").style.display = "none";
+}
+
+function inviaModifica() {
+  const dati = {
+    modifica: 1,
+    id: document.getElementById("mod_id").value,
+    data: document.getElementById("mod_data").value,
+    orari: document.getElementById("mod_orari").value,
+    cantiere: document.getElementById("mod_cantiere").value,
+    lavorazione: document.getElementById("mod_lavorazione").value,
+    ore: document.getElementById("mod_ore").value,
+    note: document.getElementById("mod_note").value
+  };
+
+  fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
+    method: "POST",
+    body: JSON.stringify(dati)
+  })
+  .then(res => res.text())
+  .then(txt => {
+    alert("Modifica salvata!");
+    chiudiModale();
+    location.reload(); // oppure aggiorna solo la sezione
+  });
+}
+</script>
+
+
+
+
+
+
+    
 </body>
 </html>
