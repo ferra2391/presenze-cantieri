@@ -889,14 +889,23 @@ function caricaUltimi7() {
             if (dati.presenze && dati.presenze.length > 0) {
                 html += "<ul>";
                 dati.presenze.forEach(r => {
+                    
+const dataObj = new Date(r.data);
+const giorni = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
+const giornoAbbr = giorni[dataObj.getDay()];
+const dataFormattata = dataObj.toLocaleDateString('it-IT'); // es. 25/07/2025
+const giornoCompleto = `${giornoAbbr} ${dataFormattata}`;
+
+
 html += `
   <li>
-    <a href="#" onclick="apriModifica('${r.id}')"
-       class="recent-data">${r.data}</a> |
+    <a href="#" onclick="apriModifica('${r.id}')" class="recent-data">${giornoCompleto}</a> |
     <span class="recent-ore">${r.ore} ore</span> |
     <span class="recent-cantiere">${r.cantiere}</span> |
     <span class="recent-lavorazione">${r.lavorazione}</span>
   </li>`;
+
+
 
                 });
                 html += "</ul>";
