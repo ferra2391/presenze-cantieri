@@ -813,7 +813,7 @@ function caricaOperai() {
                 div.style.display = (div.style.display === "block") ? "none" : "block";
             }
 
-      function invia() {
+function invia() {
     const numeroCantieri = parseInt(document.getElementById("numeroCantieri").value);
     const data = document.getElementById("data").value;
     const orari = "08:00 - 17:00";
@@ -832,13 +832,12 @@ function caricaOperai() {
 
         if (!nomeCantiere || !lavorazioneCantiere) {
             alert(`⚠️ Devi compilare *cantiere e lavorazione* per la riga ${i}`);
-            return; // ❌ blocca tutta la funzione
+            return false; // ❌ Esci subito e segnala errore
         }
 
         cantieriValidi.push({ nomeCantiere, lavorazioneCantiere });
     }
 
-    // Calcolo ore per ciascun cantiere
     const orePerCantiere = oreLavorate / cantieriValidi.length;
 
     let operaiSelezionati = [];
@@ -877,6 +876,8 @@ function caricaOperai() {
             }
         });
     });
+
+    return true; // ✅ Tutto ok
 }
 
 
@@ -977,38 +978,41 @@ html += `
                 }, 300); // Corrisponde alla durata della transizione
             }
 
-            function confermaInvio() {
-                chiudiModal(); // Chiude la modale
-                invia();       // Esegue la funzione di invio vera e propria
+function confermaInvio() {
+    chiudiModal(); // Chiude la modale
 
-                // Mostra la notifica
-                const n = document.getElementById("notifica");
-                n.style.display = "block";
-                n.classList.add("show");
+    const esito = invia(); // 🔍 Valutiamo se è andato tutto bene
 
-                // Nasconde la notifica dopo 4 secondi
-                setTimeout(() => {
-                    n.classList.remove("show");
-                    setTimeout(() => {
-                        n.style.display = "none";
-                    }, 500); // Deve corrispondere alla transizione CSS
-                }, 3500);
+    if (!esito) return; // ❌ Se non ha inviato, NON mostrare nulla
 
-                // Resetta i campi dopo invio
-                document.getElementById("data").value = new Date().toISOString().split("T")[0];
-                document.getElementById("oreLavorate").value = "8";
-                document.getElementById("numeroCantieri").value = "1";
-                document.getElementById("cantieriMultipli").innerHTML = ""; // Pulisce i campi generati
-                document.getElementById("multiOperai").style.display = "none";
-                document.getElementById("operaio").selectedIndex = -1; // Deseleziona tutto
-                document.getElementById("nuovoOperaio").value = "";
-                document.getElementById("note").value = "";
+    // ✅ Mostra la notifica solo se invio riuscito
+    const n = document.getElementById("notifica");
+    n.style.display = "block";
+    n.classList.add("show");
 
+    // Nasconde la notifica dopo 4 secondi
+    setTimeout(() => {
+        n.classList.remove("show");
+        setTimeout(() => {
+            n.style.display = "none";
+        }, 500);
+    }, 3500);
 
-                generaCampiCantieri(); // Rigenera i campi per un cantiere singolo
-                caricaUltimi7(); // Aggiorna gli ultimi 7 eventi
-                caricaRiepilogoAdmin(); // Aggiorna il riepilogo admin
-            }
+    // Resetta i campi dopo invio
+    document.getElementById("data").value = new Date().toISOString().split("T")[0];
+    document.getElementById("oreLavorate").value = "8";
+    document.getElementById("numeroCantieri").value = "1";
+    document.getElementById("cantieriMultipli").innerHTML = "";
+    document.getElementById("multiOperai").style.display = "none";
+    document.getElementById("operaio").selectedIndex = -1;
+    document.getElementById("nuovoOperaio").value = "";
+    document.getElementById("note").value = "";
+
+    generaCampiCantieri();
+    caricaUltimi7();
+    caricaRiepilogoAdmin();
+}
+
 
             function caricaSuggerimentiLavorazioni() {
                 fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
