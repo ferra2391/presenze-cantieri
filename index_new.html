@@ -890,7 +890,17 @@ function caricaUltimi7() {
                 html += "<ul>";
                 dati.presenze.forEach(r => {
                     
-const dataObj = new Date(r.data);
+const partiData = r.data.split(/[\/\-]/); // Supporta sia 25/07/2025 che 2025-07-25
+let dataObj;
+if (partiData[0].length === 4) {
+  // formato ISO: yyyy-mm-dd
+  dataObj = new Date(r.data);
+} else {
+  // formato italiano: dd/mm/yyyy
+  const [gg, mm, aa] = partiData;
+  dataObj = new Date(`${aa}-${mm}-${gg}`);
+}
+
 const giorni = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
 const giornoAbbr = giorni[dataObj.getDay()];
 const dataFormattata = dataObj.toLocaleDateString('it-IT'); // es. 25/07/2025
