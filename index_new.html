@@ -70,23 +70,79 @@
     #ultimi7{display:none !important;}
 
     /* calendario */
-    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-    .cal-weekday{font-weight:700;text-align:center;font-size:12px;color:var(--color-text-light)}
-    .cal-cell{border:1px solid var(--color-border);border-radius:8px;min-height:88px;padding:6px;position:relative;background:#fff}
-    .cal-cell.oggi{outline:2px solid var(--color-primary)}
-    .cal-cell.domenica,.cal-cell.festivo{background:#fff7f7}
-    .cal-cell.sabato{background:#fffdf2}
-    .cal-cell.fuori-mese{background:var(--color-bg-alt);opacity:.6}
-    .cal-day{font-weight:700;font-size:14px;position:absolute;top:6px;right:8px;cursor:pointer}
-    .cal-entries{margin-top:22px;display:flex;flex-direction:column;gap:4px;max-height:120px;overflow:auto}
-    .cal-entry{font-size:12px;border:1px dashed var(--color-border);border-radius:6px;padding:4px;cursor:pointer}
-    .cal-entry .cant{text-transform:uppercase;font-weight:600}
-    .cal-entry .lav{font-style:italic;display:block}
-    .cal-entry .ore{font-size:11px;opacity:.8}
-    .cal-entry:hover{background:var(--color-bg-alt)}
-    .cal-empty{grid-column:1 / -1;text-align:center;color:var(--color-text-light);padding:10px 0}
+    /* ======== CALENDARIO (stile pulito) ======== */
+.cal-grid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:10px;
+}
+.cal-weekday{
+  font-weight:700;
+  text-align:center;
+  font-size:12px;
+  color:var(--color-text-light);
+  letter-spacing:.04em;
+}
+.cal-cell{
+  background:#fff;
+  border:1px solid var(--color-border);
+  border-radius:12px;
+  min-height:120px;
+  padding:8px;
+  position:relative;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+  transition:box-shadow .2s ease;
+}
+.cal-cell:hover{ box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.cal-cell.oggi{ outline:2px solid var(--color-primary); outline-offset:1px; }
+.cal-cell.sabato{ background:#fffdf7; }                 /* sabato leggero */
+.cal-cell.domenica,.cal-cell.festivo{ background:#fff8f8; } /* domenica/festivo */
+.cal-cell.fuori-mese{ background:var(--color-bg-alt); opacity:.6; }
 
-    @media(max-width:600px){.cal-cell{min-height:82px}.cal-entries{max-height:100px}}
+.cal-day{
+  position:absolute; top:8px; left:10px;
+  font-weight:700; font-size:13px; color:var(--color-text-dark);
+}
+
+.cal-entries{
+  margin-top:26px;
+  display:flex; flex-direction:column; gap:6px;
+  max-height:140px; overflow:auto; padding-right:2px;
+}
+/* 👇 nasconde le scrollbar (quelle “barrette”) */
+.cal-entries::-webkit-scrollbar{ width:0; height:0; }
+.cal-entries{ scrollbar-width:none; -ms-overflow-style:none; }
+
+.chip{
+  background:#f7f9ff;
+  border:1px solid var(--color-border);
+  border-radius:10px;
+  padding:6px 8px;
+  line-height:1.2;
+  cursor:pointer;
+}
+.chip .top{
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.02em;
+}
+.chip .lav{
+  font-size:12px; font-style:italic; color:var(--color-text-dark); opacity:.9;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.badge{
+  font-size:11px; padding:2px 6px; border-radius:999px;
+  border:1px solid var(--color-border); background:#fff;
+}
+
+.cal-empty{
+  grid-column:1 / -1; text-align:center; color:var(--color-text-light); padding:10px 0;
+}
+
+@media(max-width:600px){
+  .cal-cell{ min-height:110px; }
+  .cal-entries{ max-height:120px; }
+}
+
   </style>
 </head>
 <body>
@@ -459,63 +515,102 @@
       });
     }
 
-    function renderCalendario(presenze,year,month){
-      const grid=document.getElementById('calGrid'); if(!grid) return;
-      grid.innerHTML='';
-      const holidays=italianHolidays(year);
+    function renderCalendario(presenze, year, month){
+  const grid = document.getElementById('calGrid'); if(!grid) return;
+  grid.innerHTML = '';
 
-      // raggruppo per giorno
-      const byDay={};
-      presenze.forEach(p=>{
-        const iso=p.dataISO||p.data||p.data_iso; if(!iso) return;
-        const dNum=+String(iso).split('-')[2]; if(!byDay[dNum]) byDay[dNum]=[];
-        byDay[dNum].push(p);
-      });
+  // Festivi IT
+  const holidays = italianHolidays(year);
 
-      const first=new Date(year,month-1,1), last=new Date(year,month,0);
-      const startOffset=(first.getDay()+6)%7, daysInMonth=last.getDate();
-      const totalCells=Math.ceil((startOffset+daysInMonth)/7)*7;
+  // Raggruppo per giorno
+  const byDay = {};
+  presenze.forEach(p=>{
+    const iso = p.dataISO || p.data || p.data_iso; 
+    if(!iso) return;
+    const dNum = +String(iso).split('-')[2];
+    if(!byDay[dNum]) byDay[dNum] = [];
+    byDay[dNum].push(p);
+  });
 
-      for(let i=0;i<totalCells;i++){
-        const cell=document.createElement('div'); cell.className='cal-cell';
-        const dayNum=i-startOffset+1, inMonth=dayNum>=1 && dayNum<=daysInMonth;
-        if(!inMonth){cell.classList.add('fuori-mese'); grid.appendChild(cell); continue;}
+  const first = new Date(year, month-1, 1);
+  const last  = new Date(year, month, 0);
+  const startOffset = (first.getDay()+6)%7;
+  const daysInMonth = last.getDate();
+  const totalCells  = Math.ceil((startOffset+daysInMonth)/7)*7;
 
-        const dateObj=new Date(year,month-1,dayNum);
-        const dow=(dateObj.getDay()+6)%7; if(dow===5) cell.classList.add('sabato'); if(dow===6) cell.classList.add('domenica');
+  for(let i=0;i<totalCells;i++){
+    const cell   = document.createElement('div'); 
+    cell.className = 'cal-cell';
 
-        const iso=`${year}-${String(month).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
-        if(holidays.has(iso)) cell.classList.add('festivo');
-        if(ymd(new Date())===iso) cell.classList.add('oggi');
-
-        // numero giorno (clic se 1 sola presenza)
-        const label=document.createElement('div'); label.className='cal-day'; label.textContent=String(dayNum).padStart(2,'0');
-        const entries=byDay[dayNum]||[];
-        if(entries.length===1){const onlyId=entries[0].id; label.addEventListener('click',()=>{if(onlyId) apriModifica(String(onlyId));});}
-        cell.appendChild(label);
-
-        const wrap=document.createElement('div'); wrap.className='cal-entries';
-        entries.forEach(r=>{
-          const e=document.createElement('div'); e.className='cal-entry';
-          e.setAttribute('title',(r.ore?`${r.ore}h – `:'')+(r.cantiere||''));
-          e.addEventListener('click',()=>{if(r.id) apriModifica(String(r.id));});
-          e.innerHTML=`<span class="cant">${(r.cantiere||'').toString().toUpperCase()}</span>
-                       <span class="lav">${r.lavorazione||''}</span>
-                       <span class="ore">${r.ore ? r.ore + ' h' : ''}</span>`;
-          wrap.appendChild(e);
-        });
-        cell.appendChild(wrap);
-        grid.appendChild(cell);
-      }
-
-      // Se proprio non c'è nulla, un messaggio esplicito
-      if(Object.keys(byDay).length===0){
-        const msg=document.createElement('div');
-        msg.className='cal-empty';
-        msg.textContent='Nessuna presenza nel mese';
-        grid.appendChild(msg);
-      }
+    const dayNum = i - startOffset + 1;
+    const inMonth = dayNum>=1 && dayNum<=daysInMonth;
+    if(!inMonth){
+      cell.classList.add('fuori-mese');
+      grid.appendChild(cell);
+      continue;
     }
+
+    const dateObj = new Date(year, month-1, dayNum);
+    const dow     = (dateObj.getDay()+6)%7;
+    if(dow===5) cell.classList.add('sabato');
+    if(dow===6) cell.classList.add('domenica');
+
+    const iso = `${year}-${String(month).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+    if(holidays.has(iso)) cell.classList.add('festivo');
+
+    // oggi
+    const todayISO = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
+    if(todayISO === iso) cell.classList.add('oggi');
+
+    // numero giorno (clic se 1 sola presenza)
+    const label = document.createElement('div');
+    label.className = 'cal-day';
+    label.textContent = String(dayNum).padStart(2,'0');
+
+    const entries = byDay[dayNum] || [];
+    if(entries.length===1){
+      const onlyId = entries[0].id;
+      label.addEventListener('click', ()=>{ if(onlyId) apriModifica(String(onlyId)); });
+    }
+    cell.appendChild(label);
+
+    // contenitore presenze
+    const wrap = document.createElement('div'); 
+    wrap.className = 'cal-entries';
+
+    entries.forEach(r=>{
+      const e = document.createElement('div');
+      e.className = 'cal-entry';
+      e.setAttribute('title', (r.ore?`${r.ore}h – `:'')+(r.cantiere||''));
+      e.addEventListener('click', ()=>{ if(r.id) apriModifica(String(r.id)); });
+
+      // 🔸 NUOVO LAYOUT "CHIP"
+      e.innerHTML = `
+        <div class="chip">
+          <div class="top">
+            <span>${(r.cantiere || '').toString().toUpperCase()}</span>
+            <span class="badge">${r.ore ? (r.ore + ' h') : ''}</span>
+          </div>
+          <div class="lav">${r.lavorazione || ''}</div>
+        </div>
+      `;
+
+      wrap.appendChild(e);
+    });
+
+    cell.appendChild(wrap);
+    grid.appendChild(cell);
+  }
+
+  // messaggio quando non c'è nulla
+  if(Object.keys(byDay).length===0){
+    const msg = document.createElement('div');
+    msg.className = 'cal-empty';
+    msg.textContent = 'Nessuna presenza nel mese';
+    grid.appendChild(msg);
+  }
+}
+
 
     /* init: solo suggerimenti; il calendario parte dopo login */
     window.addEventListener("DOMContentLoaded",()=>{
