@@ -1,244 +1,336 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <title>Gestione Cantieri</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Analisi Mensile Presenze</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      padding: 20px;
+    :root{
+      --primary: hsl(210,100%,40%);
+      --text: hsl(210,10%,20%);
+      --muted: hsl(210,6%,45%);
+      --bg: hsl(210,20%,98%);
+      --card: #fff;
+      --border: hsl(210,15%,85%);
+      --orange-weak: hsla(30,100%,50%,0.08); /* festivi/weekend */
+      --orange-weak-border: hsla(30,100%,50%,0.25);
+      --danger: #c00000;
     }
-    h2, h3 {
-      text-align: center;
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .container{max-width:1200px;margin:0 auto;padding:18px}
+    h1{margin:0 0 12px;font-size:20px}
+    .panel{
+      background:var(--card); border:1px solid var(--border); border-radius:12px;
+      padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); margin-bottom:14px;
     }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      font-size: 16px;
-      box-sizing: border-box;
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    label{font-weight:600}
+    input[type="month"],button{
+      padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px; background:#fff;
     }
-    button {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+    button{
+      background:var(--primary); color:#fff; border-color:transparent; cursor:pointer; font-weight:700;
     }
-    button:hover {
-      background-color: #218838;
+    button:hover{filter:brightness(0.95)}
+    .hint{color:var(--muted);font-size:12px;margin-top:6px}
+
+    /* wrapper con scroll orizzontale */
+    .table-wrap{
+      border:1px solid var(--border); border-radius:12px; background:var(--card);
+      overflow:auto; box-shadow:0 2px 8px rgba(0,0,0,.04);
     }
-    #messaggio, #messaggioUtente {
-      text-align: center;
-      margin-top: 20px;
-      font-weight: bold;
+    table{border-collapse:separate;border-spacing:0;min-width:100%;font-size:12px}
+    thead th{
+      position:sticky; top:0; z-index:2; background:#fff; border-bottom:1px solid var(--border);
+      padding:8px 6px; text-align:center; white-space:nowrap;
     }
-    #elencoCantieri, #elencoUtenti {
-      margin-top: 30px;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    thead th.day-void{color:#aaa; background:#fafafa}
+    tbody th{
+      position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
+      text-align:left; padding:8px 10px; font-size:12px;
     }
-    ul {
-      padding-left: 20px;
+    td{
+      border-left:1px solid var(--border); border-top:1px solid var(--border);
+      vertical-align:top; padding:6px; min-width:120px; max-width:220px; word-wrap:break-word;
     }
+    tr:last-child td{border-bottom:1px solid var(--border)}
+    td .entry{margin-bottom:6px}
+    .cant{color:var(--danger); font-weight:800; text-transform:uppercase; letter-spacing:.02em}
+    .ore{color:#111; font-weight:600}
+    .note{color:var(--muted); font-style:italic}
+    .tot{margin-top:4px; font-weight:800}
+    .center{display:flex;align-items:center;justify-content:center}
+
+    /* weekend/festivi */
+    thead th.weekend, thead th.festivo{background:var(--orange-weak); border-bottom-color: var(--orange-weak-border)}
+    tbody td.weekend, tbody td.festivo{background:var(--orange-weak)}
+    /* legenda piccola */
+    .legend{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px}
+    .pill{display:inline-block; height:12px; width:18px; border-radius:3px; background:var(--orange-weak); border:1px solid var(--orange-weak-border)}
+    .spinner{display:none}
+    .spinner.show{display:inline-block; width:16px; height:16px; border:2px solid #ddd; border-top-color:var(--primary); border-radius:50%; animation:spin 0.9s linear infinite; vertical-align:-3px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .error{color:#b00020; font-weight:700}
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Analisi mensile presenze</h1>
 
-  <h2>Gestione Cantieri</h2>
+    <div class="panel">
+      <div class="row">
+        <label for="mese">Mese</label>
+        <input type="month" id="mese">
+        <button id="btnCarica">Carica</button>
+        <span class="spinner" id="spin"></span>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <div class="legend">
+          <span class="pill"></span> Sabato / Domenica / Festivi italiani
+        </div>
+        <div class="hint">Clic su “Carica” per aggiornare la tabella. I nomi degli operai provengono da Foglio1, colonna <b>C</b>.</div>
+      </div>
+      <div class="row" id="status" style="margin-top:6px"></div>
+    </div>
 
-  <div id="riepilogoPresenze" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); margin-bottom: 20px;">
-    <h3>📋 Riepilogo Presenze Giornaliero</h3>
-    <input type="date" id="dataSelezionata" value="">
-    <button onclick="caricaRiepilogo()">Mostra riepilogo</button>
-    <div id="outputRiepilogo" style="margin-top:20px;"></div>
+    <div class="table-wrap">
+      <table id="matrix">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
-
-  <input type="text" id="nomeCantiere" placeholder="Inserisci nome cantiere">
-  <button onclick="inserisciCantiere()">Aggiungi Cantiere</button>
-
-
-  <div id="messaggio"></div>
-
-  <div id="elencoCantieri">
-    <h3>Cantieri Attualmente Registrati</h3>
-    <ul id="listaCantieri">
-      <li>Caricamento in corso...</li>
-    </ul>
-  </div>
-
-  <hr>
-  <h2>Gestione Utenti</h2>
-
-  <input type="text" id="useruser" placeholder="User - (usare 2 lettere nome + 2 lettere cognome">
-  <input type="text" id="userPassword" placeholder="Password">
-  <input type="text" id="userNome" placeholder="Nome e Cognome">
-  <input type="text" id="userRuolo" placeholder="Ruolo">
-  <button onclick="aggiungiUtente()">Aggiungi Utente</button>
-
-  <div id="messaggioUtente"></div>
-
-  <div id="elencoUtenti">
-    <h3>Utenti Registrati</h3>
-    <ul id="listaUtenti">
-      <li>Caricamento in corso...</li>
-    </ul>
-  </div>
-
-  <script>
-    function inserisciCantiere() {
-      const nome = document.getElementById("nomeCantiere").value.trim();
-      const messaggio = document.getElementById("messaggio");
-
-      if (!nome) {
-        messaggio.textContent = "⚠️ Inserisci un nome valido.";
-        messaggio.style.color = "red";
-        return;
-      }
-
-      const dati = { Cantiere: nome };
-
-      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dati)
-      });
-
-      messaggio.textContent = "✅ Cantiere aggiunto con successo!";
-      messaggio.style.color = "green";
-      document.getElementById("nomeCantiere").value = "";
-
-      setTimeout(caricaCantieri, 1000);
-    }
-
-    function caricaCantieri() {
-      fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
-        .then(response => response.json())
-        .then(data => {
-          const lista = document.getElementById("listaCantieri");
-          lista.innerHTML = "";
-          data.forEach(row => {
-            if (row["Cantiere"]) {
-              const li = document.createElement("li");
-              li.textContent = row["Cantiere"];
-              lista.appendChild(li);
-            }
-          });
-        })
-        .catch(() => {
-          const lista = document.getElementById("listaCantieri");
-          lista.innerHTML = "<li>Errore nel caricamento.</li>";
-        });
-    }
-
-    function aggiungiUtente() {
-      const user = document.getElementById("useruser").value.trim();
-      const password = document.getElementById("userPassword").value.trim();
-      const nome = document.getElementById("userNome").value.trim();
-      const ruolo = document.getElementById("userRuolo").value.trim();
-      const msg = document.getElementById("messaggioUtente");
-      localStorage.setItem("ruolo", ruolo); // ✅ Salva il ruolo per uso immediato
-
-      if (!user || !password || !nome || !ruolo) {
-        msg.textContent = "⚠️ Compila tutti i campi";
-        msg.style.color = "red";
-        return;
-      }
-
-      const dati = {
-        nuovoUtente: true,
-        User: user,
-        Password: password,
-        Nome: nome,
-        Ruolo: ruolo
-      };
-
-      fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dati)
-      });
-
-      msg.textContent = "✅ Utente aggiunto!";
-      msg.style.color = "green";
-
-      document.getElementById("useruser").value = "";
-      document.getElementById("userPassword").value = "";
-      document.getElementById("userNome").value = "";
-      document.getElementById("userRuolo").value = "";
-
-      setTimeout(caricaUtenti, 1000);
-    }
-
-function caricaUtenti() {
-  fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Utenti")
-    .then(response => response.json())
-    .then(data => {
-      const lista = document.getElementById("listaUtenti");
-      lista.innerHTML = "";
-      data.forEach(row => {
-        const nome = row["Nome"] || "undefined";
-        const username = row["User"] || "undefined";
-        const ruolo = row["Ruolo"] || "undefined";
-        const li = document.createElement("li");
-        li.textContent = `${nome} (${username}, ${ruolo})`;
-        lista.appendChild(li);
-      });
-    });
-}
-
-
-window.onload = () => {
-  caricaCantieri();
-  caricaUtenti();
-  const oggi = new Date().toISOString().split("T")[0];
-  document.getElementById("dataSelezionata").value = oggi;
-  caricaRiepilogo(); // carica già il riepilogo del giorno
-};
-  </script>
-
 
 <script>
+  // === Config ===
+  const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ"; // il tuo ID
+  const FOGGLIO  = "Foglio1";
+  const URL = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(FOGGLIO)}`;
 
-  function caricaRiepilogo() {
-    const data = document.getElementById("dataSelezionata").value;
-    if (!data) {
-      alert("Seleziona una data.");
-      return;
+  // === Util ===
+  function pad(n){return String(n).padStart(2,"0");}
+
+  function parseDateAny(v){
+    if(!v) return null;
+    if(v instanceof Date) return v;
+    const s = String(v).trim();
+    // ISO: YYYY-MM-DD
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+      const [Y,M,D] = s.split("T")[0].split("-").map(Number);
+      return new Date(Y, M-1, D);
     }
-
-    fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?riepilogo=1&data=${data}`)
-      .then(res => res.json())
-      .then(dati => {
-        const out = document.getElementById("outputRiepilogo");
-        let html = "<h4>✅ Operai che hanno compilato:</h4><ul>";
-        dati.compilati.forEach(p => {
-          html += `<li><b>${p.nome}</b> → ${p.cantiere} – ${p.lavorazione}</li>`;
-        });
-        html += "</ul>";
-
-        if (dati.mancanti.length > 0) {
-          html += "<h4>⚠️ Operai mancanti:</h4><ul>";
-          dati.mancanti.forEach(n => html += `<li>${n}</li>`);
-          html += "</ul>";
-        } else {
-          html += "<p><i>Tutti gli operai hanno registrato la presenza.</i></p>";
-        }
-
-        out.innerHTML = html;
-      })
-      .catch(err => {
-        document.getElementById("outputRiepilogo").innerHTML = "Errore nel caricamento.";
-        console.error(err);
-      });
+    // IT: DD/MM/YYYY
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){
+      const [d,m,y] = s.split("/").map(Number);
+      return new Date(y, m-1, d);
+    }
+    // fallback
+    const t = new Date(s);
+    return isNaN(t) ? null : t;
   }
-</script>
 
+  function calcEaster(Y){
+    const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
+          g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,L=(32+2*e+2*i-h-k)%7,
+          m=Math.floor((a+11*h+22*L)/451),month=Math.floor((h+L-7*m+114)/31),day=((h+L-7*m+114)%31)+1;
+    return new Date(Y,month-1,day);
+  }
+  function italianHolidays(year){
+    const set=new Set(),add=(m,d)=>set.add(`${year}-${pad(m)}-${pad(d)}`);
+    add(1,1); add(1,6); add(4,25); add(5,1); add(6,2); add(8,15); add(11,1); add(12,8); add(12,25); add(12,26);
+    const p=calcEaster(year), q=new Date(p); q.setDate(p.getDate()+1);
+    add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
+    return set;
+  }
+
+  function getField(row, keys){
+    for(const k of keys){ if(row[k] != null && row[k] !== "") return row[k]; }
+    return "";
+  }
+
+  // === Render intestazioni giorni ===
+  function renderHeader(year, month){
+    const thead = document.getElementById("thead");
+    thead.innerHTML = "";
+    const tr = document.createElement("tr");
+
+    // prima cella (Operaio)
+    const th0 = document.createElement("th");
+    th0.textContent = "Operaio";
+    th0.style.minWidth = "160px";
+    th0.style.textAlign = "left";
+    tr.appendChild(th0);
+
+    const daysInMonth = new Date(year, month, 0).getDate(); // month = 1..12
+    const holidays = italianHolidays(year);
+
+    for(let d=1; d<=31; d++){
+      const th = document.createElement("th");
+      th.textContent = d;
+      th.style.minWidth = "140px";
+      th.title = `${pad(d)}/${pad(month)}/${year}`;
+      if(d > daysInMonth){
+        th.classList.add("day-void");
+      }else{
+        const dow = (new Date(year, month-1, d).getDay()+6)%7; // 0=Lun
+        const iso = `${year}-${pad(month)}-${pad(d)}`;
+        if(dow===5 || dow===6) th.classList.add("weekend");
+        if(holidays.has(iso)) th.classList.add("festivo");
+      }
+      tr.appendChild(th);
+    }
+    thead.appendChild(tr);
+  }
+
+  // === Render corpo tabella ===
+  function renderBody(year, month, dataRows){
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+
+    // 1) Nomi operai (colonna C) – da TUTTO Foglio1, ordinati
+    const allNamesSet = new Set();
+    dataRows.forEach(r=>{
+      const op = getField(r, ["Operaio","operaio","OPERAIO","C"]); // fallback
+      if(op && String(op).trim()) allNamesSet.add(String(op).trim());
+    });
+    const operai = Array.from(allNamesSet).sort((a,b)=>a.localeCompare(b,'it'));
+
+    // 2) Filtro righe del mese scelto, e raggruppo per operaio -> giorno
+    const byOpDay = {}; // { [op]: { [d]: [ {cantiere, ore, note} ] } }
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    dataRows.forEach(r=>{
+      const dataVal = getField(r, ["Data","data","DATA","A"]);
+      const dt = parseDateAny(dataVal);
+      if(!dt) return;
+      if(dt.getFullYear()!==year || (dt.getMonth()+1)!==month) return;
+
+      const op = String(getField(r, ["Operaio","operaio","OPERAIO","C"])).trim();
+      if(!op) return;
+      const d = dt.getDate();
+
+      const cantiere = String(getField(r, ["Cantiere","cantiere","CANTIERE","E"])).trim();
+      const oreRaw   = getField(r, ["Ore","ore","ORE","H"]);
+      const ore = oreRaw!=="" && oreRaw!=null ? Number(String(oreRaw).replace(",",".")) : null;
+      const note     = String(getField(r, ["Note","note","NOTE","I"])).trim();
+
+      byOpDay[op] ??= {};
+      byOpDay[op][d] ??= [];
+      byOpDay[op][d].push({cantiere, ore, note});
+    });
+
+    // 3) Disegno righe
+    const holidays = italianHolidays(year);
+
+    operai.forEach(op=>{
+      const tr = document.createElement("tr");
+
+      const th = document.createElement("th");
+      th.textContent = op;
+      tr.appendChild(th);
+
+      for(let d=1; d<=31; d++){
+        const td = document.createElement("td");
+        td.style.verticalAlign = "top";
+
+        if(d <= daysInMonth){
+          const dow = (new Date(year, month-1, d).getDay()+6)%7;
+          const iso = `${year}-${pad(month)}-${pad(d)}`;
+          if(dow===5 || dow===6) td.classList.add("weekend");
+          if(holidays.has(iso)) td.classList.add("festivo");
+
+          const entries = (byOpDay[op] && byOpDay[op][d]) ? byOpDay[op][d] : [];
+
+          if(entries.length){
+            let total = 0;
+            entries.forEach(en=>{
+              const wrap = document.createElement("div");
+              wrap.className = "entry";
+              const cant = en.cantiere ? en.cantiere.toUpperCase() : "(SENZA CANTIERE)";
+              const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
+              const note   = en.note ? en.note : "";
+
+              wrap.innerHTML =
+                `<div class="cant">${cant}</div>
+                 <div class="ore">${oreTxt}</div>` +
+                (note ? `<div class="note">${note}</div>` : "");
+
+              td.appendChild(wrap);
+              if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
+            });
+            if(entries.length>1){
+              const tot = document.createElement("div");
+              tot.className = "tot";
+              tot.textContent = `Tot: ${(+total.toFixed(2)).toString()} h`;
+              td.appendChild(tot);
+            }
+          }else{
+            td.innerHTML = `<div class="center" style="min-height:30px;color:#bbb">—</div>`;
+          }
+
+        }else{
+          // fuori mese
+          td.style.background = "#fafafa";
+        }
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    if(operai.length===0){
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 1 + 31;
+      td.className = "center";
+      td.style.padding = "24px";
+      td.innerHTML = `<span class="error">Nessun operaio trovato in Foglio1.</span>`;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+  }
+
+  // === Caricamento + UI ===
+  const meseInput = document.getElementById("mese");
+  const btn       = document.getElementById("btnCarica");
+  const spin      = document.getElementById("spin");
+  const statusEl  = document.getElementById("status");
+
+  function setLoading(on){
+    spin.classList.toggle("show", !!on);
+    btn.disabled = !!on;
+  }
+
+  async function carica(){
+    try{
+      setLoading(true);
+      statusEl.textContent = "";
+      const ym = meseInput.value; // "YYYY-MM"
+      if(!ym){ statusEl.innerHTML = `<span class="error">Seleziona un mese.</span>`; return; }
+      const [Y,M] = ym.split("-").map(Number);
+
+      // Fetch Foglio1 da opensheet
+      const res = await fetch(URL);
+      const rows = await res.json();
+
+      renderHeader(Y, M);
+      renderBody(Y, M, rows);
+    }catch(err){
+      console.error(err);
+      statusEl.innerHTML = `<span class="error">Errore nel caricamento dati.</span>`;
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  // init
+  (function init(){
+    const now = new Date();
+    meseInput.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    carica();
+    btn.addEventListener("click", carica);
+  })();
+</script>
 </body>
 </html>
