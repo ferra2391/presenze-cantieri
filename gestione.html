@@ -35,7 +35,6 @@
     button:hover{filter:brightness(0.95)}
     .hint{color:var(--muted);font-size:12px;margin-top:6px}
 
-    /* wrapper con scroll orizzontale */
     .table-wrap{
       border:1px solid var(--border); border-radius:12px; background:var(--card);
       overflow:auto; box-shadow:0 2px 8px rgba(0,0,0,.04);
@@ -62,16 +61,16 @@
     .tot{margin-top:4px; font-weight:800}
     .center{display:flex;align-items:center;justify-content:center}
 
-    /* weekend/festivi */
     thead th.weekend, thead th.festivo{background:var(--orange-weak); border-bottom-color: var(--orange-weak-border)}
     tbody td.weekend, tbody td.festivo{background:var(--orange-weak)}
-    /* legenda piccola */
+
     .legend{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px}
     .pill{display:inline-block; height:12px; width:18px; border-radius:3px; background:var(--orange-weak); border:1px solid var(--orange-weak-border)}
     .spinner{display:none}
     .spinner.show{display:inline-block; width:16px; height:16px; border:2px solid #ddd; border-top-color:var(--primary); border-radius:50%; animation:spin 0.9s linear infinite; vertical-align:-3px}
     @keyframes spin{to{transform:rotate(360deg)}}
     .error{color:#b00020; font-weight:700}
+    .ok{color:#0b7a0b; font-weight:700}
   </style>
 </head>
 <body>
@@ -89,7 +88,7 @@
         <div class="legend">
           <span class="pill"></span> Sabato / Domenica / Festivi italiani
         </div>
-        <div class="hint">Clic su “Carica” per aggiornare la tabella. I nomi degli operai provengono da Foglio1, colonna <b>C</b>.</div>
+        <div class="hint">Righe = operai, Colonne = giorni (1..31). Dati da Foglio1; se non trovati, fallback da “Utenti”.</div>
       </div>
       <div class="row" id="status" style="margin-top:6px"></div>
     </div>
@@ -104,28 +103,29 @@
 
 <script>
   // === Config ===
-  const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ"; // il tuo ID
-  const FOGGLIO  = "Foglio1";
-  const URL = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(FOGGLIO)}`;
+  const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
+  const URL_FOGLIO1 = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent("Foglio1")}`;
+  const URL_UTENTI  = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent("Utenti")}`;
 
   // === Util ===
-  function pad(n){return String(n).padStart(2,"0");}
+  const pad = n => String(n).padStart(2,"0");
+
+  const normalize = s => String(s||"")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"") // rimuovi accenti
+      .trim().toLowerCase();
 
   function parseDateAny(v){
     if(!v) return null;
     if(v instanceof Date) return v;
     const s = String(v).trim();
-    // ISO: YYYY-MM-DD
-    if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){ // ISO
       const [Y,M,D] = s.split("T")[0].split("-").map(Number);
       return new Date(Y, M-1, D);
     }
-    // IT: DD/MM/YYYY
-    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){
-      const [d,m,y] = s.split("/").map(Number);
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ // IT
+      const [d,m,y] = s.split(/[ /]/).map(Number);
       return new Date(y, m-1, d);
     }
-    // fallback
     const t = new Date(s);
     return isNaN(t) ? null : t;
   }
@@ -144,25 +144,50 @@
     return set;
   }
 
-  function getField(row, keys){
-    for(const k of keys){ if(row[k] != null && row[k] !== "") return row[k]; }
+  // Prende un campo con nomi robusti: prova exact, poi cerca per “somiglianza”
+  function getFieldSmart(row, candidates){
+    // exact (case sensitive)
+    for(const k of candidates){
+      if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k];
+    }
+    // exact (case insensitive e trim accents)
+    const keys = Object.keys(row);
+    const normMap = new Map(keys.map(k => [normalize(k), k]));
+    for(const cand of candidates){
+      const n = normalize(cand);
+      if(normMap.has(n)){
+        const realKey = normMap.get(n);
+        if(row[realKey] != null && row[realKey] !== "") return row[realKey];
+      }
+    }
+    // contains “operaio”, “data”, “cantiere”, “ore”, “note” ecc.
+    const targets = candidates.map(normalize);
+    for(const k of keys){
+      const nk = normalize(k);
+      if(targets.some(t => nk.includes(normalize(t)))){
+        if(row[k] != null && row[k] !== "") return row[k];
+      }
+    }
+    // fallback colonne letterali
+    for(const k of candidates){
+      if(row[k] != null && row[k] !== "") return row[k];
+    }
     return "";
   }
 
-  // === Render intestazioni giorni ===
+  // === Header giorni ===
   function renderHeader(year, month){
     const thead = document.getElementById("thead");
     thead.innerHTML = "";
     const tr = document.createElement("tr");
 
-    // prima cella (Operaio)
     const th0 = document.createElement("th");
     th0.textContent = "Operaio";
     th0.style.minWidth = "160px";
     th0.style.textAlign = "left";
     tr.appendChild(th0);
 
-    const daysInMonth = new Date(year, month, 0).getDate(); // month = 1..12
+    const daysInMonth = new Date(year, month, 0).getDate();
     const holidays = italianHolidays(year);
 
     for(let d=1; d<=31; d++){
@@ -183,45 +208,62 @@
     thead.appendChild(tr);
   }
 
-  // === Render corpo tabella ===
-  function renderBody(year, month, dataRows){
+  // === Corpo tabella ===
+  function renderBody(year, month, dataRows, fallbackNames){
     const tbody = document.getElementById("tbody");
     tbody.innerHTML = "";
 
-    // 1) Nomi operai (colonna C) – da TUTTO Foglio1, ordinati
-    const allNamesSet = new Set();
+    // 1) Operai da Foglio1 (robusto) oppure fallback da Utenti
+    const setFromFoglio = new Set();
     dataRows.forEach(r=>{
-      const op = getField(r, ["Operaio","operaio","OPERAIO","C"]); // fallback
-      if(op && String(op).trim()) allNamesSet.add(String(op).trim());
+      const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
+      if(op) setFromFoglio.add(op);
     });
-    const operai = Array.from(allNamesSet).sort((a,b)=>a.localeCompare(b,'it'));
 
-    // 2) Filtro righe del mese scelto, e raggruppo per operaio -> giorno
+    let operai = Array.from(setFromFoglio);
+    if(operai.length === 0 && fallbackNames && fallbackNames.length){
+      operai = fallbackNames.slice(); // da Utenti
+    }
+    operai.sort((a,b)=>a.localeCompare(b,'it'));
+
+    // 2) Filtra righe del mese e raggruppa per operaio->giorno
     const byOpDay = {}; // { [op]: { [d]: [ {cantiere, ore, note} ] } }
     const daysInMonth = new Date(year, month, 0).getDate();
 
     dataRows.forEach(r=>{
-      const dataVal = getField(r, ["Data","data","DATA","A"]);
+      const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
       const dt = parseDateAny(dataVal);
       if(!dt) return;
       if(dt.getFullYear()!==year || (dt.getMonth()+1)!==month) return;
 
-      const op = String(getField(r, ["Operaio","operaio","OPERAIO","C"])).trim();
+      const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
       if(!op) return;
       const d = dt.getDate();
 
-      const cantiere = String(getField(r, ["Cantiere","cantiere","CANTIERE","E"])).trim();
-      const oreRaw   = getField(r, ["Ore","ore","ORE","H"]);
-      const ore = oreRaw!=="" && oreRaw!=null ? Number(String(oreRaw).replace(",",".")) : null;
-      const note     = String(getField(r, ["Note","note","NOTE","I"])).trim();
+      const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
+      const oreRaw = getFieldSmart(r, ["Ore","H","ORE","ore"]);
+      const ore = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
+      const note = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
 
       byOpDay[op] ??= {};
       byOpDay[op][d] ??= [];
       byOpDay[op][d].push({cantiere, ore, note});
     });
 
-    // 3) Disegno righe
+    // 3) Render
     const holidays = italianHolidays(year);
+
+    if(operai.length === 0){
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 1 + 31;
+      td.className = "center";
+      td.style.padding = "24px";
+      td.innerHTML = `<span class="error">Nessun operaio trovato (né in Foglio1 né in Utenti).</span>`;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
 
     operai.forEach(op=>{
       const tr = document.createElement("tr");
@@ -232,7 +274,6 @@
 
       for(let d=1; d<=31; d++){
         const td = document.createElement("td");
-        td.style.verticalAlign = "top";
 
         if(d <= daysInMonth){
           const dow = (new Date(year, month-1, d).getDay()+6)%7;
@@ -270,7 +311,6 @@
           }
 
         }else{
-          // fuori mese
           td.style.background = "#fafafa";
         }
         tr.appendChild(td);
@@ -278,17 +318,6 @@
 
       tbody.appendChild(tr);
     });
-
-    if(operai.length===0){
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 1 + 31;
-      td.className = "center";
-      td.style.padding = "24px";
-      td.innerHTML = `<span class="error">Nessun operaio trovato in Foglio1.</span>`;
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-    }
   }
 
   // === Caricamento + UI ===
@@ -310,12 +339,26 @@
       if(!ym){ statusEl.innerHTML = `<span class="error">Seleziona un mese.</span>`; return; }
       const [Y,M] = ym.split("-").map(Number);
 
-      // Fetch Foglio1 da opensheet
-      const res = await fetch(URL);
+      // 1) leggo Foglio1
+      const res = await fetch(URL_FOGLIO1);
       const rows = await res.json();
 
+      // 2) leggo Utenti (fallback nomi)
+      let fallbackNomi = [];
+      try {
+        const ures = await fetch(URL_UTENTI);
+        const utenti = await ures.json();
+        fallbackNomi = utenti
+          .map(r => (r["Nome"] || r["nome"] || "").toString().trim())
+          .filter(Boolean)
+          .sort((a,b)=>a.localeCompare(b,'it'));
+      } catch { /* opzionale */ }
+
       renderHeader(Y, M);
-      renderBody(Y, M, rows);
+      renderBody(Y, M, rows, fallbackNomi);
+
+      const nRows = Array.isArray(rows)? rows.length : 0;
+      statusEl.innerHTML = `<span class="ok">Dati caricati (${nRows} righe da Foglio1)</span>`;
     }catch(err){
       console.error(err);
       statusEl.innerHTML = `<span class="error">Errore nel caricamento dati.</span>`;
@@ -324,7 +367,6 @@
     }
   }
 
-  // init
   (function init(){
     const now = new Date();
     meseInput.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
