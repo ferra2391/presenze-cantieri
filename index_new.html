@@ -97,6 +97,7 @@
     .entry-lav{font-style:italic;color:var(--color-text-light)}
     .entry-ore{border:1px solid var(--color-border);background:var(--color-bg-alt);border-radius:999px;padding:4px 10px;font-weight:700;white-space:nowrap}
     .agenda-empty{color:var(--color-text-light);text-align:center;padding:10px 0}
+    .entry-missing{color:#c00000;font-weight:800;letter-spacing:.02em}
   </style>
 </head>
 <body>
@@ -392,7 +393,7 @@
       generaCampiCantieri();
       caricaRiepilogoAdmin();
 
-      // ricarico agenda dopo che GAS ha scritto/ordinato
+      // ricarico agenda dopo scrittura
       setTimeout(caricaAgendaMensile,1200);
     }
 
@@ -471,35 +472,30 @@
       }).catch(_=>renderAgenda([], y, m));
     }
 
-    // Renderer Agenda
+    // Renderer Agenda: mostra TUTTI i giorni del mese.
     function renderAgenda(presenze, y, m){
       const list=document.getElementById('agendaList'); if(!list) return;
       list.innerHTML='';
       const holidays=italianHolidays(y);
 
-      // raggruppo per giorno
+      // raggruppo per giorno (d -> array presenze)
       const byDay={};
       presenze.forEach(p=>{
         const iso=p.dataISO||p.data||p.data_iso; if(!iso) return;
         const d=+String(iso).split('-')[2]; (byDay[d] ||= []).push(p);
       });
-
-      // ordino le presenze del giorno (opzionale)
       Object.values(byDay).forEach(arr=>arr.sort((a,b)=> (a.id||0)-(b.id||0)));
 
-      // mostro SOLO i giorni con presenze, in ordine crescente
-      const days=Object.keys(byDay).map(n=>+n).sort((a,b)=>a-b);
-      if(days.length===0){
-        list.innerHTML=`<div class="agenda-empty">Nessuna presenza nel mese</div>`;
-        return;
-      }
-
+      const daysInMonth = new Date(y, m, 0).getDate();
+      const today = new Date(); today.setHours(0,0,0,0);
+      const isCurrentMonth = (today.getFullYear()===y && (today.getMonth()+1)===m);
       const dowLbl=['L','M','M','G','V','S','D'];
 
-      days.forEach(d=>{
-        const dateObj=new Date(y,m-1,d);
-        const dow=(dateObj.getDay()+6)%7;
-        const iso=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      for(let d=1; d<=daysInMonth; d++){
+        const dateObj = new Date(y, m-1, d); dateObj.setHours(0,0,0,0);
+        const dow = (dateObj.getDay()+6)%7;
+        const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const entries = byDay[d] || [];
 
         const dayRow=document.createElement('div');
         dayRow.className='agenda-day';
@@ -512,28 +508,47 @@
         badge.innerHTML=`<div class="dow">${dowLbl[dow]}</div><div class="day">${String(d).padStart(2,'0')}</div>`;
         dayRow.appendChild(badge);
 
-        const entries=document.createElement('div'); entries.className='day-entries';
+        const entriesWrap=document.createElement('div'); entriesWrap.className='day-entries';
 
-        byDay[d].forEach(r=>{
-          const card=document.createElement('div'); card.className='entry-card';
-          card.setAttribute('title',(r.ore?`${r.ore}h – `:'')+(r.cantiere||'')); 
-          card.addEventListener('click',()=>{ if(r.id) apriModifica(String(r.id)); });
+        if(entries.length===0){
+          // Nessuna presenza: se giorno passato nel mese corrente -> NON COMPILATO
+          if(isCurrentMonth && dateObj < today){
+            const miss=document.createElement('div');
+            miss.className='entry-missing';
+            miss.textContent='NON COMPILATO';
+            entriesWrap.appendChild(miss);
+          } else {
+            // Giorni futuri o di altri mesi (non dovrebbero capitare qui): nulla
+          }
+        } else {
+          entries.forEach(r=>{
+            const card=document.createElement('div'); card.className='entry-card';
+            card.setAttribute('title',(r.ore?`${r.ore}h – `:'')+(r.cantiere||'')); 
+            card.addEventListener('click',()=>{ if(r.id) apriModifica(String(r.id)); });
 
-          const left=document.createElement('div');
-          left.style.flex='1';
-          left.innerHTML=`<div class="entry-cant">${(r.cantiere||'').toString().toUpperCase()}</div>
-                          <div class="entry-lav">${r.lavorazione||''}</div>`;
+            const left=document.createElement('div'); left.style.flex='1';
+            left.innerHTML=`<div class="entry-cant">${(r.cantiere||'').toString().toUpperCase()}</div>
+                            <div class="entry-lav">${r.lavorazione||''}</div>`;
 
-          const ore=document.createElement('div'); ore.className='entry-ore';
-          ore.textContent = r.ore ? (r.ore+' h') : '';
+            const ore=document.createElement('div'); ore.className='entry-ore';
+            ore.textContent = r.ore ? (r.ore+' h') : '';
 
-          card.appendChild(left); card.appendChild(ore);
-          entries.appendChild(card);
-        });
+            card.appendChild(left); card.appendChild(ore);
+            entriesWrap.appendChild(card);
+          });
+        }
 
-        dayRow.appendChild(entries);
+        dayRow.appendChild(entriesWrap);
         list.appendChild(dayRow);
-      });
+      }
+
+      // Se davvero non c'è nulla nel mese, aggiungo un promemoria
+      if(presenze.length===0){
+        const info=document.createElement('div');
+        info.className='agenda-empty';
+        info.textContent='Nessuna presenza registrata per questo mese.';
+        list.appendChild(info);
+      }
     }
 
     /* init: carico suggerimenti; l'agenda parte dopo login */
