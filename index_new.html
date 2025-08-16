@@ -87,9 +87,22 @@
     .date-badge{min-width:64px;text-align:center;background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:10px;padding:6px 8px}
     .date-badge .dow{font-size:12px;color:var(--color-text-light);font-weight:700}
     .date-badge .day{font-size:20px;font-weight:800}
-    .date-badge.sabato{background:#fffdf7}
-    .date-badge.weekend{background:#fff7f7}
-    .date-badge.festivo{background:#fff0f0}
+/* Badge data: sabato/domenica/festivi in arancione tenue */
+.date-badge.sabato,
+.date-badge.weekend,
+.date-badge.festivo{
+  background: hsla(30, 100%, 50%, 0.12);   /* arancione molto tenue */
+  border-color: hsla(30, 100%, 50%, 0.35);
+}
+
+/* Intera riga del giorno (agenda-day) in arancione tenue */
+.agenda-day.sabato,
+.agenda-day.weekend,
+.agenda-day.festivo{
+  background: hsla(30, 100%, 50%, 0.07);
+  border-color: hsla(30, 100%, 50%, 0.25);
+}
+
     .day-entries{flex:1;display:flex;flex-direction:column;gap:8px}
     .entry-card{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;padding:12px;border:1px solid var(--color-border);border-radius:10px;background:#fff;cursor:pointer}
     .entry-card:hover{background:var(--color-bg-alt)}
@@ -505,6 +518,11 @@
         if(dow===5) badge.classList.add('sabato');
         if(dow===6) badge.classList.add('weekend');
         if(holidays.has(iso)) badge.classList.add('festivo');
+        // 👉 colora anche l’intera riga del giorno
+if(dow===5) dayRow.classList.add('sabato');
+if(dow===6) dayRow.classList.add('weekend');
+if(holidays.has(iso)) dayRow.classList.add('festivo');
+
         badge.innerHTML=`<div class="dow">${dowLbl[dow]}</div><div class="day">${String(d).padStart(2,'0')}</div>`;
         dayRow.appendChild(badge);
 
