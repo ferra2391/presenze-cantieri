@@ -22,21 +22,33 @@
       margin:0; background:var(--bg); color:var(--text);
       font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
     }
-    .container{
-      width:100%; max-width:100%; margin:0; padding:18px 18px 32px;
-    }
+    .container{width:100%; max-width:100%; margin:0; padding:18px 18px 32px;}
     h1{margin:0 0 12px; font-size:20px}
+
     .panel{
       background:var(--card); border:1px solid var(--border); border-radius:12px;
       padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); margin-bottom:16px;
     }
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
     label{font-weight:600}
-    input[type="month"],button{
+
+    /* month picker */
+    .month-picker{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+    .month-btn{
+      width:36px; height:36px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer;
+      font-weight:700;
+    }
+    .month-btn:hover{filter:brightness(0.96)}
+    input[type="month"], select{
       padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px; background:#fff;
     }
-    button{background:var(--primary); color:#fff; border-color:transparent; cursor:pointer; font-weight:700}
-    button:hover{filter:brightness(0.95)}
+    .hidden{display:none !important}
+
+    button.action{
+      padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px; background:var(--primary); color:#fff; font-weight:700; cursor:pointer;
+    }
+    button.action:hover{filter:brightness(0.95)}
+
     .hint{color:var(--muted); font-size:12px; margin-top:6px}
     .legend{display:flex; gap:10px; align-items:center; color:var(--muted); font-size:12px}
     .pill{display:inline-block; height:12px; width:18px; border-radius:3px; background:var(--orange-weak); border:1px solid var(--orange-weak-border)}
@@ -55,7 +67,6 @@
     }
     .table-title{padding:10px 12px; border-bottom:1px solid var(--border); font-weight:700}
 
-    /* tavole a tutta larghezza con sticky header/first col */
     .table-wrap{width:100%; overflow:auto}
     table{border-collapse:separate; border-spacing:0; min-width:100%; font-size:12px}
     thead th{
@@ -67,11 +78,11 @@
 
     tbody th{
       position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
-      text-align:left; padding:8px 10px; font-size:12px; min-width:200px; /* più largo su desktop */
+      text-align:left; padding:8px 10px; font-size:12px; min-width:220px; /* più largo su desktop */
     }
     td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
-      vertical-align:top; padding:6px; min-width:140px; max-width:320px; word-wrap:break-word;
+      vertical-align:top; padding:6px; min-width:160px; max-width:360px; word-wrap:break-word;
     }
     tr:last-child td{border-bottom:1px solid var(--border)}
 
@@ -91,10 +102,31 @@
     <div class="panel">
       <div class="row">
         <label for="mese">Mese</label>
-        <input type="month" id="mese">
-        <button id="btnCarica">Carica</button>
-        <span class="spinner" id="spin"></span>
+
+        <div class="month-picker">
+          <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
+
+          <!-- usa input month quando supportato -->
+          <input type="month" id="mese">
+
+          <!-- fallback (mostrato solo se il browser non supporta type=month) -->
+          <span id="meseFallback" class="hidden">
+            <select id="meseSel" aria-label="Mese">
+              <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+              <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+              <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+            </select>
+            <select id="annoSel" aria-label="Anno"></select>
+          </span>
+
+          <button id="nextMonth" class="month-btn" type="button" title="Mese successivo">▶</button>
+
+          <button id="btnCarica" class="action" type="button">Carica</button>
+          <span class="spinner" id="spin"></span>
+        </div>
       </div>
+
       <div class="row" style="margin-top:6px">
         <div class="legend">
           <span class="pill"></span> Sabato / Domenica / Festivi italiani
@@ -150,4 +182,331 @@
   }
 
   function calcEaster(Y){
-    const a=Y%19,b=Math.floor(Y/100)
+    const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
+          g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,L=(32+2*e+2*i-h-k)%7,
+          m=Math.floor((a+11*h+22*L)/451),month=Math.floor((h+L-7*m+114)/31),day=((h+L-7*m+114)%31)+1;
+    return new Date(Y,month-1,day);
+  }
+  function italianHolidays(year){
+    const set=new Set(),add=(m,d)=>set.add(`${year}-${pad(m)}-${pad(d)}`);
+    add(1,1); add(1,6); add(4,25); add(5,1); add(6,2); add(8,15); add(11,1); add(12,8); add(12,25); add(12,26);
+    const p=calcEaster(year), q=new Date(p); q.setDate(p.getDate()+1);
+    add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
+    return set;
+  }
+
+  function getFieldSmart(row, candidates){
+    // exact
+    for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
+    // case/accents insensitive
+    const keys = Object.keys(row);
+    const normMap = new Map(keys.map(k => [normalize(k), k]));
+    for(const cand of candidates){
+      const n = normalize(cand);
+      if(normMap.has(n)){
+        const realKey = normMap.get(n);
+        if(row[realKey] != null && row[realKey] !== "") return row[realKey];
+      }
+    }
+    // contains
+    const targets = candidates.map(normalize);
+    for(const k of keys){
+      const nk = normalize(k);
+      if(targets.some(t => nk.includes(t))){
+        if(row[k] != null && row[k] !== "") return row[k];
+      }
+    }
+    // fallback columns literal
+    for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
+    return "";
+  }
+
+  // ====== Month control (resiliente) ======
+  const meseInput   = document.getElementById("mese");
+  const meseFallback= document.getElementById("meseFallback");
+  const selMese     = document.getElementById("meseSel");
+  const selAnno     = document.getElementById("annoSel");
+  const prevBtn     = document.getElementById("prevMonth");
+  const nextBtn     = document.getElementById("nextMonth");
+  const btn         = document.getElementById("btnCarica");
+  const spin        = document.getElementById("spin");
+  const statusEl    = document.getElementById("status");
+  const titleA      = document.getElementById("titleA");
+  const titleB      = document.getElementById("titleB");
+
+  const supportsMonth = (() => {
+    const i=document.createElement('input');
+    i.setAttribute('type','month');
+    return i.type === 'month';
+  })();
+
+  function populateYearSelect(baseYear){
+    selAnno.innerHTML = "";
+    for(let y=baseYear-4; y<=baseYear+2; y++){
+      const opt=document.createElement('option');
+      opt.value=String(y); opt.textContent=String(y);
+      selAnno.appendChild(opt);
+    }
+  }
+
+  function setYM(Y,M,updateControls=true){
+    const val = `${Y}-${pad(M)}`;
+    if(supportsMonth){
+      meseInput.value = val;
+    }
+    if(updateControls){
+      selAnno.value = String(Y);
+      selMese.value = String(M);
+    }
+    // aggiorna titoli pannelli
+    const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
+    titleA.textContent = `Giorni 1–15 — ${monthName} ${Y}`;
+    titleB.textContent = `Giorni 16–31 — ${monthName} ${Y}`;
+  }
+
+  function getYM(){
+    if(supportsMonth){
+      const v = meseInput.value;
+      if(v && /^\d{4}-\d{2}$/.test(v)){
+        const [Y,M] = v.split('-').map(Number);
+        return [Y,M];
+      }
+    }
+    return [Number(selAnno.value), Number(selMese.value)];
+  }
+
+  function shiftMonth(delta){
+    let [Y,M] = getYM();
+    M += delta;
+    if(M<1){ M=12; Y--; }
+    if(M>12){ M=1; Y++; }
+    setYM(Y,M,true);
+    carica(); // carica subito passando di mese
+  }
+
+  // ====== Header per metà mese ======
+  function renderHeaderHalf(containerTheadId, year, month, startDay, endDay){
+    const thead = document.getElementById(containerTheadId);
+    thead.innerHTML = "";
+    const tr = document.createElement("tr");
+
+    const th0 = document.createElement("th");
+    th0.textContent = "Operaio";
+    th0.style.textAlign = "left";
+    tr.appendChild(th0);
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const holidays = italianHolidays(year);
+
+    for(let d=startDay; d<=endDay; d++){
+      const th = document.createElement("th");
+      th.textContent = d;
+      th.style.minWidth = "140px";
+      th.title = `${pad(d)}/${pad(month)}/${year}`;
+      if(d > daysInMonth){
+        th.classList.add("day-void");
+      }else{
+        const dow = (new Date(year, month-1, d).getDay()+6)%7; // 0=Lun
+        const iso = `${year}-${pad(month)}-${pad(d)}`;
+        if(dow===5 || dow===6) th.classList.add("weekend");
+        if(holidays.has(iso)) th.classList.add("festivo");
+      }
+      tr.appendChild(th);
+    }
+    thead.appendChild(tr);
+  }
+
+  // ====== Corpo per metà mese ======
+  function renderBodyHalf(containerTbodyId, year, month, startDay, endDay, operai, byOpDay){
+    const tbody = document.getElementById(containerTbodyId);
+    tbody.innerHTML = "";
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const holidays = italianHolidays(year);
+
+    operai.forEach(op=>{
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      th.textContent = op;
+      tr.appendChild(th);
+
+      for(let d=startDay; d<=endDay; d++){
+        const td = document.createElement("td");
+
+        if(d <= daysInMonth){
+          const dow = (new Date(year, month-1, d).getDay()+6)%7;
+          const iso = `${year}-${pad(month)}-${pad(d)}`;
+          if(dow===5 || dow===6) td.classList.add("weekend");
+          if(holidays.has(iso)) td.classList.add("festivo");
+
+          const entries = (byOpDay[op] && byOpDay[op][d]) ? byOpDay[op][d] : [];
+
+          if(entries.length){
+            let total = 0;
+            entries.forEach(en=>{
+              const wrap = document.createElement("div");
+              wrap.className = "entry";
+              const cant = en.cantiere ? en.cantiere.toUpperCase() : "(SENZA CANTIERE)";
+              const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
+              const note   = en.note ? en.note : "";
+
+              wrap.innerHTML =
+                `<div class="cant">${cant}</div>
+                 <div class="ore">${oreTxt}</div>` +
+                (note ? `<div class="note">${note}</div>` : "");
+
+              td.appendChild(wrap);
+              if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
+            });
+            if(entries.length>1){
+              const tot = document.createElement("div");
+              tot.className = "tot";
+              tot.textContent = `Tot: ${(+total.toFixed(2)).toString()} h`;
+              td.appendChild(tot);
+            }
+          }else{
+            td.innerHTML = `<div class="center" style="min-height:30px;color:#bbb">—</div>`;
+          }
+        }else{
+          td.style.background = "#fafafa";
+        }
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    if(operai.length===0){
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = (endDay-startDay+1) + 1;
+      td.className = "center";
+      td.style.padding = "24px";
+      td.innerHTML = `<span class="error">Nessun operaio trovato.</span>`;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+  }
+
+  // ====== Caricamento + orchestrazione ======
+  function setLoading(on){
+    spin.classList.toggle("show", !!on);
+    btn.disabled = !!on;
+    prevBtn.disabled = !!on;
+    nextBtn.disabled = !!on;
+  }
+
+  async function carica(){
+    try{
+      setLoading(true);
+      statusEl.textContent = "";
+
+      const [Y,M] = getYM();
+      if(!Y || !M){ statusEl.innerHTML = `<span class="error">Seleziona un mese.</span>`; return; }
+
+      // 1) Foglio1
+      const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
+      const rows = await res.json();
+
+      // 2) Fallback nomi da Utenti
+      let fallbackNomi = [];
+      try {
+        const ures = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Utenti`);
+        const utenti = await ures.json();
+        fallbackNomi = utenti
+          .map(r => (r["Nome"] || r["nome"] || "").toString().trim())
+          .filter(Boolean)
+          .sort((a,b)=>a.localeCompare(b,'it'));
+      } catch {}
+
+      // 3) Operai lista
+      const setFromFoglio = new Set();
+      rows.forEach(r=>{
+        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
+        if(op) setFromFoglio.add(op);
+      });
+      let operai = Array.from(setFromFoglio);
+      if(operai.length === 0 && fallbackNomi.length) operai = fallbackNomi.slice();
+      operai.sort((a,b)=>a.localeCompare(b,'it'));
+
+      // 4) Raggruppo per operaio -> giorno
+      const byOpDay = {};
+      rows.forEach(r=>{
+        const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
+        const dt = parseDateAny(dataVal);
+        if(!dt) return;
+        if(dt.getFullYear()!==Y || (dt.getMonth()+1)!==M) return;
+
+        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
+        if(!op) return;
+        const d = dt.getDate();
+
+        const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
+        const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
+        const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
+        const note     = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
+
+        byOpDay[op] ??= {};
+        byOpDay[op][d] ??= [];
+        byOpDay[op][d].push({cantiere, ore, note});
+      });
+
+      // 5) Render due metà
+      const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
+      titleA.textContent = `Giorni 1–15 — ${monthName} ${Y}`;
+      titleB.textContent = `Giorni 16–31 — ${monthName} ${Y}`;
+
+      renderHeaderHalf("theadA", Y, M, 1, 15);
+      renderHeaderHalf("theadB", Y, M, 16, 31);
+
+      renderBodyHalf("tbodyA", Y, M, 1, 15, operai, byOpDay);
+      renderBodyHalf("tbodyB", Y, M, 16, 31, operai, byOpDay);
+
+      statusEl.innerHTML = `<span class="ok">Dati caricati (${rows.length} righe da Foglio1)</span>`;
+    }catch(err){
+      console.error(err);
+      statusEl.innerHTML = `<span class="error">Errore nel caricamento dati.</span>`;
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  (function init(){
+    // fallback per browser senza month
+    if(!supportsMonth){
+      meseInput.classList.add('hidden');
+      meseFallback.classList.remove('hidden');
+    }
+
+    // popola anni
+    const now = new Date();
+    populateYearSelect(now.getFullYear());
+
+    // imposta mese corrente
+    const Y = now.getFullYear();
+    const M = now.getMonth()+1;
+    setYM(Y,M,true);
+
+    // event bindings
+    btn.addEventListener("click", carica);
+    prevBtn.addEventListener("click", ()=>shiftMonth(-1));
+    nextBtn.addEventListener("click", ()=>shiftMonth(+1));
+
+    // cambia da input month → sincronizza fallback
+    meseInput.addEventListener("change", ()=>{
+      const v = meseInput.value; // "YYYY-MM"
+      if(v && /^\d{4}-\d{2}$/.test(v)){
+        const [y,m] = v.split('-').map(Number);
+        setYM(y,m,true);
+      }
+    });
+
+    // cambia da fallback selects → sincronizza
+    selMese.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
+    selAnno.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
+
+    // primo caricamento
+    carica();
+  })();
+</script>
+</body>
+</html>
