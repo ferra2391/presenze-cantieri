@@ -358,3 +358,165 @@
                 `<div class="cant">${cant}</div>
                  <div class="ore">${oreTxt}</div>` +
                 (note ? `<div class="note">${note}</div>` : "");
+
+              td.appendChild(wrap);
+              if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
+            });
+            if(entries.length>1){
+              const tot = document.createElement("div");
+              tot.className = "tot";
+              tot.textContent = `Tot: ${(+total.toFixed(2)).toString()} h`;
+              td.appendChild(tot);
+            }
+          }else{
+            td.innerHTML = `<div class="center" style="min-height:30px;color:#bbb">—</div>`;
+          }
+        }else{
+          td.style.background = "#fafafa";
+        }
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    if(operai.length===0){
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = (endDay-startDay+1) + 1;
+      td.className = "center";
+      td.style.padding = "24px";
+      td.innerHTML = `<span class="error">Nessun operaio trovato.</span>`;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+  }
+
+  // ====== Caricamento + orchestrazione ======
+  function setLoading(on){
+    spin.classList.toggle("show", !!on);
+    btn.disabled = !!on;
+    prevBtn.disabled = !!on;
+    nextBtn.disabled = !!on;
+  }
+
+  async function carica(){
+    try{
+      setLoading(true);
+      statusEl.textContent = "";
+
+      const [Y,M] = getYM();
+      if(!Y || !M){ statusEl.innerHTML = `<span class="error">Seleziona un mese.</span>`; return; }
+
+      // 1) Foglio1
+      const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
+      const rows = await res.json();
+
+      // 2) Fallback nomi da Utenti
+      let fallbackNomi = [];
+      try {
+        const ures = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Utenti`);
+        const utenti = await ures.json();
+        fallbackNomi = utenti
+          .map(r => (r["Nome"] || r["nome"] || "").toString().trim())
+          .filter(Boolean)
+          .sort((a,b)=>a.localeCompare(b,'it'));
+      } catch {}
+
+      // 3) Operai lista
+      const setFromFoglio = new Set();
+      rows.forEach(r=>{
+        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
+        if(op) setFromFoglio.add(op);
+      });
+      let operai = Array.from(setFromFoglio);
+      if(operai.length === 0 && fallbackNomi.length) operai = fallbackNomi.slice();
+      operai.sort((a,b)=>a.localeCompare(b,'it'));
+
+      // 4) Raggruppo per operaio -> giorno (ignorando “Orari”)
+      const byOpDay = {};
+      rows.forEach(r=>{
+        const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
+        const dt = parseDateAny(dataVal);
+        if(!dt) return;
+        if(dt.getFullYear()!==Y || (dt.getMonth()+1)!==M) return;
+
+        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
+        if(!op) return;
+        const d = dt.getDate();
+
+        const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
+        // ore: prendi solo dalla colonna ore, non dagli orari
+        const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
+        const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
+        // note ripulite da eventuali intervalli orari
+        const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
+        const note     = stripIntervals(noteRaw);
+
+        byOpDay[op] ??= {};
+        byOpDay[op][d] ??= [];
+        byOpDay[op][d].push({cantiere, ore, note});
+      });
+
+      // 5) Render due metà
+      const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
+      titleA.textContent = `Giorni 1–15 — ${monthName} ${Y}`;
+      titleB.textContent = `Giorni 16–31 — ${monthName} ${Y}`;
+
+      renderHeaderHalf("theadA", Y, M, 1, 15);
+      renderHeaderHalf("theadB", Y, M, 16, 31);
+
+      renderBodyHalf("tbodyA", Y, M, 1, 15, operai, byOpDay);
+      renderBodyHalf("tbodyB", Y, M, 16, 31, operai, byOpDay);
+
+      statusEl.innerHTML = `<span class="ok">Dati caricati (${rows.length} righe da Foglio1)</span>`;
+    }catch(err){
+      console.error(err);
+      statusEl.innerHTML = `<span class="error">Errore nel caricamento dati.</span>`;
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  (function init(){
+    // fallback per browser senza month
+    if(!supportsMonth){
+      meseInput.classList.add('hidden');
+      meseFallback.classList.remove('hidden');
+    }
+
+    // popola anni
+    const now = new Date();
+    selAnno.innerHTML = "";
+    for(let y=now.getFullYear()-4; y<=now.getFullYear()+2; y++){
+      const opt=document.createElement('option');
+      opt.value=String(y); opt.textContent=String(y);
+      selAnno.appendChild(opt);
+    }
+
+    // imposta mese corrente
+    const Y = now.getFullYear();
+    const M = now.getMonth()+1;
+    setYM(Y,M,true);
+
+    // event bindings
+    document.getElementById("btnCarica").addEventListener("click", carica);
+    document.getElementById("prevMonth").addEventListener("click", ()=>shiftMonth(-1));
+    document.getElementById("nextMonth").addEventListener("click", ()=>shiftMonth(+1));
+
+    meseInput.addEventListener("change", ()=>{
+      const v = meseInput.value; // "YYYY-MM"
+      if(v && /^\d{4}-\d{2}$/.test(v)){
+        const [y,m] = v.split('-').map(Number);
+        setYM(y,m,true);
+      }
+    });
+    selMese.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
+    selAnno.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
+
+    // primo caricamento
+    carica();
+  })();
+</script>
+</body>
+</html>
