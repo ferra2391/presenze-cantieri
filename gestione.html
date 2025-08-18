@@ -578,10 +578,11 @@
   overlay.addEventListener('click', closeEdit);
   window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEdit(); });
 
+  // 👉 Salvataggio senza headers, in no-cors (niente preflight)
   document.getElementById('btnSave').addEventListener('click', ()=>{
     const payload = {
       modifica: 1,
-      id: modId.value,
+      id: String(modId.value || "").trim(),
       data: modData.value || "",
       orari: "", // non usiamo intervalli orari
       cantiere: modCant.value || "",
@@ -589,17 +590,20 @@
       ore: modOre.value || "",
       note: modNote.value || ""
     };
-    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
-      .then(res => res.text())
-      .then(_ => {
-        closeEdit();
-        // ricarico mese corrente per riflettere le modifiche
-        carica();
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Errore durante il salvataggio.");
-      });
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(payload)
+    })
+    .then(() => {
+      closeEdit();
+      setTimeout(carica, 900); // lascia tempo al GAS di scrivere/ordinare
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Errore durante il salvataggio.");
+    });
   });
 
   (function init(){
