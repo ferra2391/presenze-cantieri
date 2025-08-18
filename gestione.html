@@ -15,6 +15,7 @@
       --orange-weak: hsla(30,100%,50%,0.08); /* festivi/weekend */
       --orange-weak-border: hsla(30,100%,50%,0.25);
       --danger: #c00000;
+      --overlay: rgba(0,0,0,.45);
     }
     *{box-sizing:border-box}
     html, body{height:100%}
@@ -87,12 +88,36 @@
     tr:last-child td{border-bottom:1px solid var(--border)}
 
     tbody td.weekend, tbody td.festivo{background:var(--orange-weak)}
-    td .entry{margin-bottom:6px}
+    td .entry{margin-bottom:6px; cursor:pointer}
+    .entry:hover{filter:brightness(0.97)}
     .cant{color:var(--danger); font-weight:800; text-transform:uppercase; letter-spacing:.02em}
     .ore{color:#111; font-weight:600}
     .note{color:var(--muted); font-style:italic}
     .tot{margin-top:4px; font-weight:800}
     .center{display:flex; align-items:center; justify-content:center}
+
+    /* ==== Modale modifica ==== */
+    #overlay{
+      position:fixed; inset:0; background:var(--overlay);
+      display:none; z-index:999;
+    }
+    #modal{
+      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+      background:#fff; border:1px solid var(--border); border-radius:12px;
+      width:92%; max-width:520px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+      display:none; z-index:1000;
+    }
+    #modal h3{margin:0 0 12px}
+    .modal-row{display:flex; gap:10px; flex-wrap:wrap}
+    .modal-row > *{flex:1}
+    #modal input[type="date"], #modal input[type="text"], #modal input[type="number"], #modal textarea{
+      width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px;
+    }
+    #modal textarea{min-height:80px; resize:vertical}
+    .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:12px}
+    .btn{padding:10px 12px; border-radius:10px; border:1px solid var(--border); cursor:pointer}
+    .btn.save{background:var(--primary); color:#fff; border-color:transparent}
+    .btn.cancel{background:#f2f2f2}
   </style>
 </head>
 <body>
@@ -131,7 +156,7 @@
         <div class="legend">
           <span class="pill"></span> Sabato / Domenica / Festivi italiani
         </div>
-        <div class="hint">Righe = Operai (Foglio1 col. C o fallback “Utenti”). Celle: CANTIERE (rosso) → ore → note; se più cantieri: “Tot: X h”.</div>
+        <div class="hint">Righe = Operai (Foglio1 col. C o fallback “Utenti”). Celle: CANTIERE (rosso) → ore → note; se più cantieri: “Tot: X h”. Clicca su un evento per modificarlo.</div>
       </div>
       <div class="row" id="status" style="margin-top:6px"></div>
     </div>
@@ -160,9 +185,47 @@
     </div>
   </div>
 
+  <!-- ====== Modale Modifica ====== -->
+  <div id="overlay"></div>
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Modifica presenza</h3>
+    <input type="hidden" id="mod_id">
+    <div class="modal-row">
+      <div>
+        <label>Data</label>
+        <input type="date" id="mod_data">
+      </div>
+      <div>
+        <label>Ore</label>
+        <input type="number" id="mod_ore" step="0.25" min="0" placeholder="es. 8">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>Cantiere</label>
+        <input type="text" id="mod_cantiere" placeholder="Nome cantiere">
+      </div>
+      <div>
+        <label>Lavorazione</label>
+        <input type="text" id="mod_lavorazione" placeholder="Descrizione lavorazione">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>Note</label>
+        <textarea id="mod_note" placeholder="Eventuali note"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn cancel" type="button" id="btnCancel">Annulla</button>
+      <button class="btn save" type="button" id="btnSave">Salva</button>
+    </div>
+  </div>
+
 <script>
   // === Config ===
   const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
+  const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
 
   // === Util ===
   const pad = n => String(n).padStart(2,"0");
@@ -177,6 +240,11 @@
     if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const [Y,M,D]=s.split("T")[0].split("-").map(Number); return new Date(Y,M-1,D); }
     if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
     const t = new Date(s); return isNaN(t) ? null : t;
+  }
+
+  function toISODateInput(d){
+    if(!(d instanceof Date) || isNaN(d)) return "";
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
 
   function calcEaster(Y){
@@ -194,9 +262,7 @@
   }
 
   function getFieldSmart(row, candidates){
-    // exact
     for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
-    // case/accents insensitive
     const keys = Object.keys(row);
     const normMap = new Map(keys.map(k => [normalize(k), k]));
     for(const cand of candidates){
@@ -206,7 +272,6 @@
         if(row[realKey] != null && row[realKey] !== "") return row[realKey];
       }
     }
-    // contains
     const targets = candidates.map(normalize);
     for(const k of keys){
       const nk = normalize(k);
@@ -214,13 +279,12 @@
         if(row[k] != null && row[k] !== "") return row[k];
       }
     }
-    // fallback columns literal
     for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
     return "";
   }
 
   // ====== rimozione intervalli orari dal testo ======
-  const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g; // es. 08:00 - 17:00 o 8.00-17.00
+  const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g; // 08:00 - 17:00 o 8.00-17.00
   function stripIntervals(s){
     if(!s) return "";
     return String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim();
@@ -256,14 +320,8 @@
 
   function setYM(Y,M,updateControls=true){
     const val = `${Y}-${pad(M)}`;
-    if(supportsMonth){
-      meseInput.value = val;
-    }
-    if(updateControls){
-      selAnno.value = String(Y);
-      selMese.value = String(M);
-    }
-    // aggiorna titoli pannelli
+    if(supportsMonth){ meseInput.value = val; }
+    if(updateControls){ selAnno.value = String(Y); selMese.value = String(M); }
     const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
     titleA.textContent = `Giorni 1–15 — ${monthName} ${Y}`;
     titleB.textContent = `Giorni 16–31 — ${monthName} ${Y}`;
@@ -286,7 +344,7 @@
     if(M<1){ M=12; Y--; }
     if(M>12){ M=1; Y++; }
     setYM(Y,M,true);
-    carica(); // carica subito passando di mese
+    carica();
   }
 
   // ====== Header per metà mese ======
@@ -350,6 +408,9 @@
             entries.forEach(en=>{
               const wrap = document.createElement("div");
               wrap.className = "entry";
+              wrap.title = "Clicca per modificare";
+              wrap.addEventListener('click', ()=> openEdit(en.id)); // 👈 click per modificare
+
               const cant = stripIntervals(en.cantiere ? en.cantiere.toUpperCase() : "(SENZA CANTIERE)");
               const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
               const note   = stripIntervals(en.note ? en.note : "");
@@ -408,9 +469,10 @@
       const [Y,M] = getYM();
       if(!Y || !M){ statusEl.innerHTML = `<span class="error">Seleziona un mese.</span>`; return; }
 
-      // 1) Foglio1
+      // 1) Foglio1 (aggiungo numero riga come id = index+2)
       const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
-      const rows = await res.json();
+      const rows = (await res.json()) || [];
+      rows.forEach((r,idx)=>{ r.__row = idx + 2; }); // 👈 id di riga
 
       // 2) Fallback nomi da Utenti
       let fallbackNomi = [];
@@ -433,7 +495,7 @@
       if(operai.length === 0 && fallbackNomi.length) operai = fallbackNomi.slice();
       operai.sort((a,b)=>a.localeCompare(b,'it'));
 
-      // 4) Raggruppo per operaio -> giorno (ignorando “Orari”)
+      // 4) Raggruppo per operaio -> giorno (con id riga)
       const byOpDay = {};
       rows.forEach(r=>{
         const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
@@ -446,16 +508,14 @@
         const d = dt.getDate();
 
         const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
-        // ore: prendi solo dalla colonna ore, non dagli orari
         const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
         const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
-        // note ripulite da eventuali intervalli orari
         const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
         const note     = stripIntervals(noteRaw);
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
-        byOpDay[op][d].push({cantiere, ore, note});
+        byOpDay[op][d].push({ id: r.__row, cantiere, ore, note });
       });
 
       // 5) Render due metà
@@ -478,34 +538,87 @@
     }
   }
 
+  // ====== Modale: apertura/chiusura/salvataggio ======
+  const overlay = document.getElementById('overlay');
+  const modal   = document.getElementById('modal');
+  const modId   = document.getElementById('mod_id');
+  const modData = document.getElementById('mod_data');
+  const modOre  = document.getElementById('mod_ore');
+  const modCant = document.getElementById('mod_cantiere');
+  const modLav  = document.getElementById('mod_lavorazione');
+  const modNote = document.getElementById('mod_note');
+
+  function openEdit(id){
+    // leggo i dettagli dal GAS per sicurezza (campi coerenti)
+    fetch(`${GAS_URL}?getPresenza=1&id=${encodeURIComponent(id)}`)
+      .then(res => res.json())
+      .then(obj=>{
+        modId.value = obj.id || id;
+        const d = parseDateAny(obj.data);
+        modData.value = toISODateInput(d);
+        modOre.value  = (obj.ore!=null && !isNaN(obj.ore)) ? obj.ore : "";
+        modCant.value = obj.cantiere || "";
+        modLav.value  = obj.lavorazione || "";
+        modNote.value = obj.note || "";
+        overlay.style.display='block';
+        modal.style.display='block';
+      })
+      .catch(_=>{
+        // fallback minimo, se non riuscisse la GET
+        modId.value = id;
+        overlay.style.display='block';
+        modal.style.display='block';
+      });
+  }
+  function closeEdit(){
+    modal.style.display='none';
+    overlay.style.display='none';
+  }
+  document.getElementById('btnCancel').addEventListener('click', closeEdit);
+  overlay.addEventListener('click', closeEdit);
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEdit(); });
+
+  document.getElementById('btnSave').addEventListener('click', ()=>{
+    const payload = {
+      modifica: 1,
+      id: modId.value,
+      data: modData.value || "",
+      orari: "", // non usiamo intervalli orari
+      cantiere: modCant.value || "",
+      lavorazione: modLav.value || "",
+      ore: modOre.value || "",
+      note: modNote.value || ""
+    };
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+      .then(res => res.text())
+      .then(_ => {
+        closeEdit();
+        // ricarico mese corrente per riflettere le modifiche
+        carica();
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Errore durante il salvataggio.");
+      });
+  });
+
   (function init(){
-    // fallback per browser senza month
     if(!supportsMonth){
       meseInput.classList.add('hidden');
       meseFallback.classList.remove('hidden');
     }
-
-    // popola anni
     const now = new Date();
-    selAnno.innerHTML = "";
-    for(let y=now.getFullYear()-4; y<=now.getFullYear()+2; y++){
-      const opt=document.createElement('option');
-      opt.value=String(y); opt.textContent=String(y);
-      selAnno.appendChild(opt);
-    }
-
-    // imposta mese corrente
+    populateYearSelect(now.getFullYear());
     const Y = now.getFullYear();
     const M = now.getMonth()+1;
     setYM(Y,M,true);
 
-    // event bindings
     document.getElementById("btnCarica").addEventListener("click", carica);
     document.getElementById("prevMonth").addEventListener("click", ()=>shiftMonth(-1));
     document.getElementById("nextMonth").addEventListener("click", ()=>shiftMonth(+1));
 
     meseInput.addEventListener("change", ()=>{
-      const v = meseInput.value; // "YYYY-MM"
+      const v = meseInput.value;
       if(v && /^\d{4}-\d{2}$/.test(v)){
         const [y,m] = v.split('-').map(Number);
         setYM(y,m,true);
@@ -514,7 +627,6 @@
     selMese.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
     selAnno.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
 
-    // primo caricamento
     carica();
   })();
 </script>
