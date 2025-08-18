@@ -17,8 +17,8 @@
       --danger: #c00000;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    .container{max-width:1200px;margin:0 auto;padding:18px}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .container{max-width:1600px;margin:0 auto;padding:18px}
     h1{margin:0 0 12px;font-size:20px}
     .panel{
       background:var(--card); border:1px solid var(--border); border-radius:12px;
@@ -29,48 +29,49 @@
     input[type="month"],button{
       padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px; background:#fff;
     }
-    button{
-      background:var(--primary); color:#fff; border-color:transparent; cursor:pointer; font-weight:700;
-    }
+    button{background:var(--primary); color:#fff; border-color:transparent; cursor:pointer; font-weight:700}
     button:hover{filter:brightness(0.95)}
     .hint{color:var(--muted);font-size:12px;margin-top:6px}
+    .legend{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px}
+    .pill{display:inline-block; height:12px; width:18px; border-radius:3px; background:var(--orange-weak); border:1px solid var(--orange-weak-border)}
+    .spinner{display:none}
+    .spinner.show{display:inline-block; width:16px; height:16px; border:2px solid #ddd; border-top-color:var(--primary); border-radius:50%; animation:spin .9s linear infinite; vertical-align:-3px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .error{color:#b00020; font-weight:700}
+    .ok{color:#0b7a0b; font-weight:700}
 
-    .table-wrap{
-      border:1px solid var(--border); border-radius:12px; background:var(--card);
-      overflow:auto; box-shadow:0 2px 8px rgba(0,0,0,.04);
-    }
+    /* griglia 2 tabelle (desktop affiancate) */
+    .matrix-grid{display:grid; gap:14px}
+    @media(min-width:992px){ .matrix-grid{grid-template-columns:1fr 1fr;} }
+
+    .table-card{background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.04); overflow:auto}
+    .table-title{padding:10px 12px; border-bottom:1px solid var(--border); font-weight:700}
+
     table{border-collapse:separate;border-spacing:0;min-width:100%;font-size:12px}
     thead th{
       position:sticky; top:0; z-index:2; background:#fff; border-bottom:1px solid var(--border);
       padding:8px 6px; text-align:center; white-space:nowrap;
     }
     thead th.day-void{color:#aaa; background:#fafafa}
+    thead th.weekend, thead th.festivo{background:var(--orange-weak); border-bottom-color:var(--orange-weak-border)}
+
     tbody th{
       position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
-      text-align:left; padding:8px 10px; font-size:12px;
+      text-align:left; padding:8px 10px; font-size:12px; min-width:160px;
     }
     td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
-      vertical-align:top; padding:6px; min-width:120px; max-width:220px; word-wrap:break-word;
+      vertical-align:top; padding:6px; min-width:120px; max-width:240px; word-wrap:break-word;
     }
     tr:last-child td{border-bottom:1px solid var(--border)}
+
+    tbody td.weekend, tbody td.festivo{background:var(--orange-weak)}
     td .entry{margin-bottom:6px}
     .cant{color:var(--danger); font-weight:800; text-transform:uppercase; letter-spacing:.02em}
     .ore{color:#111; font-weight:600}
     .note{color:var(--muted); font-style:italic}
     .tot{margin-top:4px; font-weight:800}
     .center{display:flex;align-items:center;justify-content:center}
-
-    thead th.weekend, thead th.festivo{background:var(--orange-weak); border-bottom-color: var(--orange-weak-border)}
-    tbody td.weekend, tbody td.festivo{background:var(--orange-weak)}
-
-    .legend{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px}
-    .pill{display:inline-block; height:12px; width:18px; border-radius:3px; background:var(--orange-weak); border:1px solid var(--orange-weak-border)}
-    .spinner{display:none}
-    .spinner.show{display:inline-block; width:16px; height:16px; border:2px solid #ddd; border-top-color:var(--primary); border-radius:50%; animation:spin 0.9s linear infinite; vertical-align:-3px}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .error{color:#b00020; font-weight:700}
-    .ok{color:#0b7a0b; font-weight:700}
   </style>
 </head>
 <body>
@@ -88,16 +89,32 @@
         <div class="legend">
           <span class="pill"></span> Sabato / Domenica / Festivi italiani
         </div>
-        <div class="hint">Righe = operai, Colonne = giorni (1..31). Dati da Foglio1; se non trovati, fallback da “Utenti”.</div>
+        <div class="hint">Righe = Operai (Foglio1 col. C o fallback “Utenti”). Cella: CANTIERE (rosso) → ore → note; se più cantieri, “Tot: X h”.</div>
       </div>
       <div class="row" id="status" style="margin-top:6px"></div>
     </div>
 
-    <div class="table-wrap">
-      <table id="matrix">
-        <thead id="thead"></thead>
-        <tbody id="tbody"></tbody>
-      </table>
+    <div class="matrix-grid">
+      <!-- Prima metà (1–15) -->
+      <div class="table-card">
+        <div class="table-title" id="titleA">Giorni 1–15</div>
+        <div class="table-wrap">
+          <table id="matrixA">
+            <thead id="theadA"></thead>
+            <tbody id="tbodyA"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Seconda metà (16–31) -->
+      <div class="table-card">
+        <div class="table-title" id="titleB">Giorni 16–31</div>
+        <div class="table-wrap">
+          <table id="matrixB">
+            <thead id="theadB"></thead>
+            <tbody id="tbodyB"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -109,25 +126,17 @@
 
   // === Util ===
   const pad = n => String(n).padStart(2,"0");
-
   const normalize = s => String(s||"")
-      .normalize("NFD").replace(/[\u0300-\u036f]/g,"") // rimuovi accenti
-      .trim().toLowerCase();
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .trim().toLowerCase();
 
   function parseDateAny(v){
     if(!v) return null;
     if(v instanceof Date) return v;
     const s = String(v).trim();
-    if(/^\d{4}-\d{2}-\d{2}/.test(s)){ // ISO
-      const [Y,M,D] = s.split("T")[0].split("-").map(Number);
-      return new Date(Y, M-1, D);
-    }
-    if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ // IT
-      const [d,m,y] = s.split(/[ /]/).map(Number);
-      return new Date(y, m-1, d);
-    }
-    const t = new Date(s);
-    return isNaN(t) ? null : t;
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const [Y,M,D]=s.split("T")[0].split("-").map(Number); return new Date(Y,M-1,D); }
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
+    const t = new Date(s); return isNaN(t) ? null : t;
   }
 
   function calcEaster(Y){
@@ -144,13 +153,8 @@
     return set;
   }
 
-  // Prende un campo con nomi robusti: prova exact, poi cerca per “somiglianza”
   function getFieldSmart(row, candidates){
-    // exact (case sensitive)
-    for(const k of candidates){
-      if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k];
-    }
-    // exact (case insensitive e trim accents)
+    for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
     const keys = Object.keys(row);
     const normMap = new Map(keys.map(k => [normalize(k), k]));
     for(const cand of candidates){
@@ -160,40 +164,35 @@
         if(row[realKey] != null && row[realKey] !== "") return row[realKey];
       }
     }
-    // contains “operaio”, “data”, “cantiere”, “ore”, “note” ecc.
     const targets = candidates.map(normalize);
     for(const k of keys){
       const nk = normalize(k);
-      if(targets.some(t => nk.includes(normalize(t)))){
+      if(targets.some(t => nk.includes(t))){
         if(row[k] != null && row[k] !== "") return row[k];
       }
     }
-    // fallback colonne letterali
-    for(const k of candidates){
-      if(row[k] != null && row[k] !== "") return row[k];
-    }
+    for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
     return "";
   }
 
-  // === Header giorni ===
-  function renderHeader(year, month){
-    const thead = document.getElementById("thead");
+  // === Header per metà mese ===
+  function renderHeaderHalf(containerTheadId, year, month, startDay, endDay){
+    const thead = document.getElementById(containerTheadId);
     thead.innerHTML = "";
     const tr = document.createElement("tr");
 
     const th0 = document.createElement("th");
     th0.textContent = "Operaio";
-    th0.style.minWidth = "160px";
     th0.style.textAlign = "left";
     tr.appendChild(th0);
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const holidays = italianHolidays(year);
 
-    for(let d=1; d<=31; d++){
+    for(let d=startDay; d<=endDay; d++){
       const th = document.createElement("th");
       th.textContent = d;
-      th.style.minWidth = "140px";
+      th.style.minWidth = "120px";
       th.title = `${pad(d)}/${pad(month)}/${year}`;
       if(d > daysInMonth){
         th.classList.add("day-void");
@@ -208,71 +207,20 @@
     thead.appendChild(tr);
   }
 
-  // === Corpo tabella ===
-  function renderBody(year, month, dataRows, fallbackNames){
-    const tbody = document.getElementById("tbody");
+  // === Corpo per metà mese ===
+  function renderBodyHalf(containerTbodyId, year, month, startDay, endDay, operai, byOpDay){
+    const tbody = document.getElementById(containerTbodyId);
     tbody.innerHTML = "";
-
-    // 1) Operai da Foglio1 (robusto) oppure fallback da Utenti
-    const setFromFoglio = new Set();
-    dataRows.forEach(r=>{
-      const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
-      if(op) setFromFoglio.add(op);
-    });
-
-    let operai = Array.from(setFromFoglio);
-    if(operai.length === 0 && fallbackNames && fallbackNames.length){
-      operai = fallbackNames.slice(); // da Utenti
-    }
-    operai.sort((a,b)=>a.localeCompare(b,'it'));
-
-    // 2) Filtra righe del mese e raggruppa per operaio->giorno
-    const byOpDay = {}; // { [op]: { [d]: [ {cantiere, ore, note} ] } }
     const daysInMonth = new Date(year, month, 0).getDate();
-
-    dataRows.forEach(r=>{
-      const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
-      const dt = parseDateAny(dataVal);
-      if(!dt) return;
-      if(dt.getFullYear()!==year || (dt.getMonth()+1)!==month) return;
-
-      const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
-      if(!op) return;
-      const d = dt.getDate();
-
-      const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
-      const oreRaw = getFieldSmart(r, ["Ore","H","ORE","ore"]);
-      const ore = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
-      const note = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
-
-      byOpDay[op] ??= {};
-      byOpDay[op][d] ??= [];
-      byOpDay[op][d].push({cantiere, ore, note});
-    });
-
-    // 3) Render
     const holidays = italianHolidays(year);
-
-    if(operai.length === 0){
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 1 + 31;
-      td.className = "center";
-      td.style.padding = "24px";
-      td.innerHTML = `<span class="error">Nessun operaio trovato (né in Foglio1 né in Utenti).</span>`;
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-      return;
-    }
 
     operai.forEach(op=>{
       const tr = document.createElement("tr");
-
       const th = document.createElement("th");
       th.textContent = op;
       tr.appendChild(th);
 
-      for(let d=1; d<=31; d++){
+      for(let d=startDay; d<=endDay; d++){
         const td = document.createElement("td");
 
         if(d <= daysInMonth){
@@ -309,7 +257,6 @@
           }else{
             td.innerHTML = `<div class="center" style="min-height:30px;color:#bbb">—</div>`;
           }
-
         }else{
           td.style.background = "#fafafa";
         }
@@ -318,13 +265,26 @@
 
       tbody.appendChild(tr);
     });
+
+    if(operai.length===0){
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = (endDay-startDay+1) + 1;
+      td.className = "center";
+      td.style.padding = "24px";
+      td.innerHTML = `<span class="error">Nessun operaio trovato.</span>`;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
   }
 
-  // === Caricamento + UI ===
+  // === Caricamento + orchestrazione ===
   const meseInput = document.getElementById("mese");
   const btn       = document.getElementById("btnCarica");
   const spin      = document.getElementById("spin");
   const statusEl  = document.getElementById("status");
+  const titleA    = document.getElementById("titleA");
+  const titleB    = document.getElementById("titleB");
 
   function setLoading(on){
     spin.classList.toggle("show", !!on);
@@ -339,11 +299,11 @@
       if(!ym){ statusEl.innerHTML = `<span class="error">Seleziona un mese.</span>`; return; }
       const [Y,M] = ym.split("-").map(Number);
 
-      // 1) leggo Foglio1
+      // 1) Foglio1
       const res = await fetch(URL_FOGLIO1);
       const rows = await res.json();
 
-      // 2) leggo Utenti (fallback nomi)
+      // 2) Fallback nomi da Utenti
       let fallbackNomi = [];
       try {
         const ures = await fetch(URL_UTENTI);
@@ -352,13 +312,52 @@
           .map(r => (r["Nome"] || r["nome"] || "").toString().trim())
           .filter(Boolean)
           .sort((a,b)=>a.localeCompare(b,'it'));
-      } catch { /* opzionale */ }
+      } catch {}
 
-      renderHeader(Y, M);
-      renderBody(Y, M, rows, fallbackNomi);
+      // 3) Costruisco lista operai dal Foglio1 (robusto) o fallback
+      const setFromFoglio = new Set();
+      rows.forEach(r=>{
+        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
+        if(op) setFromFoglio.add(op);
+      });
+      let operai = Array.from(setFromFoglio);
+      if(operai.length === 0 && fallbackNomi.length) operai = fallbackNomi.slice();
+      operai.sort((a,b)=>a.localeCompare(b,'it'));
 
-      const nRows = Array.isArray(rows)? rows.length : 0;
-      statusEl.innerHTML = `<span class="ok">Dati caricati (${nRows} righe da Foglio1)</span>`;
+      // 4) Raggruppo per operaio -> giorno
+      const byOpDay = {}; // { [op]: { [d]: [ {cantiere,ore,note} ] } }
+      rows.forEach(r=>{
+        const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
+        const dt = parseDateAny(dataVal);
+        if(!dt) return;
+        if(dt.getFullYear()!==Y || (dt.getMonth()+1)!==M) return;
+
+        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
+        if(!op) return;
+        const d = dt.getDate();
+
+        const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
+        const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
+        const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
+        const note     = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
+
+        byOpDay[op] ??= {};
+        byOpDay[op][d] ??= [];
+        byOpDay[op][d].push({cantiere, ore, note});
+      });
+
+      // 5) Render: intestazioni + corpi per le due metà
+      const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
+      titleA.textContent = `Giorni 1–15 — ${monthName} ${Y}`;
+      titleB.textContent = `Giorni 16–31 — ${monthName} ${Y}`;
+
+      renderHeaderHalf("theadA", Y, M, 1, 15);
+      renderHeaderHalf("theadB", Y, M, 16, 31);
+
+      renderBodyHalf("tbodyA", Y, M, 1, 15, operai, byOpDay);
+      renderBodyHalf("tbodyB", Y, M, 16, 31, operai, byOpDay);
+
+      statusEl.innerHTML = `<span class="ok">Dati caricati (${rows.length} righe da Foglio1)</span>`;
     }catch(err){
       console.error(err);
       statusEl.innerHTML = `<span class="error">Errore nel caricamento dati.</span>`;
