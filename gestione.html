@@ -101,16 +101,28 @@
     .center{display:flex; align-items:center; justify-content:center}
 
     /* Evidenziazione per ASSENTE */
-.entry.assente{
-  background: hsla(140, 60%, 80%, 0.25); /* verde tenue trasparente */
-  border: 1px solid hsla(140, 50%, 55%, 0.40);
-  border-radius: 8px;
-  padding: 6px;
-}
-.entry.assente .cant{
-  color: hsl(210, 80%, 28%); /* azzurro scuro */
-}
+    .entry.assente{
+      background: hsla(140, 60%, 80%, 0.25);         /* verde tenue trasparente */
+      border: 1px solid hsla(140, 50%, 55%, 0.40);
+      border-radius: 8px;
+      padding: 6px;
+    }
+    .entry.assente .cant{
+      color: hsl(210, 80%, 28%);                      /* azzurro scuro */
+    }
 
+    /* Evidenziazione per NO DATI (solo feriali) */
+    .entry.nodati{
+      background: hsla(0, 80%, 60%, 0.20);            /* rosso tenue trasparente */
+      border: 1px solid hsla(0, 70%, 50%, 0.35);
+      border-radius: 8px;
+      padding: 6px;
+    }
+    .entry.nodati .cant{
+      text-decoration: underline;                     /* sottolineato */
+      font-weight: 800;
+      text-transform: uppercase;                      /* stampatello */
+    }
   </style>
 </head>
 <body>
@@ -426,18 +438,25 @@
               wrap.title = "Clicca per modificare";
               wrap.addEventListener('click', ()=> openEdit(en.id));
 
-              const cant = stripIntervals(en.cantiere ? en.cantiere.toUpperCase() : "(SENZA CANTIERE)");
-              const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
-              const lav = stripIntervals(en.lavorazione || "");
-              const note = stripIntervals(en.note || "");
+              const isOff = td.classList.contains("weekend") || td.classList.contains("festivo");
 
-              // evidenzia ASSENTE
-if (cant.trim() === "ASSENTE") {
-  wrap.classList.add("assente");
-}
+              const cantiereRaw = (en.cantiere != null ? String(en.cantiere).trim() : "");
+              const hasCant     = cantiereRaw.length > 0;
+              let cantDisplay   = hasCant ? cantiereRaw.toUpperCase() : "NO DATI";
+
+              const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
+              const lav    = stripIntervals(en.lavorazione || "");
+              const note   = stripIntervals(en.note || "");
+
+              if (!hasCant && !isOff) {
+                wrap.classList.add("nodati");        // NO DATI solo feriali
+              }
+              if (cantDisplay === "ASSENTE") {
+                wrap.classList.add("assente");       // ASSENTE
+              }
 
               wrap.innerHTML =
-                `<div class="cant">${cant}</div>
+                `<div class="cant">${cantDisplay}</div>
                  <div class="ore">${oreTxt}</div>` +
                 (SHOW_LAV && lav ? `<div class="lav">${lav}</div>` : "") +
                 (note ? `<div class="note">${note}</div>` : "");
@@ -623,20 +642,15 @@ if (cant.trim() === "ASSENTE") {
   });
 
   /* =================== EXPORT =================== */
-  // Cattura "completa" di una card: clona off-screen, rimuove sticky/overflow e misura scrollWidth reale
   async function captureCardFull(cardId){
     const src = document.getElementById(cardId);
     if(!src) throw new Error('card non trovata: '+cardId);
 
     const wrap = src.querySelector('.table-wrap');
-    const table = src.querySelector('table');
-    const title = src.querySelector('.table-title');
     const fullWidth = wrap ? wrap.scrollWidth : src.scrollWidth;
 
-    // cloniamo la card
     const clone = src.cloneNode(true);
 
-    // sistemiamo stili nel clone: niente sticky, niente overflow, larghezza reale
     const cloneWrap = clone.querySelector('.table-wrap');
     if(cloneWrap){
       cloneWrap.style.overflow = 'visible';
@@ -647,7 +661,6 @@ if (cant.trim() === "ASSENTE") {
       el.style.position = 'static';
     });
 
-    // contenitore off-screen visibile (html2canvas ignora display:none)
     const holder = document.createElement('div');
     holder.style.position = 'absolute';
     holder.style.left = '-10000px';
@@ -658,10 +671,8 @@ if (cant.trim() === "ASSENTE") {
     holder.appendChild(clone);
     document.body.appendChild(holder);
 
-    // assicuriamoci che il layout sia calcolato
     await new Promise(r=>requestAnimationFrame(r));
 
-    // cattura
     const SCALE = 2;
     const canvas = await html2canvas(clone, {
       scale: SCALE,
@@ -679,7 +690,6 @@ if (cant.trim() === "ASSENTE") {
   async function exportPDF(){
     await ensurePdfLibs();
 
-    // cattura completa, non quella visibile
     const canvasA = await captureCardFull('cardA');
     const canvasB = await captureCardFull('cardB');
 
@@ -694,7 +704,7 @@ if (cant.trim() === "ASSENTE") {
       const img = canvas.toDataURL('image/png');
       const availW = pageW - 2*MARGIN;
       const availH = pageH - 2*MARGIN;
-      const s = Math.min(availW / canvas.width, availH / canvas.height); // contain = nessun taglio
+      const s = Math.min(availW / canvas.width, availH / canvas.height);
       const w = canvas.width * s;
       const h = canvas.height * s;
       const x = MARGIN + (availW - w)/2;
@@ -716,7 +726,6 @@ if (cant.trim() === "ASSENTE") {
     doc.save(fname);
   }
 
-  // Excel come prima
   function xmlEscape(s){
     return String(s)
       .replace(/&/g,"&amp;")
@@ -728,6 +737,7 @@ if (cant.trim() === "ASSENTE") {
   function buildMatrix(startDay, endDay){
     const Y = cache.Y, M = cache.M;
     const daysInMonth = new Date(Y, M, 0).getDate();
+    const holidays = italianHolidays(Y);
     const header = ["Operaio"];
     for(let d=startDay; d<=endDay; d++){
       header.push(d <= daysInMonth ? String(d) : "");
@@ -741,11 +751,18 @@ if (cant.trim() === "ASSENTE") {
         const entries = (cache.byOpDay[op] && cache.byOpDay[op][d]) ? cache.byOpDay[op][d] : [];
         if(!entries.length){ line.push("—"); continue; }
 
+        const dow = (new Date(Y, M-1, d).getDay()+6)%7;
+        const iso = `${Y}-${pad(M)}-${pad(d)}`;
+        const isOff = (dow===5||dow===6) || holidays.has(iso);
+
         let total=0;
         const parts=[];
         entries.forEach(en=>{
           const chunks=[];
-          chunks.push((en.cantiere||"").toString().toUpperCase());
+          const cantiereRaw = (en.cantiere || "").toString().trim();
+          const hasCant     = cantiereRaw.length>0;
+          const cantDisp    = hasCant ? cantiereRaw.toUpperCase() : (isOff ? "" : "NO DATI");
+          if(cantDisp) chunks.push(cantDisp);
           if(en.ore!=null && !isNaN(en.ore)){ chunks.push(`${en.ore} h`); total+=Number(en.ore); }
           if(SHOW_LAV && en.lavorazione){ chunks.push(en.lavorazione); }
           if(en.note){ chunks.push(en.note); }
