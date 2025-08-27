@@ -12,7 +12,7 @@
       --bg: hsl(210,20%,98%);
       --card: #fff;
       --border: hsl(210,15%,85%);
-      --orange-weak: hsla(30,100%,50%,0.08);
+      --orange-weak: hsla(30,100%,50%,0.08); /* weekend/festivi */
       --orange-weak-border: hsla(30,100%,50%,0.25);
       --danger: #c00000;
       --overlay: rgba(0,0,0,.45);
@@ -82,7 +82,7 @@
 
     tbody th{
       position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
-      text-align:left; padding:8px 10px; font-size:12px; min-width:220px;
+      text-align:left; padding:8px 10px; font-size:12px; min-width:220px; /* più largo su desktop */
     }
     td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
@@ -216,9 +216,32 @@
     </div>
   </div>
 
-  <!-- ====== Librerie per export PDF ====== -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha256-Lh1dWlZp3o0Xo9yXwR4s2l1CgqjryK+YFh6kX1Q2qTg=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" integrity="sha256-8+J5dQe2A7pR3k6m1r3A0CA8vxbF3j8s0uSWeGB8q0E=" crossorigin="anonymous"></script>
+  <!-- ====== Librerie export (senza SRI) ====== -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Fallback loader se i CDN sopra non rispondono -->
+  <script>
+    function loadScript(url){
+      return new Promise((resolve,reject)=>{
+        const s=document.createElement('script');
+        s.src=url; s.async=true;
+        s.onload=()=>resolve();
+        s.onerror=()=>reject(new Error('Errore caricamento '+url));
+        document.head.appendChild(s);
+      });
+    }
+    async function ensurePdfLibs(){
+      // html2canvas
+      if(typeof window.html2canvas === 'undefined'){
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+      }
+      // jsPDF
+      if(!(window.jspdf && window.jspdf.jsPDF)){
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+      }
+    }
+  </script>
 
 <script>
   // === Config ===
@@ -593,12 +616,13 @@
 
   // ====== Esporta PDF A3 (2 pagine, come a schermo) ======
   async function exportPDF(){
-    // Assicuriamoci che le tabelle siano in DOM
+    // garantisci che le librerie siano cariche
+    await ensurePdfLibs();
+
     const cardA = document.getElementById('cardA');
     const cardB = document.getElementById('cardB');
     if(!cardA || !cardB){ alert("Carica prima i dati."); return; }
 
-    // Render ad alta risoluzione
     const SCALE = 2;
     const canvasA = await html2canvas(cardA, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false });
     const canvasB = await html2canvas(cardB, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false });
@@ -627,8 +651,13 @@
     addCanvasPage(canvasA, true);
     addCanvasPage(canvasB, false);
 
-    const [Y,M] = (function(){ const v = document.getElementById('mese').value; if(v){ const [y,m]=v.split('-'); return [y,m]; } return ['YYYY','MM']; })();
-    doc.save(`Presenze_${Y}-${M}.pdf`);
+    const v = document.getElementById('mese')?.value || '';
+    let fname = 'Presenze.pdf';
+    if(/^\d{4}-\d{2}$/.test(v)){
+      const [y,m] = v.split('-');
+      fname = `Presenze_${y}-${m}.pdf`;
+    }
+    doc.save(fname);
   }
 
   // ====== Esporta Excel (.xls XML 2003, 2 fogli) ======
@@ -641,7 +670,7 @@
       .replace(/'/g,"&apos;");
   }
 
-  const cacheState = { Y:null, M:null, operai:[], byOpDay:{} }; // non usato: lasciato per eventuali estensioni
+  const cacheState = { Y:null, M:null, operai:[], byOpDay:{} }; // placeholder
 
   function buildMatrix(startDay, endDay){
     const Y = cache.Y, M = cache.M;
@@ -746,9 +775,10 @@
 
   // ====== init ======
   (function init(){
+    const supportsMonth = (() => { const i=document.createElement('input'); i.type='month'; return i.type === 'month'; })();
     if(!supportsMonth){
-      meseInput.classList.add('hidden');
-      meseFallback.classList.remove('hidden');
+      document.getElementById("mese").classList.add('hidden');
+      document.getElementById("meseFallback").classList.remove('hidden');
     }
     const now = new Date();
     populateYearSelect(now.getFullYear());
@@ -762,8 +792,9 @@
     document.getElementById("btnPDF").addEventListener("click", exportPDF);
     document.getElementById("btnXLS").addEventListener("click", exportExcel);
 
-    meseInput.addEventListener("change", ()=>{
-      const v = meseInput.value;
+    const meseInputEl = document.getElementById("mese");
+    meseInputEl.addEventListener("change", ()=>{
+      const v = meseInputEl.value;
       if(v && /^\d{4}-\d{2}$/.test(v)){
         const [y,m] = v.split('-').map(Number);
         setYM(y,m,true);
