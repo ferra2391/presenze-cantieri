@@ -22,6 +22,7 @@
     body{
       margin:0; background:var(--bg); color:var(--text);
       font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      -webkit-font-smoothing:antialiased;
     }
     .container{width:100%; max-width:100%; margin:0; padding:18px 18px 32px;}
     h1{margin:0 0 12px; font-size:20px}
@@ -48,6 +49,10 @@
       padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px; background:var(--primary); color:#fff; font-weight:700; cursor:pointer;
     }
     button.action:hover{filter:brightness(0.95)}
+    .btn-ghost{
+      padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer; font-weight:700;
+    }
+    .btn-ghost:hover{filter:brightness(0.97)}
 
     .hint{color:var(--muted); font-size:12px; margin-top:6px}
     .legend{display:flex; gap:10px; align-items:center; color:var(--muted); font-size:12px}
@@ -95,27 +100,14 @@
     .tot{margin-top:4px; font-weight:800}
     .center{display:flex; align-items:center; justify-content:center}
 
-    #overlay{
-      position:fixed; inset:0; background:var(--overlay);
-      display:none; z-index:999;
+    /* ====== PRINT (PDF) ====== */
+    @media print {
+      @page { size: A3 landscape; margin: 10mm; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .panel, .month-picker, .hint, .legend, .row#status, .action, .btn-ghost { display: none !important; }
+      .table-card:first-of-type { page-break-after: always; }
+      .table-title { font-size: 16px; }
     }
-    #modal{
-      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:#fff; border:1px solid var(--border); border-radius:12px;
-      width:92%; max-width:520px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25);
-      display:none; z-index:1000;
-    }
-    #modal h3{margin:0 0 12px}
-    .modal-row{display:flex; gap:10px; flex-wrap:wrap}
-    .modal-row > *{flex:1}
-    #modal input[type="date"], #modal input[type="text"], #modal input[type="number"], #modal textarea{
-      width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px;
-    }
-    #modal textarea{min-height:80px; resize:vertical}
-    .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:12px}
-    .btn{padding:10px 12px; border-radius:10px; border:1px solid var(--border); cursor:pointer}
-    .btn.save{background:var(--primary); color:#fff; border-color:transparent}
-    .btn.cancel{background:#f2f2f2}
   </style>
 </head>
 <body>
@@ -123,12 +115,11 @@
     <h1>Analisi mensile presenze</h1>
 
     <div class="panel">
-      <div class="row">
-        <label for="mese">Mese</label>
-
+      <div class="row" style="gap:8px; justify-content:space-between; align-items:center;">
         <div class="month-picker">
           <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
 
+          <!-- input month + fallback -->
           <input type="month" id="mese">
           <span id="meseFallback" class="hidden">
             <select id="meseSel" aria-label="Mese">
@@ -145,27 +136,29 @@
           <button id="btnCarica" class="action" type="button">Carica</button>
           <span class="spinner" id="spin"></span>
         </div>
+
+        <div class="row" style="gap:8px;">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="toggleLav" checked>
+            Mostra lavorazioni
+          </label>
+
+          <!-- 💾 esportazioni -->
+          <button class="btn-ghost" id="btnPDF" type="button" title="Esporta PDF A3 (2 pagine)">PDF A3 (fronte/retro)</button>
+          <button class="btn-ghost" id="btnXLS" type="button" title="Esporta Excel (2 fogli)">Excel</button>
+        </div>
       </div>
 
-      <div class="row" style="margin-top:6px; justify-content:space-between;">
+      <div class="row" style="margin-top:6px">
         <div class="legend">
           <span class="pill"></span> Sabato / Domenica / Festivi italiani
         </div>
-
-        <!-- 🔘 Toggle mostra/nascondi lavorazioni -->
-        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-          <input type="checkbox" id="toggleLav" checked>
-          Mostra lavorazioni
-        </label>
-      </div>
-
-      <div class="row">
-        <div class="hint">Righe = Operai (Foglio1 col. C o fallback “Utenti”). Celle: CANTIERE (rosso) → ore → <em>lavorazione</em> (se attiva) → note; se più cantieri: “Tot: X h”. Clicca su un evento per modificare.</div>
       </div>
       <div class="row" id="status" style="margin-top:6px"></div>
     </div>
 
-    <div class="matrix-stack">
+    <div class="matrix-stack" id="printArea">
+      <!-- Prima metà (1–15) -->
       <div class="table-card">
         <div class="table-title" id="titleA">Giorni 1–15</div>
         <div class="table-wrap">
@@ -175,6 +168,7 @@
           </table>
         </div>
       </div>
+      <!-- Seconda metà (16–31) -->
       <div class="table-card">
         <div class="table-title" id="titleB">Giorni 16–31</div>
         <div class="table-wrap">
@@ -225,9 +219,11 @@
   </div>
 
 <script>
+  // === Config ===
   const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
   const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
 
+  // === Util ===
   const pad = n => String(n).padStart(2,"0");
   const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
 
@@ -277,23 +273,24 @@
     return "";
   }
 
+  // rimozione intervalli orari (tipo "08:00 - 17:00")
   const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
   function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
 
+  // ====== controlli mese ======
   const meseInput   = document.getElementById("mese");
   const meseFallback= document.getElementById("meseFallback");
   const selMese     = document.getElementById("meseSel");
   const selAnno     = document.getElementById("annoSel");
   const prevBtn     = document.getElementById("prevMonth");
   const nextBtn     = document.getElementById("nextMonth");
-  const btn         = document.getElementById("btnCarica");
+  const btnCarica   = document.getElementById("btnCarica");
   const spin        = document.getElementById("spin");
   const statusEl    = document.getElementById("status");
   const titleA      = document.getElementById("titleA");
   const titleB      = document.getElementById("titleB");
 
-  const supportsMonth = (() => { const i=document.createElement('input'); i.setAttribute('type','month'); return i.type === 'month'; })();
-
+  const supportsMonth = (() => { const i=document.createElement('input'); i.type='month'; return i.type === 'month'; })();
   function populateYearSelect(baseYear){
     selAnno.innerHTML = "";
     for(let y=baseYear-4; y<=baseYear+2; y++){
@@ -302,7 +299,6 @@
       selAnno.appendChild(opt);
     }
   }
-
   function setYM(Y,M,updateControls=true){
     const val = `${Y}-${pad(M)}`;
     if(supportsMonth){ meseInput.value = val; }
@@ -327,6 +323,7 @@
     carica();
   }
 
+  // ====== header/body tabelle ======
   function renderHeaderHalf(containerTheadId, year, month, startDay, endDay){
     const thead = document.getElementById(containerTheadId);
     thead.innerHTML = "";
@@ -358,7 +355,7 @@
     thead.appendChild(tr);
   }
 
-  let SHOW_LAV = true; // 🔘 stato del toggle
+  let SHOW_LAV = true;
   const toggleLav = document.getElementById('toggleLav');
   toggleLav.addEventListener('change', ()=>{
     SHOW_LAV = toggleLav.checked;
@@ -368,7 +365,6 @@
     }
   });
 
-  // cache per re-render senza refetch
   const cache = { Y:null, M:null, operai:[], byOpDay:{} };
 
   function renderBodyHalf(containerTbodyId, year, month, startDay, endDay, operai, byOpDay){
@@ -448,7 +444,7 @@
 
   function setLoading(on){
     spin.classList.toggle("show", !!on);
-    btn.disabled = !!on;
+    btnCarica.disabled = !!on;
     prevBtn.disabled = !!on;
     nextBtn.disabled = !!on;
   }
@@ -515,7 +511,6 @@
       renderHeaderHalf("theadA", Y, M, 1, 15);
       renderHeaderHalf("theadB", Y, M, 16, 31);
 
-      // salva in cache per il toggle
       cache.Y = Y; cache.M = M; cache.operai = operai; cache.byOpDay = byOpDay;
 
       renderBodyHalf("tbodyA", Y, M, 1, 15, operai, byOpDay);
@@ -530,6 +525,7 @@
     }
   }
 
+  // ====== Modale ======
   const overlay = document.getElementById('overlay');
   const modal   = document.getElementById('modal');
   const modId   = document.getElementById('mod_id');
@@ -591,6 +587,130 @@
     });
   });
 
+  // ====== Esporta PDF (usa finestra di stampa) ======
+  function exportPDF(){
+    if(!cache.Y || !cache.M){ alert("Carica prima un mese."); return; }
+    window.print(); // verrà generato PDF A3 orizzontale con 2 pagine
+  }
+
+  // ====== Esporta Excel (.xls XML 2003, 2 fogli) ======
+  function xmlEscape(s){
+    return String(s)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&apos;");
+  }
+
+  function buildMatrix(startDay, endDay){
+    const Y = cache.Y, M = cache.M;
+    const daysInMonth = new Date(Y, M, 0).getDate();
+    const header = ["Operaio"];
+    for(let d=startDay; d<=endDay; d++){
+      header.push(d <= daysInMonth ? String(d) : "");
+    }
+    const rows = [header];
+
+    cache.operai.forEach(op=>{
+      const line = [op];
+      for(let d=startDay; d<=endDay; d++){
+        if(d>daysInMonth){ line.push(""); continue; }
+        const entries = (cache.byOpDay[op] && cache.byOpDay[op][d]) ? cache.byOpDay[op][d] : [];
+        if(!entries.length){ line.push("—"); continue; }
+
+        let total=0;
+        const parts=[];
+        entries.forEach(en=>{
+          const chunks=[];
+          chunks.push((en.cantiere||"").toString().toUpperCase());
+          if(en.ore!=null && !isNaN(en.ore)){ chunks.push(`${en.ore} h`); total+=Number(en.ore); }
+          if(SHOW_LAV && en.lavorazione){ chunks.push(en.lavorazione); }
+          if(en.note){ chunks.push(en.note); }
+          parts.push(chunks.join("\n"));
+        });
+        if(entries.length>1){ parts.push(`Tot: ${(+total.toFixed(2)).toString()} h`); }
+        line.push(parts.join("\n\n")); // spazio fra cantieri
+      }
+      rows.push(line);
+    });
+    return rows;
+  }
+
+  function sheetXML(name, rows){
+    // opzionale: stime larghezze
+    const colCount = rows[0]?.length || 1;
+    let cols = "";
+    for(let i=0;i<colCount;i++){
+      const w = i===0 ? 160 : 80;
+      cols += `<Column ss:Width="${w}"/>`;
+    }
+    const lines = rows.map((r,ri)=>{
+      const cells = r.map((c,ci)=>{
+        const text = xmlEscape(c==null?"":String(c));
+        const type = "String";
+        const style = ri===0 ? ` ss:StyleID="hdr"` : "";
+        return `<Cell${style}><Data ss:Type="${type}">${text}</Data></Cell>`;
+      }).join("");
+      return `<Row>${cells}</Row>`;
+    }).join("");
+    return `
+      <Worksheet ss:Name="${xmlEscape(name)}">
+        <Table>${cols}${lines}</Table>
+      </Worksheet>`;
+  }
+
+  function exportExcel(){
+    if(!cache.Y || !cache.M){ alert("Carica prima un mese."); return; }
+    const dataA = buildMatrix(1,15);
+    const dataB = buildMatrix(16,31);
+
+    const now = new Date().toISOString();
+    const xml =
+`<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>Presenze Cantiere</Author>
+  <Created>${now}</Created>
+ </DocumentProperties>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
+    <Borders/>
+    <Font ss:FontName="Calibri" ss:Size="11"/>
+    <Interior/>
+    <NumberFormat/>
+    <Protection/>
+  </Style>
+  <Style ss:ID="hdr">
+    <Font ss:Bold="1"/>
+    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+    <Interior ss:Color="#EEEEEE" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ ${sheetXML("Giorni 1–15", dataA)}
+ ${sheetXML("Giorni 16–31", dataB)}
+</Workbook>`;
+
+    const blob = new Blob([xml], {type: "application/vnd.ms-excel"});
+    const [Y,M] = [cache.Y, cache.M];
+    const fname = `Presenze_${Y}-${pad(M)}.xls`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  }
+
+  // ====== init ======
   (function init(){
     if(!supportsMonth){
       meseInput.classList.add('hidden');
@@ -605,6 +725,8 @@
     document.getElementById("btnCarica").addEventListener("click", carica);
     document.getElementById("prevMonth").addEventListener("click", ()=>shiftMonth(-1));
     document.getElementById("nextMonth").addEventListener("click", ()=>shiftMonth(+1));
+    document.getElementById("btnPDF").addEventListener("click", exportPDF);
+    document.getElementById("btnXLS").addEventListener("click", exportExcel);
 
     meseInput.addEventListener("change", ()=>{
       const v = meseInput.value;
