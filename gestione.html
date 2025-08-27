@@ -12,7 +12,7 @@
       --bg: hsl(210,20%,98%);
       --card: #fff;
       --border: hsl(210,15%,85%);
-      --orange-weak: hsla(30,100%,50%,0.08); /* festivi/weekend */
+      --orange-weak: hsla(30,100%,50%,0.08);
       --orange-weak-border: hsla(30,100%,50%,0.25);
       --danger: #c00000;
       --overlay: rgba(0,0,0,.45);
@@ -33,7 +33,6 @@
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
     label{font-weight:600}
 
-    /* month picker */
     .month-picker{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
     .month-btn{
       width:36px; height:36px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer;
@@ -59,7 +58,6 @@
     .error{color:#b00020; font-weight:700}
     .ok{color:#0b7a0b; font-weight:700}
 
-    /* stack verticale sempre */
     .matrix-stack{display:flex; flex-direction:column; gap:16px}
 
     .table-card{
@@ -79,7 +77,7 @@
 
     tbody th{
       position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
-      text-align:left; padding:8px 10px; font-size:12px; min-width:220px; /* più largo su desktop */
+      text-align:left; padding:8px 10px; font-size:12px; min-width:220px;
     }
     td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
@@ -92,11 +90,11 @@
     .entry:hover{filter:brightness(0.97)}
     .cant{color:var(--danger); font-weight:800; text-transform:uppercase; letter-spacing:.02em}
     .ore{color:#111; font-weight:600}
+    .lav{color:#444; margin-top:2px}
     .note{color:var(--muted); font-style:italic}
     .tot{margin-top:4px; font-weight:800}
     .center{display:flex; align-items:center; justify-content:center}
 
-    /* ==== Modale modifica ==== */
     #overlay{
       position:fixed; inset:0; background:var(--overlay);
       display:none; z-index:999;
@@ -131,10 +129,7 @@
         <div class="month-picker">
           <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
 
-          <!-- usa input month quando supportato -->
           <input type="month" id="mese">
-
-          <!-- fallback (mostrato solo se il browser non supporta type=month) -->
           <span id="meseFallback" class="hidden">
             <select id="meseSel" aria-label="Mese">
               <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
@@ -152,17 +147,25 @@
         </div>
       </div>
 
-      <div class="row" style="margin-top:6px">
+      <div class="row" style="margin-top:6px; justify-content:space-between;">
         <div class="legend">
           <span class="pill"></span> Sabato / Domenica / Festivi italiani
         </div>
-        <div class="hint">Righe = Operai (Foglio1 col. C o fallback “Utenti”). Celle: CANTIERE (rosso) → ore → note; se più cantieri: “Tot: X h”. Clicca su un evento per modificarlo.</div>
+
+        <!-- 🔘 Toggle mostra/nascondi lavorazioni -->
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" id="toggleLav" checked>
+          Mostra lavorazioni
+        </label>
+      </div>
+
+      <div class="row">
+        <div class="hint">Righe = Operai (Foglio1 col. C o fallback “Utenti”). Celle: CANTIERE (rosso) → ore → <em>lavorazione</em> (se attiva) → note; se più cantieri: “Tot: X h”. Clicca su un evento per modificare.</div>
       </div>
       <div class="row" id="status" style="margin-top:6px"></div>
     </div>
 
     <div class="matrix-stack">
-      <!-- Prima metà (1–15) -->
       <div class="table-card">
         <div class="table-title" id="titleA">Giorni 1–15</div>
         <div class="table-wrap">
@@ -172,7 +175,6 @@
           </table>
         </div>
       </div>
-      <!-- Seconda metà (16–31) -->
       <div class="table-card">
         <div class="table-title" id="titleB">Giorni 16–31</div>
         <div class="table-wrap">
@@ -223,15 +225,11 @@
   </div>
 
 <script>
-  // === Config ===
   const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
   const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
 
-  // === Util ===
   const pad = n => String(n).padStart(2,"0");
-  const normalize = s => String(s||"")
-    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .trim().toLowerCase();
+  const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
 
   function parseDateAny(v){
     if(!v) return null;
@@ -241,11 +239,7 @@
     if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
     const t = new Date(s); return isNaN(t) ? null : t;
   }
-
-  function toISODateInput(d){
-    if(!(d instanceof Date) || isNaN(d)) return "";
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  }
+  function toISODateInput(d){ return (d instanceof Date && !isNaN(d)) ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` : ""; }
 
   function calcEaster(Y){
     const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
@@ -283,14 +277,9 @@
     return "";
   }
 
-  // ====== rimozione intervalli orari dal testo ======
-  const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g; // 08:00 - 17:00 o 8.00-17.00
-  function stripIntervals(s){
-    if(!s) return "";
-    return String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim();
-  }
+  const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
+  function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
 
-  // ====== Month control (resiliente) ======
   const meseInput   = document.getElementById("mese");
   const meseFallback= document.getElementById("meseFallback");
   const selMese     = document.getElementById("meseSel");
@@ -303,11 +292,7 @@
   const titleA      = document.getElementById("titleA");
   const titleB      = document.getElementById("titleB");
 
-  const supportsMonth = (() => {
-    const i=document.createElement('input');
-    i.setAttribute('type','month');
-    return i.type === 'month';
-  })();
+  const supportsMonth = (() => { const i=document.createElement('input'); i.setAttribute('type','month'); return i.type === 'month'; })();
 
   function populateYearSelect(baseYear){
     selAnno.innerHTML = "";
@@ -326,18 +311,13 @@
     titleA.textContent = `Giorni 1–15 — ${monthName} ${Y}`;
     titleB.textContent = `Giorni 16–31 — ${monthName} ${Y}`;
   }
-
   function getYM(){
     if(supportsMonth){
       const v = meseInput.value;
-      if(v && /^\d{4}-\d{2}$/.test(v)){
-        const [Y,M] = v.split('-').map(Number);
-        return [Y,M];
-      }
+      if(v && /^\d{4}-\d{2}$/.test(v)){ const [Y,M] = v.split('-').map(Number); return [Y,M]; }
     }
     return [Number(selAnno.value), Number(selMese.value)];
   }
-
   function shiftMonth(delta){
     let [Y,M] = getYM();
     M += delta;
@@ -347,7 +327,6 @@
     carica();
   }
 
-  // ====== Header per metà mese ======
   function renderHeaderHalf(containerTheadId, year, month, startDay, endDay){
     const thead = document.getElementById(containerTheadId);
     thead.innerHTML = "";
@@ -379,7 +358,19 @@
     thead.appendChild(tr);
   }
 
-  // ====== Corpo per metà mese ======
+  let SHOW_LAV = true; // 🔘 stato del toggle
+  const toggleLav = document.getElementById('toggleLav');
+  toggleLav.addEventListener('change', ()=>{
+    SHOW_LAV = toggleLav.checked;
+    if(cache.operai.length){
+      renderBodyHalf("tbodyA", cache.Y, cache.M, 1, 15, cache.operai, cache.byOpDay);
+      renderBodyHalf("tbodyB", cache.Y, cache.M, 16, 31, cache.operai, cache.byOpDay);
+    }
+  });
+
+  // cache per re-render senza refetch
+  const cache = { Y:null, M:null, operai:[], byOpDay:{} };
+
   function renderBodyHalf(containerTbodyId, year, month, startDay, endDay, operai, byOpDay){
     const tbody = document.getElementById(containerTbodyId);
     tbody.innerHTML = "";
@@ -409,15 +400,17 @@
               const wrap = document.createElement("div");
               wrap.className = "entry";
               wrap.title = "Clicca per modificare";
-              wrap.addEventListener('click', ()=> openEdit(en.id)); // 👈 click per modificare
+              wrap.addEventListener('click', ()=> openEdit(en.id));
 
               const cant = stripIntervals(en.cantiere ? en.cantiere.toUpperCase() : "(SENZA CANTIERE)");
               const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
-              const note   = stripIntervals(en.note ? en.note : "");
+              const lav = stripIntervals(en.lavorazione || "");
+              const note = stripIntervals(en.note || "");
 
               wrap.innerHTML =
                 `<div class="cant">${cant}</div>
                  <div class="ore">${oreTxt}</div>` +
+                (SHOW_LAV && lav ? `<div class="lav">${lav}</div>` : "") +
                 (note ? `<div class="note">${note}</div>` : "");
 
               td.appendChild(wrap);
@@ -453,7 +446,6 @@
     }
   }
 
-  // ====== Caricamento + orchestrazione ======
   function setLoading(on){
     spin.classList.toggle("show", !!on);
     btn.disabled = !!on;
@@ -469,12 +461,10 @@
       const [Y,M] = getYM();
       if(!Y || !M){ statusEl.innerHTML = `<span class="error">Seleziona un mese.</span>`; return; }
 
-      // 1) Foglio1 (aggiungo numero riga come id = index+2)
       const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
       const rows = (await res.json()) || [];
-      rows.forEach((r,idx)=>{ r.__row = idx + 2; }); // 👈 id di riga
+      rows.forEach((r,idx)=>{ r.__row = idx + 2; });
 
-      // 2) Fallback nomi da Utenti
       let fallbackNomi = [];
       try {
         const ures = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Utenti`);
@@ -485,7 +475,6 @@
           .sort((a,b)=>a.localeCompare(b,'it'));
       } catch {}
 
-      // 3) Operai lista
       const setFromFoglio = new Set();
       rows.forEach(r=>{
         const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
@@ -495,7 +484,6 @@
       if(operai.length === 0 && fallbackNomi.length) operai = fallbackNomi.slice();
       operai.sort((a,b)=>a.localeCompare(b,'it'));
 
-      // 4) Raggruppo per operaio -> giorno (con id riga)
       const byOpDay = {};
       rows.forEach(r=>{
         const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
@@ -510,21 +498,25 @@
         const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
         const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
         const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
+        const lavRaw   = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
+        const lavorazione = stripIntervals(lavRaw);
         const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
         const note     = stripIntervals(noteRaw);
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
-        byOpDay[op][d].push({ id: r.__row, cantiere, ore, note });
+        byOpDay[op][d].push({ id: r.__row, cantiere, ore, note, lavorazione });
       });
 
-      // 5) Render due metà
       const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
       titleA.textContent = `Giorni 1–15 — ${monthName} ${Y}`;
       titleB.textContent = `Giorni 16–31 — ${monthName} ${Y}`;
 
       renderHeaderHalf("theadA", Y, M, 1, 15);
       renderHeaderHalf("theadB", Y, M, 16, 31);
+
+      // salva in cache per il toggle
+      cache.Y = Y; cache.M = M; cache.operai = operai; cache.byOpDay = byOpDay;
 
       renderBodyHalf("tbodyA", Y, M, 1, 15, operai, byOpDay);
       renderBodyHalf("tbodyB", Y, M, 16, 31, operai, byOpDay);
@@ -538,7 +530,6 @@
     }
   }
 
-  // ====== Modale: apertura/chiusura/salvataggio ======
   const overlay = document.getElementById('overlay');
   const modal   = document.getElementById('modal');
   const modId   = document.getElementById('mod_id');
@@ -549,7 +540,6 @@
   const modNote = document.getElementById('mod_note');
 
   function openEdit(id){
-    // leggo i dettagli dal GAS per sicurezza (campi coerenti)
     fetch(`${GAS_URL}?getPresenza=1&id=${encodeURIComponent(id)}`)
       .then(res => res.json())
       .then(obj=>{
@@ -564,27 +554,22 @@
         modal.style.display='block';
       })
       .catch(_=>{
-        // fallback minimo, se non riuscisse la GET
         modId.value = id;
         overlay.style.display='block';
         modal.style.display='block';
       });
   }
-  function closeEdit(){
-    modal.style.display='none';
-    overlay.style.display='none';
-  }
+  function closeEdit(){ modal.style.display='none'; overlay.style.display='none'; }
   document.getElementById('btnCancel').addEventListener('click', closeEdit);
   overlay.addEventListener('click', closeEdit);
   window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEdit(); });
 
-  // 👉 Salvataggio senza headers, in no-cors (niente preflight)
   document.getElementById('btnSave').addEventListener('click', ()=>{
     const payload = {
       modifica: 1,
       id: String(modId.value || "").trim(),
       data: modData.value || "",
-      orari: "", // non usiamo intervalli orari
+      orari: "",
       cantiere: modCant.value || "",
       lavorazione: modLav.value || "",
       ore: modOre.value || "",
@@ -598,7 +583,7 @@
     })
     .then(() => {
       closeEdit();
-      setTimeout(carica, 900); // lascia tempo al GAS di scrivere/ordinare
+      setTimeout(carica, 900);
     })
     .catch(err => {
       console.error(err);
