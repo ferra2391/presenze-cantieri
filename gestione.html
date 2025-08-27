@@ -99,15 +99,6 @@
     .note{color:var(--muted); font-style:italic}
     .tot{margin-top:4px; font-weight:800}
     .center{display:flex; align-items:center; justify-content:center}
-
-    /* ====== PRINT (PDF) ====== */
-    @media print {
-      @page { size: A3 landscape; margin: 10mm; }
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .panel, .month-picker, .hint, .legend, .row#status, .action, .btn-ghost { display: none !important; }
-      .table-card:first-of-type { page-break-after: always; }
-      .table-title { font-size: 16px; }
-    }
   </style>
 </head>
 <body>
@@ -119,7 +110,6 @@
         <div class="month-picker">
           <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
 
-          <!-- input month + fallback -->
           <input type="month" id="mese">
           <span id="meseFallback" class="hidden">
             <select id="meseSel" aria-label="Mese">
@@ -143,7 +133,7 @@
             Mostra lavorazioni
           </label>
 
-          <!-- 💾 esportazioni -->
+          <!-- esportazioni -->
           <button class="btn-ghost" id="btnPDF" type="button" title="Esporta PDF A3 (2 pagine)">PDF A3 (fronte/retro)</button>
           <button class="btn-ghost" id="btnXLS" type="button" title="Esporta Excel (2 fogli)">Excel</button>
         </div>
@@ -159,7 +149,7 @@
 
     <div class="matrix-stack" id="printArea">
       <!-- Prima metà (1–15) -->
-      <div class="table-card">
+      <div class="table-card" id="cardA">
         <div class="table-title" id="titleA">Giorni 1–15</div>
         <div class="table-wrap">
           <table id="matrixA">
@@ -169,7 +159,7 @@
         </div>
       </div>
       <!-- Seconda metà (16–31) -->
-      <div class="table-card">
+      <div class="table-card" id="cardB">
         <div class="table-title" id="titleB">Giorni 16–31</div>
         <div class="table-wrap">
           <table id="matrixB">
@@ -182,41 +172,53 @@
   </div>
 
   <!-- ====== Modale Modifica ====== -->
-  <div id="overlay"></div>
-  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <h3 id="modalTitle">Modifica presenza</h3>
+  <div id="overlay" style="position:fixed; inset:0; background:var(--overlay); display:none; z-index:999;"></div>
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
+       style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+              background:#fff; border:1px solid var(--border); border-radius:12px;
+              width:92%; max-width:520px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+              display:none; z-index:1000;">
+    <h3 id="modalTitle" style="margin:0 0 12px;">Modifica presenza</h3>
     <input type="hidden" id="mod_id">
-    <div class="modal-row">
-      <div>
+    <div class="row" style="gap:10px;">
+      <div style="flex:1">
         <label>Data</label>
-        <input type="date" id="mod_data">
+        <input type="date" id="mod_data" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;">
       </div>
-      <div>
+      <div style="flex:1">
         <label>Ore</label>
-        <input type="number" id="mod_ore" step="0.25" min="0" placeholder="es. 8">
+        <input type="number" id="mod_ore" step="0.25" min="0" placeholder="es. 8"
+               style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;">
       </div>
     </div>
-    <div class="modal-row">
-      <div>
+    <div class="row" style="gap:10px; margin-top:10px;">
+      <div style="flex:1">
         <label>Cantiere</label>
-        <input type="text" id="mod_cantiere" placeholder="Nome cantiere">
+        <input type="text" id="mod_cantiere" placeholder="Nome cantiere"
+               style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;">
       </div>
-      <div>
+      <div style="flex:1">
         <label>Lavorazione</label>
-        <input type="text" id="mod_lavorazione" placeholder="Descrizione lavorazione">
+        <input type="text" id="mod_lavorazione" placeholder="Descrizione lavorazione"
+               style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;">
       </div>
     </div>
-    <div class="modal-row">
-      <div>
+    <div class="row" style="gap:10px; margin-top:10px;">
+      <div style="flex:1">
         <label>Note</label>
-        <textarea id="mod_note" placeholder="Eventuali note"></textarea>
+        <textarea id="mod_note" placeholder="Eventuali note"
+                  style="width:100%; min-height:80px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; resize:vertical;"></textarea>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn cancel" type="button" id="btnCancel">Annulla</button>
-      <button class="btn save" type="button" id="btnSave">Salva</button>
+    <div class="row" style="gap:10px; justify-content:flex-end; margin-top:12px;">
+      <button class="btn-ghost" type="button" id="btnCancel">Annulla</button>
+      <button class="action" type="button" id="btnSave">Salva</button>
     </div>
   </div>
+
+  <!-- ====== Librerie per export PDF ====== -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha256-Lh1dWlZp3o0Xo9yXwR4s2l1CgqjryK+YFh6kX1Q2qTg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" integrity="sha256-8+J5dQe2A7pR3k6m1r3A0CA8vxbF3j8s0uSWeGB8q0E=" crossorigin="anonymous"></script>
 
 <script>
   // === Config ===
@@ -485,7 +487,9 @@
         const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
         const dt = parseDateAny(dataVal);
         if(!dt) return;
-        if(dt.getFullYear()!==Y || (dt.getMonth()+1)!==M) return;
+        const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
+        const [Yt, Mt] = getYM();
+        if(Yf!==Yt || Mf!==Mt) return;
 
         const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
         if(!op) return;
@@ -501,7 +505,7 @@
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
-        byOpDay[op][d].push({ id: r.__row, cantiere, ore, note, lavorazione });
+        byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione, note });
       });
 
       const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
@@ -587,10 +591,44 @@
     });
   });
 
-  // ====== Esporta PDF (usa finestra di stampa) ======
-  function exportPDF(){
-    if(!cache.Y || !cache.M){ alert("Carica prima un mese."); return; }
-    window.print(); // verrà generato PDF A3 orizzontale con 2 pagine
+  // ====== Esporta PDF A3 (2 pagine, come a schermo) ======
+  async function exportPDF(){
+    // Assicuriamoci che le tabelle siano in DOM
+    const cardA = document.getElementById('cardA');
+    const cardB = document.getElementById('cardB');
+    if(!cardA || !cardB){ alert("Carica prima i dati."); return; }
+
+    // Render ad alta risoluzione
+    const SCALE = 2;
+    const canvasA = await html2canvas(cardA, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false });
+    const canvasB = await html2canvas(cardB, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false });
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
+
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const MARGIN = 20;
+
+    function addCanvasPage(canvas, isFirst){
+      const imgData = canvas.toDataURL('image/png');
+      const availW = pageW - 2*MARGIN;
+      const availH = pageH - 2*MARGIN;
+      const s = Math.min(availW / canvas.width, availH / canvas.height);
+      const w = canvas.width * s;
+      const h = canvas.height * s;
+      const x = MARGIN + (availW - w) / 2;
+      const y = MARGIN;
+
+      if(!isFirst) doc.addPage('a3','landscape');
+      doc.addImage(imgData, 'PNG', x, y, w, h);
+    }
+
+    addCanvasPage(canvasA, true);
+    addCanvasPage(canvasB, false);
+
+    const [Y,M] = (function(){ const v = document.getElementById('mese').value; if(v){ const [y,m]=v.split('-'); return [y,m]; } return ['YYYY','MM']; })();
+    doc.save(`Presenze_${Y}-${M}.pdf`);
   }
 
   // ====== Esporta Excel (.xls XML 2003, 2 fogli) ======
@@ -602,6 +640,8 @@
       .replace(/"/g,"&quot;")
       .replace(/'/g,"&apos;");
   }
+
+  const cacheState = { Y:null, M:null, operai:[], byOpDay:{} }; // non usato: lasciato per eventuali estensioni
 
   function buildMatrix(startDay, endDay){
     const Y = cache.Y, M = cache.M;
@@ -630,7 +670,7 @@
           parts.push(chunks.join("\n"));
         });
         if(entries.length>1){ parts.push(`Tot: ${(+total.toFixed(2)).toString()} h`); }
-        line.push(parts.join("\n\n")); // spazio fra cantieri
+        line.push(parts.join("\n\n"));
       }
       rows.push(line);
     });
@@ -638,7 +678,6 @@
   }
 
   function sheetXML(name, rows){
-    // opzionale: stime larghezze
     const colCount = rows[0]?.length || 1;
     let cols = "";
     for(let i=0;i<colCount;i++){
@@ -646,18 +685,13 @@
       cols += `<Column ss:Width="${w}"/>`;
     }
     const lines = rows.map((r,ri)=>{
-      const cells = r.map((c,ci)=>{
+      const cells = r.map((c)=>{
         const text = xmlEscape(c==null?"":String(c));
-        const type = "String";
-        const style = ri===0 ? ` ss:StyleID="hdr"` : "";
-        return `<Cell${style}><Data ss:Type="${type}">${text}</Data></Cell>`;
+        return `<Cell${ri===0?` ss:StyleID="hdr"`:""}><Data ss:Type="String">${text}</Data></Cell>`;
       }).join("");
       return `<Row>${cells}</Row>`;
     }).join("");
-    return `
-      <Worksheet ss:Name="${xmlEscape(name)}">
-        <Table>${cols}${lines}</Table>
-      </Worksheet>`;
+    return `<Worksheet ss:Name="${xmlEscape(name)}"><Table>${cols}${lines}</Table></Worksheet>`;
   }
 
   function exportExcel(){
@@ -738,6 +772,7 @@
     selMese.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
     selAnno.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
 
+    // Primo caricamento
     carica();
   })();
 </script>
