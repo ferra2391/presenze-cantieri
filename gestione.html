@@ -12,7 +12,7 @@
       --bg: hsl(210,20%,98%);
       --card: #fff;
       --border: hsl(210,15%,85%);
-      --orange-weak: hsla(30,100%,50%,0.08);
+      --orange-weak: hsla(30,100%,50%,0.08);          /* weekend/festivi */
       --orange-weak-border: hsla(30,100%,50%,0.25);
       --danger: #c00000;
       --overlay: rgba(0,0,0,.45);
@@ -82,7 +82,7 @@
 
     tbody th{
       position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
-      text-align:left; padding:8px 10px; font-size:12px; min-width:220px;
+      text-align:left; padding:8px 10px; font-size:12px; min-width:220px; /* più largo su desktop */
     }
     td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
@@ -293,30 +293,18 @@
     return set;
   }
 
-  function getFieldSmart(row, candidates){
-    for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
-    const keys = Object.keys(row);
-    const normMap = new Map(keys.map(k => [normalize(k), k]));
-    for(const cand of candidates){
-      const n = normalize(cand);
-      if(normMap.has(n)){
-        const realKey = normMap.get(n);
-        if(row[realKey] != null && row[realKey] !== "") return row[realKey];
-      }
-    }
-    const targets = candidates.map(normalize);
-    for(const k of keys){
-      const nk = normalize(k);
-      if(targets.some(t => nk.includes(t))){
-        if(row[k] != null && row[k] !== "") return row[k];
-      }
-    }
-    for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
-    return "";
-  }
-
   const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
   function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
+
+  /* *** NUOVO: considera vuoti i segnaposto comuni nel cantiere *** */
+  function isBlankCantiere(value){
+    const s = String(value||"").trim();
+    if(!s) return true;
+    if (/^[-–—]+$/.test(s)) return true; // solo trattini/lineette
+    if (/^(nd|n\.d\.|n\/d|na|n\.a\.|n\/a|non\s+specificato|sconosciuto|nessuno|undefined|null)$/i.test(s)) return true;
+    if (/^\(s.*cantiere\)$/i.test(s)) return true; // "(SENZA CANTIERE)" ecc.
+    return false;
+  }
 
   /* =================== MESE & RENDER =================== */
   const meseInput   = document.getElementById("mese");
@@ -440,20 +428,18 @@
 
               const isOff = td.classList.contains("weekend") || td.classList.contains("festivo");
 
-              const cantiereRaw = (en.cantiere != null ? String(en.cantiere).trim() : "");
-              const hasCant     = cantiereRaw.length > 0;
-              let cantDisplay   = hasCant ? cantiereRaw.toUpperCase() : "NO DATI";
+              const cantiereRaw = (en.cantiere != null ? String(en.cantiere) : "");
+              const hasCant     = !isBlankCantiere(cantiereRaw);
+              let  cantDisplay  = hasCant ? cantiereRaw.trim().toUpperCase() : "NO DATI";
 
               const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
               const lav    = stripIntervals(en.lavorazione || "");
               const note   = stripIntervals(en.note || "");
 
-              if (!hasCant && !isOff) {
-                wrap.classList.add("nodati");        // NO DATI solo feriali
-              }
-              if (cantDisplay === "ASSENTE") {
-                wrap.classList.add("assente");       // ASSENTE
-              }
+              // NO DATI solo nei feriali
+              if (!hasCant && !isOff) wrap.classList.add("nodati");
+              // ASSENTE
+              if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
 
               wrap.innerHTML =
                 `<div class="cant">${cantDisplay}</div>
@@ -619,7 +605,7 @@
       modifica: 1,
       id: String(modId.value || "").trim(),
       data: modData.value || "",
-      orari: "",
+      orari: "", // non usiamo intervalli orari
       cantiere: modCant.value || "",
       lavorazione: modLav.value || "",
       ore: modOre.value || "",
@@ -633,7 +619,7 @@
     })
     .then(() => {
       closeEdit();
-      setTimeout(carica, 900);
+      setTimeout(carica, 900); // lascia tempo al GAS di scrivere/ordinare
     })
     .catch(err => {
       console.error(err);
@@ -759,9 +745,9 @@
         const parts=[];
         entries.forEach(en=>{
           const chunks=[];
-          const cantiereRaw = (en.cantiere || "").toString().trim();
-          const hasCant     = cantiereRaw.length>0;
-          const cantDisp    = hasCant ? cantiereRaw.toUpperCase() : (isOff ? "" : "NO DATI");
+          const cantiereRaw = (en.cantiere == null ? "" : String(en.cantiere));
+          const hasCant     = !isBlankCantiere(cantiereRaw);
+          const cantDisp    = hasCant ? cantiereRaw.trim().toUpperCase() : (isOff ? "" : "NO DATI");
           if(cantDisp) chunks.push(cantDisp);
           if(en.ore!=null && !isNaN(en.ore)){ chunks.push(`${en.ore} h`); total+=Number(en.ore); }
           if(SHOW_LAV && en.lavorazione){ chunks.push(en.lavorazione); }
@@ -872,6 +858,29 @@
 
     carica();
   })();
+
+  /* ====== getFieldSmart (lasciato in fondo per chiarezza) ====== */
+  function getFieldSmart(row, candidates){
+    for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
+    const keys = Object.keys(row);
+    const normMap = new Map(keys.map(k => [normalize(k), k]));
+    for(const cand of candidates){
+      const n = normalize(cand);
+      if(normMap.has(n)){
+        const realKey = normMap.get(n);
+        if(row[realKey] != null && row[realKey] !== "") return row[realKey];
+      }
+    }
+    const targets = candidates.map(normalize);
+    for(const k of keys){
+      const nk = normalize(k);
+      if(targets.some(t => nk.includes(t))){
+        if(row[k] != null && row[k] !== "") return row[k];
+      }
+    }
+    for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
+    return "";
+  }
 </script>
 </body>
 </html>
