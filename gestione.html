@@ -12,7 +12,7 @@
       --bg: hsl(210,20%,98%);
       --card: #fff;
       --border: hsl(210,15%,85%);
-      --orange-weak: hsla(30,100%,50%,0.08); /* weekend/festivi */
+      --orange-weak: hsla(30,100%,50%,0.08);
       --orange-weak-border: hsla(30,100%,50%,0.25);
       --danger: #c00000;
       --overlay: rgba(0,0,0,.45);
@@ -82,7 +82,7 @@
 
     tbody th{
       position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
-      text-align:left; padding:8px 10px; font-size:12px; min-width:220px; /* più largo su desktop */
+      text-align:left; padding:8px 10px; font-size:12px; min-width:220px;
     }
     td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
@@ -133,7 +133,6 @@
             Mostra lavorazioni
           </label>
 
-          <!-- esportazioni -->
           <button class="btn-ghost" id="btnPDF" type="button" title="Esporta PDF A3 (2 pagine)">PDF A3 (fronte/retro)</button>
           <button class="btn-ghost" id="btnXLS" type="button" title="Esporta Excel (2 fogli)">Excel</button>
         </div>
@@ -148,7 +147,6 @@
     </div>
 
     <div class="matrix-stack" id="printArea">
-      <!-- Prima metà (1–15) -->
       <div class="table-card" id="cardA">
         <div class="table-title" id="titleA">Giorni 1–15</div>
         <div class="table-wrap">
@@ -158,7 +156,6 @@
           </table>
         </div>
       </div>
-      <!-- Seconda metà (16–31) -->
       <div class="table-card" id="cardB">
         <div class="table-title" id="titleB">Giorni 16–31</div>
         <div class="table-wrap">
@@ -171,7 +168,7 @@
     </div>
   </div>
 
-  <!-- ====== Modale Modifica ====== -->
+  <!-- Modale -->
   <div id="overlay" style="position:fixed; inset:0; background:var(--overlay); display:none; z-index:999;"></div>
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
        style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
@@ -216,11 +213,10 @@
     </div>
   </div>
 
-  <!-- ====== Librerie export (senza SRI) ====== -->
+  <!-- Librerie (senza SRI) -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
-  <!-- Fallback loader se i CDN sopra non rispondono -->
+  <!-- Fallback loader -->
   <script>
     function loadScript(url){
       return new Promise((resolve,reject)=>{
@@ -232,11 +228,9 @@
       });
     }
     async function ensurePdfLibs(){
-      // html2canvas
       if(typeof window.html2canvas === 'undefined'){
         await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
       }
-      // jsPDF
       if(!(window.jspdf && window.jspdf.jsPDF)){
         await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
       }
@@ -244,11 +238,10 @@
   </script>
 
 <script>
-  // === Config ===
+  /* =================== CONFIG & UTIL =================== */
   const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
   const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
 
-  // === Util ===
   const pad = n => String(n).padStart(2,"0");
   const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
 
@@ -298,11 +291,10 @@
     return "";
   }
 
-  // rimozione intervalli orari (tipo "08:00 - 17:00")
   const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
   function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
 
-  // ====== controlli mese ======
+  /* =================== MESE & RENDER =================== */
   const meseInput   = document.getElementById("mese");
   const meseFallback= document.getElementById("meseFallback");
   const selMese     = document.getElementById("meseSel");
@@ -348,7 +340,6 @@
     carica();
   }
 
-  // ====== header/body tabelle ======
   function renderHeaderHalf(containerTheadId, year, month, startDay, endDay){
     const thead = document.getElementById(containerTheadId);
     thead.innerHTML = "";
@@ -370,7 +361,7 @@
       if(d > daysInMonth){
         th.classList.add("day-void");
       }else{
-        const dow = (new Date(year, month-1, d).getDay()+6)%7; // 0=Lun
+        const dow = (new Date(year, month-1, d).getDay()+6)%7;
         const iso = `${year}-${pad(month)}-${pad(d)}`;
         if(dow===5 || dow===6) th.classList.add("weekend");
         if(holidays.has(iso)) th.classList.add("festivo");
@@ -552,7 +543,7 @@
     }
   }
 
-  // ====== Modale ======
+  /* =================== MODALE =================== */
   const overlay = document.getElementById('overlay');
   const modal   = document.getElementById('modal');
   const modId   = document.getElementById('mod_id');
@@ -614,38 +605,86 @@
     });
   });
 
-  // ====== Esporta PDF A3 (2 pagine, come a schermo) ======
+  /* =================== EXPORT =================== */
+  // Cattura "completa" di una card: clona off-screen, rimuove sticky/overflow e misura scrollWidth reale
+  async function captureCardFull(cardId){
+    const src = document.getElementById(cardId);
+    if(!src) throw new Error('card non trovata: '+cardId);
+
+    const wrap = src.querySelector('.table-wrap');
+    const table = src.querySelector('table');
+    const title = src.querySelector('.table-title');
+    const fullWidth = wrap ? wrap.scrollWidth : src.scrollWidth;
+
+    // cloniamo la card
+    const clone = src.cloneNode(true);
+
+    // sistemiamo stili nel clone: niente sticky, niente overflow, larghezza reale
+    const cloneWrap = clone.querySelector('.table-wrap');
+    if(cloneWrap){
+      cloneWrap.style.overflow = 'visible';
+      cloneWrap.style.width = (fullWidth + 2) + 'px';
+      cloneWrap.style.maxWidth = 'none';
+    }
+    clone.querySelectorAll('thead th, tbody th').forEach(el=>{
+      el.style.position = 'static';
+    });
+
+    // contenitore off-screen visibile (html2canvas ignora display:none)
+    const holder = document.createElement('div');
+    holder.style.position = 'absolute';
+    holder.style.left = '-10000px';
+    holder.style.top = '0';
+    holder.style.background = '#ffffff';
+    holder.style.padding = '0';
+    holder.style.margin = '0';
+    holder.appendChild(clone);
+    document.body.appendChild(holder);
+
+    // assicuriamoci che il layout sia calcolato
+    await new Promise(r=>requestAnimationFrame(r));
+
+    // cattura
+    const SCALE = 2;
+    const canvas = await html2canvas(clone, {
+      scale: SCALE,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+      windowWidth: holder.scrollWidth,
+      windowHeight: holder.scrollHeight
+    });
+
+    document.body.removeChild(holder);
+    return canvas;
+  }
+
   async function exportPDF(){
-    // garantisci che le librerie siano cariche
     await ensurePdfLibs();
 
-    const cardA = document.getElementById('cardA');
-    const cardB = document.getElementById('cardB');
-    if(!cardA || !cardB){ alert("Carica prima i dati."); return; }
-
-    const SCALE = 2;
-    const canvasA = await html2canvas(cardA, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false });
-    const canvasB = await html2canvas(cardB, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false });
+    // cattura completa, non quella visibile
+    const canvasA = await captureCardFull('cardA');
+    const canvasB = await captureCardFull('cardB');
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
 
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const MARGIN = 20;
+    const MARGIN = 10;
 
-    function addCanvasPage(canvas, isFirst){
-      const imgData = canvas.toDataURL('image/png');
+    function addCanvasPage(canvas, first){
+      const img = canvas.toDataURL('image/png');
       const availW = pageW - 2*MARGIN;
       const availH = pageH - 2*MARGIN;
-      const s = Math.min(availW / canvas.width, availH / canvas.height);
+      const s = Math.min(availW / canvas.width, availH / canvas.height); // contain = nessun taglio
       const w = canvas.width * s;
       const h = canvas.height * s;
-      const x = MARGIN + (availW - w) / 2;
-      const y = MARGIN;
+      const x = MARGIN + (availW - w)/2;
+      const y = MARGIN + (availH - h)/2;
 
-      if(!isFirst) doc.addPage('a3','landscape');
-      doc.addImage(imgData, 'PNG', x, y, w, h);
+      if(!first) doc.addPage('a3','landscape');
+      doc.addImage(img, 'PNG', x, y, w, h);
     }
 
     addCanvasPage(canvasA, true);
@@ -660,7 +699,7 @@
     doc.save(fname);
   }
 
-  // ====== Esporta Excel (.xls XML 2003, 2 fogli) ======
+  // Excel come prima
   function xmlEscape(s){
     return String(s)
       .replace(/&/g,"&amp;")
@@ -669,9 +708,6 @@
       .replace(/"/g,"&quot;")
       .replace(/'/g,"&apos;");
   }
-
-  const cacheState = { Y:null, M:null, operai:[], byOpDay:{} }; // placeholder
-
   function buildMatrix(startDay, endDay){
     const Y = cache.Y, M = cache.M;
     const daysInMonth = new Date(Y, M, 0).getDate();
@@ -705,7 +741,6 @@
     });
     return rows;
   }
-
   function sheetXML(name, rows){
     const colCount = rows[0]?.length || 1;
     let cols = "";
@@ -722,7 +757,6 @@
     }).join("");
     return `<Worksheet ss:Name="${xmlEscape(name)}"><Table>${cols}${lines}</Table></Worksheet>`;
   }
-
   function exportExcel(){
     if(!cache.Y || !cache.M){ alert("Carica prima un mese."); return; }
     const dataA = buildMatrix(1,15);
@@ -773,9 +807,8 @@
     setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
   }
 
-  // ====== init ======
+  /* =================== INIT =================== */
   (function init(){
-    const supportsMonth = (() => { const i=document.createElement('input'); i.type='month'; return i.type === 'month'; })();
     if(!supportsMonth){
       document.getElementById("mese").classList.add('hidden');
       document.getElementById("meseFallback").classList.remove('hidden');
@@ -803,7 +836,6 @@
     selMese.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
     selAnno.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
 
-    // Primo caricamento
     carica();
   })();
 </script>
