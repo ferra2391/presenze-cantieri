@@ -99,6 +99,18 @@
     .note{color:var(--muted); font-style:italic}
     .tot{margin-top:4px; font-weight:800}
     .center{display:flex; align-items:center; justify-content:center}
+
+    /* Evidenziazione per ASSENTE */
+.entry.assente{
+  background: hsla(140, 60%, 80%, 0.25); /* verde tenue trasparente */
+  border: 1px solid hsla(140, 50%, 55%, 0.40);
+  border-radius: 8px;
+  padding: 6px;
+}
+.entry.assente .cant{
+  color: hsl(210, 80%, 28%); /* azzurro scuro */
+}
+
   </style>
 </head>
 <body>
@@ -418,6 +430,11 @@
               const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
               const lav = stripIntervals(en.lavorazione || "");
               const note = stripIntervals(en.note || "");
+
+              // evidenzia ASSENTE
+if (cant.trim() === "ASSENTE") {
+  wrap.classList.add("assente");
+}
 
               wrap.innerHTML =
                 `<div class="cant">${cant}</div>
