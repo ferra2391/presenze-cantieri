@@ -111,14 +111,26 @@
 
     #ultimaLavorazioneBox { display: none !important; }
 
-    /* === Pulsante ASSENTE === */
+    /* === Pulsante ASSENTE ridotto e allineato a destra === */
+    .label-row{display:flex;align-items:center;gap:10px}
+    .label-row .section-label{margin:0}
     .btn-assente{
-      position:absolute; top:12px; right:12px;
-      background:#d32f2f; color:#fff; border:none; border-radius:8px;
-      padding:8px 12px; font-weight:700; cursor:pointer;
-      box-shadow:var(--shadow-medium); z-index:1;
+      position:static;           /* inline, non assoluto */
+      margin-left:auto;          /* allinea a destra */
+      padding:6px 10px;
+      font-size:12px;
+      line-height:1;
+      background:#d32f2f; color:#fff; border:none; border-radius:6px;
+      box-shadow:var(--shadow-medium); cursor:pointer;
     }
     .btn-assente:hover{ background:#b71c1c; transform:translateY(-1px); }
+
+    /* Mini pulsanti utility */
+    .btn-mini{
+      width:auto; padding:6px 10px; margin:6px 6px 0 0;
+      font-size:12px; border-radius:8px; background:#e9ecef; color:#333; border:1px solid var(--color-border);
+    }
+    .btn-mini:hover{ background:#dee2e6; }
   </style>
 </head>
 <body>
@@ -172,12 +184,23 @@
 
       <div id="multiOperai" class="card" style="display:none;margin-top:20px;">
         <p class="warning-message">⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.</p>
+
         <label class="section-label" for="operaio">👥 Seleziona altri operai:</label>
         <select id="operaio" multiple size="6" onchange="gestisciMoltiplicatori()"></select>
+
+        <!-- utility per deselezionare -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-mini" onclick="rimuoviSelezionati()">Rimuovi selezionati</button>
+          <button type="button" class="btn-mini" onclick="deselezionaTutti()">Deseleziona tutto</button>
+        </div>
+
         <div id="contenitoreMoltiplicatori" style="margin-top:15px;"></div>
         <div style="margin-top:15px;">
           <label class="section-label" for="nuovoOperaio">➕ Oppure inserisci un nuovo operaio:</label>
-          <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio" style="flex:1;">
+            <button type="button" class="btn-mini" onclick="document.getElementById('nuovoOperaio').value=''">Pulisci</button>
+          </div>
         </div>
       </div>
 
@@ -240,7 +263,7 @@
 
   <script>
     let utente="", nomeOperaio="", elencoCantieri=[], ruoliUtenti={}, ultimoTestoLavorazione="";
-    // === payload speciale per assenza ===
+    // payload per ASSENTE
     let payloadAssente = null;
 
     function login(){
@@ -261,13 +284,10 @@
           document.getElementById("form").style.display="block";
           document.getElementById("data").value=new Date().toISOString().split("T")[0];
 
-          //caricaUltimaLavorazione(utente);
           caricaCantieri();
           caricaOperai();
           caricaRiepilogoAdmin();
           generaCampiCantieri();
-
-          // 👉 carica subito l'agenda del mese corrente
           caricaAgendaMensile();
         });
     }
@@ -310,15 +330,17 @@
         let sel=`<select id="cantiere_${i}"><option value="">-- Seleziona Cantiere --</option>`;
         elencoCantieri.forEach(nome=>sel+=`<option value="${nome}">${nome}</option>`); sel+=`</select>`;
 
-        // Mostra il tasto ASSENTE solo nella prima card (Cantiere 1)
+        // tasto ASSENTE solo nella prima card
         const btnAssente = (i===1)
           ? `<button type="button" class="btn-assente" onclick="apriAssente()" title="Registra assenza per la data selezionata">🚫 ASSENTE</button>`
           : ``;
 
         container.innerHTML+=`
           <div class="card" style="margin-top:15px;padding:15px;position:relative;">
-            ${btnAssente}
-            <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
+            <div class="label-row">
+              <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
+              ${btnAssente}
+            </div>
             ${sel}
             <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Clicca QUI se il cantiere non è presente</button>
             <div id="cantiereLibero_${i}" style="display:none;">
@@ -406,7 +428,7 @@
     }
     function chiudiModal(){document.getElementById("modalConferma").classList.remove("show");setTimeout(()=>{document.getElementById("modalConferma").style.display="none";},300);}
 
-    // === Flusso ASSENTE: apre il pop-up con riepilogo specifico ===
+    // === Flusso ASSENTE ===
     function apriAssente(){
       const data = document.getElementById("data").value;
       if(!data){ alert("Seleziona prima la data."); return; }
@@ -441,16 +463,14 @@
       chiudiModal();
 
       if(payloadAssente){
-        // invio singola riga ASSENTE
         fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{
           method:"POST",
           mode:"no-cors",
           body: JSON.stringify(payloadAssente),
           headers: {"Content-Type":"application/json"}
         });
-        payloadAssente = null; // reset dopo invio
+        payloadAssente = null;
       } else {
-        // invio standard presenza
         invia();
       }
 
@@ -469,8 +489,19 @@
       generaCampiCantieri();
       caricaRiepilogoAdmin();
 
-      // ricarico agenda dopo scrittura
       setTimeout(caricaAgendaMensile,1200);
+    }
+
+    // Utility: deselezioni veloci nella lista operai
+    function rimuoviSelezionati(){
+      const sel = document.getElementById('operaio');
+      Array.from(sel.selectedOptions).forEach(o=>o.selected=false);
+      gestisciMoltiplicatori();
+    }
+    function deselezionaTutti(){
+      const sel = document.getElementById('operaio');
+      Array.from(sel.options).forEach(o=>o.selected=false);
+      gestisciMoltiplicatori();
     }
 
     function caricaRiepilogoAdmin(){
@@ -535,7 +566,6 @@
       return set;
     }
 
-    // Carica e renderizza l'agenda del mese corrente
     function caricaAgendaMensile(){
       if(!utente) return;
       const oggi=new Date(); const y=oggi.getFullYear(), m=oggi.getMonth()+1;
@@ -548,13 +578,11 @@
       }).catch(_=>renderAgenda([], y, m));
     }
 
-    // Renderer Agenda: mostra TUTTI i giorni del mese.
     function renderAgenda(presenze, y, m){
       const list=document.getElementById('agendaList'); if(!list) return;
       list.innerHTML='';
       const holidays=italianHolidays(y);
 
-      // raggruppo per giorno (d -> array presenze)
       const byDay={};
       presenze.forEach(p=>{
         const iso=p.dataISO||p.data||p.data_iso; if(!iso) return;
@@ -627,13 +655,11 @@
       }
     }
 
-    /* init: carico suggerimenti; l'agenda parte dopo login */
     window.addEventListener("DOMContentLoaded",()=>{
       fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
         .then(r=>r.json()).then(data=>{window.lavorazioniRecenti=data||[];});
     });
 
-    /* Modale modifica */
     function apriModifica(id){
       fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getPresenza=1&id=${id}`)
         .then(res=>res.json())
