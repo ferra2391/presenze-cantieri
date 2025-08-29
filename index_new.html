@@ -111,26 +111,18 @@
 
     #ultimaLavorazioneBox { display: none !important; }
 
-    /* === Pulsante ASSENTE ridotto e allineato a destra === */
+    /* === Pulsante/Select ASSENTE compatti e inline === */
     .label-row{display:flex;align-items:center;gap:10px}
     .label-row .section-label{margin:0}
+    .group-assente{display:flex;align-items:center;gap:6px;margin-left:auto}
+    .select-assente{
+      width:auto !important; padding:4px 6px; font-size:12px; min-height:auto; height:28px;
+    }
     .btn-assente{
-      position:static;           /* inline, non assoluto */
-      margin-left:auto;          /* allinea a destra */
-      padding:6px 10px;
-      font-size:12px;
-      line-height:1;
-      background:#d32f2f; color:#fff; border:none; border-radius:6px;
-      box-shadow:var(--shadow-medium); cursor:pointer;
+      width:auto; padding:4px 8px; font-size:11px; line-height:1;
+      background:#d32f2f; color:#fff; border:none; border-radius:6px; box-shadow:var(--shadow-medium); cursor:pointer;
     }
     .btn-assente:hover{ background:#b71c1c; transform:translateY(-1px); }
-
-    /* Mini pulsanti utility */
-    .btn-mini{
-      width:auto; padding:6px 10px; margin:6px 6px 0 0;
-      font-size:12px; border-radius:8px; background:#e9ecef; color:#333; border:1px solid var(--color-border);
-    }
-    .btn-mini:hover{ background:#dee2e6; }
   </style>
 </head>
 <body>
@@ -184,23 +176,12 @@
 
       <div id="multiOperai" class="card" style="display:none;margin-top:20px;">
         <p class="warning-message">⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.</p>
-
         <label class="section-label" for="operaio">👥 Seleziona altri operai:</label>
         <select id="operaio" multiple size="6" onchange="gestisciMoltiplicatori()"></select>
-
-        <!-- utility per deselezionare -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button type="button" class="btn-mini" onclick="rimuoviSelezionati()">Rimuovi selezionati</button>
-          <button type="button" class="btn-mini" onclick="deselezionaTutti()">Deseleziona tutto</button>
-        </div>
-
         <div id="contenitoreMoltiplicatori" style="margin-top:15px;"></div>
         <div style="margin-top:15px;">
           <label class="section-label" for="nuovoOperaio">➕ Oppure inserisci un nuovo operaio:</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio" style="flex:1;">
-            <button type="button" class="btn-mini" onclick="document.getElementById('nuovoOperaio').value=''">Pulisci</button>
-          </div>
+          <input type="text" id="nuovoOperaio" placeholder="👷 Inserisci nuovo operaio">
         </div>
       </div>
 
@@ -314,6 +295,24 @@
               ruoliUtenti[r["Nome"]]=r["Ruolo"]?.toUpperCase()||"OPERAIO";
             }
           });
+
+          // Popola anche il mini-select per "ASSENTE" se presente (solo admin)
+          const selAss = document.getElementById("assenteOperaio");
+          if(selAss){
+            selAss.innerHTML = "";
+            const opt0 = document.createElement("option");
+            opt0.value = "";
+            opt0.textContent = "(me)";
+            selAss.appendChild(opt0);
+            data.forEach(r=>{
+              if(r["Nome"]){
+                const o=document.createElement("option");
+                o.value=r["Nome"];
+                o.textContent=r["Nome"];
+                selAss.appendChild(o);
+              }
+            });
+          }
         });
     }
 
@@ -326,20 +325,24 @@
       const n=parseInt(document.getElementById("numeroCantieri").value);
       const container=document.getElementById("cantieriMultipli");
       container.innerHTML="";
+      const isAdmin = (localStorage.getItem("ruolo")||"").toLowerCase()==="amministratore";
+
       for(let i=1;i<=n;i++){
         let sel=`<select id="cantiere_${i}"><option value="">-- Seleziona Cantiere --</option>`;
         elencoCantieri.forEach(nome=>sel+=`<option value="${nome}">${nome}</option>`); sel+=`</select>`;
 
-        // tasto ASSENTE solo nella prima card
-        const btnAssente = (i===1)
-          ? `<button type="button" class="btn-assente" onclick="apriAssente()" title="Registra assenza per la data selezionata">🚫 ASSENTE</button>`
-          : ``;
+        // gruppo a destra (solo sulla prima card)
+        const gruppoAssente = (i===1) ? `
+          <div class="group-assente">
+            ${isAdmin ? `<select id="assenteOperaio" class="select-assente" title="Seleziona operaio da marcare assente (opzionale)"><option value="">(me)</option></select>` : ``}
+            <button type="button" class="btn-assente" onclick="apriAssente()" title="Registra assenza per la data selezionata">🚫 ASSENTE</button>
+          </div>` : ``;
 
         container.innerHTML+=`
           <div class="card" style="margin-top:15px;padding:15px;position:relative;">
             <div class="label-row">
               <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
-              ${btnAssente}
+              ${gruppoAssente}
             </div>
             ${sel}
             <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Clicca QUI se il cantiere non è presente</button>
@@ -433,13 +436,18 @@
       const data = document.getElementById("data").value;
       if(!data){ alert("Seleziona prima la data."); return; }
 
+      // se admin e selezionato un operaio nel mini-select, uso quello; altrimenti l'utente loggato
+      let operaioTarget = nomeOperaio;
+      const selAss = document.getElementById("assenteOperaio");
+      if(selAss && selAss.value) operaioTarget = selAss.value;
+
       payloadAssente = {
         data,
         orari: "-",
         cantiere: "ASSENTE",
         lavorazione: "ASSENTE",
         ore: 0,
-        operaio: nomeOperaio,
+        operaio: operaioTarget,
         user: utente,
         note: document.getElementById("note").value.trim()
       };
@@ -448,7 +456,7 @@
         <ul>
           <li><strong>Data:</strong> ${data}</li>
           <li><strong>Tipo:</strong> <span style="color:#b71c1c;font-weight:700;">ASSENTE</span></li>
-          <li><strong>Operaio:</strong> ${nomeOperaio}</li>
+          <li><strong>Operaio:</strong> ${operaioTarget}</li>
           <li><strong>Cantiere:</strong> ASSENTE</li>
           <li><strong>Lavorazione:</strong> ASSENTE</li>
           <li><strong>Ore:</strong> 0</li>
@@ -490,18 +498,6 @@
       caricaRiepilogoAdmin();
 
       setTimeout(caricaAgendaMensile,1200);
-    }
-
-    // Utility: deselezioni veloci nella lista operai
-    function rimuoviSelezionati(){
-      const sel = document.getElementById('operaio');
-      Array.from(sel.selectedOptions).forEach(o=>o.selected=false);
-      gestisciMoltiplicatori();
-    }
-    function deselezionaTutti(){
-      const sel = document.getElementById('operaio');
-      Array.from(sel.options).forEach(o=>o.selected=false);
-      gestisciMoltiplicatori();
     }
 
     function caricaRiepilogoAdmin(){
