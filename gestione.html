@@ -18,14 +18,15 @@
       --overlay: rgba(0,0,0,.45);
 
       /* Config tabella */
-      --col-w: 270px;     /* larghezza fissa di ogni giorno */
-      --col-op: 210px;    /* larghezza colonna Operai */
+      --col-w: 270px;   /* larghezza fissa giorno */
+      --col-op: 210px;  /* larghezza colonna Operai */
+      --day-h: 120px;   /* altezza casella giorno (per centraggio verticale) */
 
-      --fs-day: 20px;     /* dimensione numeri dei giorni (header) */
+      --fs-day: 20px;     /* numeri dei giorni header */
       --fs-cantiere: 24px;
       --fs-ore: 23px;
       --fs-tot: 22px;
-      --fs-note: 20px;    /* dimensione delle note */
+      --fs-note: 20px;    /* dimensione note */
     }
 
     *{box-sizing:border-box}
@@ -122,22 +123,30 @@
       word-break: break-word;
     }
 
-    /* Dimensione numeri dei giorni */
+    /* Numeri dei giorni */
     thead th:not(:first-child){ font-size: var(--fs-day); }
 
-    /* Celle dei giorni centrate (orizzontale & verticale) */
+    /* Celle giorno (restano table-cell per non rompere il layout) */
     tbody td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
       padding:6px;
-      display:flex;                 /* centraggio robusto */
-      flex-direction:column;
-      align-items:center;           /* centro orizzontale */
-      justify-content:center;       /* centro verticale */
-      text-align:center;            /* testo centrato */
+      height: var(--day-h);     /* necessaria per un centraggio verticale percepibile */
+      vertical-align: middle;   /* fallback se mancasse il wrapper */
+      text-align:center;
     }
     tr:last-child td{border-bottom:1px solid var(--border)}
-
     tbody td.weekend, tbody td.festivo{background:var(--orange-weak)}
+
+    /* Wrapper interno che centra davvero il contenuto */
+    .cell{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+    }
+
     td .entry{margin-bottom:6px; cursor:pointer}
     .entry:hover{filter:brightness(0.97)}
     .cant{color:var(--danger); font-weight:800; text-transform:uppercase; letter-spacing:.02em; font-size: var(--fs-cantiere);}
@@ -418,7 +427,6 @@
       const th = document.createElement("th");
       th.textContent = d;
       th.title = `${pad(d)}/${pad(month)}/${year}`;
-      // Niente minWidth inline: lo gestisce il CSS con --col-w
       if(d > daysInMonth){
         th.classList.add("day-void");
       }else{
@@ -481,6 +489,9 @@
 
           const entries = (byOpDay[op] && byOpDay[op][d]) ? byOpDay[op][d] : [];
 
+          const inner = document.createElement('div');
+          inner.className = 'cell';
+
           if(entries.length){
             let total = 0;
             entries.forEach(en=>{
@@ -508,18 +519,20 @@
                 (SHOW_LAV && lav ? `<div class="lav">${lav}</div>` : "") +
                 (note ? `<div class="note">${note}</div>` : "");
 
-              td.appendChild(wrap);
+              inner.appendChild(wrap);
               if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
             });
             if(entries.length>1){
               const tot = document.createElement("div");
               tot.className = "tot";
               tot.textContent = `Tot: ${(+total.toFixed(2)).toString()} h`;
-              td.appendChild(tot);
+              inner.appendChild(tot);
             }
           }else{
-            td.innerHTML = `<div class="center" style="min-height:30px;color:#bbb">—</div>`;
+            inner.innerHTML = `<div class="center" style="min-height:30px;color:#bbb">—</div>`;
           }
+
+          td.appendChild(inner);
         }else{
           td.style.background = "#fafafa";
         }
