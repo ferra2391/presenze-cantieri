@@ -6,17 +6,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
+      /* palette */
       --primary: hsl(210,100%,40%);
       --text: hsl(210,10%,20%);
       --muted: hsl(210,6%,45%);
       --bg: hsl(210,20%,98%);
       --card: #fff;
       --border: hsl(210,15%,85%);
-      --orange-weak: hsla(30,100%,50%,0.08);          /* weekend/festivi */
+      --orange-weak: hsla(30,100%,50%,0.08);
       --orange-weak-border: hsla(30,100%,50%,0.25);
       --danger: #c00000;
       --overlay: rgba(0,0,0,.45);
+
+      /* dimensioni regolabili */
+      --col-w: 270px;      /* larghezza fissa di ogni giorno */
+      --col-op: 210px;     /* larghezza colonna Operai */
+      --fs-cantiere: 24px; /* font nome cantiere */
+      --fs-ore: 23px;      /* font ore */
+      --fs-tot: 22px;      /* font Tot (nella cella) */
+      --fs-day: 20px;      /* font numeri dei giorni (header) */
+      --fs-note: 20px;     /* font Note */
     }
+
     *{box-sizing:border-box}
     html, body{height:100%}
     body{
@@ -73,31 +84,50 @@
 
     .table-wrap{width:100%; overflow:auto}
     table{border-collapse:separate; border-spacing:0; min-width:100%; font-size:12px}
+
     thead th{
       position:sticky; top:0; z-index:2; background:#fff; border-bottom:1px solid var(--border);
       padding:8px 6px; text-align:center; white-space:nowrap;
+      font-size: var(--fs-day);       /* numeri dei giorni */
     }
     thead th.day-void{color:#aaa; background:#fafafa}
     thead th.weekend, thead th.festivo{background:var(--orange-weak); border-bottom-color:var(--orange-weak-border)}
 
-tbody th{
-  position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
-  text-align:left; padding:8px 10px;
-  /* ⬇️ qui le modifiche */
-  font-size:22px;               /* doppio rispetto a 12px */
-  line-height:1.2;              /* più leggibile con due righe */
-  white-space:normal;           /* consenti a capo */
-  overflow-wrap:break-word;     /* spezza parole lunghe se necessario */
-  word-break:break-word;        /* fallback */
-  min-width:220px;              /* lascia invariata la larghezza minima */
-}
+    /* Prima colonna (Operaio) */
+    thead th:first-child,
+    tbody th{
+      position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
+      text-align:left; padding:8px 10px;
+      font-size:22px; line-height:1.2;
+      white-space:normal; overflow-wrap:break-word; word-break:break-word;
 
-    td{
+      width: var(--col-op);
+      min-width: var(--col-op);
+      max-width: var(--col-op);
+    }
+
+    /* celle dei giorni con larghezza fissa e testo a capo */
+    thead th:not(:first-child),
+    tbody td{
+      width: var(--col-w);
+      min-width: var(--col-w);
+      max-width: var(--col-w);
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    /* Celle dei giorni: centro orizzontale e verticale del contenuto */
+    tbody td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
-      vertical-align:top; padding:6px; min-width:160px; max-width:360px; word-wrap:break-word;
+      padding:6px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;          /* centro orizzontale */
+      justify-content:center;      /* centro verticale */
+      text-align:center;           /* testo centrato */
     }
     tr:last-child td{border-bottom:1px solid var(--border)}
-
     tbody td.weekend, tbody td.festivo{background:var(--orange-weak)}
     td .entry{margin-bottom:6px; cursor:pointer}
     .entry:hover{filter:brightness(0.97)}
@@ -108,124 +138,39 @@ tbody th{
     .tot{margin-top:4px; font-weight:800}
     .center{display:flex; align-items:center; justify-content:center}
 
-    /* Evidenziazione per ASSENTE */
+    /* dimensioni testo contenuti */
+    .entry .cant{ font-size: var(--fs-cantiere); }
+    .entry .ore{  font-size: var(--fs-ore); }
+    .entry .note{ font-size: var(--fs-note); }
+    .tot{         font-size: var(--fs-tot); }
+
+    /* Evidenziazioni speciali */
     .entry.assente{
-      background: hsla(140, 60%, 80%, 0.25);         /* verde tenue trasparente */
+      background: hsla(140, 60%, 80%, 0.25);
       border: 1px solid hsla(140, 50%, 55%, 0.40);
       border-radius: 8px;
       padding: 6px;
     }
-    .entry.assente .cant{
-      color: hsl(210, 80%, 28%);                      /* azzurro scuro */
-    }
-
-    /* Evidenziazione per NO DATI (solo feriali) */
+    .entry.assente .cant{ color: hsl(210, 80%, 28%); }
     .entry.nodati{
-      background: hsla(0, 80%, 60%, 0.20);            /* rosso tenue trasparente */
+      background: hsla(0, 80%, 60%, 0.20);
       border: 1px solid hsla(0, 70%, 50%, 0.35);
       border-radius: 8px;
       padding: 6px;
     }
     .entry.nodati .cant{
-      text-decoration: underline;                     /* sottolineato */
+      text-decoration: underline;
       font-weight: 800;
-      text-transform: uppercase;                      /* stampatello */
+      text-transform: uppercase;
     }
 
-
-
-/* === Colonne a larghezza fissa + testo a capo === */
-:root{
-  /* Cambia qui quando vuoi */
-  --col-w: 270px;      /* larghezza fissa di ogni giorno */
-  --fs-cantiere: 24px; /* dimensione nome cantiere */
-  --fs-ore: 23px;      /* dimensione ore */
-  --fs-tot: 22px;      /* dimensione totali */
-}
-
-/* Tutte le colonne dei giorni (esclusa la prima colonna "Operaio") */
-thead th:not(:first-child),
-tbody td{
-  width: var(--col-w);
-  min-width: var(--col-w);
-  max-width: var(--col-w);
-  
-  /* Dimensione dei numeri dei giorni nell'intestazione */
-thead th:not(:first-child){
-  font-size: 20px;    /* cambia qui */
-  white-space: normal;       /* consenti a capo */
-  overflow-wrap: anywhere;   /* spezza parole lunghe */
-  word-break: break-word;    /* fallback */
-}
-
-/* Più grandi: cantiere, ore e totali */
-.entry .cant{ font-size: var(--fs-cantiere); }
-.entry .ore{  font-size: var(--fs-ore); }
-.tot{          font-size: var(--fs-tot); }
-
-
-
-
-
-
-:root{
-  /* nuova variabile per la colonna Operai */
-  --col-op: 210px;   /* cambia qui se vuoi più stretta/larga */
-}
-
-/* Fissa la larghezza della colonna Operai (header + body) */
-thead th:first-child,
-tbody th{
-  width: var(--col-op);
-  min-width: var(--col-op);
-  max-width: var(--col-op);
-  white-space: normal;        /* va a capo se serve */
-  overflow-wrap: anywhere;    /* spezza parole lunghe */
-  word-break: break-word;     /* fallback */
-}
-
-
-/* Centra orizzontalmente il contenuto di ogni cella-giorno (senza usare flex) */
-tbody td{
-  text-align: center;     /* centra il testo */
-  vertical-align: top;    /* resta ancorato in alto */
-}
-
-/* I blocchi interni ereditano l'allineamento */
-tbody td .entry,
-tbody td .tot,
-tbody td .lav,
-tbody td .note,
-tbody td .cant,
-tbody td .ore{
-  text-align: inherit;
-}
-
-/* Il trattino dei giorni vuoti resta centrato grazie alla classe .center già esistente */
-
-
-
-
-
-.entry .note{
-  font-size: 20px;   /* cambia qui */
-  line-height: 1.25; /* opzionale */
-}
-
-
-    
-
-
-
-  /* Totale ore mese sotto al nome operaio */
-.op-total{
-  color: magenta;          /* colore richiesto */
-  font-weight: 700;
-  font-size: 14px;         /* modifica pure a piacere */
-  margin-top: 4px;
-}
-
-    
+    /* Totale ore mese sotto al nome operaio */
+    .op-total{
+      color: magenta;
+      font-weight: 700;
+      font-size: 14px;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -380,7 +325,7 @@ tbody td .ore{
     if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
     const t = new Date(s); return isNaN(t) ? null : t;
   }
-  function toISODateInput(d){ return (d instanceof Date && !isNaN(d)) ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` : ""; }
+  function toISODateInput(d){ return (d instanceof Date && !isNaN(d)) ? `${d.getFullYear()}-${d.getMonth()+1<10?"0":""}${d.getMonth()+1}-${d.getDate()<10?"0":""}${d.getDate()}` : ""; }
 
   function calcEaster(Y){
     const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
@@ -389,7 +334,7 @@ tbody td .ore{
     return new Date(Y,month-1,day);
   }
   function italianHolidays(year){
-    const set=new Set(),add=(m,d)=>set.add(`${year}-${pad(m)}-${pad(d)}`);
+    const set=new Set(),add=(m,d)=>set.add(`${year}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`);
     add(1,1); add(1,6); add(4,25); add(5,1); add(6,2); add(8,15); add(11,1); add(12,8); add(12,25); add(12,26);
     const p=calcEaster(year), q=new Date(p); q.setDate(p.getDate()+1);
     add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
@@ -399,13 +344,12 @@ tbody td .ore{
   const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
   function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
 
-  /* *** NUOVO: considera vuoti i segnaposto comuni nel cantiere *** */
   function isBlankCantiere(value){
     const s = String(value||"").trim();
     if(!s) return true;
-    if (/^[-–—]+$/.test(s)) return true; // solo trattini/lineette
+    if (/^[-–—]+$/.test(s)) return true;
     if (/^(nd|n\.d\.|n\/d|na|n\.a\.|n\/a|non\s+specificato|sconosciuto|nessuno|undefined|null)$/i.test(s)) return true;
-    if (/^\(s.*cantiere\)$/i.test(s)) return true; // "(SENZA CANTIERE)" ecc.
+    if (/^\(s.*cantiere\)$/i.test(s)) return true;
     return false;
   }
 
@@ -431,8 +375,9 @@ tbody td .ore{
       selAnno.appendChild(opt);
     }
   }
+  function pad2(n){ return String(n).padStart(2,"0"); }
   function setYM(Y,M,updateControls=true){
-    const val = `${Y}-${pad(M)}`;
+    const val = `${Y}-${pad2(M)}`;
     if(supportsMonth){ meseInput.value = val; }
     if(updateControls){ selAnno.value = String(Y); selMese.value = String(M); }
     const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
@@ -472,12 +417,12 @@ tbody td .ore{
       const th = document.createElement("th");
       th.textContent = d;
       th.style.minWidth = "140px";
-      th.title = `${pad(d)}/${pad(month)}/${year}`;
+      th.title = `${pad2(d)}/${pad2(month)}/${year}`;
       if(d > daysInMonth){
         th.classList.add("day-void");
       }else{
         const dow = (new Date(year, month-1, d).getDay()+6)%7;
-        const iso = `${year}-${pad(month)}-${pad(d)}`;
+        const iso = `${year}-${pad2(month)}-${pad2(d)}`;
         if(dow===5 || dow===6) th.classList.add("weekend");
         if(holidays.has(iso)) th.classList.add("festivo");
       }
@@ -506,32 +451,30 @@ tbody td .ore{
 
     operai.forEach(op=>{
       const tr = document.createElement("tr");
-const th = document.createElement("th");
+      const th = document.createElement("th");
 
-// somma ore di tutto il mese per questo operaio
-let monthTotal = 0;
-const daysMap = byOpDay[op] || {};
-Object.values(daysMap).forEach(arr=>{
-  arr.forEach(en=>{
-    if(en.ore != null && !isNaN(en.ore)) monthTotal += Number(en.ore);
-  });
-});
-// formato “pulito” (intero se possibile, altrimenti con 2 decimali)
-const monthTotalTxt = (+monthTotal.toFixed(2)).toString();
+      // somma ore di tutto il mese per questo operaio
+      let monthTotal = 0;
+      const daysMap = byOpDay[op] || {};
+      Object.values(daysMap).forEach(arr=>{
+        arr.forEach(en=>{
+          if(en.ore != null && !isNaN(en.ore)) monthTotal += Number(en.ore);
+        });
+      });
+      const monthTotalTxt = (+monthTotal.toFixed(2)).toString();
 
-th.innerHTML = `
-  <div class="op-name">${op}</div>
-  <div class="op-total">TOT ORE MESE = ${monthTotalTxt}</div>
-`;
-tr.appendChild(th);
-
+      th.innerHTML = `
+        <div class="op-name">${op}</div>
+        <div class="op-total">TOT ORE MESE = ${monthTotalTxt}</div>
+      `;
+      tr.appendChild(th);
 
       for(let d=startDay; d<=endDay; d++){
         const td = document.createElement("td");
 
         if(d <= daysInMonth){
           const dow = (new Date(year, month-1, d).getDay()+6)%7;
-          const iso = `${year}-${pad(month)}-${pad(d)}`;
+          const iso = `${year}-${pad2(month)}-${pad2(d)}`;
           if(dow===5 || dow===6) td.classList.add("weekend");
           if(holidays.has(iso)) td.classList.add("festivo");
 
@@ -555,9 +498,7 @@ tr.appendChild(th);
               const lav    = stripIntervals(en.lavorazione || "");
               const note   = stripIntervals(en.note || "");
 
-              // NO DATI solo nei feriali
               if (!hasCant && !isOff) wrap.classList.add("nodati");
-              // ASSENTE
               if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
 
               wrap.innerHTML =
@@ -602,400 +543,4 @@ tr.appendChild(th);
   function setLoading(on){
     spin.classList.toggle("show", !!on);
     btnCarica.disabled = !!on;
-    prevBtn.disabled = !!on;
-    nextBtn.disabled = !!on;
-  }
-
-  async function carica(){
-    try{
-      setLoading(true);
-      statusEl.textContent = "";
-
-      const [Y,M] = getYM();
-      if(!Y || !M){ statusEl.innerHTML = `<span class="error">Seleziona un mese.</span>`; return; }
-
-      const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
-      const rows = (await res.json()) || [];
-      rows.forEach((r,idx)=>{ r.__row = idx + 2; });
-
-      let fallbackNomi = [];
-      try {
-        const ures = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Utenti`);
-        const utenti = await ures.json();
-        fallbackNomi = utenti
-          .map(r => (r["Nome"] || r["nome"] || "").toString().trim())
-          .filter(Boolean)
-          .sort((a,b)=>a.localeCompare(b,'it'));
-      } catch {}
-
-let operai = []; // la popoleremo dopo aver filtrato le righe del mese
-
-
-      const byOpDay = {};
-      rows.forEach(r=>{
-        operai = Object.keys(byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
-
-        const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
-        const dt = parseDateAny(dataVal);
-        if(!dt) return;
-        const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
-        const [Yt, Mt] = getYM();
-        if(Yf!==Yt || Mf!==Mt) return;
-
-        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
-        if(!op) return;
-        const d = dt.getDate();
-
-        const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
-        const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
-        const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
-        const lavRaw   = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
-        const lavorazione = stripIntervals(lavRaw);
-        const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
-        const note     = stripIntervals(noteRaw);
-
-        byOpDay[op] ??= {};
-        byOpDay[op][d] ??= [];
-        byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione, note });
-      });
-
-      const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
-      titleA.textContent = `Giorni 1–15 — ${monthName} ${Y}`;
-      titleB.textContent = `Giorni 16–31 — ${monthName} ${Y}`;
-
-      renderHeaderHalf("theadA", Y, M, 1, 15);
-      renderHeaderHalf("theadB", Y, M, 16, 31);
-
-      cache.Y = Y; cache.M = M; cache.operai = operai; cache.byOpDay = byOpDay;
-
-      renderBodyHalf("tbodyA", Y, M, 1, 15, operai, byOpDay);
-      renderBodyHalf("tbodyB", Y, M, 16, 31, operai, byOpDay);
-
-      statusEl.innerHTML = `<span class="ok">Dati caricati (${rows.length} righe da Foglio1)</span>`;
-    }catch(err){
-      console.error(err);
-      statusEl.innerHTML = `<span class="error">Errore nel caricamento dati.</span>`;
-    }finally{
-      setLoading(false);
-    }
-  }
-
-  /* =================== MODALE =================== */
-  const overlay = document.getElementById('overlay');
-  const modal   = document.getElementById('modal');
-  const modId   = document.getElementById('mod_id');
-  const modData = document.getElementById('mod_data');
-  const modOre  = document.getElementById('mod_ore');
-  const modCant = document.getElementById('mod_cantiere');
-  const modLav  = document.getElementById('mod_lavorazione');
-  const modNote = document.getElementById('mod_note');
-
-  function openEdit(id){
-    fetch(`${GAS_URL}?getPresenza=1&id=${encodeURIComponent(id)}`)
-      .then(res => res.json())
-      .then(obj=>{
-        modId.value = obj.id || id;
-        const d = parseDateAny(obj.data);
-        modData.value = toISODateInput(d);
-        modOre.value  = (obj.ore!=null && !isNaN(obj.ore)) ? obj.ore : "";
-        modCant.value = obj.cantiere || "";
-        modLav.value  = obj.lavorazione || "";
-        modNote.value = obj.note || "";
-        overlay.style.display='block';
-        modal.style.display='block';
-      })
-      .catch(_=>{
-        modId.value = id;
-        overlay.style.display='block';
-        modal.style.display='block';
-      });
-  }
-  function closeEdit(){ modal.style.display='none'; overlay.style.display='none'; }
-  document.getElementById('btnCancel').addEventListener('click', closeEdit);
-  overlay.addEventListener('click', closeEdit);
-  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEdit(); });
-
-  document.getElementById('btnSave').addEventListener('click', ()=>{
-    const payload = {
-      modifica: 1,
-      id: String(modId.value || "").trim(),
-      data: modData.value || "",
-      orari: "", // non usiamo intervalli orari
-      cantiere: modCant.value || "",
-      lavorazione: modLav.value || "",
-      ore: modOre.value || "",
-      note: modNote.value || ""
-    };
-
-    fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(payload)
-    })
-    .then(() => {
-      closeEdit();
-      setTimeout(carica, 900); // lascia tempo al GAS di scrivere/ordinare
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Errore durante il salvataggio.");
-    });
-  });
-
-  /* =================== EXPORT =================== */
-  async function captureCardFull(cardId){
-    const src = document.getElementById(cardId);
-    if(!src) throw new Error('card non trovata: '+cardId);
-
-    const wrap = src.querySelector('.table-wrap');
-    const fullWidth = wrap ? wrap.scrollWidth : src.scrollWidth;
-
-    const clone = src.cloneNode(true);
-
-    const cloneWrap = clone.querySelector('.table-wrap');
-    if(cloneWrap){
-      cloneWrap.style.overflow = 'visible';
-      cloneWrap.style.width = (fullWidth + 2) + 'px';
-      cloneWrap.style.maxWidth = 'none';
-    }
-    clone.querySelectorAll('thead th, tbody th').forEach(el=>{
-      el.style.position = 'static';
-    });
-
-    const holder = document.createElement('div');
-    holder.style.position = 'absolute';
-    holder.style.left = '-10000px';
-    holder.style.top = '0';
-    holder.style.background = '#ffffff';
-    holder.style.padding = '0';
-    holder.style.margin = '0';
-    holder.appendChild(clone);
-    document.body.appendChild(holder);
-
-    await new Promise(r=>requestAnimationFrame(r));
-
-    const SCALE = 2;
-    const canvas = await html2canvas(clone, {
-      scale: SCALE,
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      logging: false,
-      windowWidth: holder.scrollWidth,
-      windowHeight: holder.scrollHeight
-    });
-
-    document.body.removeChild(holder);
-    return canvas;
-  }
-
-  async function exportPDF(){
-    await ensurePdfLibs();
-
-    const canvasA = await captureCardFull('cardA');
-    const canvasB = await captureCardFull('cardB');
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
-
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const MARGIN = 10;
-
-    function addCanvasPage(canvas, first){
-      const img = canvas.toDataURL('image/png');
-      const availW = pageW - 2*MARGIN;
-      const availH = pageH - 2*MARGIN;
-      const s = Math.min(availW / canvas.width, availH / canvas.height);
-      const w = canvas.width * s;
-      const h = canvas.height * s;
-      const x = MARGIN + (availW - w)/2;
-      const y = MARGIN + (availH - h)/2;
-
-      if(!first) doc.addPage('a3','landscape');
-      doc.addImage(img, 'PNG', x, y, w, h);
-    }
-
-    addCanvasPage(canvasA, true);
-    addCanvasPage(canvasB, false);
-
-    const v = document.getElementById('mese')?.value || '';
-    let fname = 'Presenze.pdf';
-    if(/^\d{4}-\d{2}$/.test(v)){
-      const [y,m] = v.split('-');
-      fname = `Presenze_${y}-${m}.pdf`;
-    }
-    doc.save(fname);
-  }
-
-  function xmlEscape(s){
-    return String(s)
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;")
-      .replace(/'/g,"&apos;");
-  }
-  function buildMatrix(startDay, endDay){
-    const Y = cache.Y, M = cache.M;
-    const daysInMonth = new Date(Y, M, 0).getDate();
-    const holidays = italianHolidays(Y);
-    const header = ["Operaio"];
-    for(let d=startDay; d<=endDay; d++){
-      header.push(d <= daysInMonth ? String(d) : "");
-    }
-    const rows = [header];
-
-    cache.operai.forEach(op=>{
-      const line = [op];
-      for(let d=startDay; d<=endDay; d++){
-        if(d>daysInMonth){ line.push(""); continue; }
-        const entries = (cache.byOpDay[op] && cache.byOpDay[op][d]) ? cache.byOpDay[op][d] : [];
-        if(!entries.length){ line.push("—"); continue; }
-
-        const dow = (new Date(Y, M-1, d).getDay()+6)%7;
-        const iso = `${Y}-${pad(M)}-${pad(d)}`;
-        const isOff = (dow===5||dow===6) || holidays.has(iso);
-
-        let total=0;
-        const parts=[];
-        entries.forEach(en=>{
-          const chunks=[];
-          const cantiereRaw = (en.cantiere == null ? "" : String(en.cantiere));
-          const hasCant     = !isBlankCantiere(cantiereRaw);
-          const cantDisp    = hasCant ? cantiereRaw.trim().toUpperCase() : (isOff ? "" : "NO DATI");
-          if(cantDisp) chunks.push(cantDisp);
-          if(en.ore!=null && !isNaN(en.ore)){ chunks.push(`${en.ore} h`); total+=Number(en.ore); }
-          if(SHOW_LAV && en.lavorazione){ chunks.push(en.lavorazione); }
-          if(en.note){ chunks.push(en.note); }
-          parts.push(chunks.join("\n"));
-        });
-        if(entries.length>1){ parts.push(`Tot: ${(+total.toFixed(2)).toString()} h`); }
-        line.push(parts.join("\n\n"));
-      }
-      rows.push(line);
-    });
-    return rows;
-  }
-  function sheetXML(name, rows){
-    const colCount = rows[0]?.length || 1;
-    let cols = "";
-    for(let i=0;i<colCount;i++){
-      const w = i===0 ? 160 : 80;
-      cols += `<Column ss:Width="${w}"/>`;
-    }
-    const lines = rows.map((r,ri)=>{
-      const cells = r.map((c)=>{
-        const text = xmlEscape(c==null?"":String(c));
-        return `<Cell${ri===0?` ss:StyleID="hdr"`:""}><Data ss:Type="String">${text}</Data></Cell>`;
-      }).join("");
-      return `<Row>${cells}</Row>`;
-    }).join("");
-    return `<Worksheet ss:Name="${xmlEscape(name)}"><Table>${cols}${lines}</Table></Worksheet>`;
-  }
-  function exportExcel(){
-    if(!cache.Y || !cache.M){ alert("Carica prima un mese."); return; }
-    const dataA = buildMatrix(1,15);
-    const dataB = buildMatrix(16,31);
-
-    const now = new Date().toISOString();
-    const xml =
-`<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
- <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
-  <Author>Presenze Cantiere</Author>
-  <Created>${now}</Created>
- </DocumentProperties>
- <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
-  <ProtectStructure>False</ProtectStructure>
-  <ProtectWindows>False</ProtectWindows>
- </ExcelWorkbook>
- <Styles>
-  <Style ss:ID="Default" ss:Name="Normal">
-    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
-    <Borders/>
-    <Font ss:FontName="Calibri" ss:Size="11"/>
-    <Interior/>
-    <NumberFormat/>
-    <Protection/>
-  </Style>
-  <Style ss:ID="hdr">
-    <Font ss:Bold="1"/>
-    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-    <Interior ss:Color="#EEEEEE" ss:Pattern="Solid"/>
-  </Style>
- </Styles>
- ${sheetXML("Giorni 1–15", dataA)}
- ${sheetXML("Giorni 16–31", dataB)}
-</Workbook>`;
-
-    const blob = new Blob([xml], {type: "application/vnd.ms-excel"});
-    const [Y,M] = [cache.Y, cache.M];
-    const fname = `Presenze_${Y}-${pad(M)}.xls`;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = fname;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
-  }
-
-  /* =================== INIT =================== */
-  (function init(){
-    if(!supportsMonth){
-      document.getElementById("mese").classList.add('hidden');
-      document.getElementById("meseFallback").classList.remove('hidden');
-    }
-    const now = new Date();
-    populateYearSelect(now.getFullYear());
-    const Y = now.getFullYear();
-    const M = now.getMonth()+1;
-    setYM(Y,M,true);
-
-    document.getElementById("btnCarica").addEventListener("click", carica);
-    document.getElementById("prevMonth").addEventListener("click", ()=>shiftMonth(-1));
-    document.getElementById("nextMonth").addEventListener("click", ()=>shiftMonth(+1));
-    document.getElementById("btnPDF").addEventListener("click", exportPDF);
-    document.getElementById("btnXLS").addEventListener("click", exportExcel);
-
-    const meseInputEl = document.getElementById("mese");
-    meseInputEl.addEventListener("change", ()=>{
-      const v = meseInputEl.value;
-      if(v && /^\d{4}-\d{2}$/.test(v)){
-        const [y,m] = v.split('-').map(Number);
-        setYM(y,m,true);
-      }
-    });
-    selMese.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
-    selAnno.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
-
-    carica();
-  })();
-
-  /* ====== getFieldSmart (lasciato in fondo per chiarezza) ====== */
-  function getFieldSmart(row, candidates){
-    for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
-    const keys = Object.keys(row);
-    const normMap = new Map(keys.map(k => [normalize(k), k]));
-    for(const cand of candidates){
-      const n = normalize(cand);
-      if(normMap.has(n)){
-        const realKey = normMap.get(n);
-        if(row[realKey] != null && row[realKey] !== "") return row[realKey];
-      }
-    }
-    const targets = candidates.map(normalize);
-    for(const k of keys){
-      const nk = normalize(k);
-      if(targets.some(t => nk.includes(t))){
-        if(row[k] != null && row[k] !== "") return row[k];
-      }
-    }
-    for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
-    return "";
-  }
-</script>
-</body>
-</html>
+    prevBtn.disabled = !!
