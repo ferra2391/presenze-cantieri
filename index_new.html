@@ -292,11 +292,11 @@ function isAdmin(){
         let sel=`<select id="cantiere_${i}"><option value="">-- Seleziona Cantiere --</option>`;
         elencoCantieri.forEach(nome=>sel+=`<option value="${nome}">${nome}</option>`); sel+=`</select>`;
 
-        // Pulsante ASSENTE solo nella prima card, piccolo e a destra
-        const btnAssente = (i===1)
+// Pulsante ASSENTE solo nella prima card e solo per admin
 const btnAssente = (i === 1 && isAdmin())
   ? `<button type="button" class="btn-assente" onclick="apriAssente()" title="Registra assenza per la data selezionata">🚫 ASSENTE</button>`
   : ``;
+
 
         container.innerHTML+=`
           <div class="card" style="margin-top:15px;padding:15px;position:relative;">
