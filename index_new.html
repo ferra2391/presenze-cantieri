@@ -66,42 +66,23 @@
     #modalConferma button:first-of-type{background:var(--color-accent)}
     #modalConferma button:last-of-type{background:#ccc;color:var(--color-text-dark)}
 
-    /* Avviso multi-operai */
     .warning-message{margin-bottom:10px;font-size:14px;color:var(--color-text-dark);background:var(--color-warning-bg);border-left:5px solid var(--color-warning-border);padding:12px;border-radius:10px}
-
-    /* Overlay per modale modifica */
     #overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.3);z-index:998;display:none}
 
-    /* Textarea auto-resize + suggerimenti */
     textarea.lavorazione-autoresize{width:100%;font-size:16px;line-height:1.4;padding:12px;resize:none;overflow:hidden;min-height:44px;box-sizing:border-box;border:1px solid var(--color-border);border-radius:10px;background:#fff}
     .suggerimenti-box{position:absolute;background:#fff;border:1px solid var(--color-border);border-radius:10px;z-index:1000;max-height:200px;overflow-y:auto;font-size:16px;width:calc(100% - 30px);box-shadow:var(--shadow-medium);margin-top:4px}
     .suggerimenti-box div{padding:8px 12px;cursor:pointer}
     .suggerimenti-box div:hover{background:var(--color-bg-alt)}
 
-    /* vecchio “Recentemente” -> nascosto */
     #ultimi7{display:none !important;}
 
-    /* ===== Agenda mensile (leggibile) ===== */
     .agenda-list{display:flex;flex-direction:column;gap:12px}
     .agenda-day{display:flex;gap:12px;align-items:flex-start;padding:10px;background:#fff;border:1px solid var(--color-border);border-radius:12px}
     .date-badge{min-width:64px;text-align:center;background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:10px;padding:6px 8px}
     .date-badge .dow{font-size:12px;color:var(--color-text-light);font-weight:700}
     .date-badge .day{font-size:20px;font-weight:800}
-/* Badge data: sabato/domenica/festivi in arancione tenue */
-.date-badge.sabato,
-.date-badge.weekend,
-.date-badge.festivo{
-  background: hsla(30, 100%, 50%, 0.12);   /* arancione molto tenue */
-  border-color: hsla(30, 100%, 50%, 0.35);
-}
-
-/* Intera riga del giorno (agenda-day) in arancione tenue */
-.agenda-day.sabato,
-.agenda-day.weekend,
-.agenda-day.festivo{
-  background: hsla(30, 100%, 50%, 0.07);
-  border-color: hsla(30, 100%, 50%, 0.25);
-}
+    .date-badge.sabato,.date-badge.weekend,.date-badge.festivo{background:hsla(30,100%,50%,.12);border-color:hsla(30,100%,50%,.35)}
+    .agenda-day.sabato,.agenda-day.weekend,.agenda-day.festivo{background:hsla(30,100%,50%,.07);border-color:hsla(30,100%,50%,.25)}
 
     .day-entries{flex:1;display:flex;flex-direction:column;gap:8px}
     .entry-card{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;padding:12px;border:1px solid var(--color-border);border-radius:10px;background:#fff;cursor:pointer}
@@ -111,9 +92,18 @@
     .entry-ore{border:1px solid var(--color-border);background:var(--color-bg-alt);border-radius:999px;padding:4px 10px;font-weight:700;white-space:nowrap}
     .agenda-empty{color:var(--color-text-light);text-align:center;padding:10px 0}
     .entry-missing{color:#c00000;font-weight:800;letter-spacing:.02em}
-
     #ultimaLavorazioneBox { display: none !important; }
 
+    /* Pulsante ASSENTE molto piccolo e a destra */
+    .label-row{display:flex;align-items:center;gap:10px}
+    .label-row .section-label{margin:0}
+    .btn-assente{
+      margin-left:auto;
+      width:auto; padding:10px 12px; min-height:auto;
+      font-size:13px; line-height:1; border-radius:6px;
+      background:#d32f2f; color:#fff; border:none; box-shadow:var(--shadow-medium); cursor:pointer;
+    }
+    .btn-assente:hover{ background:#b71c1c; transform:translateY(-1px); }
   </style>
 </head>
 <body>
@@ -187,10 +177,8 @@
         <div><p>La tua ultima lavorazione registrata:</p><strong id="ultimaLavorazione">Caricamento...</strong></div>
       </div>
 
-      <!-- vecchio elenco: nascosto via CSS -->
       <div id="ultimi7" class="card"><h4>Recentemente:</h4></div>
 
-      <!-- AGENDA MENSILE -->
       <div id="agendaView" class="card" style="margin-top:16px;">
         <h4 id="agendaTitolo">Presenze (...)</h4>
         <div id="agendaList" class="agenda-list"></div>
@@ -214,7 +202,6 @@
         </form>
       </div>
 
-      <!-- Riepilogo Admin (opzionale) -->
       <div id="riepilogoAdmin" class="card" style="display:none;">
         <h3>📝 Riepilogo presenze odierne</h3>
         <div id="riepilogoCompilati" style="margin-bottom:20px;"></div>
@@ -235,6 +222,11 @@
 
   <script>
     let utente="", nomeOperaio="", elencoCantieri=[], ruoliUtenti={}, ultimoTestoLavorazione="";
+    // conterrà gli N record "ASSENTE" da inviare (uno per operaio)
+    let payloadAssente = null;
+function isAdmin(){
+  return (localStorage.getItem("ruolo") || "").toLowerCase() === "amministratore";
+}
 
     function login(){
       const userInput=document.getElementById("user").value.trim();
@@ -254,13 +246,10 @@
           document.getElementById("form").style.display="block";
           document.getElementById("data").value=new Date().toISOString().split("T")[0];
 
-          //caricaUltimaLavorazione(utente);
           caricaCantieri();
           caricaOperai();
           caricaRiepilogoAdmin();
           generaCampiCantieri();
-
-          // 👉 carica subito l'agenda del mese corrente
           caricaAgendaMensile();
         });
     }
@@ -302,9 +291,19 @@
       for(let i=1;i<=n;i++){
         let sel=`<select id="cantiere_${i}"><option value="">-- Seleziona Cantiere --</option>`;
         elencoCantieri.forEach(nome=>sel+=`<option value="${nome}">${nome}</option>`); sel+=`</select>`;
+
+        // Pulsante ASSENTE solo nella prima card, piccolo e a destra
+        const btnAssente = (i===1)
+const btnAssente = (i === 1 && isAdmin())
+  ? `<button type="button" class="btn-assente" onclick="apriAssente()" title="Registra assenza per la data selezionata">🚫 ASSENTE</button>`
+  : ``;
+
         container.innerHTML+=`
           <div class="card" style="margin-top:15px;padding:15px;position:relative;">
-            <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
+            <div class="label-row">
+              <label class="section-label" for="cantiere_${i}">🏗️ Cantiere ${i}:</label>
+              ${btnAssente}
+            </div>
             ${sel}
             <button type="button" onclick="mostraCantiereLibero(${i})" id="btnCantiereAltro">🏠 Clicca QUI se il cantiere non è presente</button>
             <div id="cantiereLibero_${i}" style="display:none;">
@@ -391,13 +390,70 @@
       document.getElementById("modalConferma").classList.add("show");
     }
     function chiudiModal(){document.getElementById("modalConferma").classList.remove("show");setTimeout(()=>{document.getElementById("modalConferma").style.display="none";},300);}
+
+    /* ===== Flusso ASSENTE (usa selezione in "altri operai") ===== */
+    function apriAssente(){
+        if(!isAdmin()){
+    alert("Funzione riservata agli amministratori.");
+    return;
+  }
+      const data = document.getElementById("data").value;
+      if(!data){ alert("Seleziona prima la data."); return; }
+
+      // Operai target: presi dalla sezione multi-operai, se visibile e con selezioni; altrimenti l'utente loggato
+      let target = [];
+      if(document.getElementById("multiOperai").style.display==="block"){
+        target = Array.from(document.getElementById("operaio").selectedOptions).map(o=>o.value);
+        const nuovo = document.getElementById("nuovoOperaio").value.trim();
+        if(nuovo) target.push(nuovo);
+      }
+      if(target.length===0) target=[nomeOperaio];
+
+      const note = document.getElementById("note").value.trim();
+      payloadAssente = target.map(op => ({
+        data, orari:"-",
+        cantiere:"ASSENTE",
+        lavorazione:"ASSENTE",
+        ore:0,
+        operaio:op,
+        user:utente,
+        note
+      }));
+
+      document.getElementById("riepilogoDati").innerHTML = `
+        <ul>
+          <li><strong>Data:</strong> ${data}</li>
+          <li><strong>Tipo:</strong> <span style="color:#b71c1c;font-weight:700;">ASSENTE</span></li>
+          <li><strong>Assenti:</strong> ${target.join(", ")}</li>
+          <li><strong>Ore:</strong> 0</li>
+        </ul>
+      `;
+      document.getElementById("modalConferma").style.display="flex";
+      document.getElementById("modalConferma").classList.add("show");
+    }
+
     function confermaInvio(){
-      chiudiModal(); invia();
+      chiudiModal();
+
+      if(payloadAssente){
+        // invio un record per ogni operaio
+        payloadAssente.forEach(row=>{
+          fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{
+            method:"POST", mode:"no-cors",
+            body: JSON.stringify(row),
+            headers: {"Content-Type":"application/json"}
+          });
+        });
+        payloadAssente = null;
+      } else {
+        invia();
+      }
 
       const n=document.getElementById("notifica");
       n.style.display="block"; n.classList.add("show");
       setTimeout(()=>{n.classList.remove("show"); setTimeout(()=>{n.style.display="none";},500);},3500);
 
+      // reset base
       document.getElementById("data").value=new Date().toISOString().split("T")[0];
       document.getElementById("oreLavorate").value="8";
       document.getElementById("numeroCantieri").value="1";
@@ -409,7 +465,6 @@
       generaCampiCantieri();
       caricaRiepilogoAdmin();
 
-      // ricarico agenda dopo scrittura
       setTimeout(caricaAgendaMensile,1200);
     }
 
@@ -475,7 +530,6 @@
       return set;
     }
 
-    // Carica e renderizza l'agenda del mese corrente
     function caricaAgendaMensile(){
       if(!utente) return;
       const oggi=new Date(); const y=oggi.getFullYear(), m=oggi.getMonth()+1;
@@ -488,13 +542,11 @@
       }).catch(_=>renderAgenda([], y, m));
     }
 
-    // Renderer Agenda: mostra TUTTI i giorni del mese.
     function renderAgenda(presenze, y, m){
       const list=document.getElementById('agendaList'); if(!list) return;
       list.innerHTML='';
       const holidays=italianHolidays(y);
 
-      // raggruppo per giorno (d -> array presenze)
       const byDay={};
       presenze.forEach(p=>{
         const iso=p.dataISO||p.data||p.data_iso; if(!iso) return;
@@ -521,10 +573,9 @@
         if(dow===5) badge.classList.add('sabato');
         if(dow===6) badge.classList.add('weekend');
         if(holidays.has(iso)) badge.classList.add('festivo');
-        // 👉 colora anche l’intera riga del giorno
-if(dow===5) dayRow.classList.add('sabato');
-if(dow===6) dayRow.classList.add('weekend');
-if(holidays.has(iso)) dayRow.classList.add('festivo');
+        if(dow===5) dayRow.classList.add('sabato');
+        if(dow===6) dayRow.classList.add('weekend');
+        if(holidays.has(iso)) dayRow.classList.add('festivo');
 
         badge.innerHTML=`<div class="dow">${dowLbl[dow]}</div><div class="day">${String(d).padStart(2,'0')}</div>`;
         dayRow.appendChild(badge);
@@ -532,14 +583,11 @@ if(holidays.has(iso)) dayRow.classList.add('festivo');
         const entriesWrap=document.createElement('div'); entriesWrap.className='day-entries';
 
         if(entries.length===0){
-          // Nessuna presenza: se giorno passato nel mese corrente -> NON COMPILATO
           if(isCurrentMonth && dateObj < today){
             const miss=document.createElement('div');
             miss.className='entry-missing';
             miss.textContent='NON COMPILATO';
             entriesWrap.appendChild(miss);
-          } else {
-            // Giorni futuri o di altri mesi (non dovrebbero capitare qui): nulla
           }
         } else {
           entries.forEach(r=>{
@@ -563,7 +611,6 @@ if(holidays.has(iso)) dayRow.classList.add('festivo');
         list.appendChild(dayRow);
       }
 
-      // Se davvero non c'è nulla nel mese, aggiungo un promemoria
       if(presenze.length===0){
         const info=document.createElement('div');
         info.className='agenda-empty';
@@ -572,13 +619,11 @@ if(holidays.has(iso)) dayRow.classList.add('festivo');
       }
     }
 
-    /* init: carico suggerimenti; l'agenda parte dopo login */
     window.addEventListener("DOMContentLoaded",()=>{
       fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?lavorazioniRecenti=1")
         .then(r=>r.json()).then(data=>{window.lavorazioniRecenti=data||[];});
     });
 
-    /* Modale modifica */
     function apriModifica(id){
       fetch(`https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec?getPresenza=1&id=${id}`)
         .then(res=>res.json())
