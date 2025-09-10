@@ -12,6 +12,8 @@
     --bg: hsl(210,20%,98%);
     --card: #fff;
     --border: hsl(210,15%,85%);
+    --orange-weak: hsla(30,100%,50%,0.08);
+    --orange-weak-border: hsla(30,100%,50%,0.25);
   }
   *{box-sizing:border-box}
   body{margin:0; background:var(--bg); color:var(--text);
@@ -29,7 +31,11 @@
     text-decoration:none; font-weight:700; color:var(--text)
   }
   .nav a.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
-  input[type="month"]{padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff}
+  input[type="month"], input[type="text"]{
+    padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff
+  }
+  button{padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer}
+  button.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
   .spinner{display:none}
   .spinner.show{display:inline-block; width:16px; height:16px; border:2px solid #ddd;
     border-top-color:var(--primary); border-radius:50%; animation:spin .9s linear infinite; vertical-align:-3px}
@@ -46,8 +52,24 @@
 
   table{border-collapse:separate; border-spacing:0; width:100%; font-size:13px}
   thead th{background:#fff; border-bottom:1px solid var(--border); padding:8px 10px; text-align:left; white-space:nowrap}
-  tbody td{border-top:1px solid var(--border); padding:8px 10px; white-space:nowrap}
+  tbody td, tbody th{border-top:1px solid var(--border); padding:8px 10px}
   td.num{text-align:right}
+
+  /* link sul nome operaio */
+  .op-link{color:var(--primary); font-weight:700; text-decoration:none; cursor:pointer}
+  .op-link:hover{text-decoration:underline}
+
+  /* tabella dettaglio */
+  .detail .daycell{white-space:nowrap; font-weight:700}
+  .detail .off{background:var(--orange-weak)}
+  .detail .cant{font-weight:800; color:#c00000; text-transform:uppercase; letter-spacing:.02em}
+  .detail .lav{color:#444; margin-top:2px}
+  .detail .note{color:var(--muted); font-style:italic}
+  .detail .ore{font-weight:700}
+  .detail .entry{margin-bottom:6px}
+  .detail tfoot td{font-weight:800; border-top:2px solid var(--border)}
+
+  .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -56,11 +78,11 @@
 
   <div class="panel">
     <div class="row" style="justify-content:space-between">
-      <div class="row">
+      <div class="toolbar">
         <button id="prevMonth" title="Mese precedente">◀</button>
         <input type="month" id="mese">
         <button id="nextMonth" title="Mese successivo">▶</button>
-        <button id="btnCarica">Carica</button>
+        <button id="btnCarica" class="primary">Carica</button>
         <span id="spin" class="spinner"></span>
       </div>
       <div class="row nav">
@@ -69,9 +91,19 @@
         <a href="analisi-cantiere.html">Analisi per cantiere</a>
       </div>
     </div>
-    <div id="status" style="margin-top:6px"></div>
+
+    <div class="row" style="margin-top:10px; justify-content:space-between">
+      <div class="toolbar">
+        <input id="opFilter" type="text" placeholder="Filtra operaio…" list="dlOperai" />
+        <datalist id="dlOperai"></datalist>
+        <button id="btnFilter">Applica</button>
+        <button id="btnClear">Reset</button>
+      </div>
+      <div id="status"></div>
+    </div>
   </div>
 
+  <!-- RIEPILOGO -->
   <div class="table-card">
     <div class="table-title">Riepilogo mese corrente</div>
     <div class="table-wrap">
@@ -88,6 +120,34 @@
         </thead>
         <tbody id="tbody"></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- DETTAGLIO -->
+  <div class="table-card" id="detailCard" style="margin-top:16px; display:none">
+    <div class="table-title" id="detailTitle">Dettaglio operaio</div>
+    <div class="table-wrap">
+      <table id="detailTable" class="detail">
+        <thead>
+          <tr>
+            <th>Giorno</th>
+            <th>Cantiere</th>
+            <th class="num">Ore</th>
+            <th>Lavorazioni / Note</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">Totale mese</td>
+            <td class="num" id="detailTotOre">0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div style="padding:10px 12px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px">
+      <button id="btnCloseDetail">Chiudi dettaglio</button>
     </div>
   </div>
 </div>
@@ -141,8 +201,10 @@ function isBlankCantiere(value){
   if (/^\(s.*cantiere\)$/i.test(s)) return true;
   return false;
 }
+const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
+const stripIntervals = s => s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : "";
 
-/* ====== UI refs ====== */
+/* ====== STATE & UI refs ====== */
 const meseInput = document.getElementById('mese');
 const prevBtn   = document.getElementById('prevMonth');
 const nextBtn   = document.getElementById('nextMonth');
@@ -150,6 +212,25 @@ const btnCarica = document.getElementById('btnCarica');
 const spin      = document.getElementById('spin');
 const statusEl  = document.getElementById('status');
 const tbody     = document.getElementById('tbody');
+
+const opFilter  = document.getElementById('opFilter');
+const btnFilter = document.getElementById('btnFilter');
+const btnClear  = document.getElementById('btnClear');
+const dlOperai  = document.getElementById('dlOperai');
+
+const detailCard   = document.getElementById('detailCard');
+const detailTitle  = document.getElementById('detailTitle');
+const detailBody   = document.getElementById('detailBody');
+const detailTotOre = document.getElementById('detailTotOre');
+const btnCloseDetail = document.getElementById('btnCloseDetail');
+
+const state = {
+  Y:null, M:null,
+  holidays:new Set(),
+  byOpDay:{},    // {op: {day: [ {ore, cantiere, lavorazione, note} ]}}
+  operai:[],     // sorted list
+  summary:[]     // cached summary rows for filtering
+};
 
 function setYM(Y,M){ meseInput.value = `${Y}-${pad(M)}`; }
 function getYM(){
@@ -162,25 +243,136 @@ function shiftMonth(delta){
   if(M<1){M=12;Y--} if(M>12){M=1;Y++}
   setYM(Y,M); carica();
 }
-
-/* ====== DATA & RENDER ====== */
 function setLoading(on){
   spin.classList.toggle('show', !!on);
   btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
 }
 
+/* ====== RENDER ====== */
+function fillDatalist(names){
+  dlOperai.innerHTML = names.map(n=>`<option value="${n}"></option>`).join('');
+}
+function renderSummary(list){
+  tbody.innerHTML = '';
+  if(list.length===0){
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:16px; color:#999; text-align:center">Nessun operaio con ore nel mese.</td></tr>`;
+    return;
+  }
+  list.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td><a class="op-link" data-op="${r.op}">${r.op}</a></td>
+      <td class="num">${r.tot}</td>
+      <td class="num">${r.days}</td>
+      <td class="num">${r.media}</td>
+      <td class="num">${r.weekend}</td>
+      <td class="num">${r.nodati}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function applyOpFilter(){
+  const q = opFilter.value.trim().toLowerCase();
+  if(!q){ renderSummary(state.summary); return; }
+  const filtered = state.summary.filter(r => r.op.toLowerCase().includes(q));
+  renderSummary(filtered);
+  // se è un match esatto, apri anche il dettaglio
+  const exact = state.operai.find(n => n.toLowerCase()===q);
+  if(exact) showDetail(exact);
+}
+
+function showDetail(op){
+  const [Y,M] = [state.Y, state.M];
+  const daysInMonth = new Date(Y, M, 0).getDate();
+  detailBody.innerHTML = '';
+  let totMese = 0;
+
+  for(let d=1; d<=daysInMonth; d++){
+    const list = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
+    const date = new Date(Y, M-1, d);
+    const dow  = (date.getDay()+6)%7;
+    const iso  = `${Y}-${pad(M)}-${pad(d)}`;
+    const isOff= (dow===5||dow===6) || state.holidays.has(iso);
+
+    const tr = document.createElement('tr');
+    if(isOff) tr.classList.add('off');
+
+    // Giorno
+    const dayCell = document.createElement('td');
+    dayCell.className = 'daycell';
+    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
+    dayCell.textContent = `${pad(d)}/${pad(M)} ${nomeG}`;
+    tr.appendChild(dayCell);
+
+    // Cantiere
+    const cantTd = document.createElement('td');
+    // Ore
+    const oreTd  = document.createElement('td'); oreTd.className='num';
+    // Lavorazioni/Note
+    const lavTd  = document.createElement('td');
+
+    if(list.length){
+      let dayTot=0;
+      list.forEach(en=>{
+        const cant = (isBlankCantiere(en.cantiere) ? 'NO DATI' : String(en.cantiere).trim().toUpperCase());
+        const lav  = stripIntervals(en.lavorazione||'');
+        const note = stripIntervals(en.note||'');
+        const ore  = (en.ore!=null && !isNaN(en.ore)) ? Number(en.ore) : 0;
+        dayTot += ore;
+
+        const cWrap = document.createElement('div'); cWrap.className='entry';
+        cWrap.innerHTML = `<div class="cant">${cant}</div>`;
+        cantTd.appendChild(cWrap);
+
+        const oWrap = document.createElement('div'); oWrap.className='entry ore';
+        oWrap.textContent = ore ? `${ore} h` : '';
+        oreTd.appendChild(oWrap);
+
+        const lWrap = document.createElement('div'); lWrap.className='entry';
+        lWrap.innerHTML =
+          (lav ? `<div class="lav">${lav}</div>` : '') +
+          (note ? `<div class="note">${note}</div>` : '');
+        lavTd.appendChild(lWrap);
+      });
+      totMese += dayTot;
+
+      // aggiungi subtot giorno se più righe
+      if(list.length>1){
+        const subt = document.createElement('div');
+        subt.className = 'entry ore';
+        subt.style.fontWeight = '800';
+        subt.textContent = `Tot giorno: ${(+dayTot.toFixed(2))} h`;
+        oreTd.appendChild(subt);
+      }
+    }else{
+      cantTd.innerHTML = '—';
+      oreTd.textContent = '';
+      lavTd.textContent = '';
+    }
+
+    tr.appendChild(cantTd);
+    tr.appendChild(oreTd);
+    tr.appendChild(lavTd);
+    detailBody.appendChild(tr);
+  }
+
+  detailTotOre.textContent = (+totMese.toFixed(2));
+  detailTitle.textContent = `Dettaglio operaio — ${op} (${pad(M)}/${Y})`;
+  detailCard.style.display = 'block';
+}
+
+/* ====== DATA LOAD ====== */
 async function carica(){
   try{
-    setLoading(true); statusEl.textContent=""; tbody.innerHTML="";
+    setLoading(true); statusEl.textContent=""; tbody.innerHTML=''; detailCard.style.display='none';
+
     const [Y,M]=getYM();
-    const holidays = italianHolidays(Y);
+    state.Y=Y; state.M=M; state.holidays = italianHolidays(Y);
 
     const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
     const rows = await res.json();
 
-    // by operaio & day
-    const byOpDay = {};  // {op: { d: [ {ore, cantiere} ] } }
-
+    // build byOpDay
+    state.byOpDay = {};
     rows.forEach((r)=>{
       const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
       if(!dataVal) return;
@@ -193,21 +385,25 @@ async function carica(){
 
       const op   = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
       if(!op) return;
+
       const cant = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
       const oreV = getFieldSmart(r, ["Ore","H","ORE","ore"]);
       const ore  = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
+      const lav  = stripIntervals(String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])||""));
+      const note = stripIntervals(String(getFieldSmart(r, ["Note","I","NOTE","note"])||""));
 
-      (byOpDay[op] ||= {});
-      (byOpDay[op][d] ||= []);
-      byOpDay[op][d].push({ore, cantiere:cant});
+      (state.byOpDay[op] ||= {});
+      (state.byOpDay[op][d] ||= []);
+      state.byOpDay[op][d].push({ore, cantiere:cant, lavorazione:lav, note});
     });
 
-    const operai = Object.keys(byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
+    state.operai = Object.keys(state.byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
+    fillDatalist(state.operai);
 
-    const out = operai.map(op=>{
+    // compute summary
+    state.summary = state.operai.map(op=>{
       let tot=0, daysWorked=0, weekendHours=0, noDataDays=0;
-      const days = byOpDay[op] || {};
-
+      const days = state.byOpDay[op] || {};
       Object.keys(days).forEach(sd=>{
         const d = Number(sd);
         const list = days[d] || [];
@@ -217,7 +413,7 @@ async function carica(){
         const date = new Date(Y, M-1, d);
         const dow  = (date.getDay()+6)%7;
         const iso  = `${Y}-${pad(M)}-${pad(d)}`;
-        const isOff= (dow===5||dow===6) || holidays.has(iso);
+        const isOff= (dow===5||dow===6) || state.holidays.has(iso);
 
         list.forEach(en=>{
           const h = (en.ore!=null && !isNaN(en.ore)) ? Number(en.ore) : 0;
@@ -237,21 +433,7 @@ async function carica(){
       return { op, tot:+tot.toFixed(2), days:daysWorked, media, weekend:+weekendHours.toFixed(2), nodati:noDataDays };
     }).sort((a,b)=> b.tot - a.tot || a.op.localeCompare(b.op,'it'));
 
-    if(out.length===0){
-      tbody.innerHTML = `<tr><td colspan="6" style="padding:16px; color:#999; text-align:center">Nessun operaio con ore nel mese.</td></tr>`;
-    }else{
-      out.forEach(r=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.op}</td>
-          <td class="num">${r.tot}</td>
-          <td class="num">${r.days}</td>
-          <td class="num">${r.media}</td>
-          <td class="num">${r.weekend}</td>
-          <td class="num">${r.nodati}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
+    renderSummary(state.summary);
     statusEl.innerHTML = `<span class="ok">Analisi aggiornata</span>`;
   }catch(e){
     console.error(e);
@@ -261,13 +443,27 @@ async function carica(){
   }
 }
 
-/* ====== INIT ====== */
+/* ====== INIT & EVENTS ====== */
 (function init(){
   const now=new Date(); setYM(now.getFullYear(), now.getMonth()+1);
+
   document.getElementById('btnCarica').addEventListener('click', carica);
   prevBtn.addEventListener('click', ()=>shiftMonth(-1));
   nextBtn.addEventListener('click', ()=>shiftMonth(+1));
   meseInput.addEventListener('change', carica);
+
+  btnFilter.addEventListener('click', applyOpFilter);
+  btnClear.addEventListener('click', ()=>{ opFilter.value=''; renderSummary(state.summary); detailCard.style.display='none'; });
+  opFilter.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ applyOpFilter(); } });
+
+  // delega click su nome operaio
+  tbody.addEventListener('click', (e)=>{
+    const a = e.target.closest('.op-link');
+    if(a && a.dataset.op){ showDetail(a.dataset.op); }
+  });
+
+  btnCloseDetail.addEventListener('click', ()=>{ detailCard.style.display='none'; });
+
   carica();
 })();
 </script>
