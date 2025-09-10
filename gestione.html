@@ -602,17 +602,13 @@ tbody td .ore{
           .sort((a,b)=>a.localeCompare(b,'it'));
       } catch {}
 
-      const setFromFoglio = new Set();
-      rows.forEach(r=>{
-        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
-        if(op) setFromFoglio.add(op);
-      });
-      let operai = Array.from(setFromFoglio);
-      if(operai.length === 0 && fallbackNomi.length) operai = fallbackNomi.slice();
-      operai.sort((a,b)=>a.localeCompare(b,'it'));
+let operai = []; // la popoleremo dopo aver filtrato le righe del mese
+
 
       const byOpDay = {};
       rows.forEach(r=>{
+        operai = Object.keys(byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
+
         const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
         const dt = parseDateAny(dataVal);
         if(!dt) return;
