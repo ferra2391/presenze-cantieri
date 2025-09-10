@@ -242,6 +242,8 @@
           utente=u["User"]; nomeOperaio=u["Nome"];
           const ruolo=u["Ruolo"]||"";
           localStorage.setItem("ruolo",ruolo);
+          document.getElementById("btnMultiOperai").style.display = isAdmin() ? "inline-block" : "none";
+
           document.getElementById("messaggioBenvenuto").innerText=`Benvenuto, ${nomeOperaio}`;
           if(ruolo.toLowerCase()!=="amministratore") document.getElementById("btnGestione").style.display="none";
           document.getElementById("login").style.display="none";
@@ -318,7 +320,9 @@
             </div>
           </div>`;
       }
-      document.getElementById("btnMultiOperai").style.display=(n===1)?"inline-block":"none";
+      const btn = document.getElementById("btnMultiOperai");
+btn.style.display = (n === 1 && isAdmin()) ? "inline-block" : "none";
+
     }
 
     function mostraOperai(){const div=document.getElementById("multiOperai");div.style.display=(div.style.display==="block")?"none":"block";}
