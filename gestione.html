@@ -215,6 +215,16 @@ tbody td .ore{
 
     
 
+
+
+  /* Totale ore mese sotto al nome operaio */
+.op-total{
+  color: magenta;          /* colore richiesto */
+  font-weight: 700;
+  font-size: 14px;         /* modifica pure a piacere */
+  margin-top: 4px;
+}
+
     
   </style>
 </head>
@@ -496,9 +506,25 @@ tbody td .ore{
 
     operai.forEach(op=>{
       const tr = document.createElement("tr");
-      const th = document.createElement("th");
-      th.textContent = op;
-      tr.appendChild(th);
+const th = document.createElement("th");
+
+// somma ore di tutto il mese per questo operaio
+let monthTotal = 0;
+const daysMap = byOpDay[op] || {};
+Object.values(daysMap).forEach(arr=>{
+  arr.forEach(en=>{
+    if(en.ore != null && !isNaN(en.ore)) monthTotal += Number(en.ore);
+  });
+});
+// formato “pulito” (intero se possibile, altrimenti con 2 decimali)
+const monthTotalTxt = (+monthTotal.toFixed(2)).toString();
+
+th.innerHTML = `
+  <div class="op-name">${op}</div>
+  <div class="op-total">TOT ORE MESE = ${monthTotalTxt}</div>
+`;
+tr.appendChild(th);
+
 
       for(let d=startDay; d<=endDay; d++){
         const td = document.createElement("td");
