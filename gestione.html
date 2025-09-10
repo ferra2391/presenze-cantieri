@@ -80,10 +80,18 @@
     thead th.day-void{color:#aaa; background:#fafafa}
     thead th.weekend, thead th.festivo{background:var(--orange-weak); border-bottom-color:var(--orange-weak-border)}
 
-    tbody th{
-      position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
-      text-align:left; padding:8px 10px; font-size:12px; min-width:220px; /* più largo su desktop */
-    }
+tbody th{
+  position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
+  text-align:left; padding:8px 10px;
+  /* ⬇️ qui le modifiche */
+  font-size:24px;               /* doppio rispetto a 12px */
+  line-height:1.2;              /* più leggibile con due righe */
+  white-space:normal;           /* consenti a capo */
+  overflow-wrap:break-word;     /* spezza parole lunghe se necessario */
+  word-break:break-word;        /* fallback */
+  min-width:220px;              /* lascia invariata la larghezza minima */
+}
+
     td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
       vertical-align:top; padding:6px; min-width:160px; max-width:360px; word-wrap:break-word;
