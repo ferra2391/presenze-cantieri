@@ -158,7 +158,7 @@
       <div id="multiOperai" class="card" style="display:none;margin-top:20px;">
         <p class="warning-message">⚠️ Agli operai selezionati verranno applicate le stesse lavorazioni indicate sopra.</p>
         <label class="section-label" for="operaio">👥 Seleziona altri operai:</label>
-        <select id="operaio" multiple size="6" onchange="gestisciMoltiplicatori()"></select>
+        <select id="operaio" multiple size="6" onchange="gestisciMoltiplicatori"></select>
         <div id="contenitoreMoltiplicatori" style="margin-top:15px;"></div>
         <div style="margin-top:15px;">
           <label class="section-label" for="nuovoOperaio">➕ Oppure inserisci un nuovo operaio:</label>
@@ -224,9 +224,11 @@
     let utente="", nomeOperaio="", elencoCantieri=[], ruoliUtenti={}, ultimoTestoLavorazione="";
     // conterrà gli N record "ASSENTE" da inviare (uno per operaio)
     let payloadAssente = null;
-function isAdmin(){
-  return (localStorage.getItem("ruolo") || "").toLowerCase() === "amministratore";
-}
+
+    /* helper: verifica ruolo admin */
+    function isAdmin(){
+      return (localStorage.getItem("ruolo") || "").toLowerCase() === "amministratore";
+    }
 
     function login(){
       const userInput=document.getElementById("user").value.trim();
@@ -292,11 +294,10 @@ function isAdmin(){
         let sel=`<select id="cantiere_${i}"><option value="">-- Seleziona Cantiere --</option>`;
         elencoCantieri.forEach(nome=>sel+=`<option value="${nome}">${nome}</option>`); sel+=`</select>`;
 
-// Pulsante ASSENTE solo nella prima card e solo per admin
-const btnAssente = (i === 1 && isAdmin())
-  ? `<button type="button" class="btn-assente" onclick="apriAssente()" title="Registra assenza per la data selezionata">🚫 ASSENTE</button>`
-  : ``;
-
+        // Pulsante ASSENTE solo nella prima card e solo per admin
+        const btnAssente = (i === 1 && isAdmin())
+          ? `<button type="button" class="btn-assente" onclick="apriAssente()" title="Registra assenza per la data selezionata">🚫 ASSENTE</button>`
+          : ``;
 
         container.innerHTML+=`
           <div class="card" style="margin-top:15px;padding:15px;position:relative;">
@@ -322,12 +323,17 @@ const btnAssente = (i === 1 && isAdmin())
 
     function mostraOperai(){const div=document.getElementById("multiOperai");div.style.display=(div.style.display==="block")?"none":"block";}
 
-    function invia(){
+    /* === fix concorrenza: invio sequenziale === */
+    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    async function invia(){
       const n=parseInt(document.getElementById("numeroCantieri").value);
       const data=document.getElementById("data").value;
       const orari="08:00 - 17:00";
       const oreLavorate=parseInt(document.getElementById("oreLavorate").value)||8;
       const note=document.getElementById("note").value.trim();
+
+      const rowsToSend = [];
 
       for(let i=1;i<=n;i++){
         let nomeCantiere=document.getElementById(`cantiere_${i}`)?.value||"";
@@ -345,13 +351,23 @@ const btnAssente = (i === 1 && isAdmin())
         }else{ operai=[nomeOperaio]; }
 
         operai.forEach(nome=>{
-          const molId="moltiplicatore_"+nome.replace(/\s+/g,"_");
-          const mol=parseInt(document.getElementById(molId)?.value)||1;
+          const molId="moltiplicatore_"+(nome||"").trim().replace(/\s+/g,"_");
+          const raw = document.getElementById(molId)?.value;
+          const mol = Math.max(1, Number.parseInt(raw, 10) || 1);
           for(let k=0;k<mol;k++){
-            const body={data,orari,cantiere:nomeCantiere,lavorazione,ore:oreCalcolate,operaio:nome,user:utente,note};
-            fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{method:"POST",mode:"no-cors",body:JSON.stringify(body),headers:{"Content-Type":"application/json"}});
+            rowsToSend.push({data,orari,cantiere:nomeCantiere,lavorazione,ore:oreCalcolate,operaio:nome,user:utente,note});
           }
         });
+      }
+
+      // invio SEQUENZIALE con piccolo jitter per evitare collisioni lato GAS
+      for(const body of rowsToSend){
+        try{
+          await fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{
+            method:"POST",mode:"no-cors",body:JSON.stringify(body),headers:{"Content-Type":"application/json"}
+          });
+        }catch(_){}
+        await sleep(120 + Math.random()*120); // 120–240ms
       }
     }
 
@@ -393,10 +409,10 @@ const btnAssente = (i === 1 && isAdmin())
 
     /* ===== Flusso ASSENTE (usa selezione in "altri operai") ===== */
     function apriAssente(){
-        if(!isAdmin()){
-    alert("Funzione riservata agli amministratori.");
-    return;
-  }
+      if(!isAdmin()){
+        alert("Funzione riservata agli amministratori.");
+        return;
+      }
       const data = document.getElementById("data").value;
       if(!data){ alert("Seleziona prima la data."); return; }
 
@@ -436,17 +452,22 @@ const btnAssente = (i === 1 && isAdmin())
       chiudiModal();
 
       if(payloadAssente){
-        // invio un record per ogni operaio
-        payloadAssente.forEach(row=>{
-          fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{
-            method:"POST", mode:"no-cors",
-            body: JSON.stringify(row),
-            headers: {"Content-Type":"application/json"}
-          });
-        });
+        // invio sequenziale dei record "ASSENTE"
+        (async () => {
+          for(const row of payloadAssente){
+            try{
+              await fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{
+                method:"POST", mode:"no-cors",
+                body: JSON.stringify(row),
+                headers: {"Content-Type":"application/json"}
+              });
+            }catch(_){}
+            await sleep(120 + Math.random()*120);
+          }
+        })();
         payloadAssente = null;
       } else {
-        invia();
+        invia(); // async; non serve await
       }
 
       const n=document.getElementById("notifica");
