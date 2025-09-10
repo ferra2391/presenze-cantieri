@@ -84,7 +84,7 @@ tbody th{
   position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
   text-align:left; padding:8px 10px;
   /* ⬇️ qui le modifiche */
-  font-size:24px;               /* doppio rispetto a 12px */
+  font-size:22px;               /* doppio rispetto a 12px */
   line-height:1.2;              /* più leggibile con due righe */
   white-space:normal;           /* consenti a capo */
   overflow-wrap:break-word;     /* spezza parole lunghe se necessario */
@@ -131,6 +131,38 @@ tbody th{
       font-weight: 800;
       text-transform: uppercase;                      /* stampatello */
     }
+
+
+
+/* === Colonne a larghezza fissa + testo a capo === */
+:root{
+  /* Cambia qui quando vuoi */
+  --col-w: 180px;      /* larghezza fissa di ogni giorno */
+  --fs-cantiere: 15px; /* dimensione nome cantiere */
+  --fs-ore: 14px;      /* dimensione ore */
+  --fs-tot: 14px;      /* dimensione totali */
+}
+
+/* Tutte le colonne dei giorni (esclusa la prima colonna "Operaio") */
+thead th:not(:first-child),
+tbody td{
+  width: var(--col-w);
+  min-width: var(--col-w);
+  max-width: var(--col-w);
+  white-space: normal;       /* consenti a capo */
+  overflow-wrap: anywhere;   /* spezza parole lunghe */
+  word-break: break-word;    /* fallback */
+}
+
+/* Più grandi: cantiere, ore e totali */
+.entry .cant{ font-size: var(--fs-cantiere); }
+.entry .ore{  font-size: var(--fs-ore); }
+.tot{          font-size: var(--fs-tot); }
+
+
+
+
+    
   </style>
 </head>
 <body>
