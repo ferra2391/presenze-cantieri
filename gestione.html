@@ -139,8 +139,8 @@ tbody th{
   /* Cambia qui quando vuoi */
   --col-w: 270px;      /* larghezza fissa di ogni giorno */
   --fs-cantiere: 24px; /* dimensione nome cantiere */
-  --fs-ore: 22px;      /* dimensione ore */
-  --fs-tot: 20px;      /* dimensione totali */
+  --fs-ore: 23px;      /* dimensione ore */
+  --fs-tot: 22px;      /* dimensione totali */
 }
 
 /* Tutte le colonne dei giorni (esclusa la prima colonna "Operaio") */
@@ -149,6 +149,9 @@ tbody td{
   width: var(--col-w);
   min-width: var(--col-w);
   max-width: var(--col-w);
+  /* Dimensione dei numeri dei giorni nell'intestazione */
+thead th:not(:first-child){
+  font-size: 18px;    /* cambia qui */
   white-space: normal;       /* consenti a capo */
   overflow-wrap: anywhere;   /* spezza parole lunghe */
   word-break: break-word;    /* fallback */
