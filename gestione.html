@@ -182,6 +182,25 @@ tbody th{
 
 
 
+
+
+
+
+    /* Centra tutto il contenuto dentro le celle dei giorni */
+tbody td{
+  display: flex;               /* per centrare in verticale/orizzontale */
+  flex-direction: column;
+  justify-content: center;     /* verticale */
+  align-items: center;         /* orizzontale */
+  text-align: center;          /* testo centrato */
+}
+
+/* il trattino "—" dei giorni vuoti resta centrato */
+tbody td .center{
+  justify-content: center;
+}
+
+
     
   </style>
 </head>
