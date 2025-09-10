@@ -181,24 +181,29 @@ tbody th{
 }
 
 
-
-
-
-
-
-    /* Centra tutto il contenuto dentro le celle dei giorni */
+/* Centra orizzontalmente il contenuto di ogni cella-giorno (senza usare flex) */
 tbody td{
-  display: flex;               /* per centrare in verticale/orizzontale */
-  flex-direction: column;
-  justify-content: center;     /* verticale */
-  align-items: center;         /* orizzontale */
-  text-align: center;          /* testo centrato */
+  text-align: center;     /* centra il testo */
+  vertical-align: top;    /* resta ancorato in alto */
 }
 
-/* il trattino "—" dei giorni vuoti resta centrato */
-tbody td .center{
-  justify-content: center;
+/* I blocchi interni ereditano l'allineamento */
+tbody td .entry,
+tbody td .tot,
+tbody td .lav,
+tbody td .note,
+tbody td .cant,
+tbody td .ore{
+  text-align: inherit;
 }
+
+/* Il trattino dei giorni vuoti resta centrato grazie alla classe .center già esistente */
+
+
+
+
+
+
 
     
 
