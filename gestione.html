@@ -162,6 +162,26 @@ tbody td{
 
 
 
+
+
+:root{
+  /* nuova variabile per la colonna Operai */
+  --col-op: 220px;   /* cambia qui se vuoi più stretta/larga */
+}
+
+/* Fissa la larghezza della colonna Operai (header + body) */
+thead th:first-child,
+tbody th{
+  width: var(--col-op);
+  min-width: var(--col-op);
+  max-width: var(--col-op);
+  white-space: normal;        /* va a capo se serve */
+  overflow-wrap: anywhere;    /* spezza parole lunghe */
+  word-break: break-word;     /* fallback */
+}
+
+
+
     
   </style>
 </head>
