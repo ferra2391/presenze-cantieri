@@ -5,104 +5,46 @@
 <title>Analisi per operaio</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-  :root{
-    --primary: hsl(210,100%,40%);
-    --text: hsl(210,10%,20%);
-    --muted: hsl(210,6%,45%);
-    --bg: hsl(210,20%,98%);
-    --card: #fff;
-    --border: hsl(210,15%,85%);
-    --orange-weak: hsla(30,100%,50%,0.08);
-    --orange-weak-border: hsla(30,100%,50%,0.25);
-  }
-  *{box-sizing:border-box}
-  body{margin:0; background:var(--bg); color:var(--text);
-       font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-  .container{width:100%; max-width:1200px; margin:0 auto; padding:18px}
-  h1{margin:0 0 12px; font-size:20px}
+ /* Allineamenti verticali */
+.detail td, .detail th { vertical-align: top; }
 
-  .panel{
-    background:var(--card); border:1px solid var(--border); border-radius:12px;
-    padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); margin-bottom:16px;
-  }
-  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-  .nav a{
-    padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff;
-    text-decoration:none; font-weight:700; color:var(--text)
-  }
-  .nav a.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
-  input[type="month"], input[type="text"]{
-    padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff
-  }
-  button{padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer}
-  button.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
-  .spinner{display:none}
-  .spinner.show{display:inline-block; width:16px; height:16px; border:2px solid #ddd;
-    border-top-color:var(--primary); border-radius:50%; animation:spin .9s linear infinite; vertical-align:-3px}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .ok{color:#0b7a0b; font-weight:700}
-  .error{color:#b00020; font-weight:700}
+/* Weekend in arancione: ha priorità sulla rigatura */
+.detail tr.off td { background: var(--orange-weak) !important; }
 
-  .table-card{
-    background:var(--card); border:1px solid var(--border); border-radius:12px;
-    box-shadow:0 2px 8px rgba(0,0,0,.04); overflow:auto;
-  }
-  .table-title{padding:10px 12px; border-bottom:1px solid var(--border); font-weight:700}
-  .table-wrap{width:100%; overflow:auto}
+/* Alternanza sfondo per giornate (non weekend) */
+.detail tr.alt td { background: #f7f7f7; }
 
-  table{border-collapse:separate; border-spacing:0; width:100%; font-size:13px}
-  thead th{background:#fff; border-bottom:1px solid var(--border); padding:8px 10px; text-align:left; white-space:nowrap}
-  tbody td, tbody th{border-top:1px solid var(--border); padding:8px 10px}
-  td.num{text-align:right}
+/* Riquadro unico per l'intero giorno (giorno + cantiere + ore + note)
+   Disegniamo solo i bordi perimetrali: 
+   - sinistra sul "Giorno"
+   - destra sull'ultima cella della riga
+   - top sulla prima riga del giorno
+   - bottom sull'ultima riga del giorno (o sulla riga "Tot giorno")
+*/
+.detail tr.gstart td { border-top: 1px solid var(--border); }
+.detail tr.gend  td { border-bottom: 1px solid var(--border); }
 
-  /* link sul nome operaio */
-  .op-link{color:var(--primary); font-weight:700; text-decoration:none; cursor:pointer}
-  .op-link:hover{text-decoration:underline}
+.detail tr.gstart td.daycell,
+.detail tr.gmid   td.daycell,
+.detail tr.gend   td.daycell { 
+  border-left: 1px solid var(--border);
+}
 
-  /* tabella dettaglio */
-  .detail .daycell{white-space:nowrap; font-weight:700}
-  .detail .cant{font-weight:800; color:#c00000; text-transform:uppercase; letter-spacing:.02em}
-  .detail .lav{color:#444; margin-top:2px}
-  .detail .note{color:var(--muted); font-style:italic}
-  .detail .ore{font-weight:700}
-  .detail tfoot td{font-weight:800; border-top:2px solid var(--border)}
-  .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.detail tr.gstart td:last-child,
+.detail tr.gmid   td:last-child,
+.detail tr.gend   td:last-child {
+  border-right: 1px solid var(--border);
+}
 
-  /* Allineamenti verticali */
-  .detail td, .detail th { vertical-align: top; }
+/* Arrotondamenti agli angoli del perimetro */
+.detail tr.gstart td.daycell { border-top-left-radius: 10px; }
+.detail tr.gstart td:last-child { border-top-right-radius: 10px; }
+.detail tr.gend  td.daycell { border-bottom-left-radius: 10px; }
+.detail tr.gend  td:last-child { border-bottom-right-radius: 10px; }
 
-  /* Weekend in arancione */
-  .detail tr.off td{ background: var(--orange-weak); }
-  .detail tr.off td.group{ border-color: var(--orange-weak-border) !important; }
+/* Riga "Tot giorno" chiude il riquadro (ha anche class gend) */
+.detail tr.daytot td { font-weight: 800; }
 
-  /* Riquadro arrotondato per ogni gruppo giorno (sulle 3 celle dati) */
-  .detail td.group{
-    background:#fff;
-  }
-  .detail tr.gstart td.group{
-    border:1px solid var(--border);
-    border-bottom:0;
-    border-top-left-radius:10px; border-top-right-radius:10px;
-  }
-  .detail tr.gmid td.group{
-    border-left:1px solid var(--border);
-    border-right:1px solid var(--border);
-  }
-  .detail tr.gend td.group{
-    border:1px solid var(--border);
-    border-top:0;
-    border-bottom-left-radius:10px; border-bottom-right-radius:10px;
-  }
-
-  /* riga "Tot giorno" dentro il riquadro */
-  .detail tr.daytot td.group{
-    border-left:1px solid var(--border);
-    border-right:1px solid var(--border);
-    border-bottom:1px solid var(--border);
-    border-bottom-left-radius:10px; border-bottom-right-radius:10px;
-    font-weight:800;
-    background:#fff;
-  }
 </style>
 </head>
 <body>
@@ -353,6 +295,8 @@ function showDetail(op){
   detailBody.innerHTML = '';
   let totMese = 0;
 
+  let altFlag = false; // per alternare sfondo tra i giorni (non weekend)
+
   for(let d=1; d<=daysInMonth; d++){
     const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
     const date = new Date(Y, M-1, d);
@@ -363,15 +307,21 @@ function showDetail(op){
     const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
     const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
 
+    // calcolo classe "alt" solo per giorni non-off
+    const dayAltClass = (!isOff && altFlag) ? 'alt' : '';
+
     if(!list0.length){
       const tr = document.createElement('tr');
-      if(isOff) tr.classList.add('off','gstart','gend');
+      tr.className = `${isOff ? 'off' : ''} ${dayAltClass} gstart gend`.trim();
       tr.innerHTML = `
         <td class="daycell">${dayLabel}</td>
-        <td class="group">—</td>
-        <td class="num group"></td>
-        <td class="group"></td>`;
+        <td>—</td>
+        <td class="num"></td>
+        <td></td>`;
       detailBody.appendChild(tr);
+
+      // flip alternanza se non weekend
+      if(!isOff) altFlag = !altFlag;
       continue;
     }
 
@@ -382,8 +332,18 @@ function showDetail(op){
 
     list.forEach((en, idx) => {
       const tr = document.createElement('tr');
+      tr.classList.add(dayAltClass ? 'alt' : '');
       if(isOff) tr.classList.add('off');
-      tr.classList.add(idx===0 ? 'gstart' : (idx===rowspan-1 ? 'gend' : 'gmid'));
+
+      if(rowspan === 1){
+        tr.classList.add('gstart','gend');
+      }else if(idx === 0){
+        tr.classList.add('gstart');
+      }else if(idx === rowspan - 1){
+        tr.classList.add('gend');
+      }else{
+        tr.classList.add('gmid');
+      }
 
       if(idx === 0){
         const tdDay = document.createElement('td');
@@ -394,15 +354,13 @@ function showDetail(op){
       }
 
       const tdCant = document.createElement('td');
-      tdCant.className = 'group';
       tdCant.innerHTML = `<div class="cant">${en.cant}</div>`;
 
       const tdOre = document.createElement('td');
-      tdOre.className = 'num group';
+      tdOre.className = 'num';
       tdOre.textContent = en.ore ? `${en.ore} h` : '';
 
       const tdLav = document.createElement('td');
-      tdLav.className = 'group';
       const lavHtml  = en.lav  ? `<div class="lav">${en.lav.replace(/\n/g,'<br>')}</div>` : '';
       const noteHtml = en.note ? `<div class="note">${en.note.replace(/\n/g,'<br>')}</div>` : '';
       tdLav.innerHTML = lavHtml + noteHtml;
@@ -415,25 +373,30 @@ function showDetail(op){
       detailBody.appendChild(tr);
     });
 
-    // Tot giorno (riga finale dentro il riquadro)
+    // Tot giorno (riga finale che chiude il riquadro)
     if(list.length > 1){
       const trSub = document.createElement('tr');
       if(isOff) trSub.classList.add('off');
-      trSub.classList.add('daytot');
+      if(dayAltClass) trSub.classList.add('alt');
+      trSub.classList.add('daytot','gend');
       trSub.innerHTML = `
-        <td class="group" style="text-align:right; font-weight:800;">Tot giorno:</td>
-        <td class="num group" style="font-weight:800;">${(+dayTot.toFixed(2))} h</td>
-        <td class="group"></td>`;
+        <td style="text-align:right;">Tot giorno:</td>
+        <td class="num">${(+dayTot.toFixed(2))} h</td>
+        <td></td>`;
       detailBody.appendChild(trSub);
     }
 
     totMese += dayTot;
+
+    // flip alternanza se non weekend
+    if(!isOff) altFlag = !altFlag;
   }
 
   detailTotOre.textContent = (+totMese.toFixed(2));
   detailTitle.textContent = `Dettaglio operaio — ${op} (${pad(M)}/${Y})`;
   detailCard.style.display = 'block';
 }
+
 
 /* ====== PDF: A4, UNA SOLA PAGINA ====== */
 async function exportDetailPDF(){
