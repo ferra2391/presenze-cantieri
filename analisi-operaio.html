@@ -70,6 +70,12 @@
   .detail tfoot td{font-weight:800; border-top:2px solid var(--border)}
 
   .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+
+.detail td, .detail th { vertical-align: top; }
+.detail .subtot { font-weight: 800; }
+
+
+  
 </style>
 </head>
 <body>
@@ -146,11 +152,18 @@
         </tfoot>
       </table>
     </div>
-    <div style="padding:10px 12px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px">
-      <button id="btnCloseDetail">Chiudi dettaglio</button>
-    </div>
+<div style="padding:10px 12px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px">
+  <button id="btnDetailPDF">Esporta PDF</button>
+  <button id="btnCloseDetail">Chiudi dettaglio</button>
+</div>
+
   </div>
 </div>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <script>
 /* ====== CONFIG ====== */
@@ -293,72 +306,157 @@ function showDetail(op){
     const iso  = `${Y}-${pad(M)}-${pad(d)}`;
     const isOff= (dow===5||dow===6) || state.holidays.has(iso);
 
-    const tr = document.createElement('tr');
-    if(isOff) tr.classList.add('off');
+    // Nessuna riga in questo giorno → una riga vuota con trattino
+    if(!list.length){
+      const tr = document.createElement('tr');
+      if(isOff) tr.classList.add('off');
 
-    // Giorno
-    const dayCell = document.createElement('td');
-    dayCell.className = 'daycell';
-    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
-    dayCell.textContent = `${pad(d)}/${pad(M)} ${nomeG}`;
-    tr.appendChild(dayCell);
-
-    // Cantiere
-    const cantTd = document.createElement('td');
-    // Ore
-    const oreTd  = document.createElement('td'); oreTd.className='num';
-    // Lavorazioni/Note
-    const lavTd  = document.createElement('td');
-
-    if(list.length){
-      let dayTot=0;
-      list.forEach(en=>{
-        const cant = (isBlankCantiere(en.cantiere) ? 'NO DATI' : String(en.cantiere).trim().toUpperCase());
-        const lav  = stripIntervals(en.lavorazione||'');
-        const note = stripIntervals(en.note||'');
-        const ore  = (en.ore!=null && !isNaN(en.ore)) ? Number(en.ore) : 0;
-        dayTot += ore;
-
-        const cWrap = document.createElement('div'); cWrap.className='entry';
-        cWrap.innerHTML = `<div class="cant">${cant}</div>`;
-        cantTd.appendChild(cWrap);
-
-        const oWrap = document.createElement('div'); oWrap.className='entry ore';
-        oWrap.textContent = ore ? `${ore} h` : '';
-        oreTd.appendChild(oWrap);
-
-        const lWrap = document.createElement('div'); lWrap.className='entry';
-        lWrap.innerHTML =
-          (lav ? `<div class="lav">${lav}</div>` : '') +
-          (note ? `<div class="note">${note}</div>` : '');
-        lavTd.appendChild(lWrap);
-      });
-      totMese += dayTot;
-
-      // aggiungi subtot giorno se più righe
-      if(list.length>1){
-        const subt = document.createElement('div');
-        subt.className = 'entry ore';
-        subt.style.fontWeight = '800';
-        subt.textContent = `Tot giorno: ${(+dayTot.toFixed(2))} h`;
-        oreTd.appendChild(subt);
-      }
-    }else{
-      cantTd.innerHTML = '—';
-      oreTd.textContent = '';
-      lavTd.textContent = '';
+      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
+      tr.innerHTML = `
+        <td class="daycell">${pad(d)}/${pad(M)} ${nomeG}</td>
+        <td>—</td>
+        <td class="num"></td>
+        <td></td>`;
+      detailBody.appendChild(tr);
+      continue;
     }
 
-    tr.appendChild(cantTd);
-    tr.appendChild(oreTd);
-    tr.appendChild(lavTd);
-    detailBody.appendChild(tr);
+    // Con righe: primo TR con la cella Giorno che fa da rowspan = list.length
+    const rowspan = list.length;
+    let dayTot = 0;
+
+    list.forEach((en, idx) => {
+      const tr = document.createElement('tr');
+      if(isOff) tr.classList.add('off');
+
+      if(idx === 0){
+        const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
+        const tdDay = document.createElement('td');
+        tdDay.className = 'daycell';
+        tdDay.rowSpan = rowspan;
+        tdDay.textContent = `${pad(d)}/${pad(M)} ${nomeG}`;
+        tr.appendChild(tdDay);
+      }
+
+      const cant = (isBlankCantiere(en.cantiere) ? 'NO DATI' : String(en.cantiere).trim().toUpperCase());
+      const lav  = stripIntervals(en.lavorazione||'');
+      const note = stripIntervals(en.note||'');
+      const ore  = (en.ore!=null && !isNaN(en.ore)) ? Number(en.ore) : 0;
+      dayTot += ore;
+
+      const tdCant = document.createElement('td');
+      tdCant.innerHTML = `<div class="cant">${cant}</div>`;
+
+      const tdOre = document.createElement('td');
+      tdOre.className = 'num';
+      tdOre.textContent = ore ? `${ore} h` : '';
+
+      const tdLav = document.createElement('td');
+      tdLav.innerHTML =
+        (lav ? `<div class="lav">${lav}</div>` : '') +
+        (note ? `<div class="note">${note}</div>` : '');
+
+      tr.appendChild(tdCant);
+      tr.appendChild(tdOre);
+      tr.appendChild(tdLav);
+      detailBody.appendChild(tr);
+    });
+
+    // Subtotale giorno (riga a parte, senza Giorno)
+    if(list.length > 1){
+      const trSub = document.createElement('tr');
+      if(isOff) trSub.classList.add('off');
+      trSub.innerHTML = `
+        <td class="subtot" style="text-align:right;">Tot giorno:</td>
+        <td class="num subtot">${(+dayTot.toFixed(2))} h</td>
+        <td></td>`;
+      detailBody.appendChild(trSub);
+    }
+
+    totMese += dayTot;
   }
 
   detailTotOre.textContent = (+totMese.toFixed(2));
   detailTitle.textContent = `Dettaglio operaio — ${op} (${pad(M)}/${Y})`;
   detailCard.style.display = 'block';
 }
+
+
+  async function exportDetailPDF(){
+  if(detailCard.style.display === 'none'){
+    alert('Apri prima un dettaglio operaio.');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+
+  // clona il solo contenuto tabellare per evitare overflow
+  const clone = detailCard.cloneNode(true);
+  // opzionale: nascondi il footer nel PDF
+  const foot = clone.querySelector('div[style*="border-top"]');
+  if(foot) foot.remove();
+
+  const holder = document.createElement('div');
+  holder.style.position = 'absolute';
+  holder.style.left = '-10000px';
+  holder.style.top = '0';
+  holder.style.background = '#ffffff';
+  holder.appendChild(clone);
+  document.body.appendChild(holder);
+  await new Promise(r=>requestAnimationFrame(r));
+
+  const canvas = await html2canvas(clone, {
+    scale: 2,
+    backgroundColor: '#ffffff',
+    useCORS: true
+  });
+
+  document.body.removeChild(holder);
+
+  const pdf = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'});
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const M = 24;
+
+  // suddividi in più pagine se serve
+  const imgW = pageW - 2*M;
+  const s = imgW / canvas.width;
+  const imgH = canvas.height * s;
+
+  const imgData = canvas.toDataURL('image/png');
+  let y = M;
+  let remaining = imgH;
+
+  // disegna a “strisce” per andare a capo su più pagine
+  const pageCanvas = document.createElement('canvas');
+  const ctx = pageCanvas.getContext('2d');
+
+  const sliceH = (pageH - 2*M) / s;  // in px del canvas originale
+  pageCanvas.width = canvas.width;
+  pageCanvas.height = sliceH;
+
+  let offset = 0;
+  let first = true;
+  while (remaining > 0){
+    ctx.clearRect(0,0,pageCanvas.width,pageCanvas.height);
+    ctx.drawImage(canvas, 0, offset, canvas.width, Math.min(sliceH, canvas.height - offset), 0, 0, pageCanvas.width, pageCanvas.height);
+    const sliceData = pageCanvas.toDataURL('image/png');
+
+    if(!first) pdf.addPage();
+    pdf.addImage(sliceData, 'PNG', M, M, imgW, Math.min(pageH - 2*M, imgH - (offset*s)));
+    first = false;
+
+    offset += sliceH;
+    remaining -= (sliceH * s);
+  }
+
+  // nome file
+  const t = detailTitle.textContent.replace(/\s+/g,'_').replace(/[^\w\-()]/g,'');
+  pdf.save(`${t}.pdf`);
+}
+
+// bind al click del bottone
+document.getElementById('btnDetailPDF')?.addEventListener('click', exportDetailPDF);
+
 
 /* ====== DATA LOAD ====== */
 async function carica(){
