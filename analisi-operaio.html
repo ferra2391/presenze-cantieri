@@ -31,9 +31,7 @@
     text-decoration:none; font-weight:700; color:var(--text)
   }
   .nav a.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
-  input[type="month"], input[type="text"]{
-    padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff
-  }
+  input[type="month"]{padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff}
   button{padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer}
   button.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
   .spinner{display:none}
@@ -55,26 +53,24 @@
   tbody td, tbody th{border-top:1px solid var(--border); padding:8px 10px}
   td.num{text-align:right}
 
-  /* link sul nome operaio */
   .op-link{color:var(--primary); font-weight:700; text-decoration:none; cursor:pointer}
   .op-link:hover{text-decoration:underline}
 
-  /* tabella dettaglio */
+  /* Dettaglio */
   .detail .daycell{white-space:nowrap; font-weight:700}
   .detail .cant{font-weight:800; color:#c00000; text-transform:uppercase; letter-spacing:.02em}
   .detail .lav{color:#444; margin-top:2px}
   .detail .note{color:var(--muted); font-style:italic}
   .detail td, .detail th { vertical-align: top; }
   .detail tfoot td{font-weight:800; border-top:2px solid var(--border)}
-  .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
 
-  /* Weekend arancione (ha precedenza sull'alternanza) */
+  /* Weekend arancione (prioritario) */
   .detail tr.off td { background: var(--orange-weak) !important; }
 
   /* Alternanza sfondo per i giorni non-off */
   .detail tr.alt td { background: #f7f7f7; }
 
-  /* Riquadro unico per l'intero giorno */
+  /* Gabbia perimetro del giorno (un solo riquadro grande) */
   .detail tr.gstart td { border-top:1px solid var(--border); }
   .detail tr.gend   td { border-bottom:1px solid var(--border); }
 
@@ -92,7 +88,7 @@
   .detail tr.gend  td.daycell { border-bottom-left-radius:10px; }
   .detail tr.gend  td:last-child { border-bottom-right-radius:10px; }
 
-  /* riga “Tot giorno” (chiude la gabbia) */
+  /* Tot giorno (righe di chiusura) */
   .detail tr.daytot td { font-weight:800; }
 </style>
 </head>
@@ -102,7 +98,7 @@
 
   <div class="panel">
     <div class="row" style="justify-content:space-between">
-      <div class="toolbar">
+      <div class="row">
         <button id="prevMonth" title="Mese precedente">◀</button>
         <input type="month" id="mese">
         <button id="nextMonth" title="Mese successivo">▶</button>
@@ -201,12 +197,9 @@ function parseDateAny(v){
   if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
   const t = new Date(s); return isNaN(t) ? null : t;
 }
-function toISODate(d){ return (d instanceof Date && !isNaN(d)) ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` : ""; }
 
 function getFieldSmart(row, candidates){
-  // esatta
   for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
-  // normalizzata
   const keys = Object.keys(row);
   const normMap = new Map(keys.map(k => [normalize(k), k]));
   for(const cand of candidates){
@@ -216,7 +209,6 @@ function getFieldSmart(row, candidates){
       if(row[realKey] != null && row[realKey] !== "") return row[realKey];
     }
   }
-  // inclusione fuzzy
   const targets = candidates.map(normalize);
   for(const k of keys){
     const nk = normalize(k);
@@ -224,7 +216,6 @@ function getFieldSmart(row, candidates){
       if(row[k] != null && row[k] !== "") return row[k];
     }
   }
-  // ultima chance
   for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
   return "";
 }
@@ -255,14 +246,7 @@ const detailBody   = document.getElementById('detailBody');
 const detailTotOre = document.getElementById('detailTotOre');
 const btnCloseDetail = document.getElementById('btnCloseDetail');
 
-const state = {
-  Y:null, M:null,
-  holidays:new Set(),
-  byOpDay:{},    // {op: {day: [ {ore, cantiere, lavorazione, note} ]}}
-  operai:[],     // sorted list
-  summary:[],    // riepilogo
-  currentOp:null
-};
+const state = { Y:null, M:null, holidays:new Set(), byOpDay:{}, operai:[], summary:[], currentOp:null };
 
 function setYM(Y,M){ meseInput.value = `${Y}-${pad(M)}`; }
 function getYM(){
@@ -280,7 +264,7 @@ function setLoading(on){
   btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
 }
 
-/* ====== MERGE per cantiere nello stesso giorno ====== */
+/* Merge per cantiere nello stesso giorno */
 function groupDayEntries(entries){
   const map = new Map();
   entries.forEach(e=>{
@@ -288,9 +272,7 @@ function groupDayEntries(entries){
     const lav  = stripIntervals(e.lavorazione||"");
     const note = stripIntervals(e.note||"");
     const key = `${cant}|${lav}|${note}`;
-    if(!map.has(key)){
-      map.set(key, {cant, lav, note, ore:0, count:0});
-    }
+    if(!map.has(key)) map.set(key, {cant, lav, note, ore:0, count:0});
     const rec = map.get(key);
     rec.ore += (e.ore||0);
     rec.count++;
@@ -330,7 +312,7 @@ function showDetail(op){
   detailBody.innerHTML = '';
   let totMese = 0;
 
-  let altFlag = false; // alternanza sfondo (salta per weekend/festivi)
+  let altFlag = false; // alternanza sfondo (non sui weekend)
 
   for(let d=1; d<=daysInMonth; d++){
     const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
@@ -357,7 +339,7 @@ function showDetail(op){
       continue;
     }
 
-    // merge cantiere/lavorazione/note
+    // merge delle righe omogenee
     const list = groupDayEntries(list0);
     const rowspan = list.length;
     let dayTot = 0;
@@ -400,11 +382,14 @@ function showDetail(op){
     });
 
     if(list.length > 1){
+      /* Riga “Tot giorno” con 4 celle per l’allineamento perfetto */
       const trSub = document.createElement('tr');
       if(isOff) trSub.classList.add('off');
       if(altClass) trSub.classList.add('alt');
-      trSub.classList.add('daytot','gend');
+      trSub.classList.add('daytot','gend');  // chiude il riquadro
+
       trSub.innerHTML = `
+        <td class="daycell"></td>
         <td style="text-align:right;">Tot giorno:</td>
         <td class="num">${(+dayTot.toFixed(2))} h</td>
         <td></td>`;
@@ -431,18 +416,16 @@ async function carica(){
     const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
     const rows = await res.json();
 
-    // build byOpDay
     state.byOpDay = {};
     rows.forEach((r)=>{
       const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
       const dt = parseDateAny(dataVal);
       if(!dt) return;
-      const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
-      if(Yf!==Y || Mf!==M) return;
+      const y=dt.getFullYear(), m=dt.getMonth()+1, d=dt.getDate();
+      if(y!==Y || m!==M) return;
 
       const op   = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
       if(!op) return;
-      const d = dt.getDate();
 
       const cant = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
       const oreV = getFieldSmart(r, ["Ore","H","ORE","ore"]);
@@ -457,14 +440,13 @@ async function carica(){
 
     state.operai = Object.keys(state.byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
 
-    // compute summary
     state.summary = state.operai.map(op=>{
       let tot=0, daysWorked=0, weekendHours=0, noDataDays=0;
       const days = state.byOpDay[op] || {};
       Object.keys(days).forEach(sd=>{
         const d = Number(sd);
         const list = days[d] || [];
-        if(list.length===0) return;
+        if(!list.length) return;
 
         let dayH=0, hasNoCant=false;
         const date = new Date(Y, M-1, d);
@@ -500,14 +482,15 @@ async function carica(){
   }
 }
 
-/* ====== EXPORT PDF A4 (pagina unica) ====== */
+/* ====== EXPORT PDF A4 — pagina unica ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
     return;
   }
   const { jsPDF } = window.jspdf;
-  // Clone leggero per evitare overflow e prendere solo la card
+
+  // Clona la card per catturarla intera
   const clone = detailCard.cloneNode(true);
   const holder = document.createElement('div');
   holder.style.position = 'absolute';
@@ -531,16 +514,20 @@ async function exportDetailPDF(){
   const pageH = pdf.internal.pageSize.getHeight();
   const M = 24;
 
-  const imgW = pageW - 2*M;
-  const s = imgW / canvas.width;
-  const imgH = canvas.height * s;
+  const availW = pageW - 2*M;
+  const availH = pageH - 2*M;
+  const scale = Math.min(availW / canvas.width, availH / canvas.height);  // <-- adatta a pagina unica
+  const w = canvas.width * scale;
+  const h = canvas.height * scale;
+  const x = M + (availW - w)/2;
+  const y = M + (availH - h)/2;
 
-  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', M, M, imgW, imgH);
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
   const fname = detailTitle.textContent.replace(/\s+/g,'_').replace(/[^\w\-()]/g,'') + '.pdf';
   pdf.save(fname);
 }
 
-/* ====== INIT & EVENTS ====== */
+/* ====== INIT ====== */
 (function init(){
   const now=new Date(); setYM(now.getFullYear(), now.getMonth()+1);
 
@@ -549,7 +536,6 @@ async function exportDetailPDF(){
   nextBtn.addEventListener('click', ()=>shiftMonth(+1));
   meseInput.addEventListener('change', carica);
 
-  // click su nome operaio → dettaglio
   tbody.addEventListener('click', (e)=>{
     const a = e.target.closest('.op-link');
     if(a && a.dataset.op){ showDetail(a.dataset.op); }
