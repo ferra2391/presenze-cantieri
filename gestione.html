@@ -183,6 +183,23 @@
       font-size: 22px;
       margin-top: 5px;
     }
+
+    /* Nav orizzontale come nelle analisi */
+.nav a{
+  padding:8px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  text-decoration:none;
+  font-weight:700;
+  color:var(--text);
+}
+.nav a.primary{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
   </style>
 </head>
 <body>
@@ -191,25 +208,46 @@
 
     <div class="panel">
       <div class="row" style="gap:8px; justify-content:space-between; align-items:center;">
-        <div class="month-picker">
-          <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
+  <!-- SINISTRA: selezione mese + Carica (lasciata invariata) -->
+  <div class="month-picker">
+    <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
 
-          <input type="month" id="mese">
-          <span id="meseFallback" class="hidden">
-            <select id="meseSel" aria-label="Mese">
-              <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
-              <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
-              <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
-              <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
-            </select>
-            <select id="annoSel" aria-label="Anno"></select>
-          </span>
+    <input type="month" id="mese">
+    <span id="meseFallback" class="hidden">
+      <select id="meseSel" aria-label="Mese">
+        <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+        <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+        <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+        <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+      </select>
+      <select id="annoSel" aria-label="Anno"></select>
+    </span>
 
-          <button id="nextMonth" class="month-btn" type="button" title="Mese successivo">▶</button>
+    <button id="nextMonth" class="month-btn" type="button" title="Mese successivo">▶</button>
 
-          <button id="btnCarica" class="action" type="button">Carica</button>
-          <span class="spinner" id="spin"></span>
-        </div>
+    <button id="btnCarica" class="action" type="button">Carica</button>
+    <span class="spinner" id="spin"></span>
+  </div>
+
+  <!-- DESTRA: NAV + pulsanti esistenti -->
+  <div class="row" style="gap:12px; align-items:center;">
+    <!-- NAV (tab). In questa pagina, Presenze è attivo -->
+    <nav class="row nav" style="gap:8px;">
+      <a class="primary" href="gestione.html" aria-current="page">Presenze</a>
+      <a href="analisi-operaio.html">Analisi per operaio</a>
+      <a href="analisi-cantiere.html">Analisi per cantiere</a>
+    </nav>
+
+    <!-- Pulsanti che avevi già -->
+    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+      <input type="checkbox" id="toggleLav" checked>
+      Mostra lavorazioni
+    </label>
+    <button class="btn-ghost" id="btnPDF" type="button" title="Esporta PDF A3 (2 pagine)">PDF A3 (fronte/retro)</button>
+    <button class="btn-ghost" id="btnXLS" type="button" title="Esporta Excel (2 fogli)">Excel</button>
+  </div>
+</div>
+
 
         <div class="row" style="gap:8px;">
           <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
