@@ -61,21 +61,48 @@
 
   /* tabella dettaglio */
   .detail .daycell{white-space:nowrap; font-weight:700}
-  .detail .off{background:var(--orange-weak)}
   .detail .cant{font-weight:800; color:#c00000; text-transform:uppercase; letter-spacing:.02em}
   .detail .lav{color:#444; margin-top:2px}
   .detail .note{color:var(--muted); font-style:italic}
   .detail .ore{font-weight:700}
-  .detail .entry{margin-bottom:6px}
   .detail tfoot td{font-weight:800; border-top:2px solid var(--border)}
-
   .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
 
-.detail td, .detail th { vertical-align: top; }
-.detail .subtot { font-weight: 800; }
+  /* Allineamenti verticali */
+  .detail td, .detail th { vertical-align: top; }
 
+  /* Weekend in arancione */
+  .detail tr.off td{ background: var(--orange-weak); }
+  .detail tr.off td.group{ border-color: var(--orange-weak-border) !important; }
 
-  
+  /* Riquadro arrotondato per ogni gruppo giorno (sulle 3 celle dati) */
+  .detail td.group{
+    background:#fff;
+  }
+  .detail tr.gstart td.group{
+    border:1px solid var(--border);
+    border-bottom:0;
+    border-top-left-radius:10px; border-top-right-radius:10px;
+  }
+  .detail tr.gmid td.group{
+    border-left:1px solid var(--border);
+    border-right:1px solid var(--border);
+  }
+  .detail tr.gend td.group{
+    border:1px solid var(--border);
+    border-top:0;
+    border-bottom-left-radius:10px; border-bottom-right-radius:10px;
+  }
+
+  /* riga "Tot giorno" dentro il riquadro */
+  .detail tr.daytot td.group{
+    border-left:1px solid var(--border);
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    border-bottom-left-radius:10px; border-bottom-right-radius:10px;
+    font-weight:800;
+    background:#fff;
+  }
 </style>
 </head>
 <body>
@@ -152,17 +179,15 @@
         </tfoot>
       </table>
     </div>
-<div style="padding:10px 12px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px">
-  <button id="btnDetailPDF">Esporta PDF</button>
-  <button id="btnCloseDetail">Chiudi dettaglio</button>
-</div>
-
+    <div style="padding:10px 12px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px">
+      <button id="btnDetailPDF">Esporta PDF (A4, 1 pagina)</button>
+      <button id="btnCloseDetail">Chiudi dettaglio</button>
+    </div>
   </div>
 </div>
 
-
-
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- librerie per PDF -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <script>
@@ -241,8 +266,9 @@ const state = {
   Y:null, M:null,
   holidays:new Set(),
   byOpDay:{},    // {op: {day: [ {ore, cantiere, lavorazione, note} ]}}
-  operai:[],     // sorted list
-  summary:[]     // cached summary rows for filtering
+  operai:[],
+  summary:[],
+  currentOp:null
 };
 
 function setYM(Y,M){ meseInput.value = `${Y}-${pad(M)}`; }
@@ -288,73 +314,100 @@ function applyOpFilter(){
   if(!q){ renderSummary(state.summary); return; }
   const filtered = state.summary.filter(r => r.op.toLowerCase().includes(q));
   renderSummary(filtered);
-  // se è un match esatto, apri anche il dettaglio
   const exact = state.operai.find(n => n.toLowerCase()===q);
   if(exact) showDetail(exact);
 }
 
+/* ====== DETTAGLIO ====== */
+/* Raggruppa per cantiere nello stesso giorno e somma le ore, concatena lavorazioni/note */
+function groupDayEntries(entries){
+  const map = new Map(); // key -> {cant, count, oreTot, lavSet, noteSet}
+  entries.forEach(en=>{
+    const cantNorm = isBlankCantiere(en.cantiere) ? 'NO DATI' : String(en.cantiere).trim().toUpperCase();
+    const key = cantNorm;
+    if(!map.has(key)){
+      map.set(key,{cant:cantNorm,count:0,oreTot:0,lavSet:new Set(),noteSet:new Set()});
+    }
+    const node = map.get(key);
+    node.count += 1;
+    const ore = (en.ore!=null && !isNaN(en.ore)) ? Number(en.ore) : 0;
+    node.oreTot += ore;
+    const lav = stripIntervals(en.lavorazione||'');
+    const note = stripIntervals(en.note||'');
+    if(lav) node.lavSet.add(lav);
+    if(note) node.noteSet.add(note);
+  });
+  // torna array ordinato per cant
+  return Array.from(map.values()).map(v=>({
+    cant: v.count>1 ? `${v.cant} (x${v.count})` : v.cant,
+    ore: +v.oreTot.toFixed(2),
+    lav: Array.from(v.lavSet).join('\n'),
+    note: Array.from(v.noteSet).join('\n')
+  }));
+}
+
 function showDetail(op){
+  state.currentOp = op;
   const [Y,M] = [state.Y, state.M];
   const daysInMonth = new Date(Y, M, 0).getDate();
   detailBody.innerHTML = '';
   let totMese = 0;
 
   for(let d=1; d<=daysInMonth; d++){
-    const list = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
+    const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
     const date = new Date(Y, M-1, d);
     const dow  = (date.getDay()+6)%7;
     const iso  = `${Y}-${pad(M)}-${pad(d)}`;
     const isOff= (dow===5||dow===6) || state.holidays.has(iso);
 
-    // Nessuna riga in questo giorno → una riga vuota con trattino
-    if(!list.length){
-      const tr = document.createElement('tr');
-      if(isOff) tr.classList.add('off');
+    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
+    const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
 
-      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
+    if(!list0.length){
+      const tr = document.createElement('tr');
+      if(isOff) tr.classList.add('off','gstart','gend');
       tr.innerHTML = `
-        <td class="daycell">${pad(d)}/${pad(M)} ${nomeG}</td>
-        <td>—</td>
-        <td class="num"></td>
-        <td></td>`;
+        <td class="daycell">${dayLabel}</td>
+        <td class="group">—</td>
+        <td class="num group"></td>
+        <td class="group"></td>`;
       detailBody.appendChild(tr);
       continue;
     }
 
-    // Con righe: primo TR con la cella Giorno che fa da rowspan = list.length
+    // merge per cantiere
+    const list = groupDayEntries(list0);
     const rowspan = list.length;
     let dayTot = 0;
 
     list.forEach((en, idx) => {
       const tr = document.createElement('tr');
       if(isOff) tr.classList.add('off');
+      tr.classList.add(idx===0 ? 'gstart' : (idx===rowspan-1 ? 'gend' : 'gmid'));
 
       if(idx === 0){
-        const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
         const tdDay = document.createElement('td');
         tdDay.className = 'daycell';
         tdDay.rowSpan = rowspan;
-        tdDay.textContent = `${pad(d)}/${pad(M)} ${nomeG}`;
+        tdDay.textContent = dayLabel;
         tr.appendChild(tdDay);
       }
 
-      const cant = (isBlankCantiere(en.cantiere) ? 'NO DATI' : String(en.cantiere).trim().toUpperCase());
-      const lav  = stripIntervals(en.lavorazione||'');
-      const note = stripIntervals(en.note||'');
-      const ore  = (en.ore!=null && !isNaN(en.ore)) ? Number(en.ore) : 0;
-      dayTot += ore;
-
       const tdCant = document.createElement('td');
-      tdCant.innerHTML = `<div class="cant">${cant}</div>`;
+      tdCant.className = 'group';
+      tdCant.innerHTML = `<div class="cant">${en.cant}</div>`;
 
       const tdOre = document.createElement('td');
-      tdOre.className = 'num';
-      tdOre.textContent = ore ? `${ore} h` : '';
+      tdOre.className = 'num group';
+      tdOre.textContent = en.ore ? `${en.ore} h` : '';
 
       const tdLav = document.createElement('td');
-      tdLav.innerHTML =
-        (lav ? `<div class="lav">${lav}</div>` : '') +
-        (note ? `<div class="note">${note}</div>` : '');
+      tdLav.className = 'group';
+      const lavHtml  = en.lav  ? `<div class="lav">${en.lav.replace(/\n/g,'<br>')}</div>` : '';
+      const noteHtml = en.note ? `<div class="note">${en.note.replace(/\n/g,'<br>')}</div>` : '';
+      tdLav.innerHTML = lavHtml + noteHtml;
+
+      dayTot += en.ore;
 
       tr.appendChild(tdCant);
       tr.appendChild(tdOre);
@@ -362,14 +415,15 @@ function showDetail(op){
       detailBody.appendChild(tr);
     });
 
-    // Subtotale giorno (riga a parte, senza Giorno)
+    // Tot giorno (riga finale dentro il riquadro)
     if(list.length > 1){
       const trSub = document.createElement('tr');
       if(isOff) trSub.classList.add('off');
+      trSub.classList.add('daytot');
       trSub.innerHTML = `
-        <td class="subtot" style="text-align:right;">Tot giorno:</td>
-        <td class="num subtot">${(+dayTot.toFixed(2))} h</td>
-        <td></td>`;
+        <td class="group" style="text-align:right; font-weight:800;">Tot giorno:</td>
+        <td class="num group" style="font-weight:800;">${(+dayTot.toFixed(2))} h</td>
+        <td class="group"></td>`;
       detailBody.appendChild(trSub);
     }
 
@@ -381,17 +435,17 @@ function showDetail(op){
   detailCard.style.display = 'block';
 }
 
-
-  async function exportDetailPDF(){
+/* ====== PDF: A4, UNA SOLA PAGINA ====== */
+async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
     return;
   }
   const { jsPDF } = window.jspdf;
 
-  // clona il solo contenuto tabellare per evitare overflow
+  // Clona solo la card per catturare dimensione naturale
   const clone = detailCard.cloneNode(true);
-  // opzionale: nascondi il footer nel PDF
+  // nascondi i bottoni nel PDF
   const foot = clone.querySelector('div[style*="border-top"]');
   if(foot) foot.remove();
 
@@ -400,14 +454,18 @@ function showDetail(op){
   holder.style.left = '-10000px';
   holder.style.top = '0';
   holder.style.background = '#ffffff';
+  holder.style.padding = '0';
+  holder.style.margin = '0';
   holder.appendChild(clone);
   document.body.appendChild(holder);
   await new Promise(r=>requestAnimationFrame(r));
 
+  const SCALE = 2;
   const canvas = await html2canvas(clone, {
-    scale: 2,
+    scale: SCALE,
     backgroundColor: '#ffffff',
-    useCORS: true
+    useCORS: true,
+    logging:false
   });
 
   document.body.removeChild(holder);
@@ -415,48 +473,23 @@ function showDetail(op){
   const pdf = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'});
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const M = 24;
+  const M = 24; // margine
 
-  // suddividi in più pagine se serve
-  const imgW = pageW - 2*M;
-  const s = imgW / canvas.width;
-  const imgH = canvas.height * s;
+  // scala per stare in UNA sola pagina
+  const availW = pageW - 2*M;
+  const availH = pageH - 2*M;
+  const s = Math.min(availW / canvas.width, availH / canvas.height);
+  const w = canvas.width * s;
+  const h = canvas.height * s;
+  const x = M + (availW - w)/2;
+  const y = M + (availH - h)/2;
 
-  const imgData = canvas.toDataURL('image/png');
-  let y = M;
-  let remaining = imgH;
-
-  // disegna a “strisce” per andare a capo su più pagine
-  const pageCanvas = document.createElement('canvas');
-  const ctx = pageCanvas.getContext('2d');
-
-  const sliceH = (pageH - 2*M) / s;  // in px del canvas originale
-  pageCanvas.width = canvas.width;
-  pageCanvas.height = sliceH;
-
-  let offset = 0;
-  let first = true;
-  while (remaining > 0){
-    ctx.clearRect(0,0,pageCanvas.width,pageCanvas.height);
-    ctx.drawImage(canvas, 0, offset, canvas.width, Math.min(sliceH, canvas.height - offset), 0, 0, pageCanvas.width, pageCanvas.height);
-    const sliceData = pageCanvas.toDataURL('image/png');
-
-    if(!first) pdf.addPage();
-    pdf.addImage(sliceData, 'PNG', M, M, imgW, Math.min(pageH - 2*M, imgH - (offset*s)));
-    first = false;
-
-    offset += sliceH;
-    remaining -= (sliceH * s);
-  }
-
-  // nome file
-  const t = detailTitle.textContent.replace(/\s+/g,'_').replace(/[^\w\-()]/g,'');
-  pdf.save(`${t}.pdf`);
+  const img = canvas.toDataURL('image/png');
+  pdf.addImage(img, 'PNG', x, y, w, h);
+  const op = state.currentOp ? `_${state.currentOp}` : '';
+  const [Y,Mm]=[state.Y, pad(state.M)];
+  pdf.save(`Dettaglio${op}_${Y}-${Mm}.pdf`);
 }
-
-// bind al click del bottone
-document.getElementById('btnDetailPDF')?.addEventListener('click', exportDetailPDF);
-
 
 /* ====== DATA LOAD ====== */
 async function carica(){
@@ -469,7 +502,6 @@ async function carica(){
     const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
     const rows = await res.json();
 
-    // build byOpDay
     state.byOpDay = {};
     rows.forEach((r)=>{
       const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
@@ -498,7 +530,7 @@ async function carica(){
     state.operai = Object.keys(state.byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
     fillDatalist(state.operai);
 
-    // compute summary
+    // summary
     state.summary = state.operai.map(op=>{
       let tot=0, daysWorked=0, weekendHours=0, noDataDays=0;
       const days = state.byOpDay[op] || {};
@@ -554,13 +586,13 @@ async function carica(){
   btnClear.addEventListener('click', ()=>{ opFilter.value=''; renderSummary(state.summary); detailCard.style.display='none'; });
   opFilter.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ applyOpFilter(); } });
 
-  // delega click su nome operaio
   tbody.addEventListener('click', (e)=>{
     const a = e.target.closest('.op-link');
     if(a && a.dataset.op){ showDetail(a.dataset.op); }
   });
 
   btnCloseDetail.addEventListener('click', ()=>{ detailCard.style.display='none'; });
+  document.getElementById('btnDetailPDF')?.addEventListener('click', exportDetailPDF);
 
   carica();
 })();
