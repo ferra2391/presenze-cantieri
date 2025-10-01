@@ -42,6 +42,7 @@
     .section-label{font-weight:bold;color:var(--color-text-dark);margin-top:15px;display:block;margin-bottom:5px}
     .card{background:#fff;padding:15px;border-radius:var(--border-radius-base);box-shadow:var(--shadow-medium);border:1px solid var(--color-border);margin-top:20px}
 
+    /* blocco lavorazioni recenti */
     #importaBox{background:var(--color-success-bg);padding:16px;border-radius:10px;margin:10px 0;box-shadow:var(--shadow-light);border:1px solid var(--color-success-border)}
     #importaBox h4{margin:0 0 6px 0;color:var(--color-accent-dark);font-size:18px;font-weight:bold}
     #importaBox .sottotitolo{margin:0 0 12px 0;font-size:14px;color:var(--color-text-light)}
@@ -94,7 +95,6 @@
     .entry-missing{color:#c00000;font-weight:800;letter-spacing:.02em}
     #ultimaLavorazioneBox { display: none !important; }
 
-    /* Pulsante ASSENTE molto piccolo e a destra */
     .label-row{display:flex;align-items:center;gap:10px}
     .label-row .section-label{margin:0}
     .btn-assente{
@@ -104,6 +104,11 @@
       background:#d32f2f; color:#fff; border:none; box-shadow:var(--shadow-medium); cursor:pointer;
     }
     .btn-assente:hover{ background:#b71c1c; transform:translateY(-1px); }
+
+    /* time-row per mattina/pomeriggio */
+    .time-row{display:flex;align-items:center;gap:8px}
+    .time-row select{flex:1;min-width:0}
+    .time-sep{user-select:none}
   </style>
 </head>
 <body>
@@ -133,16 +138,30 @@
       <input type="date" id="data">
 
       <div style="display:flex;flex-wrap:wrap;gap:15px;margin-top:5px;">
-        <div style="flex:1;">
-          <label class="section-label" for="oreLavorate">🕒 Ore lavorate:</label>
-          <select id="oreLavorate">
-            <option value="2">2</option><option value="3">3</option><option value="4">4</option>
-            <option value="5">5</option><option value="6">6</option><option value="7">7</option>
-            <option value="8" selected>8</option><option value="9">9</option><option value="10">10</option>
-            <option value="11">11</option><option value="12">12</option>
-          </select>
+        <!-- ORE MATTINA -->
+        <div style="flex:1;min-width:230px;">
+          <label class="section-label" for="mStart">☀️ Ore mattina</label>
+          <div class="time-row">
+            <select id="mStart"></select>
+            <span class="time-sep">–</span>
+            <select id="mEnd"></select>
+          </div>
+          <small style="color:var(--color-text-light)">Fascia: 06:00 → 15:00</small>
         </div>
-        <div style="flex:1;">
+
+        <!-- ORE POMERIGGIO -->
+        <div style="flex:1;min-width:230px;">
+          <label class="section-label" for="pStart">🌇 Ore pomeriggio</label>
+          <div class="time-row">
+            <select id="pStart"></select>
+            <span class="time-sep">–</span>
+            <select id="pEnd"></select>
+          </div>
+          <small style="color:var(--color-text-light)">Fascia: 12:00 → 20:00</small>
+        </div>
+
+        <!-- NUMERO CANTIERI -->
+        <div style="flex:1;min-width:180px;">
           <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
           <select id="numeroCantieri" onchange="generaCampiCantieri()">
             <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
@@ -166,8 +185,8 @@
         </div>
       </div>
 
-      <label class="section-label" for="note">📝 Note (facoltative):</label>
-      <textarea id="note" class="lavorazione-autoresize" placeholder="Aggiungi eventuali note..." rows="1" oninput="autoResize(this)"></textarea>
+      <label class="section-label" for="note">📝 ORARI DI LAVORO e note:</label>
+      <textarea id="note" class="lavorazione-autoresize" placeholder="Aggiungi orari e note..." rows="1" oninput="autoResize(this)"></textarea>
 
       <button onclick="mostraModal()" id="btnInvia">📄 Invia Presenza</button>
       <button id="btnGestione" onclick="window.location.href='gestione.html'">📅 Vai alla Gestione Cantiere</button>
@@ -222,8 +241,9 @@
 
   <script>
     let utente="", nomeOperaio="", elencoCantieri=[], ruoliUtenti={}, ultimoTestoLavorazione="";
-    // conterrà gli N record "ASSENTE" da inviare (uno per operaio)
     let payloadAssente = null;
+
+    function isAdmin(){ return (localStorage.getItem("ruolo") || "").toLowerCase() === "amministratore"; }
 
     function login(){
       const userInput=document.getElementById("user").value.trim();
@@ -237,12 +257,15 @@
           utente=u["User"]; nomeOperaio=u["Nome"];
           const ruolo=u["Ruolo"]||"";
           localStorage.setItem("ruolo",ruolo);
+          document.getElementById("btnMultiOperai").style.display = isAdmin() ? "inline-block" : "none";
+
           document.getElementById("messaggioBenvenuto").innerText=`Benvenuto, ${nomeOperaio}`;
           if(ruolo.toLowerCase()!=="amministratore") document.getElementById("btnGestione").style.display="none";
           document.getElementById("login").style.display="none";
           document.getElementById("form").style.display="block";
           document.getElementById("data").value=new Date().toISOString().split("T")[0];
 
+          populateTimeSelects();        // ⏰ inizializza menù tempi
           caricaCantieri();
           caricaOperai();
           caricaRiepilogoAdmin();
@@ -251,6 +274,94 @@
         });
     }
 
+    /* ========== TIME HELPERS ========== */
+    function pad2(n){return String(n).padStart(2,'0');}
+    function minutesToHHMM(min){const h=Math.floor(min/60), m=min%60; return `${pad2(h)}:${pad2(m)}`;}
+    function HHMMtoMinutes(str){
+      if(!str||!str.includes(":")) return null;
+      const [h,m]=str.split(":").map(n=>parseInt(n,10));
+      if(Number.isNaN(h)||Number.isNaN(m)) return null;
+      return h*60+m;
+    }
+
+    function buildOptionsHTML(minMin, maxMin, stepMin, kind){
+      // kind: 'start' => ultima opzione max-step; 'end' => prima opzione min+step
+      const adjMin = (kind==='end') ? (minMin + stepMin) : minMin;
+      const adjMax = (kind==='start') ? (maxMin - stepMin) : maxMin;
+      let html = `<option value="">—</option>`;
+      for(let t=adjMin; t<=adjMax; t+=stepMin){
+        const v=minutesToHHMM(t);
+        html += `<option value="${v}">${v}</option>`;
+      }
+      return html;
+    }
+
+    function populateTimeSelects(){
+      const mStart=document.getElementById("mStart");
+      const mEnd=document.getElementById("mEnd");
+      const pStart=document.getElementById("pStart");
+      const pEnd=document.getElementById("pEnd");
+      if(!mStart||!mEnd||!pStart||!pEnd) return;
+
+      const STEP=15;
+      const M_MIN=6*60, M_MAX=15*60;
+      const P_MIN=12*60, P_MAX=20*60;
+
+      mStart.innerHTML = buildOptionsHTML(M_MIN, M_MAX, STEP, 'start');
+      mEnd.innerHTML   = buildOptionsHTML(M_MIN, M_MAX, STEP, 'end');
+      pStart.innerHTML = buildOptionsHTML(P_MIN, P_MAX, STEP, 'start');
+      pEnd.innerHTML   = buildOptionsHTML(P_MIN, P_MAX, STEP, 'end');
+    }
+
+    function getSelectedIntervals(){
+      const ms = HHMMtoMinutes(document.getElementById("mStart").value);
+      const me = HHMMtoMinutes(document.getElementById("mEnd").value);
+      const ps = HHMMtoMinutes(document.getElementById("pStart").value);
+      const pe = HHMMtoMinutes(document.getElementById("pEnd").value);
+      return {ms, me, ps, pe};
+    }
+
+    function validateIntervals(ms,me,ps,pe){
+      const anyMorning = (ms!==null || me!==null);
+      const anyAfternoon = (ps!==null || pe!==null);
+      if(!anyMorning && !anyAfternoon){
+        alert("Inserisci almeno un intervallo (mattina o pomeriggio).");
+        return false;
+      }
+      if(anyMorning && (ms===null || me===null)){
+        alert("Completa l'intervallo mattina (inizio e fine).");
+        return false;
+      }
+      if(anyMorning && ms>=me){
+        alert("Intervallo mattina non valido: l'ora di fine deve essere successiva all'ora di inizio.");
+        return false;
+      }
+      if(anyAfternoon && (ps===null || pe===null)){
+        alert("Completa l'intervallo pomeriggio (inizio e fine).");
+        return false;
+      }
+      if(anyAfternoon && ps>=pe){
+        alert("Intervallo pomeriggio non valido: l'ora di fine deve essere successiva all'ora di inizio.");
+        return false;
+      }
+      return true;
+    }
+
+    function buildOrariString(ms,me,ps,pe){
+      const parts=[];
+      if(ms!==null && me!==null) parts.push(`${minutesToHHMM(ms)}-${minutesToHHMM(me)}`);
+      if(ps!==null && pe!==null) parts.push(`${minutesToHHMM(ps)}-${minutesToHHMM(pe)}`);
+      return parts.join(" + ");
+    }
+
+    function computeTotalHours(ms,me,ps,pe){
+      let minutes=0;
+      if(ms!==null && me!==null && me>ms) minutes += (me - ms);
+      if(ps!==null && pe!==null && pe>ps) minutes += (pe - ps);
+      return minutes/60; // ore decimali
+    }
+
+    /* ========== CARICAMENTI LISTE ========== */
     function caricaCantieri(){
       fetch("https://opensheet.elk.sh/1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ/Cantieri")
         .then(r=>r.json())
@@ -289,8 +400,7 @@
         let sel=`<select id="cantiere_${i}"><option value="">-- Seleziona Cantiere --</option>`;
         elencoCantieri.forEach(nome=>sel+=`<option value="${nome}">${nome}</option>`); sel+=`</select>`;
 
-        // Pulsante ASSENTE solo nella prima card, piccolo e a destra
-        const btnAssente = (i===1)
+        const btnAssente = (i === 1 && isAdmin())
           ? `<button type="button" class="btn-assente" onclick="apriAssente()" title="Registra assenza per la data selezionata">🚫 ASSENTE</button>`
           : ``;
 
@@ -313,26 +423,36 @@
             </div>
           </div>`;
       }
-      document.getElementById("btnMultiOperai").style.display=(n===1)?"inline-block":"none";
+      const btn = document.getElementById("btnMultiOperai");
+      btn.style.display = (n === 1 && isAdmin()) ? "inline-block" : "none";
     }
 
     function mostraOperai(){const div=document.getElementById("multiOperai");div.style.display=(div.style.display==="block")?"none":"block";}
 
-    function invia(){
-      const n=parseInt(document.getElementById("numeroCantieri").value);
+    /* === invio sequenziale === */
+    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    async function invia(){
+      const {ms,me,ps,pe} = getSelectedIntervals();
+      if(!validateIntervals(ms,me,ps,pe)) return;
+
+      const orari = buildOrariString(ms,me,ps,pe);                // stringa per colonna B
+      const oreTot = computeTotalHours(ms,me,ps,pe);              // ore totali decimali
+      const nCant = parseInt(document.getElementById("numeroCantieri").value);
+      const orePerCantiere = oreTot / nCant;
+
       const data=document.getElementById("data").value;
-      const orari="08:00 - 17:00";
-      const oreLavorate=parseInt(document.getElementById("oreLavorate").value)||8;
       const note=document.getElementById("note").value.trim();
 
-      for(let i=1;i<=n;i++){
+      const rowsToSend = [];
+
+      for(let i=1;i<=nCant;i++){
         let nomeCantiere=document.getElementById(`cantiere_${i}`)?.value||"";
         const altro=document.getElementById(`cantiereAltro_${i}`)?.value.trim()||"";
         if(altro) nomeCantiere=altro;
         const lavorazione=document.getElementById(`lavorazione_${i}`)?.value||"";
         if(!nomeCantiere||!lavorazione){alert(`⚠️ Devi compilare cantiere e lavorazione per la riga ${i}`);return;}
 
-        const oreCalcolate=oreLavorate/n;
         let operai=[];
         if(document.getElementById("multiOperai").style.display==="block"){
           operai=Array.from(document.getElementById("operaio").selectedOptions).map(o=>o.value);
@@ -341,13 +461,31 @@
         }else{ operai=[nomeOperaio]; }
 
         operai.forEach(nome=>{
-          const molId="moltiplicatore_"+nome.replace(/\s+/g,"_");
-          const mol=parseInt(document.getElementById(molId)?.value)||1;
+          const molId="moltiplicatore_"+(nome||"").trim().replace(/\s+/g,"_");
+          const raw = document.getElementById(molId)?.value;
+          const mol = Math.max(1, Number.parseInt(raw, 10) || 1);
           for(let k=0;k<mol;k++){
-            const body={data,orari,cantiere:nomeCantiere,lavorazione,ore:oreCalcolate,operaio:nome,user:utente,note};
-            fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{method:"POST",mode:"no-cors",body:JSON.stringify(body),headers:{"Content-Type":"application/json"}});
+            rowsToSend.push({
+              data,
+              orari,                             // <-- scritto in colonna B dal GAS
+              cantiere:nomeCantiere,
+              lavorazione,
+              ore: Number(orePerCantiere.toFixed(2)), // divisione equa sui cantieri
+              operaio:nome,
+              user:utente,
+              note
+            });
           }
         });
+      }
+
+      for(const body of rowsToSend){
+        try{
+          await fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{
+            method:"POST",mode:"no-cors",body:JSON.stringify(body),headers:{"Content-Type":"application/json"}
+          });
+        }catch(_){}
+        await sleep(120 + Math.random()*120);
       }
     }
 
@@ -362,7 +500,9 @@
     }
 
     function mostraModal(){
-      const oreLavorate=parseInt(document.getElementById("oreLavorate").value)||8;
+      const {ms,me,ps,pe} = getSelectedIntervals();
+      if(!validateIntervals(ms,me,ps,pe)) return;
+
       const data=document.getElementById("data").value;
       let operai="";
       if(document.getElementById("multiOperai").style.display==="block"){
@@ -381,18 +521,32 @@
         const lav=document.getElementById(`lavorazione_${i}`)?.value||"(nessuna)";
         dettagli+=`<li><strong>Cantiere ${i}:</strong> ${cant}<br><strong>Lavorazione:</strong> ${lav}</li>`;
       }
-      document.getElementById("riepilogoDati").innerHTML=`<ul><li><strong>Data:</strong> ${data}</li><li><strong>Ore:</strong> ${oreLavorate}</li><li><strong>Operai:</strong> ${operai}</li><li><strong>Dettaglio Cantieri:</strong><ul>${dettagli}</ul></li></ul>`;
+
+      const orariStr = buildOrariString(ms,me,ps,pe);
+      const oreTot = computeTotalHours(ms,me,ps,pe);
+
+      document.getElementById("riepilogoDati").innerHTML=
+        `<ul>
+          <li><strong>Data:</strong> ${data}</li>
+          <li><strong>Operai:</strong> ${operai}</li>
+          <li><strong>Ore totali:</strong> ${oreTot.toFixed(2)}</li>
+          <li><strong>Orari:</strong> ${orariStr}</li>
+          <li><strong>Dettaglio Cantieri:</strong>
+            <ul>${dettagli}</ul>
+          </li>
+        </ul>`;
+
       document.getElementById("modalConferma").style.display="flex";
       document.getElementById("modalConferma").classList.add("show");
     }
     function chiudiModal(){document.getElementById("modalConferma").classList.remove("show");setTimeout(()=>{document.getElementById("modalConferma").style.display="none";},300);}
 
-    /* ===== Flusso ASSENTE (usa selezione in "altri operai") ===== */
+    /* ===== ASSENTE ===== */
     function apriAssente(){
+      if(!isAdmin()){ alert("Funzione riservata agli amministratori."); return; }
       const data = document.getElementById("data").value;
       if(!data){ alert("Seleziona prima la data."); return; }
 
-      // Operai target: presi dalla sezione multi-operai, se visibile e con selezioni; altrimenti l'utente loggato
       let target = [];
       if(document.getElementById("multiOperai").style.display==="block"){
         target = Array.from(document.getElementById("operaio").selectedOptions).map(o=>o.value);
@@ -428,35 +582,43 @@
       chiudiModal();
 
       if(payloadAssente){
-        // invio un record per ogni operaio
-        payloadAssente.forEach(row=>{
-          fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{
-            method:"POST", mode:"no-cors",
-            body: JSON.stringify(row),
-            headers: {"Content-Type":"application/json"}
-          });
-        });
+        (async () => {
+          for(const row of payloadAssente){
+            try{
+              await fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{
+                method:"POST", mode:"no-cors",
+                body: JSON.stringify(row),
+                headers: {"Content-Type":"application/json"}
+              });
+            }catch(_){}
+            await sleep(120 + Math.random()*120);
+          }
+        })();
         payloadAssente = null;
       } else {
-        invia();
+        invia(); // async fire-and-forget
       }
 
       const n=document.getElementById("notifica");
       n.style.display="block"; n.classList.add("show");
       setTimeout(()=>{n.classList.remove("show"); setTimeout(()=>{n.style.display="none";},500);},3500);
 
-      // reset base
+      // reset campi
       document.getElementById("data").value=new Date().toISOString().split("T")[0];
-      document.getElementById("oreLavorate").value="8";
       document.getElementById("numeroCantieri").value="1";
       document.getElementById("cantieriMultipli").innerHTML="";
       document.getElementById("multiOperai").style.display="none";
       document.getElementById("operaio").selectedIndex=-1;
       document.getElementById("nuovoOperaio").value="";
       document.getElementById("note").value="";
+      // reset orari
+      if(document.getElementById("mStart")) document.getElementById("mStart").value="";
+      if(document.getElementById("mEnd")) document.getElementById("mEnd").value="";
+      if(document.getElementById("pStart")) document.getElementById("pStart").value="";
+      if(document.getElementById("pEnd")) document.getElementById("pEnd").value="";
+
       generaCampiCantieri();
       caricaRiepilogoAdmin();
-
       setTimeout(caricaAgendaMensile,1200);
     }
 
@@ -557,11 +719,8 @@
         const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const entries = byDay[d] || [];
 
-        const dayRow=document.createElement('div');
-        dayRow.className='agenda-day';
-
-        const badge=document.createElement('div');
-        badge.className='date-badge';
+        const dayRow=document.createElement('div'); dayRow.className='agenda-day';
+        const badge=document.createElement('div'); badge.className='date-badge';
         if(dow===5) badge.classList.add('sabato');
         if(dow===6) badge.classList.add('weekend');
         if(holidays.has(iso)) badge.classList.add('festivo');
@@ -633,7 +792,16 @@
     }
     function chiudiModale(){document.getElementById("overlay").style.display="none";document.getElementById("modalePresenza").style.display="none";}
     function inviaModifica(){
-      const dati={modifica:1,id:document.getElementById("mod_id").value,data:document.getElementById("mod_data").value,orari:document.getElementById("mod_orari").value,cantiere:document.getElementById("mod_cantiere").value,lavorazione:document.getElementById("mod_lavorazione").value,ore:document.getElementById("mod_ore").value,note:document.getElementById("mod_note").value};
+      const dati={
+        modifica:1,
+        id:document.getElementById("mod_id").value,
+        data:document.getElementById("mod_data").value,
+        orari:document.getElementById("mod_orari").value,
+        cantiere:document.getElementById("mod_cantiere").value,
+        lavorazione:document.getElementById("mod_lavorazione").value,
+        ore:document.getElementById("mod_ore").value,
+        note:document.getElementById("mod_note").value
+      };
       fetch("https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec",{method:"POST",body:JSON.stringify(dati)})
         .then(res=>res.text())
         .then(_=>{
