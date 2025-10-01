@@ -731,39 +731,42 @@
     });
   });
 
-  /* ============ EXPORT ============ */
-  async function ensurePdfLibs(){
-    if(typeof window.html2canvas === 'undefined'){
-      await new Promise((resolve,reject)=>{
-        const s=document.createElement('script');
-        s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-        s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
-      });
-    }
-    if(!(window.jspdf && window.jspdf.jsPDF)){
-      await new Promise((resolve,reject)=>{
-        const s=document.createElement('script');
-        s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
-      });
-    }
+/* ============ EXPORT ============ */
+/* Carica le librerie se mancano (resta uguale) */
+async function ensurePdfLibs(){
+  if(typeof window.html2canvas === 'undefined'){
+    await new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
+    });
   }
+  if(!(window.jspdf && window.jspdf.jsPDF)){
+    await new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
+    });
+  }
+}
 
- async function captureCardFull(cardId){
+/* Cattura la card, ma con scala adattiva per non sforare memoria */
+async function captureCardFull(cardId){
   const src = document.getElementById(cardId);
   if(!src) throw new Error('card non trovata: '+cardId);
 
   const wrap = src.querySelector('.table-wrap');
   const fullWidth = wrap ? wrap.scrollWidth : src.scrollWidth;
 
+  // Clona in offscreen e sblocca lo scroll interno
   const clone = src.cloneNode(true);
-
   const cloneWrap = clone.querySelector('.table-wrap');
   if(cloneWrap){
     cloneWrap.style.overflow = 'visible';
     cloneWrap.style.width = (fullWidth + 2) + 'px';
     cloneWrap.style.maxWidth = 'none';
   }
+  // Rimuovi sticky dagli header per il render
   clone.querySelectorAll('thead th, tbody th').forEach(el=>{
     el.style.position = 'static';
   });
@@ -780,9 +783,19 @@
 
   await new Promise(r=>requestAnimationFrame(r));
 
-  const SCALE = (window.devicePixelRatio || 1) > 1 ? 1.5 : 2;
+  // Scala adattiva: punta a max ~12 MP per non saturare memoria
+  const w = holder.scrollWidth;
+  const h = holder.scrollHeight;
+  const MAX_AREA = 12e6;                     // 12 megapixel
+  const baseDpr = Math.min(1.5, window.devicePixelRatio || 1);
+  let scale = baseDpr;
+  if (w * h * scale * scale > MAX_AREA){
+    scale = Math.sqrt(MAX_AREA / (w * h));
+  }
+  scale = Math.max(0.6, Math.min(scale, 1.2)); // limiti di sicurezza
+
   const canvas = await html2canvas(clone, {
-    scale: SCALE,
+    scale,
     backgroundColor: '#ffffff',
     useCORS: true,
     logging: false,
@@ -795,52 +808,92 @@
   return canvas;
 }
 
+/* Se serve, riduci ulteriormente il canvas (post-render) */
+function downscaleCanvasIfNeeded(canvas, maxArea=8e6, maxDim=4200){
+  const area = canvas.width * canvas.height;
+  if (area <= maxArea && Math.max(canvas.width, canvas.height) <= maxDim) return canvas;
 
-  async function exportPDF(){
-    try{
-      await ensurePdfLibs();
-      if(statusEl) statusEl.innerHTML = '<span class="ok">Preparazione PDF…</span>';
+  const factor = Math.min(
+    Math.sqrt(maxArea / area),
+    maxDim / Math.max(canvas.width, canvas.height)
+  );
 
-      const [canvasA, canvasB] = await Promise.all([
-        captureCardFull('cardA'),
-        captureCardFull('cardB')
-      ]);
+  const tmp = document.createElement('canvas');
+  tmp.width = Math.max(1, Math.floor(canvas.width * factor));
+  tmp.height = Math.max(1, Math.floor(canvas.height * factor));
+  const ctx = tmp.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(canvas, 0, 0, tmp.width, tmp.height);
+  return tmp;
+}
 
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
-
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const MARGIN = 10;
-
-      function addCanvasPage(canvas, first){
-        const img = canvas.toDataURL('image/png');
-        const availW = pageW - 2*MARGIN;
-        const availH = pageH - 2*MARGIN;
-        const s = Math.min(availW / canvas.width, availH / canvas.height);
-        const w = canvas.width * s;
-        const h = canvas.height * s;
-        const x = MARGIN + (availW - w)/2;
-        const y = MARGIN + (availH - h)/2;
-
-        if(!first) doc.addPage(); // stessa dimensione/orientamento
-        doc.addImage(img, 'PNG', x, y, w, h);
-      }
-
-      addCanvasPage(canvasA, true);
-      addCanvasPage(canvasB, false);
-
-      const v = document.getElementById('mese')?.value || '';
-      const fname = /^\d{4}-\d{2}$/.test(v) ? `Presenze_${v}.pdf` : 'Presenze.pdf';
-      doc.save(fname);
-
-      if(statusEl) statusEl.textContent = '';
-    }catch(e){
-      console.error(e);
-      alert('Export PDF fallito: ' + (e && e.message ? e.message : e));
-      if(statusEl) statusEl.innerHTML = '<span class="error">Errore durante l’export PDF (vedi console).</span>';
-    }
+/* Codifica in dataURL provando JPEG con qualità decrescente */
+function canvasToDataURLSafe(canvas){
+  const qualities = [0.82, 0.7, 0.6, 0.5];
+  for(const q of qualities){
+    try { return canvas.toDataURL('image/jpeg', q); } catch(e) {}
   }
+  try { return canvas.toDataURL('image/png'); } catch(e) {}
+  throw new Error('Impossibile codificare immagine (memoria)');
+}
+
+async function exportPDF(){
+  try{
+    await ensurePdfLibs();
+    const statusEl = document.getElementById('status');
+    if(statusEl) statusEl.innerHTML = '<span class="ok">Preparazione PDF…</span>';
+
+    // Renderizza le due metà in parallelo
+    let [canvasA, canvasB] = await Promise.all([
+      captureCardFull('cardA'),
+      captureCardFull('cardB')
+    ]);
+
+    // Ulteriore riduzione se servisse (tabelle molto lunghe)
+    canvasA = downscaleCanvasIfNeeded(canvasA, 8e6, 4200);
+    canvasB = downscaleCanvasIfNeeded(canvasB, 8e6, 4200);
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
+
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const MARGIN = 10;
+
+    function addCanvasPage(canvas, first){
+      const availW = pageW - 2*MARGIN;
+      const availH = pageH - 2*MARGIN;
+      const s = Math.min(availW / canvas.width, availH / canvas.height);
+      const w = canvas.width * s;
+      const h = canvas.height * s;
+      const x = MARGIN + (availW - w)/2;
+      const y = MARGIN + (availH - h)/2;
+
+      // dataURL con qualità adattiva (evita Invalid string length)
+      const safeCanvas = downscaleCanvasIfNeeded(canvas, 8e6, 4200);
+      const img = canvasToDataURLSafe(safeCanvas);
+
+      if(!first) doc.addPage();
+      doc.addImage(img, 'JPEG', x, y, w, h);
+    }
+
+    addCanvasPage(canvasA, true);
+    addCanvasPage(canvasB, false);
+
+    const v = document.getElementById('mese')?.value || '';
+    const fname = /^\d{4}-\d{2}$/.test(v) ? `Presenze_${v}.pdf` : 'Presenze.pdf';
+    doc.save(fname);
+
+    if(statusEl) statusEl.textContent = '';
+  }catch(e){
+    console.error(e);
+    alert('Export PDF fallito: ' + (e && e.message ? e.message : e));
+    const statusEl = document.getElementById('status');
+    if(statusEl) statusEl.innerHTML = '<span class="error">Errore durante l’export PDF (vedi console).</span>';
+  }
+}
+
 
   /* ============ EXCEL EXPORT ============ */
   function xmlEscape(s){
