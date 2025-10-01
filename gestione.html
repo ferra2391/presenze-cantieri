@@ -18,15 +18,15 @@
       --overlay: rgba(0,0,0,.45);
 
       /* Config tabella */
-      --col-w: 270px;   /* larghezza fissa giorno */
-      --col-op: 210px;  /* larghezza colonna Operai */
-      --day-h: 120px;   /* altezza casella giorno (per centraggio verticale) */
+      --col-w: 270px;
+      --col-op: 210px;
+      --day-h: 120px;
 
-      --fs-day: 22px;     /* numeri dei giorni header */
+      --fs-day: 22px;
       --fs-cantiere: 24px;
       --fs-ore: 23px;
       --fs-tot: 22px;
-      --fs-note: 20px;    /* dimensione note */
+      --fs-note: 20px;
     }
 
     *{box-sizing:border-box}
@@ -104,7 +104,7 @@
       word-break: break-word;
     }
 
-    /* Nomi operai grandi, a capo se serve */
+    /* Nomi operai */
     tbody th{
       position:sticky; left:0; z-index:1; background:#fff; border-right:1px solid var(--border);
       text-align:left; padding:8px 10px;
@@ -123,21 +123,19 @@
       word-break: break-word;
     }
 
-    /* Numeri dei giorni */
     thead th:not(:first-child){ font-size: var(--fs-day); }
 
-    /* Celle giorno (restano table-cell per non rompere il layout) */
     tbody td{
       border-left:1px solid var(--border); border-top:1px solid var(--border);
       padding:6px;
-      height: var(--day-h);     /* necessaria per un centraggio verticale percepibile */
-      vertical-align: middle;   /* fallback se mancasse il wrapper */
+      height: var(--day-h);
+      vertical-align: middle;
       text-align:center;
     }
     tr:last-child td{border-bottom:1px solid var(--border)}
     tbody td.weekend, tbody td.festivo{background:var(--orange-weak)}
 
-    /* Wrapper interno che centra davvero il contenuto */
+    /* Wrapper interno per centraggio */
     .cell{
       height:100%;
       display:flex;
@@ -155,6 +153,10 @@
     .note{color:var(--muted); font-style:italic; font-size: var(--fs-note);}
     .tot{margin-top:4px; font-weight:800; font-size: var(--fs-tot);}
     .center{display:flex; align-items:center; justify-content:center}
+
+    /* Note e lavorazioni: rispetto a-capo + cifre allineate */
+    .lav, .note { white-space: pre-wrap; font-variant-numeric: tabular-nums; }
+    .entry { max-width:100%; }
 
     /* Evidenziazioni */
     .entry.assente{
@@ -184,22 +186,21 @@
       margin-top: 5px;
     }
 
-    /* Nav orizzontale come nelle analisi */
-.nav a{
-  padding:8px 12px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:#fff;
-  text-decoration:none;
-  font-weight:700;
-  color:var(--text);
-}
-.nav a.primary{
-  background:var(--primary);
-  color:#fff;
-  border-color:var(--primary);
-}
-
+    /* Nav */
+    .nav a{
+      padding:8px 12px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:#fff;
+      text-decoration:none;
+      font-weight:700;
+      color:var(--text);
+    }
+    .nav a.primary{
+      background:var(--primary);
+      color:#fff;
+      border-color:var(--primary);
+    }
   </style>
 </head>
 <body>
@@ -208,49 +209,39 @@
 
     <div class="panel">
       <div class="row" style="gap:8px; justify-content:space-between; align-items:center;">
-  <!-- SINISTRA: selezione mese + Carica (lasciata invariata) -->
-  <div class="month-picker">
-    <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
+        <!-- SINISTRA -->
+        <div class="month-picker">
+          <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
 
-    <input type="month" id="mese">
-    <span id="meseFallback" class="hidden">
-      <select id="meseSel" aria-label="Mese">
-        <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
-        <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
-        <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
-        <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
-      </select>
-      <select id="annoSel" aria-label="Anno"></select>
-    </span>
+          <input type="month" id="mese">
+          <span id="meseFallback" class="hidden">
+            <select id="meseSel" aria-label="Mese">
+              <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+              <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+              <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+            </select>
+            <select id="annoSel" aria-label="Anno"></select>
+          </span>
 
-    <button id="nextMonth" class="month-btn" type="button" title="Mese successivo">▶</button>
+          <button id="nextMonth" class="month-btn" type="button" title="Mese successivo">▶</button>
 
-    <button id="btnCarica" class="action" type="button">Carica</button>
-    <span class="spinner" id="spin"></span>
-  </div>
+          <button id="btnCarica" class="action" type="button">Carica</button>
+          <span class="spinner" id="spin"></span>
+        </div>
 
-  <!-- DESTRA: NAV + pulsanti esistenti -->
-  <div class="row" style="gap:12px; align-items:center;">
-    <!-- NAV (tab). In questa pagina, Presenze è attivo -->
-    <nav class="row nav" style="gap:8px;">
-      <a class="primary" href="gestione.html" aria-current="page">Presenze</a>
-      <a href="analisi-operaio.html">Analisi per operaio</a>
-      <a href="analisi-cantiere.html">Analisi per cantiere</a>
-    </nav>
+        <!-- DESTRA -->
+        <div class="row" style="gap:12px; align-items:center;">
+          <nav class="row nav" style="gap:8px;">
+            <a class="primary" href="gestione.html" aria-current="page">Presenze</a>
+            <a href="analisi-operaio.html">Analisi per operaio</a>
+            <a href="analisi-cantiere.html">Analisi per cantiere</a>
+          </nav>
 
-    <!-- Pulsanti che avevi già -->
-    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-      <input type="checkbox" id="toggleLav" checked>
-      Mostra lavorazioni
-    </label>
-    <button class="btn-ghost" id="btnPDF" type="button" title="Esporta PDF A3 (2 pagine)">PDF A3 (fronte/retro)</button>
-    <button class="btn-ghost" id="btnXLS" type="button" title="Esporta Excel (2 fogli)">Excel</button>
-  </div>
-</div>
-
-
-
-
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="toggleLav" checked>
+            Mostra lavorazioni
+          </label>
           <button class="btn-ghost" id="btnPDF" type="button" title="Esporta PDF A3 (2 pagine)">PDF A3 (fronte/retro)</button>
           <button class="btn-ghost" id="btnXLS" type="button" title="Esporta Excel (2 fogli)">Excel</button>
         </div>
@@ -331,31 +322,12 @@
     </div>
   </div>
 
-  <!-- Librerie (senza SRI) -->
+  <!-- Librerie -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script>
-    function loadScript(url){
-      return new Promise((resolve,reject)=>{
-        const s=document.createElement('script');
-        s.src=url; s.async=true;
-        s.onload=()=>resolve();
-        s.onerror=()=>reject(new Error('Errore caricamento '+url));
-        document.head.appendChild(s);
-      });
-    }
-    async function ensurePdfLibs(){
-      if(typeof window.html2canvas === 'undefined'){
-        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-      }
-      if(!(window.jspdf && window.jspdf.jsPDF)){
-        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-      }
-    }
-  </script>
 
-<script>
-  /* =================== CONFIG & UTIL =================== */
+  <script>
+  /* ============ CONFIG & UTIL ============ */
   const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
   const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
 
@@ -386,7 +358,8 @@
     return set;
   }
 
-  const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
+  /* Riconoscimento intervalli orari */
+  const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*[-–]\s*\d{1,2}[:.]\d{2}\b/g;
   function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
 
   function isBlankCantiere(value){
@@ -398,7 +371,49 @@
     return false;
   }
 
-  /* =================== MESE & RENDER =================== */
+  /* Helper sicuro per creare nodi (no innerHTML) */
+  function el(tag, cls, text){
+    const n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(text!=null) n.textContent = String(text);
+    return n;
+  }
+
+  /* Normalizzazione orari nelle NOTE */
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function parseHM(s){
+    const m = String(s).trim().replace(',', '.').match(/^(\d{1,2})(?:[:.](\d{1,2}))?$/);
+    if(!m) return null;
+    let h = +m[1], mi = m[2] ? +m[2] : 0;
+    if(h>23 || mi>59) return null;
+    return {h, m:mi};
+  }
+  function fmtHM(obj){ return `${obj.h}:${pad2(obj.m)}`; }
+
+  /* Es.: "7.30-12 + 13-17.40 + 2 ore viaggio"
+         -> "7:30-12:00 + 13:00-17:40 — 2 ore viaggio" */
+  function normalizeNoteTimes(s){
+    if(!s) return "";
+    let text = String(s).replace(/\s+/g, ' ').trim();
+
+    const re = /(\d{1,2}(?:[:.]\d{1,2})?)\s*[-–]\s*(\d{1,2}(?:[:.]\d{1,2})?)/g;
+    const ranges = [];
+    let leftovers = text;
+    let m;
+    while((m = re.exec(text)) !== null){
+      const a = parseHM(m[1]), b = parseHM(m[2]);
+      if(a && b){
+        ranges.push(`${fmtHM(a)}-${fmtHM(b)}`);
+        leftovers = leftovers.replace(m[0], '').trim();
+      }
+    }
+    leftovers = leftovers.replace(/^\s*\+\s*|\s*\+\s*$/g,'').replace(/\s*\+\s*/g,' ').trim();
+
+    return [ranges.join(' + '), leftovers ? `— ${leftovers}` : '']
+           .join(' ').trim();
+  }
+
+  /* ============ MESE & RENDER ============ */
   const meseInput   = document.getElementById("mese");
   const meseFallback= document.getElementById("meseFallback");
   const selMese     = document.getElementById("meseSel");
@@ -496,7 +511,7 @@
       const tr = document.createElement("tr");
       const th = document.createElement("th");
 
-      // Somma ore mese per questo operaio
+      // Somma ore mese
       let monthTotal = 0;
       const daysMap = byOpDay[op] || {};
       Object.values(daysMap).forEach(arr=>{
@@ -542,16 +557,16 @@
 
               const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
               const lav    = stripIntervals(en.lavorazione || "");
-              const note   = stripIntervals(en.note || "");
+              const note   = en.note || ""; // già normalizzata
 
               if (!hasCant && !isOff) wrap.classList.add("nodati");
               if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
 
-              wrap.innerHTML =
-                `<div class="cant">${cantDisplay}</div>
-                 <div class="ore">${oreTxt}</div>` +
-                (SHOW_LAV && lav ? `<div class="lav">${lav}</div>` : "") +
-                (note ? `<div class="note">${note}</div>` : "");
+              // --- niente innerHTML: tutto in textContent ---
+              wrap.appendChild(el('div','cant', cantDisplay));
+              wrap.appendChild(el('div','ore',  oreTxt));
+              if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));
+              if (note)            wrap.appendChild(el('div','note', note));
 
               inner.appendChild(wrap);
               if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
@@ -625,14 +640,13 @@
         const lavRaw   = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
         const lavorazione = stripIntervals(lavRaw);
         const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
-        const note     = stripIntervals(noteRaw);
+        const note     = normalizeNoteTimes(noteRaw);  // <-- mantieni orari, formattali
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
         byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione, note });
       });
 
-      /* Solo operai che hanno almeno un record nel mese */
       let operai = Object.keys(byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
 
       const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long'});
@@ -656,7 +670,7 @@
     }
   }
 
-  /* =================== MODALE =================== */
+  /* ============ MODALE ============ */
   const overlay = document.getElementById('overlay');
   const modal   = document.getElementById('modal');
   const modId   = document.getElementById('mod_id');
@@ -718,7 +732,16 @@
     });
   });
 
-  /* =================== EXPORT =================== */
+  /* ============ EXPORT ============ */
+  async function ensurePdfLibs(){
+    if(typeof window.html2canvas === 'undefined'){
+      await new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload=resolve; s.onerror=reject; document.head.appendChild(s);});
+    }
+    if(!(window.jspdf && window.jspdf.jsPDF)){
+      await new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=resolve; s.onerror=reject; document.head.appendChild(s);});
+    }
+  }
+
   async function captureCardFull(cardId){
     const src = document.getElementById(cardId);
     if(!src) throw new Error('card non trovata: '+cardId);
@@ -918,7 +941,7 @@
     setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
   }
 
-  /* =================== INIT =================== */
+  /* ============ INIT ============ */
   (function init(){
     if(!supportsMonth){
       document.getElementById("mese").classList.add('hidden');
@@ -950,7 +973,7 @@
     carica();
   })();
 
-  /* ====== getFieldSmart (lasciato in fondo per chiarezza) ====== */
+  /* ====== getFieldSmart ====== */
   function getFieldSmart(row, candidates){
     for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
     const keys = Object.keys(row);
@@ -972,6 +995,6 @@
     for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
     return "";
   }
-</script>
+  </script>
 </body>
 </html>
