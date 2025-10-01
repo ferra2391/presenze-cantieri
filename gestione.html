@@ -749,52 +749,52 @@
     }
   }
 
-  async function captureCardFull(cardId){
-    const src = document.getElementById(cardId);
-    if(!src) throw new Error('card non trovata: '+cardId);
+ async function captureCardFull(cardId){
+  const src = document.getElementById(cardId);
+  if(!src) throw new Error('card non trovata: '+cardId);
 
-    const wrap = src.querySelector('.table-wrap');
-    const fullWidth = wrap ? wrap.scrollWidth : src.scrollWidth;
+  const wrap = src.querySelector('.table-wrap');
+  const fullWidth = wrap ? wrap.scrollWidth : src.scrollWidth;
 
-    const clone = src.cloneNode(true);
+  const clone = src.cloneNode(true);
 
-    const cloneWrap = clone.querySelector('.table-wrap');
-    if(cloneWrap){
-      cloneWrap.style.overflow = 'visible';
-      cloneWrap.style.width = (fullWidth + 2) + 'px;
-      cloneWrap.style.width = (fullWidth + 2) + 'px';
-      cloneWrap.style.maxWidth = 'none';
-    }
-    clone.querySelectorAll('thead th, tbody th').forEach(el=>{
-      el.style.position = 'static';
-    });
-
-    const holder = document.createElement('div');
-    holder.style.position = 'absolute';
-    holder.style.left = '-10000px';
-    holder.style.top = '0';
-    holder.style.background = '#ffffff';
-    holder.style.padding = '0';
-    holder.style.margin = '0';
-    holder.appendChild(clone);
-    document.body.appendChild(holder);
-
-    await new Promise(r=>requestAnimationFrame(r));
-
-    const SCALE = (window.devicePixelRatio || 1) > 1 ? 1.5 : 2;
-    const canvas = await html2canvas(clone, {
-      scale: SCALE,
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      logging: false,
-      windowWidth: holder.scrollWidth,
-      windowHeight: holder.scrollHeight,
-      willReadFrequently: true
-    });
-
-    document.body.removeChild(holder);
-    return canvas;
+  const cloneWrap = clone.querySelector('.table-wrap');
+  if(cloneWrap){
+    cloneWrap.style.overflow = 'visible';
+    cloneWrap.style.width = (fullWidth + 2) + 'px';
+    cloneWrap.style.maxWidth = 'none';
   }
+  clone.querySelectorAll('thead th, tbody th').forEach(el=>{
+    el.style.position = 'static';
+  });
+
+  const holder = document.createElement('div');
+  holder.style.position = 'absolute';
+  holder.style.left = '-10000px';
+  holder.style.top = '0';
+  holder.style.background = '#ffffff';
+  holder.style.padding = '0';
+  holder.style.margin = '0';
+  holder.appendChild(clone);
+  document.body.appendChild(holder);
+
+  await new Promise(r=>requestAnimationFrame(r));
+
+  const SCALE = (window.devicePixelRatio || 1) > 1 ? 1.5 : 2;
+  const canvas = await html2canvas(clone, {
+    scale: SCALE,
+    backgroundColor: '#ffffff',
+    useCORS: true,
+    logging: false,
+    windowWidth: holder.scrollWidth,
+    windowHeight: holder.scrollHeight,
+    willReadFrequently: true
+  });
+
+  document.body.removeChild(holder);
+  return canvas;
+}
+
 
   async function exportPDF(){
     try{
