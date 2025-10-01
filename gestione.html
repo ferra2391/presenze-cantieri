@@ -358,7 +358,7 @@
     return set;
   }
 
-  /* Riconoscimento intervalli orari */
+  /* Riconoscimento intervalli orari (per rimuoverli dalle lavorazioni) */
   const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*[-–]\s*\d{1,2}[:.]\d{2}\b/g;
   function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
 
@@ -371,7 +371,7 @@
     return false;
   }
 
-  /* Helper sicuro per creare nodi (no innerHTML) */
+  /* Helper sicuro per creare nodi (no innerHTML per i dati) */
   function el(tag, cls, text){
     const n = document.createElement(tag);
     if(cls) n.className = cls;
@@ -390,8 +390,7 @@
   }
   function fmtHM(obj){ return `${obj.h}:${pad2(obj.m)}`; }
 
-  /* Es.: "7.30-12 + 13-17.40 + 2 ore viaggio"
-         -> "7:30-12:00 + 13:00-17:40 — 2 ore viaggio" */
+  /* "7.30-12 + 13-17.40 + 2 ore viaggio" -> "7:30-12:00 + 13:00-17:40 — 2 ore viaggio" */
   function normalizeNoteTimes(s){
     if(!s) return "";
     let text = String(s).replace(/\s+/g, ' ').trim();
@@ -562,7 +561,7 @@
               if (!hasCant && !isOff) wrap.classList.add("nodati");
               if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
 
-              // --- niente innerHTML: tutto in textContent ---
+              // niente innerHTML: tutto in textContent
               wrap.appendChild(el('div','cant', cantDisplay));
               wrap.appendChild(el('div','ore',  oreTxt));
               if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));
@@ -640,7 +639,7 @@
         const lavRaw   = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
         const lavorazione = stripIntervals(lavRaw);
         const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
-        const note     = normalizeNoteTimes(noteRaw);  // <-- mantieni orari, formattali
+        const note     = normalizeNoteTimes(noteRaw);
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
@@ -735,10 +734,18 @@
   /* ============ EXPORT ============ */
   async function ensurePdfLibs(){
     if(typeof window.html2canvas === 'undefined'){
-      await new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload=resolve; s.onerror=reject; document.head.appendChild(s);});
+      await new Promise((resolve,reject)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
+      });
     }
     if(!(window.jspdf && window.jspdf.jsPDF)){
-      await new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=resolve; s.onerror=reject; document.head.appendChild(s);});
+      await new Promise((resolve,reject)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
+      });
     }
   }
 
@@ -754,6 +761,7 @@
     const cloneWrap = clone.querySelector('.table-wrap');
     if(cloneWrap){
       cloneWrap.style.overflow = 'visible';
+      cloneWrap.style.width = (fullWidth + 2) + 'px;
       cloneWrap.style.width = (fullWidth + 2) + 'px';
       cloneWrap.style.maxWidth = 'none';
     }
@@ -773,14 +781,15 @@
 
     await new Promise(r=>requestAnimationFrame(r));
 
-    const SCALE = 2;
+    const SCALE = (window.devicePixelRatio || 1) > 1 ? 1.5 : 2;
     const canvas = await html2canvas(clone, {
       scale: SCALE,
       backgroundColor: '#ffffff',
       useCORS: true,
       logging: false,
       windowWidth: holder.scrollWidth,
-      windowHeight: holder.scrollHeight
+      windowHeight: holder.scrollHeight,
+      willReadFrequently: true
     });
 
     document.body.removeChild(holder);
@@ -788,44 +797,52 @@
   }
 
   async function exportPDF(){
-    await ensurePdfLibs();
+    try{
+      await ensurePdfLibs();
+      if(statusEl) statusEl.innerHTML = '<span class="ok">Preparazione PDF…</span>';
 
-    const canvasA = await captureCardFull('cardA');
-    const canvasB = await captureCardFull('cardB');
+      const [canvasA, canvasB] = await Promise.all([
+        captureCardFull('cardA'),
+        captureCardFull('cardB')
+      ]);
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
 
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const MARGIN = 10;
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const MARGIN = 10;
 
-    function addCanvasPage(canvas, first){
-      const img = canvas.toDataURL('image/png');
-      const availW = pageW - 2*MARGIN;
-      const availH = pageH - 2*MARGIN;
-      const s = Math.min(availW / canvas.width, availH / canvas.height);
-      const w = canvas.width * s;
-      const h = canvas.height * s;
-      const x = MARGIN + (availW - w)/2;
-      const y = MARGIN + (availH - h)/2;
+      function addCanvasPage(canvas, first){
+        const img = canvas.toDataURL('image/png');
+        const availW = pageW - 2*MARGIN;
+        const availH = pageH - 2*MARGIN;
+        const s = Math.min(availW / canvas.width, availH / canvas.height);
+        const w = canvas.width * s;
+        const h = canvas.height * s;
+        const x = MARGIN + (availW - w)/2;
+        const y = MARGIN + (availH - h)/2;
 
-      if(!first) doc.addPage('a3','landscape');
-      doc.addImage(img, 'PNG', x, y, w, h);
+        if(!first) doc.addPage(); // stessa dimensione/orientamento
+        doc.addImage(img, 'PNG', x, y, w, h);
+      }
+
+      addCanvasPage(canvasA, true);
+      addCanvasPage(canvasB, false);
+
+      const v = document.getElementById('mese')?.value || '';
+      const fname = /^\d{4}-\d{2}$/.test(v) ? `Presenze_${v}.pdf` : 'Presenze.pdf';
+      doc.save(fname);
+
+      if(statusEl) statusEl.textContent = '';
+    }catch(e){
+      console.error(e);
+      alert('Export PDF fallito: ' + (e && e.message ? e.message : e));
+      if(statusEl) statusEl.innerHTML = '<span class="error">Errore durante l’export PDF (vedi console).</span>';
     }
-
-    addCanvasPage(canvasA, true);
-    addCanvasPage(canvasB, false);
-
-    const v = document.getElementById('mese')?.value || '';
-    let fname = 'Presenze.pdf';
-    if(/^\d{4}-\d{2}$/.test(v)){
-      const [y,m] = v.split('-');
-      fname = `Presenze_${y}-${m}.pdf`;
-    }
-    doc.save(fname);
   }
 
+  /* ============ EXCEL EXPORT ============ */
   function xmlEscape(s){
     return String(s)
       .replace(/&/g,"&amp;")
