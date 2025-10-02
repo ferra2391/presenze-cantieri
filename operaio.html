@@ -176,17 +176,28 @@ function parseDateAny(v){
   const t = new Date(s); return isNaN(t) ? null : t;
 }
 
-function getFieldSmart(row, candidates){
-  for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
+// ========= FUNZIONE getFieldSmart CORRETTA =========
+function getFieldSmart(row, candidates) {
+  // Crea una mappa normalizzata delle chiavi effettive della riga una sola volta
   const keys = Object.keys(row);
   const normMap = new Map(keys.map(k => [normalize(k), k]));
-  for(const cand of candidates){
-    const n = normalize(cand);
-    if(normMap.has(n)){
-      const realKey = normMap.get(n);
-      if(row[realKey] != null && row[realKey] !== "") return row[realKey];
+
+  // Itera attraverso i nomi di colonna candidati (es. ["Data", "A", "data"])
+  for (const cand of candidates) {
+    // 1. Prova una corrispondenza esatta (case-sensitive)
+    if (row[cand] != null && row[cand] !== '') {
+      return row[cand];
+    }
+    // 2. Prova una corrispondenza normalizzata (case-insensitive, senza accenti, etc.)
+    const normCand = normalize(cand);
+    if (normMap.has(normCand)) {
+      const realKey = normMap.get(normCand);
+      if (row[realKey] != null && row[realKey] !== '') {
+        return row[realKey];
+      }
     }
   }
+  // Se nessuna delle corrispondenze ha successo, restituisce una stringa vuota
   return "";
 }
 
@@ -570,6 +581,7 @@ async function exportDetailPDF() {
       if (position > 0) {
         pdf.addPage();
       }
+      // Aggiunge la "fetta" di immagine alla pagina
       pdf.addImage(canvas.toDataURL('image/png', 0.95), 'PNG',
         margin, margin, contentWidth, sliceHeight,
         undefined, 'FAST', 0, 0, position / scale
