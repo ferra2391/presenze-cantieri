@@ -147,7 +147,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <script>
@@ -494,7 +494,7 @@ async function carica(){
   }
 }
 
-// NUOVA FUNZIONE EXPORT PDF ORIZZONTALE
+/* ====== EXPORT PDF OTTIMIZZATO CON TESTO NATIVO (NITIDO) ====== */
 async function exportDetailPDF() {
   if (detailCard.style.display === 'none') {
     alert('Apri prima un dettaglio operaio.');
@@ -504,50 +504,40 @@ async function exportDetailPDF() {
   const originalButtonText = document.getElementById('btnDetailPDF').textContent;
   const statusEl = document.getElementById('status');
 
+  // Feedback visivo per l'utente
   document.getElementById('btnDetailPDF').textContent = 'Generazione...';
   document.getElementById('btnDetailPDF').disabled = true;
   statusEl.innerHTML = `<span class="ok">Generazione PDF in corso, attendere...</span>`;
 
   try {
-    const canvas = await html2canvas(detailCard, {
-      scale: 2,
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      windowWidth: detailCard.scrollWidth,
-      windowHeight: detailCard.scrollHeight
-    });
-    
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-    
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
+    const source = detailCard; // L'elemento HTML da convertire
     const margin = 30;
-    const contentWidth = pageW - margin * 2;
-    const contentHeight = pageH - margin * 2;
-    
-    const scale = contentWidth / canvas.width;
-    const canvasScaledHeight = canvas.height * scale;
-
-    let position = 0;
-    while (position < canvasScaledHeight) {
-      const sliceHeight = Math.min(contentHeight, canvasScaledHeight - position);
-      if (position > 0) {
-        pdf.addPage();
-      }
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG',
-        margin, margin, contentWidth, sliceHeight,
-        undefined, 'FAST', 0, 0, position / scale
-      );
-      position += sliceHeight;
-    }
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const contentWidth = pdfWidth - margin * 2;
 
     const fname = detailTitle.textContent.replace(/\s+/g, '_').replace(/[^\w\-()]/g, '') + '.pdf';
-    pdf.save(fname);
+
+    // Usa il nuovo metodo .html() di jsPDF
+    await pdf.html(source, {
+      callback: function(doc) {
+        // La funzione 'callback' viene eseguita quando il PDF è pronto
+        doc.save(fname);
+      },
+      // Opzioni per controllare il rendering
+      margin: [margin, margin, margin, margin],
+      autoPaging: 'text', // Permette al testo di dividersi automaticamente tra le pagine
+      width: contentWidth, // Imposta la larghezza del contenuto per adattarsi alla pagina
+      windowWidth: source.scrollWidth // Usa la larghezza reale dell'elemento per il rendering
+    });
+
     statusEl.innerHTML = `<span class="ok">PDF generato con successo!</span>`;
+
   } catch (error) {
     console.error("Errore durante la generazione del PDF:", error);
     statusEl.innerHTML = `<span class="error">Errore durante la generazione del PDF.</span>`;
   } finally {
+    // Ripristina il pulsante
     document.getElementById('btnDetailPDF').textContent = originalButtonText;
     document.getElementById('btnDetailPDF').disabled = false;
   }
