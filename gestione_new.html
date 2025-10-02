@@ -201,6 +201,29 @@
       color:#fff;
       border-color:var(--primary);
     }
+
+    :root{
+  /* ...esistenti... */
+  --fs-lav: 21px;     /* nuovo: dimensione maggiore per lavorazioni */
+}
+
+.lav, .note, .orari {  /* preserva a-capo e cifre allineate */
+  white-space: pre-wrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.lav{
+  color:#000;                 /* nero */
+  font-size: var(--fs-lav);   /* più grande */
+  margin-top: 2px;
+}
+
+.orari{
+  color:#111;                 /* testo semplice, non evidenziato */
+  font-weight:600;
+  margin-top:4px;
+}
+
   </style>
 </head>
 <body>
@@ -524,13 +547,11 @@
               if (!hasCant && !isOff) wrap.classList.add("nodati");
               if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
 
-              // niente innerHTML: tutto in textContent
-              wrap.appendChild(el('div','cant', cantDisplay));
-              wrap.appendChild(el('div','ore',  oreTxt));
-              
-              // Visualizza prima le NOTE (da colonna I), poi le LAVORAZIONI (da colonna F)
-              if (note)            wrap.appendChild(el('div','note', note));
-              if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));
+wrap.appendChild(el('div','cant', cantDisplay));  // rosso + stampatello
+wrap.appendChild(el('div','ore',  oreTxt));       // ore da colonna H
+if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));   // nero, font più grande
+if (en.orariNote)    wrap.appendChild(el('div','orari', en.orariNote)); // "orari + note" (grezzo)
+
 
               inner.appendChild(wrap);
               if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
@@ -598,20 +619,23 @@
         if(!op) return;
         const d = dt.getDate();
 
-        const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
-        const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
-        const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
-        const lavRaw   = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
-        const lavorazione = stripIntervals(lavRaw);
-        const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
-        
-        // --- MODIFICA CHIAVE ---
-        // Pulisce gli orari dalle note invece di formattarli, per non mostrarli.
-        const note     = stripIntervals(noteRaw);
+const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
 
-        byOpDay[op] ??= {};
-        byOpDay[op][d] ??= [];
-        byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione, note });
+const oreRaw = getFieldSmart(r, ["Ore","H","ORE","ore"]);
+const ore    = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
+
+const lavRaw = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
+const lavorazione = stripIntervals(lavRaw);   // lasciamo pulita la descrizione
+
+// NUOVO: orari semplici + eventuali note, senza normalizzazioni
+const orariRaw = String(getFieldSmart(r, ["Orari","B","ORARI","orari"])).trim();
+const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
+const orariNote = (orariRaw && noteRaw) ? `${orariRaw} ${noteRaw}` : (orariRaw || noteRaw);
+
+byOpDay[op] ??= {};
+byOpDay[op][d] ??= [];
+byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione, orariNote });
+
       });
 
       let operai = Object.keys(byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
