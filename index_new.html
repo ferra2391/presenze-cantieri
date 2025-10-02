@@ -150,6 +150,13 @@
   margin-top:6px;
   color: var(--color-text-light);
 }
+/* griglia responsive due colonne (stacka su mobile) */
+.grid-coppia{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap:15px;
+  margin-top:5px;
+}
 
     
   </style>
@@ -176,13 +183,26 @@
 
     <div id="form" style="display:none;">
       <h3>📅 Compila Presenza</h3>
+<!-- RIGA ALTA: Data (sx) + Cantieri (dx) con riquadri bombati -->
+<div class="grid-coppia">
+  <div class="time-card">
+    <label class="section-label" for="data">📅 Data</label>
+    <input type="date" id="data">
+  </div>
 
-      <label class="section-label" for="data">Data:</label>
-      <input type="date" id="data">
+  <div class="time-card">
+    <label class="section-label" for="numeroCantieri">🏗️ Cantieri</label>
+    <select id="numeroCantieri" onchange="generaCampiCantieri()">
+      <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
+      <option value="4">4</option><option value="5">5</option>
+    </select>
+  </div>
+</div>
 
-     <div style="display:flex;flex-wrap:wrap;gap:15px;margin-top:5px;">
+<!-- RIGA SOTTO: Ore mattina (sx) + Ore pomeriggio (dx) con stessi riquadri -->
+<div class="grid-coppia">
   <!-- ORE MATTINA -->
-  <div class="time-card" style="flex:1;min-width:230px;">
+  <div class="time-card">
     <label class="section-label" for="mStart">☀️ Ore mattina</label>
     <div class="time-row">
       <select id="mStart"></select>
@@ -193,7 +213,7 @@
   </div>
 
   <!-- ORE POMERIGGIO -->
-  <div class="time-card" style="flex:1;min-width:230px;">
+  <div class="time-card">
     <label class="section-label" for="pStart">🌇 Ore pomeriggio</label>
     <div class="time-row">
       <select id="pStart"></select>
@@ -202,6 +222,8 @@
     </div>
     <small>Fascia pomeridiana</small>
   </div>
+</div>
+
 
   <!-- NUMERO CANTIERI (invariato) -->
   <div style="flex:1;min-width:180px;">
