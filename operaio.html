@@ -13,7 +13,6 @@
     --card: #fff;
     --border: hsl(210,15%,85%);
     --orange-weak: hsla(30,100%,50%,0.10);
-    --orange-weak-border: hsla(30,100%,50%,0.25);
   }
   *{box-sizing:border-box}
   body{margin:0; background:var(--bg); color:var(--text);
@@ -56,16 +55,14 @@
   .op-link{color:var(--primary); font-weight:700; text-decoration:none; cursor:pointer}
   .op-link:hover{text-decoration:underline}
 
-  /* NUOVI STILI PER LA GRIGLIA A DUE COLONNE */
   .detail-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Due colonne di uguale larghezza */
-    gap: 16px; /* Spazio tra le due colonne */
-    align-items: start; /* Allinea le tabelle in alto */
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
   }
 
-  /* Stili Dettaglio */
-  .detail { font-size: 14px; } /* Aumentato da 13px */
+  .detail { font-size: 14px; }
   .detail .daycell{white-space:nowrap; font-weight:700}
   .detail .cant{font-weight:800; color:#c00000; text-transform:uppercase; letter-spacing:.02em; font-size: 13px;}
   .detail .lav{color:#444; margin-top:2px}
@@ -132,14 +129,13 @@
 
   <div class="table-card" id="detailCard" style="margin-top:16px; display:none">
     <div class="table-title" id="detailTitle">Dettaglio operaio</div>
-    
     <div class="detail-grid" style="padding: 12px;">
-      <div id="colonna1"></div> <div id="colonna2"></div> </div>
-    
+      <div id="colonna1"></div>
+      <div id="colonna2"></div>
+    </div>
     <div style="padding:10px 12px; border-top:1px solid var(--border); font-weight:800; text-align:right;">
       <span>Totale Ore Mese: <span id="detailTotOre">0</span></span>
     </div>
-
     <div style="padding:10px 12px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px">
       <button id="btnDetailPDF">Esporta PDF</button>
       <button id="btnCloseDetail">Chiudi dettaglio</button>
@@ -180,25 +176,21 @@ function parseDateAny(v){
   const t = new Date(s); return isNaN(t) ? null : t;
 }
 
-function getFieldSmart(row, candidates){
-  for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
+function getFieldSmart(row, candidates) {
   const keys = Object.keys(row);
   const normMap = new Map(keys.map(k => [normalize(k), k]));
-  for(const cand of candidates){
-    const n = normalize(cand);
-    if(normMap.has(n)){
-      const realKey = normMap.get(n);
-      if(row[realKey] != null && row[realKey] !== "") return row[realKey];
+  for (const cand of candidates) {
+    if (row[cand] != null && row[cand] !== '') {
+      return row[cand];
+    }
+    const normCand = normalize(cand);
+    if (normMap.has(normCand)) {
+      const realKey = normMap.get(normCand);
+      if (row[realKey] != null && row[realKey] !== '') {
+        return row[realKey];
+      }
     }
   }
-  const targets = candidates.map(normalize);
-  for(const k of keys){
-    const nk = normalize(k);
-    if(targets.some(t => nk.includes(t))){
-      if(row[k] != null && row[k] !== "") return row[k];
-    }
-  }
-  for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
   return "";
 }
 
@@ -284,7 +276,6 @@ function renderSummary(list){
   });
 }
 
-// NUOVA FUNZIONE SHOWDETAIL PER DUE COLONNE
 function showDetail(op) {
   state.currentOp = op;
   const [Y, M] = [state.Y, state.M];
@@ -494,7 +485,7 @@ async function carica(){
   }
 }
 
-// NUOVA FUNZIONE EXPORT PDF ORIZZONTALE
+/* ====== FUNZIONE EXPORT PDF - PAGINA SINGOLA ALTA DEFINIZIONE ====== */
 async function exportDetailPDF() {
   if (detailCard.style.display === 'none') {
     alert('Apri prima un dettaglio operaio.');
@@ -509,41 +500,45 @@ async function exportDetailPDF() {
   statusEl.innerHTML = `<span class="ok">Generazione PDF in corso, attendere...</span>`;
 
   try {
+    // 1. Cattura l'immagine ad altissima risoluzione aumentando il parametro 'scale'
     const canvas = await html2canvas(detailCard, {
-      scale: 2,
-      backgroundColor: '#ffffff',
+      scale: 3, // Qualità eccellente
       useCORS: true,
-      windowWidth: detailCard.scrollWidth,
-      windowHeight: detailCard.scrollHeight
+      backgroundColor: '#ffffff',
     });
-    
+
+    // 2. Prepara il PDF in formato A4 orizzontale
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-    
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 30;
-    const contentWidth = pageW - margin * 2;
-    const contentHeight = pageH - margin * 2;
-    
-    const scale = contentWidth / canvas.width;
-    const canvasScaledHeight = canvas.height * scale;
+    const availW = pageW - margin * 2;
+    const availH = pageH - margin * 2;
 
-    let position = 0;
-    while (position < canvasScaledHeight) {
-      const sliceHeight = Math.min(contentHeight, canvasScaledHeight - position);
-      if (position > 0) {
-        pdf.addPage();
-      }
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG',
-        margin, margin, contentWidth, sliceHeight,
-        undefined, 'FAST', 0, 0, position / scale
-      );
-      position += sliceHeight;
+    // 3. Calcola il fattore di scala per far entrare l'intera immagine nella pagina
+    const imgRatio = canvas.width / canvas.height;
+    const pageRatio = availW / availH;
+
+    let w, h;
+    if (imgRatio > pageRatio) {
+      w = availW;
+      h = w / imgRatio;
+    } else {
+      h = availH;
+      w = h * imgRatio;
     }
 
+    const x = margin + (availW - w) / 2;
+    const y = margin + (availH - h) / 2;
+
+    // 4. Aggiungi l'immagine ridimensionata al PDF
+    pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', x, y, w, h);
+
+    // 5. Salva il file
     const fname = detailTitle.textContent.replace(/\s+/g, '_').replace(/[^\w\-()]/g, '') + '.pdf';
     pdf.save(fname);
     statusEl.innerHTML = `<span class="ok">PDF generato con successo!</span>`;
+
   } catch (error) {
     console.error("Errore durante la generazione del PDF:", error);
     statusEl.innerHTML = `<span class="error">Errore durante la generazione del PDF.</span>`;
@@ -552,6 +547,7 @@ async function exportDetailPDF() {
     document.getElementById('btnDetailPDF').disabled = false;
   }
 }
+
 
 /* ====== INIT ====== */
 (function init(){
