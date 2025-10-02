@@ -638,8 +638,10 @@
         const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
         const lavRaw   = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
         const lavorazione = stripIntervals(lavRaw);
-        const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
-        const note     = normalizeNoteTimes(noteRaw);
+const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
+// Mostra le note esattamente come sono sul foglio Google
+const note     = noteRaw;
+
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
