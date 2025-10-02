@@ -328,7 +328,7 @@
   const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
 
   const pad = n => String(n).padStart(2,"0");
-  const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
+  const normalize = s => String(s||"").normalize("NFD").replace(/[\u3000-\u036f]/g,"").trim().toLowerCase();
 
   function parseDateAny(v){
     if(!v) return null;
@@ -354,7 +354,7 @@
     return set;
   }
 
-  /* Riconoscimento intervalli orari (per rimuoverli dalle lavorazioni) */
+  /* Riconoscimento intervalli orari (per rimuoverli da note e lavorazioni) */
   const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*[-–]\s*\d{1,2}[:.]\d{2}\b/g;
   function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
 
@@ -373,39 +373,6 @@
     if(cls) n.className = cls;
     if(text!=null) n.textContent = String(text);
     return n;
-  }
-
-  /* Normalizzazione orari nelle NOTE */
-  function pad2(n){ return String(n).padStart(2,'0'); }
-  function parseHM(s){
-    const m = String(s).trim().replace(',', '.').match(/^(\d{1,2})(?:[:.](\d{1,2}))?$/);
-    if(!m) return null;
-    let h = +m[1], mi = m[2] ? +m[2] : 0;
-    if(h>23 || mi>59) return null;
-    return {h, m:mi};
-  }
-  function fmtHM(obj){ return `${obj.h}:${pad2(obj.m)}`; }
-
-  /* "7.30-12 + 13-17.40 + 2 ore viaggio" -> "7:30-12:00 + 13:00-17:40 — 2 ore viaggio" */
-  function normalizeNoteTimes(s){
-    if(!s) return "";
-    let text = String(s).replace(/\s+/g, ' ').trim();
-
-    const re = /(\d{1,2}(?:[:.]\d{1,2})?)\s*[-–]\s*(\d{1,2}(?:[:.]\d{1,2})?)/g;
-    const ranges = [];
-    let leftovers = text;
-    let m;
-    while((m = re.exec(text)) !== null){
-      const a = parseHM(m[1]), b = parseHM(m[2]);
-      if(a && b){
-        ranges.push(`${fmtHM(a)}-${fmtHM(b)}`);
-        leftovers = leftovers.replace(m[0], '').trim();
-      }
-    }
-    leftovers = leftovers.replace(/^\s*\+\s*|\s*\+\s*$/g,'').replace(/\s*\+\s*/g,' ').trim();
-
-    return [ranges.join(' + '), leftovers ? `— ${leftovers}` : '']
-           .join(' ').trim();
   }
 
   /* ============ MESE & RENDER ============ */
@@ -552,7 +519,7 @@
 
               const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
               const lav    = stripIntervals(en.lavorazione || "");
-              const note   = en.note || ""; // già normalizzata
+              const note   = en.note || ""; // già normalizzata/pulita in 'carica'
 
               if (!hasCant && !isOff) wrap.classList.add("nodati");
               if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
@@ -561,11 +528,9 @@
               wrap.appendChild(el('div','cant', cantDisplay));
               wrap.appendChild(el('div','ore',  oreTxt));
               
-              // --- MODIFICA RICHIESTA ---
               // Visualizza prima le NOTE (da colonna I), poi le LAVORAZIONI (da colonna F)
               if (note)            wrap.appendChild(el('div','note', note));
               if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));
-              // --- FINE MODIFICA ---
 
               inner.appendChild(wrap);
               if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
@@ -638,10 +603,11 @@
         const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
         const lavRaw   = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
         const lavorazione = stripIntervals(lavRaw);
-const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
-// Mostra le note esattamente come sono sul foglio Google
-const note     = noteRaw;
-
+        const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
+        
+        // --- MODIFICA CHIAVE ---
+        // Pulisce gli orari dalle note invece di formattarli, per non mostrarli.
+        const note     = stripIntervals(noteRaw);
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
