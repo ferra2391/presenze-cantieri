@@ -27,7 +27,7 @@
       --shadow-strong:0 8px 16px rgba(0,0,0,.15);
     }
     body{font-family:'Roboto',sans-serif;background:var(--color-bg-light);color:var(--color-text-dark);padding:20px;margin:0;box-sizing:border-box}
-    .container{max-width:500px;margin:0 auto;padding:0 10px}
+   .container{max-width:860px;margin:0 auto;padding:0 10px}
     h2,h3{text-align:center;color:var(--color-primary-dark);margin-bottom:20px}
 
     input,select,textarea,button{width:100%;padding:14px;margin:10px 0;font-size:16px;border:1px solid var(--color-border);border-radius:10px;box-sizing:border-box;box-shadow:var(--shadow-light);min-height:48px}
@@ -182,7 +182,8 @@
     </div>
 
     <div id="form" style="display:none;">
-      <h3>📅 Compila Presenza</h3>
+<h3>📅 Compila Presenza</h3>
+
 <!-- RIGA ALTA: Data (sx) + Cantieri (dx) con riquadri bombati -->
 <div class="grid-coppia">
   <div class="time-card">
@@ -193,15 +194,17 @@
   <div class="time-card">
     <label class="section-label" for="numeroCantieri">🏗️ Cantieri</label>
     <select id="numeroCantieri" onchange="generaCampiCantieri()">
-      <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
-      <option value="4">4</option><option value="5">5</option>
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
     </select>
   </div>
 </div>
 
 <!-- RIGA SOTTO: Ore mattina (sx) + Ore pomeriggio (dx) con stessi riquadri -->
 <div class="grid-coppia">
-  <!-- ORE MATTINA -->
   <div class="time-card">
     <label class="section-label" for="mStart">☀️ Ore mattina</label>
     <div class="time-row">
@@ -212,7 +215,6 @@
     <small>Fascia mattutina</small>
   </div>
 
-  <!-- ORE POMERIGGIO -->
   <div class="time-card">
     <label class="section-label" for="pStart">🌇 Ore pomeriggio</label>
     <div class="time-row">
@@ -221,17 +223,6 @@
       <select id="pEnd"></select>
     </div>
     <small>Fascia pomeridiana</small>
-  </div>
-</div>
-
-
-  <!-- NUMERO CANTIERI (invariato) -->
-  <div style="flex:1;min-width:180px;">
-    <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
-    <select id="numeroCantieri" onchange="generaCampiCantieri()">
-      <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
-      <option value="4">4</option><option value="5">5</option>
-    </select>
   </div>
 </div>
 
