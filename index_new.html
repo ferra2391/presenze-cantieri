@@ -109,6 +109,49 @@
     .time-row{display:flex;align-items:center;gap:8px}
     .time-row select{flex:1;min-width:0}
     .time-sep{user-select:none}
+
+
+
+/* --- TIME CARDS (mattina/pomeriggio) --- */
+.time-card{
+  background: linear-gradient(180deg, #fff, hsla(210,100%,50%,0.06));
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 14px 14px 12px;
+  box-shadow: var(--shadow-light);
+}
+
+.time-card .section-label{
+  display:block;
+  text-align:center;
+  margin:0 0 8px 0;
+  font-weight:800;
+  color: var(--color-primary-dark);
+  letter-spacing:.02em;
+}
+
+.time-card .time-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;  /* centra i campi orari */
+  gap:8px;
+}
+
+.time-card .time-row select{
+  flex:0 1 46%;           /* due select affiancate */
+  min-width:0;
+}
+
+.time-card .time-sep{ user-select:none; }
+
+.time-card small{
+  display:block;
+  text-align:center;      /* descrizione centrata */
+  margin-top:6px;
+  color: var(--color-text-light);
+}
+
+    
   </style>
 </head>
 <body>
@@ -137,38 +180,39 @@
       <label class="section-label" for="data">Data:</label>
       <input type="date" id="data">
 
-      <div style="display:flex;flex-wrap:wrap;gap:15px;margin-top:5px;">
-        <!-- ORE MATTINA -->
-        <div style="flex:1;min-width:230px;">
-          <label class="section-label" for="mStart">☀️ Ore mattina</label>
-          <div class="time-row">
-            <select id="mStart"></select>
-            <span class="time-sep">–</span>
-            <select id="mEnd"></select>
-          </div>
-          <small style="color:var(--color-text-light)">Fascia mattutina</small>
-        </div>
+     <div style="display:flex;flex-wrap:wrap;gap:15px;margin-top:5px;">
+  <!-- ORE MATTINA -->
+  <div class="time-card" style="flex:1;min-width:230px;">
+    <label class="section-label" for="mStart">☀️ Ore mattina</label>
+    <div class="time-row">
+      <select id="mStart"></select>
+      <span class="time-sep">–</span>
+      <select id="mEnd"></select>
+    </div>
+    <small>Fascia mattutina</small>
+  </div>
 
-        <!-- ORE POMERIGGIO -->
-        <div style="flex:1;min-width:230px;">
-          <label class="section-label" for="pStart">🌇 Ore pomeriggio</label>
-          <div class="time-row">
-            <select id="pStart"></select>
-            <span class="time-sep">–</span>
-            <select id="pEnd"></select>
-          </div>
-          <small style="color:var(--color-text-light)">Fascia pomeridiana</small>
-        </div>
+  <!-- ORE POMERIGGIO -->
+  <div class="time-card" style="flex:1;min-width:230px;">
+    <label class="section-label" for="pStart">🌇 Ore pomeriggio</label>
+    <div class="time-row">
+      <select id="pStart"></select>
+      <span class="time-sep">–</span>
+      <select id="pEnd"></select>
+    </div>
+    <small>Fascia pomeridiana</small>
+  </div>
 
-        <!-- NUMERO CANTIERI -->
-        <div style="flex:1;min-width:180px;">
-          <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
-          <select id="numeroCantieri" onchange="generaCampiCantieri()">
-            <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option>
-          </select>
-        </div>
-      </div>
+  <!-- NUMERO CANTIERI (invariato) -->
+  <div style="flex:1;min-width:180px;">
+    <label class="section-label" for="numeroCantieri">🏗️ Cantieri:</label>
+    <select id="numeroCantieri" onchange="generaCampiCantieri()">
+      <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
+      <option value="4">4</option><option value="5">5</option>
+    </select>
+  </div>
+</div>
+
 
       <div id="cantieriMultipli"></div>
 
