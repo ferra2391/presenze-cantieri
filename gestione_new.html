@@ -27,7 +27,7 @@
       --fs-ore: 23px;
       --fs-tot: 22px;
       --fs-note: 20px;
-      --fs-lav: 18px;   /* grandezza testo lavorazione */
+      --fs-lav: 18px; /* lavorazioni più grandi e nere */
     }
 
     *{box-sizing:border-box}
@@ -148,16 +148,16 @@
 
     td .entry{margin-bottom:6px; cursor:pointer}
     .entry:hover{filter:brightness(0.97)}
-    .cant{color:#c00000; font-weight:800; text-transform:uppercase; letter-spacing:.02em; font-size: var(--fs-cantiere);}
+    .cant{color:var(--danger); font-weight:800; text-transform:uppercase; letter-spacing:.02em; font-size: var(--fs-cantiere);}
     .ore{color:#111; font-weight:600; font-size: var(--fs-ore);}
-    .lav{color:#000; margin-top:2px; font-size: var(--fs-lav); font-weight:500;}
-    .orari{color:#222; margin-top:4px; font-weight:600; font-variant-numeric: tabular-nums;}
+    .lav{color:#000; margin-top:4px; font-size: var(--fs-lav);} /* nero e più grande */
+    .orari{color:#333; margin-top:4px; font-size: var(--fs-note);}
     .note{color:var(--muted); font-style:italic; font-size: var(--fs-note);}
     .tot{margin-top:4px; font-weight:800; font-size: var(--fs-tot);}
     .center{display:flex; align-items:center; justify-content:center}
 
     /* Note e lavorazioni: rispetto a-capo + cifre allineate */
-    .lav, .note { white-space: pre-wrap; font-variant-numeric: tabular-nums; }
+    .lav, .note, .orari { white-space: pre-wrap; font-variant-numeric: tabular-nums; }
     .entry { max-width:100%; }
 
     /* Evidenziazioni */
@@ -335,6 +335,7 @@
 
   const pad = n => String(n).padStart(2,"0");
 
+  /* parse date helper */
   function parseDateAny(v){
     if(!v) return null;
     if(v instanceof Date) return v;
@@ -357,15 +358,6 @@
     const p=calcEaster(year), q=new Date(p); q.setDate(p.getDate()+1);
     add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
     return set;
-  }
-
-  function isBlankCantiere(value){
-    const s = String(value||"").trim();
-    if(!s) return true;
-    if (/^[-–—]+$/.test(s)) return true;
-    if (/^(nd|n\.d\.|n\/d|na|n\.a\.|n\/a|non\s+specificato|sconosciuto|nessuno|undefined|null)$/i.test(s)) return true;
-    if (/^\(s.*cantiere\)$/i.test(s)) return true;
-    return false;
   }
 
   /* Helper sicuro per creare nodi (no innerHTML per i dati) */
@@ -464,6 +456,15 @@
 
   const cache = { Y:null, M:null, operai:[], byOpDay:{} };
 
+  /* Canonicalizzazione SOLO per il confronto (non per la stampa) */
+  const canon = s => String(s || "")
+    .toLowerCase()
+    .normalize("NFKC")
+    .replace(/[‐-‒–—−]/g, "-")   // vari tipi di trattino -> "-"
+    .replace(/\s*\+\s*/g, "+")   // " + " -> "+"
+    .replace(/\s+/g, " ")
+    .trim();
+
   function renderBodyHalf(containerTbodyId, year, month, startDay, endDay, operai, byOpDay){
     const tbody = document.getElementById(containerTbodyId);
     tbody.innerHTML = "";
@@ -515,23 +516,32 @@
               const isOff = td.classList.contains("weekend") || td.classList.contains("festivo");
 
               const cantiereRaw = (en.cantiere != null ? String(en.cantiere) : "");
-              const hasCant     = !isBlankCantiere(cantiereRaw);
-              let  cantDisplay  = hasCant ? cantiereRaw.toUpperCase() : "NO DATI";
+              const hasCant     = !!cantiereRaw.trim();
+              let  cantDisplay  = hasCant ? cantiereRaw.trim().toUpperCase() : "NO DATI";
 
               const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
-              const lav    = en.lavorazione || ""; // raw
-              const orari  = en.orari || "";       // raw
-              const note   = en.note || "";        // raw
+              const lav    = en.lavorazione || "";     // TESTO ORIGINALE
+              const orari  = en.orari || "";           // TESTO ORIGINALE
+              const note   = en.note || "";            // TESTO ORIGINALE
 
               if (!hasCant && !isOff) wrap.classList.add("nodati");
               if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
 
+              // dedup: se gli orari sono già "dentro" la lavorazione, non ristamparli
+              const lavC   = canon(lav);
+              const orariC = canon(orari);
+              let orariLineToShow = "";
+              if (orariC && (lavC === orariC || lavC.includes(orariC) || orariC.includes(lavC))) {
+                orariLineToShow = note ? note : "";
+              } else {
+                orariLineToShow = orari ? (note ? `${orari} — ${note}` : orari) : (note || "");
+              }
+
+              // output (nessuna normalizzazione a video)
               wrap.appendChild(el('div','cant', cantDisplay));
               wrap.appendChild(el('div','ore',  oreTxt));
-              if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));
-
-              const orariLine = (orari ? orari : "") + (note ? (orari ? " — " : "") + note : "");
-              if (orariLine) wrap.appendChild(el('div','orari', orariLine));
+              if (SHOW_LAV && lav)      wrap.appendChild(el('div','lav',   lav));
+              if (orariLineToShow)      wrap.appendChild(el('div','orari', orariLineToShow));
 
               inner.appendChild(wrap);
               if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
@@ -595,18 +605,22 @@
         const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
         if(Yf!==Y || Mf!==M) return;
 
-        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"]));
+        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
         if(!op) return;
         const d = dt.getDate();
 
-        const cantiere = getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"]);
+        const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
         const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
         const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
 
-        // Raw (nessuna normalizzazione)
-        const lavorazione = getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"]);
-        const note        = getFieldSmart(r, ["Note","I","NOTE","note"]);
-        const orari       = getFieldSmart(r, ["Orari","B","ORARI","orari"]);
+        const lavRaw   = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"]));
+        const lavorazione = lavRaw; // NESSUNA NORMALIZZAZIONE
+
+        const orariRaw = String(getFieldSmart(r, ["Orari","B","ORARI","orari"]));
+        const orari    = orariRaw;  // NESSUNA NORMALIZZAZIONE
+
+        const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"]));
+        const note     = noteRaw;   // NESSUNA NORMALIZZAZIONE
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
@@ -642,9 +656,9 @@
   const modId   = document.getElementById('mod_id');
   const modData = document.getElementById('mod_data');
   const modOre  = document.getElementById('mod_ore');
-  const modCant  = document.getElementById('mod_cantiere');
-  const modLav   = document.getElementById('mod_lavorazione');
-  const modNote  = document.getElementById('mod_note');
+  const modCant = document.getElementById('mod_cantiere');
+  const modLav  = document.getElementById('mod_lavorazione');
+  const modNote = document.getElementById('mod_note');
 
   function openEdit(id){
     fetch(`${GAS_URL}?getPresenza=1&id=${encodeURIComponent(id)}`)
@@ -676,7 +690,7 @@
       modifica: 1,
       id: String(modId.value || "").trim(),
       data: modData.value || "",
-      orari: "",
+      orari: "", // il salvataggio via modale non modifica gli orari
       cantiere: modCant.value || "",
       lavorazione: modLav.value || "",
       ore: modOre.value || "",
@@ -698,8 +712,7 @@
     });
   });
 
-/* ============ EXPORT ============ */
-/* Carica le librerie se mancano (resta uguale) */
+/* ============ EXPORT PDF ============ */
 async function ensurePdfLibs(){
   if(typeof window.html2canvas === 'undefined'){
     await new Promise((resolve,reject)=>{
@@ -717,7 +730,6 @@ async function ensurePdfLibs(){
   }
 }
 
-/* Cattura la card, ma con scala adattiva per non sforare memoria */
 async function captureCardFull(cardId){
   const src = document.getElementById(cardId);
   if(!src) throw new Error('card non trovata: '+cardId);
@@ -725,7 +737,6 @@ async function captureCardFull(cardId){
   const wrap = src.querySelector('.table-wrap');
   const fullWidth = wrap ? wrap.scrollWidth : src.scrollWidth;
 
-  // Clona in offscreen e sblocca lo scroll interno
   const clone = src.cloneNode(true);
   const cloneWrap = clone.querySelector('.table-wrap');
   if(cloneWrap){
@@ -733,7 +744,6 @@ async function captureCardFull(cardId){
     cloneWrap.style.width = (fullWidth + 2) + 'px';
     cloneWrap.style.maxWidth = 'none';
   }
-  // Rimuovi sticky dagli header per il render
   clone.querySelectorAll('thead th, tbody th').forEach(el=>{
     el.style.position = 'static';
   });
@@ -743,23 +753,20 @@ async function captureCardFull(cardId){
   holder.style.left = '-10000px';
   holder.style.top = '0';
   holder.style.background = '#ffffff';
-  holder.style.padding = '0';
-  holder.style.margin = '0';
   holder.appendChild(clone);
   document.body.appendChild(holder);
 
   await new Promise(r=>requestAnimationFrame(r));
 
-  // Scala adattiva: punta a max ~12 MP per non saturare memoria
   const w = holder.scrollWidth;
   const h = holder.scrollHeight;
-  const MAX_AREA = 12e6;                     // 12 megapixel
+  const MAX_AREA = 12e6;
   const baseDpr = Math.min(1.5, window.devicePixelRatio || 1);
   let scale = baseDpr;
   if (w * h * scale * scale > MAX_AREA){
     scale = Math.sqrt(MAX_AREA / (w * h));
   }
-  scale = Math.max(0.6, Math.min(scale, 1.2)); // limiti di sicurezza
+  scale = Math.max(0.6, Math.min(scale, 1.2));
 
   const canvas = await html2canvas(clone, {
     scale,
@@ -775,7 +782,6 @@ async function captureCardFull(cardId){
   return canvas;
 }
 
-/* Se serve, riduci ulteriormente il canvas (post-render) */
 function downscaleCanvasIfNeeded(canvas, maxArea=8e6, maxDim=4200){
   const area = canvas.width * canvas.height;
   if (area <= maxArea && Math.max(canvas.width, canvas.height) <= maxDim) return canvas;
@@ -795,7 +801,6 @@ function downscaleCanvasIfNeeded(canvas, maxArea=8e6, maxDim=4200){
   return tmp;
 }
 
-/* Codifica in dataURL provando JPEG con qualità decrescente */
 function canvasToDataURLSafe(canvas){
   const qualities = [0.82, 0.7, 0.6, 0.5];
   for(const q of qualities){
@@ -811,13 +816,11 @@ async function exportPDF(){
     const statusEl = document.getElementById('status');
     if(statusEl) statusEl.innerHTML = '<span class="ok">Preparazione PDF…</span>';
 
-    // Renderizza le due metà in parallelo
     let [canvasA, canvasB] = await Promise.all([
       captureCardFull('cardA'),
       captureCardFull('cardB')
     ]);
 
-    // Ulteriore riduzione se servisse (tabelle molto lunghe)
     canvasA = downscaleCanvasIfNeeded(canvasA, 8e6, 4200);
     canvasB = downscaleCanvasIfNeeded(canvasB, 8e6, 4200);
 
@@ -837,7 +840,6 @@ async function exportPDF(){
       const x = MARGIN + (availW - w)/2;
       const y = MARGIN + (availH - h)/2;
 
-      // dataURL con qualità adattiva (evita Invalid string length)
       const safeCanvas = downscaleCanvasIfNeeded(canvas, 8e6, 4200);
       const img = canvasToDataURLSafe(safeCanvas);
 
@@ -860,7 +862,6 @@ async function exportPDF(){
     if(statusEl) statusEl.innerHTML = '<span class="error">Errore durante l’export PDF (vedi console).</span>';
   }
 }
-
 
   /* ============ EXCEL EXPORT ============ */
   function xmlEscape(s){
@@ -898,13 +899,21 @@ async function exportPDF(){
           const chunks=[];
           const cantiereRaw = (en.cantiere == null ? "" : String(en.cantiere));
           const hasCant     = !!cantiereRaw.trim();
-          const cantDisp    = hasCant ? cantiereRaw.toUpperCase() : (isOff ? "" : "NO DATI");
+          const cantDisp    = hasCant ? cantiereRaw.trim().toUpperCase() : (isOff ? "" : "NO DATI");
           if(cantDisp) chunks.push(cantDisp);
           if(en.ore!=null && !isNaN(en.ore)){ chunks.push(`${en.ore} h`); total+=Number(en.ore); }
           if(SHOW_LAV && en.lavorazione){ chunks.push(en.lavorazione); }
 
-          const orariLine = (en.orari ? en.orari : "") + (en.note ? (en.orari ? " — " : "") + en.note : "");
-          if(orariLine) chunks.push(orariLine);
+          // stessa logica di dedup per orari+note
+          const lavC   = canon(en.lavorazione || "");
+          const orariC = canon(en.orari || "");
+          let orariLineToShow = "";
+          if (orariC && (lavC === orariC || lavC.includes(orariC) || orariC.includes(lavC))) {
+            orariLineToShow = en.note ? en.note : "";
+          } else {
+            orariLineToShow = en.orari ? (en.note ? `${en.orari} — ${en.note}` : en.orari) : (en.note || "");
+          }
+          if (orariLineToShow) chunks.push(orariLineToShow);
 
           parts.push(chunks.join("\n"));
         });
@@ -1013,29 +1022,27 @@ async function exportPDF(){
     carica();
   })();
 
-  /* ====== getFieldSmart (no normalizzazioni) ====== */
+  /* ====== getFieldSmart ====== */
+  function normKey(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
   function getFieldSmart(row, candidates){
-    // 1) match esatto
-    for (const k of candidates){ if (row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
-
-    // 2) match esatto case-insensitive
-    const mapLower = new Map(Object.keys(row).map(k => [k.toLowerCase(), k]));
-    for (const cand of candidates){
-      const key = mapLower.get(String(cand).toLowerCase());
-      if (key && row[key] != null && row[key] !== "") return row[key];
-    }
-
-    // 3) include/contiene (case-insensitive)
+    for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
     const keys = Object.keys(row);
-    for (const key of keys){
-      const lk = key.toLowerCase();
-      if (candidates.some(c => lk.includes(String(c).toLowerCase()))){
-        if (row[key] != null && row[key] !== "") return row[key];
+    const normMap = new Map(keys.map(k => [normKey(k), k]));
+    for(const cand of candidates){
+      const n = normKey(cand);
+      if(normMap.has(n)){
+        const realKey = normMap.get(n);
+        if(row[realKey] != null && row[realKey] !== "") return row[realKey];
       }
     }
-
-    // 4) fallback
-    for (const k of candidates){ if (row[k] != null && row[k] !== "") return row[k]; }
+    const targets = candidates.map(normKey);
+    for(const k of keys){
+      const nk = normKey(k);
+      if(targets.some(t => nk.includes(t))){
+        if(row[k] != null && row[k] !== "") return row[k];
+      }
+    }
+    for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
     return "";
   }
   </script>
