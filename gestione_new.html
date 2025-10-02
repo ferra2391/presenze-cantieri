@@ -27,6 +27,7 @@
       --fs-ore: 23px;
       --fs-tot: 22px;
       --fs-note: 20px;
+      --fs-lav: 18px;   /* grandezza testo lavorazione */
     }
 
     *{box-sizing:border-box}
@@ -147,9 +148,10 @@
 
     td .entry{margin-bottom:6px; cursor:pointer}
     .entry:hover{filter:brightness(0.97)}
-    .cant{color:var(--danger); font-weight:800; text-transform:uppercase; letter-spacing:.02em; font-size: var(--fs-cantiere);}
+    .cant{color:#c00000; font-weight:800; text-transform:uppercase; letter-spacing:.02em; font-size: var(--fs-cantiere);}
     .ore{color:#111; font-weight:600; font-size: var(--fs-ore);}
-    .lav{color:#444; margin-top:2px}
+    .lav{color:#000; margin-top:2px; font-size: var(--fs-lav); font-weight:500;}
+    .orari{color:#222; margin-top:4px; font-weight:600; font-variant-numeric: tabular-nums;}
     .note{color:var(--muted); font-style:italic; font-size: var(--fs-note);}
     .tot{margin-top:4px; font-weight:800; font-size: var(--fs-tot);}
     .center{display:flex; align-items:center; justify-content:center}
@@ -201,29 +203,6 @@
       color:#fff;
       border-color:var(--primary);
     }
-
-    :root{
-  /* ...esistenti... */
-  --fs-lav: 21px;     /* nuovo: dimensione maggiore per lavorazioni */
-}
-
-.lav, .note, .orari {  /* preserva a-capo e cifre allineate */
-  white-space: pre-wrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.lav{
-  color:#000;                 /* nero */
-  font-size: var(--fs-lav);   /* più grande */
-  margin-top: 2px;
-}
-
-.orari{
-  color:#111;                 /* testo semplice, non evidenziato */
-  font-weight:600;
-  margin-top:4px;
-}
-
   </style>
 </head>
 <body>
@@ -232,6 +211,7 @@
 
     <div class="panel">
       <div class="row" style="gap:8px; justify-content:space-between; align-items:center;">
+        <!-- SINISTRA -->
         <div class="month-picker">
           <button id="prevMonth" class="month-btn" type="button" title="Mese precedente">◀</button>
 
@@ -252,6 +232,7 @@
           <span class="spinner" id="spin"></span>
         </div>
 
+        <!-- DESTRA -->
         <div class="row" style="gap:12px; align-items:center;">
           <nav class="row nav" style="gap:8px;">
             <a class="primary" href="gestione.html" aria-current="page">Presenze</a>
@@ -298,6 +279,7 @@
     </div>
   </div>
 
+  <!-- Modale -->
   <div id="overlay" style="position:fixed; inset:0; background:var(--overlay); display:none; z-index:999;"></div>
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
        style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
@@ -342,6 +324,7 @@
     </div>
   </div>
 
+  <!-- Librerie -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
@@ -351,7 +334,6 @@
   const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
 
   const pad = n => String(n).padStart(2,"0");
-  const normalize = s => String(s||"").normalize("NFD").replace(/[\u3000-\u036f]/g,"").trim().toLowerCase();
 
   function parseDateAny(v){
     if(!v) return null;
@@ -376,10 +358,6 @@
     add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
     return set;
   }
-
-  /* Riconoscimento intervalli orari (per rimuoverli da note e lavorazioni) */
-  const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*[-–]\s*\d{1,2}[:.]\d{2}\b/g;
-  function stripIntervals(s){ return s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : ""; }
 
   function isBlankCantiere(value){
     const s = String(value||"").trim();
@@ -538,20 +516,22 @@
 
               const cantiereRaw = (en.cantiere != null ? String(en.cantiere) : "");
               const hasCant     = !isBlankCantiere(cantiereRaw);
-              let  cantDisplay  = hasCant ? cantiereRaw.trim().toUpperCase() : "NO DATI";
+              let  cantDisplay  = hasCant ? cantiereRaw.toUpperCase() : "NO DATI";
 
               const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
-              const lav    = stripIntervals(en.lavorazione || "");
-              const note   = en.note || ""; // già normalizzata/pulita in 'carica'
+              const lav    = en.lavorazione || ""; // raw
+              const orari  = en.orari || "";       // raw
+              const note   = en.note || "";        // raw
 
               if (!hasCant && !isOff) wrap.classList.add("nodati");
               if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
 
-wrap.appendChild(el('div','cant', cantDisplay));  // rosso + stampatello
-wrap.appendChild(el('div','ore',  oreTxt));       // ore da colonna H
-if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));   // nero, font più grande
-if (en.orariNote)    wrap.appendChild(el('div','orari', en.orariNote)); // "orari + note" (grezzo)
+              wrap.appendChild(el('div','cant', cantDisplay));
+              wrap.appendChild(el('div','ore',  oreTxt));
+              if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));
 
+              const orariLine = (orari ? orari : "") + (note ? (orari ? " — " : "") + note : "");
+              if (orariLine) wrap.appendChild(el('div','orari', orariLine));
 
               inner.appendChild(wrap);
               if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
@@ -615,27 +595,22 @@ if (en.orariNote)    wrap.appendChild(el('div','orari', en.orariNote)); // "orar
         const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
         if(Yf!==Y || Mf!==M) return;
 
-        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"])).trim();
+        const op = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"]));
         if(!op) return;
         const d = dt.getDate();
 
-const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
+        const cantiere = getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"]);
+        const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
+        const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
 
-const oreRaw = getFieldSmart(r, ["Ore","H","ORE","ore"]);
-const ore    = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",",".")) : null;
+        // Raw (nessuna normalizzazione)
+        const lavorazione = getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"]);
+        const note        = getFieldSmart(r, ["Note","I","NOTE","note"]);
+        const orari       = getFieldSmart(r, ["Orari","B","ORARI","orari"]);
 
-const lavRaw = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])).trim();
-const lavorazione = stripIntervals(lavRaw);   // lasciamo pulita la descrizione
-
-// NUOVO: orari semplici + eventuali note, senza normalizzazioni
-const orariRaw = String(getFieldSmart(r, ["Orari","B","ORARI","orari"])).trim();
-const noteRaw  = String(getFieldSmart(r, ["Note","I","NOTE","note"])).trim();
-const orariNote = (orariRaw && noteRaw) ? `${orariRaw} ${noteRaw}` : (orariRaw || noteRaw);
-
-byOpDay[op] ??= {};
-byOpDay[op][d] ??= [];
-byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione, orariNote });
-
+        byOpDay[op] ??= {};
+        byOpDay[op][d] ??= [];
+        byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione, note, orari });
       });
 
       let operai = Object.keys(byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
@@ -667,9 +642,9 @@ byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione, orariNote });
   const modId   = document.getElementById('mod_id');
   const modData = document.getElementById('mod_data');
   const modOre  = document.getElementById('mod_ore');
-  const modCant = document.getElementById('mod_cantiere');
-  const modLav  = document.getElementById('mod_lavorazione');
-  const modNote = document.getElementById('mod_note');
+  const modCant  = document.getElementById('mod_cantiere');
+  const modLav   = document.getElementById('mod_lavorazione');
+  const modNote  = document.getElementById('mod_note');
 
   function openEdit(id){
     fetch(`${GAS_URL}?getPresenza=1&id=${encodeURIComponent(id)}`)
@@ -922,12 +897,15 @@ async function exportPDF(){
         entries.forEach(en=>{
           const chunks=[];
           const cantiereRaw = (en.cantiere == null ? "" : String(en.cantiere));
-          const hasCant     = !isBlankCantiere(cantiereRaw);
-          const cantDisp    = hasCant ? cantiereRaw.trim().toUpperCase() : (isOff ? "" : "NO DATI");
+          const hasCant     = !!cantiereRaw.trim();
+          const cantDisp    = hasCant ? cantiereRaw.toUpperCase() : (isOff ? "" : "NO DATI");
           if(cantDisp) chunks.push(cantDisp);
           if(en.ore!=null && !isNaN(en.ore)){ chunks.push(`${en.ore} h`); total+=Number(en.ore); }
-          if(en.note){ chunks.push(en.note); }
           if(SHOW_LAV && en.lavorazione){ chunks.push(en.lavorazione); }
+
+          const orariLine = (en.orari ? en.orari : "") + (en.note ? (en.orari ? " — " : "") + en.note : "");
+          if(orariLine) chunks.push(orariLine);
+
           parts.push(chunks.join("\n"));
         });
         if(entries.length>1){ parts.push(`Tot: ${(+total.toFixed(2)).toString()} h`); }
@@ -1035,26 +1013,29 @@ async function exportPDF(){
     carica();
   })();
 
-  /* ====== getFieldSmart ====== */
+  /* ====== getFieldSmart (no normalizzazioni) ====== */
   function getFieldSmart(row, candidates){
-    for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
+    // 1) match esatto
+    for (const k of candidates){ if (row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
+
+    // 2) match esatto case-insensitive
+    const mapLower = new Map(Object.keys(row).map(k => [k.toLowerCase(), k]));
+    for (const cand of candidates){
+      const key = mapLower.get(String(cand).toLowerCase());
+      if (key && row[key] != null && row[key] !== "") return row[key];
+    }
+
+    // 3) include/contiene (case-insensitive)
     const keys = Object.keys(row);
-    const normMap = new Map(keys.map(k => [normalize(k), k]));
-    for(const cand of candidates){
-      const n = normalize(cand);
-      if(normMap.has(n)){
-        const realKey = normMap.get(n);
-        if(row[realKey] != null && row[realKey] !== "") return row[realKey];
+    for (const key of keys){
+      const lk = key.toLowerCase();
+      if (candidates.some(c => lk.includes(String(c).toLowerCase()))){
+        if (row[key] != null && row[key] !== "") return row[key];
       }
     }
-    const targets = candidates.map(normalize);
-    for(const k of keys){
-      const nk = normalize(k);
-      if(targets.some(t => nk.includes(t))){
-        if(row[k] != null && row[k] !== "") return row[k];
-      }
-    }
-    for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
+
+    // 4) fallback
+    for (const k of candidates){ if (row[k] != null && row[k] !== "") return row[k]; }
     return "";
   }
   </script>
