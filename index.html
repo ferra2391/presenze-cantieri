@@ -830,7 +830,7 @@
           entries.forEach(r=>{
             const card=document.createElement('div'); card.className='entry-card';
             card.setAttribute('title',(r.ore?`${r.ore}h – `:'')+(r.cantiere||'')); 
-            card.addEventListener('click',()=>{ if(r.id) apriModifica(String(r.id)); });
+            //card.addEventListener('click',()=>{ if(r.id) apriModifica(String(r.id)); });
 
             const left=document.createElement('div'); left.style.flex='1';
             left.innerHTML=`<div class="entry-cant">${(r.cantiere||'').toString().toUpperCase()}</div>
