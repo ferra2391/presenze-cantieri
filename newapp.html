@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Presenze Cantiere</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --primary: #FF6B35;
+      --primary-dark: #E55A2B;
+      --secondary: #004E89;
+      --secondary-light: #1A659E;
+      --accent: #F7B801;
+      --success: #06D6A0;
+      --bg: #0A0E27;
+      --bg-light: #1a1f3a;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --text: #FFFFFF;
+      --text-secondary: #B8C5D6;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 107, 53, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 78, 137, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(247, 184, 1, 0.1) 0%, transparent 50%);
+      animation: drift 20s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(5deg); }
+      66% { transform: translate(-20px, 20px) rotate(-5deg); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 60px 24px 40px;
+      border-radius: 0 0 32px 32px;
+      box-shadow: 0 10px 40px rgba(255, 107, 53, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.1); }
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .header .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .user-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 8px 16px;
+      border-radius: 20px;
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Main Content */
+    .content {
+      padding: 24px;
+    }
+
+    /* Step Indicator */
+    .step-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding: 0 8px;
+    }
+
+    .step {
+      flex: 1;
+      height: 4px;
+      background: var(--card-bg);
+      border-radius: 4px;
+      margin: 0 4px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .step.active {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .step.active::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 30%;
+      background: rgba(255, 255, 255, 0.5);
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(400%); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title .icon {
+      font-size: 24px;
+    }
+
+    /* Date Selector */
+    .date-selector {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .date-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--card-bg);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .date-day .day-name {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .date-day .day-num {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .date-day:hover {
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+
+    .date-day.selected {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: transparent;
+      transform: scale(1.05);
+      box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
+    }
+
+    .date-day.today {
+      border-color: var(--success);
+    }
+
+    /* Time Picker */
+    .time-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .time-slot {
+      background: var(--bg-light);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .time-slot::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .time-slot.selected::before {
+      opacity: 1;
+    }
+
+    .time-slot > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .time-slot .icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .time-slot .label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .time-slot .time {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .time-slot:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+    }
+
+    /* Quick Select Tags */
+    .quick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .tag {
+      background: var(--bg-light);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tag:hover {
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+
+    .tag.selected {
+      background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(0, 78, 137, 0.4);
+    }
+
+    /* Input Field with Icon */
+    .input-group {
+      position: relative;
+      margin-top: 16px;
+    }
+
+    .input-group input,
+    .input-group textarea {
+      width: 100%;
+      background: var(--bg-light);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px 16px 50px;
+      font-size: 16px;
+      color: var(--text);
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .input-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .input-group input:focus,
+    .input-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    }
+
+    .input-group .input-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: var(--text-secondary);
+    }
+
+    .input-group textarea + .input-icon {
+      top: 20px;
+      transform: none;
+    }
+
+    /* Action Buttons */
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border: none;
+      border-radius: 16px;
+      padding: 18px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 16px rgba(255, 107, 53, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      box-shadow: none;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), #05b78b);
+    }
+
+    .btn-success:hover {
+      box-shadow: 0 8px 24px rgba(6, 214, 160, 0.4);
+    }
+
+    /* Summary Card */
+    .summary-card {
+      background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+      border: none;
+      padding: 28px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .summary-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .summary-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    /* Success Animation */
+    .success-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 14, 39, 0.95);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .success-overlay.show {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .success-content {
+      text-align: center;
+      animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: bounce 1s ease;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-30px); }
+      60% { transform: translateY(-15px); }
+    }
+
+    .success-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .success-message {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+
+    /* Floating Action Button */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      border-radius: 50%;
+      font-size: 28px;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.4);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: none;
+    }
+
+    .fab:hover {
+      transform: scale(1.1) rotate(90deg);
+    }
+
+    /* Copy Yesterday Button */
+    .quick-action {
+      background: var(--card-bg);
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quick-action:hover {
+      border-color: var(--accent);
+      border-style: solid;
+      background: rgba(247, 184, 1, 0.1);
+    }
+
+    .quick-action .icon {
+      font-size: 32px;
+    }
+
+    .quick-action-text {
+      flex: 1;
+    }
+
+    .quick-action-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .quick-action-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Slide animations */
+    .slide-enter {
+      animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slide-exit {
+      animation: slideOutLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutLeft {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .header {
+        padding: 48px 20px 32px;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>⚡ Presenze Cantiere</h1>
+      <p class="subtitle">Registra la tua giornata lavorativa</p>
+      <div class="user-badge">
+        <span>👷</span>
+        <span id="userName">Mario Rossi</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <!-- Step Indicator -->
+      <div class="step-indicator">
+        <div class="step active" id="step1"></div>
+        <div class="step" id="step2"></div>
+        <div class="step" id="step3"></div>
+        <div class="step" id="step4"></div>
+      </div>
+
+      <!-- Page 1: Quick Action & Date -->
+      <div class="page active" id="page1">
+        <div class="quick-action" onclick="copyYesterday()">
+          <span class="icon">⚡</span>
+          <div class="quick-action-text">
+            <div class="quick-action-title">Copia da ieri</div>
+            <div class="quick-action-desc">Stessa giornata di ieri? Un click!</div>
+          </div>
+          <span style="font-size: 24px;">→</span>
+        </div>
+
+        <div class="card slide-enter">
+          <div class="card-title">
+            <span class="icon">📅</span>
+            <span>Seleziona la data</span>
+          </div>
+          <div class="date-selector" id="dateSelector">
+            <!-- Will be populated by JS -->
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" onclick="nextPage(2)">
+            Avanti
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Page 2: Time Selection -->
+      <div class="page" id="page2">
+        <div class="card slide-enter">
+          <div class="card-title">
+            <span class="icon">⏰</span>
+            <span>Orario di lavoro</span>
+          </div>
+          <div class="time-picker">
+            <div class="time-slot" onclick="toggleTime('morning')">
+              <span class="icon">☀️</span>
+              <div class="label">Mattina</div>
+              <div class="time">08:00 - 12:00</div>
+            </div>
+            <div class="time-slot" onclick="toggleTime('afternoon')">
+              <span class="icon">🌙</span>
+              <div class="label">Pomeriggio</div>
+              <div class="time">13:00 - 17:00</div>
+            </div>
+          </div>
+          <div style="margin-top: 16px; padding: 16px; background: var(--bg-light); border-radius: 16px; text-align: center;">
+            <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 4px;">Ore totali</div>
+            <div style="font-size: 32px; font-weight: 800; color: var(--accent);" id="totalHours">8.0h</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="prevPage(1)">
+            <span>←</span>
+            Indietro
+          </button>
+          <button class="btn" onclick="nextPage(3)">
+            Avanti
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Page 3: Cantiere -->
+      <div class="page" id="page3">
+        <div class="card slide-enter">
+          <div class="card-title">
+            <span class="icon">🏗️</span>
+            <span>Cantiere</span>
+          </div>
+          <div class="quick-tags" id="cantierePresets">
+            <div class="tag" onclick="selectCantiere(this)">
+              <span>🏠</span>
+              <span>Cantiere A</span>
+            </div>
+            <div class="tag" onclick="selectCantiere(this)">
+              <span>🏢</span>
+              <span>Cantiere B</span>
+            </div>
+            <div class="tag" onclick="selectCantiere(this)">
+              <span>🏭</span>
+              <span>Cantiere C</span>
+            </div>
+            <div class="tag" onclick="selectCantiere(this)">
+              <span>🏛️</span>
+              <span>Cantiere D</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <span class="input-icon">🔍</span>
+            <input type="text" placeholder="Oppure scrivi il nome del cantiere..." id="cantiereInput">
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="prevPage(2)">
+            <span>←</span>
+            Indietro
+          </button>
+          <button class="btn" onclick="nextPage(4)">
+            Avanti
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Page 4: Lavorazione & Summary -->
+      <div class="page" id="page4">
+        <div class="card slide-enter">
+          <div class="card-title">
+            <span class="icon">🔨</span>
+            <span>Lavorazione</span>
+          </div>
+          <div class="quick-tags" id="lavorazionePresets">
+            <div class="tag" onclick="selectLavorazione(this)">
+              <span>🧱</span>
+              <span>Muratura</span>
+            </div>
+            <div class="tag" onclick="selectLavorazione(this)">
+              <span>⚡</span>
+              <span>Impianto elettrico</span>
+            </div>
+            <div class="tag" onclick="selectLavorazione(this)">
+              <span>💧</span>
+              <span>Impianto idraulico</span>
+            </div>
+            <div class="tag" onclick="selectLavorazione(this)">
+              <span>🎨</span>
+              <span>Pittura</span>
+            </div>
+            <div class="tag" onclick="selectLavorazione(this)">
+              <span>🪟</span>
+              <span>Serramenti</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <span class="input-icon">📝</span>
+            <textarea placeholder="Oppure descrivi la lavorazione..." id="lavorazioneInput"></textarea>
+          </div>
+        </div>
+
+        <div class="card summary-card">
+          <div class="card-title" style="color: white; margin-bottom: 20px;">
+            <span class="icon">📋</span>
+            <span>Riepilogo</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Data</span>
+            <span class="summary-value" id="summaryDate">Oggi</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Orario</span>
+            <span class="summary-value" id="summaryTime">08:00 - 17:00</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Cantiere</span>
+            <span class="summary-value" id="summaryCantiere">Cantiere A</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Lavorazione</span>
+            <span class="summary-value" id="summaryLavorazione">Muratura</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Ore totali</span>
+            <span class="summary-value" style="color: var(--accent);" id="summaryHours">8.0h</span>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="prevPage(3)">
+            <span>←</span>
+            Indietro
+          </button>
+          <button class="btn btn-success" onclick="submitPresence()">
+            <span>✓</span>
+            Conferma
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-content">
+      <div class="success-icon">✨</div>
+      <div class="success-title">Presenza registrata!</div>
+      <div class="success-message">La tua giornata è stata salvata con successo</div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    let selectedDate = new Date();
+    let selectedMorning = true;
+    let selectedAfternoon = true;
+    let selectedCantiere = '';
+    let selectedLavorazione = '';
+
+    // Initialize date selector
+    function initDateSelector() {
+      const selector = document.getElementById('dateSelector');
+      const today = new Date();
+      const days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+      
+      for (let i = -3; i <= 3; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'date-day';
+        if (i === 0) dayDiv.classList.add('today', 'selected');
+        
+        dayDiv.innerHTML = `
+          <div class="day-name">${days[date.getDay() === 0 ? 6 : date.getDay() - 1]}</div>
+          <div class="day-num">${date.getDate()}</div>
+        `;
+        
+        dayDiv.onclick = () => selectDate(dayDiv, date);
+        selector.appendChild(dayDiv);
+      }
+    }
+
+    function selectDate(element, date) {
+      document.querySelectorAll('.date-day').forEach(d => d.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedDate = date;
+      updateSummary();
+    }
+
+    function toggleTime(period) {
+      const slots = document.querySelectorAll('.time-slot');
+      if (period === 'morning') {
+        slots[0].classList.toggle('selected');
+        selectedMorning = slots[0].classList.contains('selected');
+      } else {
+        slots[1].classList.toggle('selected');
+        selectedAfternoon = slots[1].classList.contains('selected');
+      }
+      
+      // Update total hours
+      let hours = 0;
+      if (selectedMorning) hours += 4;
+      if (selectedAfternoon) hours += 4;
+      document.getElementById('totalHours').textContent = hours.toFixed(1) + 'h';
+      updateSummary();
+    }
+
+    function selectCantiere(element) {
+      document.querySelectorAll('#cantierePresets .tag').forEach(t => t.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedCantiere = element.textContent.trim();
+      document.getElementById('cantiereInput').value = '';
+      updateSummary();
+    }
+
+    function selectLavorazione(element) {
+      document.querySelectorAll('#lavorazionePresets .tag').forEach(t => t.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedLavorazione = element.textContent.trim();
+      document.getElementById('lavorazioneInput').value = '';
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const options = { day: 'numeric', month: 'short' };
+      document.getElementById('summaryDate').textContent = 
+        selectedDate.toLocaleDateString('it-IT', options);
+      
+      let timeText = '';
+      if (selectedMorning) timeText += '08:00-12:00';
+      if (selectedMorning && selectedAfternoon) timeText += ' + ';
+      if (selectedAfternoon) timeText += '13:00-17:00';
+      document.getElementById('summaryTime').textContent = timeText;
+      
+      document.getElementById('summaryCantiere').textContent = 
+        selectedCantiere || document.getElementById('cantiereInput').value || '-';
+      
+      document.getElementById('summaryLavorazione').textContent = 
+        selectedLavorazione || document.getElementById('lavorazioneInput').value || '-';
+      
+      let hours = 0;
+      if (selectedMorning) hours += 4;
+      if (selectedAfternoon) hours += 4;
+      document.getElementById('summaryHours').textContent = hours.toFixed(1) + 'h';
+    }
+
+    function nextPage(page) {
+      const steps = document.querySelectorAll('.step');
+      steps[page - 1].classList.add('active');
+      
+      document.getElementById(`page${currentPage}`).classList.remove('active');
+      document.getElementById(`page${page}`).classList.add('active');
+      currentPage = page;
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      updateSummary();
+    }
+
+    function prevPage(page) {
+      const steps = document.querySelectorAll('.step');
+      steps[currentPage - 1].classList.remove('active');
+      
+      document.getElementById(`page${currentPage}`).classList.remove('active');
+      document.getElementById(`page${page}`).classList.add('active');
+      currentPage = page;
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function copyYesterday() {
+      // Simulate copying yesterday's data
+      alert('Funzione "Copia da ieri" - copierebbe i dati del giorno precedente');
+      // In production, this would load yesterday's data
+    }
+
+    function submitPresence() {
+      // Simulate submission
+      document.getElementById('successOverlay').classList.add('show');
+      
+      setTimeout(() => {
+        document.getElementById('successOverlay').classList.remove('show');
+        // Reset form
+        currentPage = 1;
+        document.querySelectorAll('.step').forEach((s, i) => {
+          if (i === 0) s.classList.add('active');
+          else s.classList.remove('active');
+        });
+        document.querySelectorAll('.page').forEach((p, i) => {
+          if (i === 0) p.classList.add('active');
+          else p.classList.remove('active');
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 2500);
+    }
+
+    // Initialize time slots as selected
+    document.addEventListener('DOMContentLoaded', () => {
+      initDateSelector();
+      document.querySelectorAll('.time-slot').forEach(slot => slot.classList.add('selected'));
+    });
+
+    // Update summary when typing in custom inputs
+    document.getElementById('cantiereInput').addEventListener('input', updateSummary);
+    document.getElementById('lavorazioneInput').addEventListener('input', updateSummary);
+  </script>
+</body>
+</html>
