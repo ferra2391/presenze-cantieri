@@ -348,7 +348,7 @@ function initDateSelector(){
   const dayLetter = ['D','L','M','M','G','V','S'];
 
   // Ultimi 14 giorni + oggi (oggi deve essere l’ultimo)
-  for (let i = 14; i >= 0; i--) {
+  for (let i = 13; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
 
