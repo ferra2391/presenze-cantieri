@@ -37,7 +37,7 @@ loginBtn.addEventListener('click', () => {
       console.log('Login effettuato con successo per:', userCredential.user.email);
       
       // Reindirizza l'utente alla pagina principale dell'app
-      window.location.href = 'index.html';
+      window.location.href = 'newapp.html';
     })
     .catch((error) => {
       // Accesso FALLITO!
