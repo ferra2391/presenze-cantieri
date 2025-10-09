@@ -12,7 +12,7 @@
       --accent:#F7B801;--success:#06D6A0;--bg:#0A0E27;--bg-light:#1a1f3a;
       --card-bg:rgba(255,255,255,.05);--text:#fff;--text-secondary:#B8C5D6;--border:rgba(255,255,255,.1);
       --zoom: 1;
-      --morning-grad: linear-gradient(135deg,#4da3ff,#5bc0eb); /* azzurrino sfumato */
+      --morning-grad: linear-gradient(135deg,#4da3ff,#5bc0eb);
       --afternoon-grad: linear-gradient(135deg,var(--primary),var(--accent));
     }
     body{
@@ -74,9 +74,7 @@
     }
     .time-slot.morning .slot-bg{background:var(--morning-grad);}
     .time-slot.afternoon .slot-bg{background:var(--afternoon-grad);}
-    .slot-bg{
-      position:absolute;inset:0;opacity:.9;
-    }
+    .slot-bg{position:absolute;inset:0;opacity:.9;}
     .slot-inner{
       position:relative; z-index:1;
       display:grid; grid-template-rows:auto auto auto; gap:8px;
@@ -86,9 +84,7 @@
     .slot-head .icon{font-size:28px}
     .slot-head .label{font-size:14px;font-weight:700;letter-spacing:.2px}
     .slot-time{font-size:18px;font-weight:800}
-    .time-inputs{
-      display:grid; grid-template-columns:1fr 1fr; gap:10px;
-    }
+    .time-inputs{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
     .time-inputs input[type="time"]{
       width:100%;background:rgba(0,0,0,.25);border:2px solid rgba(255,255,255,.35);
       color:#fff;border-radius:12px;padding:10px 12px;font-size:15px;outline:none;transition:.2s
@@ -160,20 +156,18 @@
     @media (max-width:480px){.header{padding:48px 20px 32px}.content{padding:20px}.card{padding:20px}}
 
     /* Evidenziazione weekend/festivi (tono rosso trasparente) */
-.date-day.weekend:not(.selected),
-.date-day.holiday:not(.selected){
-  background: rgba(220, 38, 38, 0.12);
-  border-color: rgba(220, 38, 38, 0.35);
-}
-
-.month-item.weekend,
-.month-item.holiday{
-  background:
-    linear-gradient(0deg, rgba(220, 38, 38, 0.12), rgba(220, 38, 38, 0.12)),
-    var(--bg-light);
-  border-color: rgba(220, 38, 38, 0.35);
-}
-
+    .date-day.weekend:not(.selected),
+    .date-day.holiday:not(.selected){
+      background: rgba(220, 38, 38, 0.12);
+      border-color: rgba(220, 38, 38, 0.35);
+    }
+    .month-item.weekend,
+    .month-item.holiday{
+      background:
+        linear-gradient(0deg, rgba(220, 38, 38, 0.12), rgba(220, 38, 38, 0.12)),
+        var(--bg-light);
+      border-color: rgba(220, 38, 38, 0.35);
+    }
   </style>
 </head>
 <body>
@@ -195,11 +189,10 @@
         </div>
 
         <div class="card">
-<div class="month-toggle" id="monthToggle">
-  <span id="monthTitle">📆 Presenze del mese</span>
-  <strong id="monthToggleArrow">▼</strong>
-</div>
-
+          <div class="month-toggle" id="monthToggle">
+            <span id="monthTitle">📆 Presenze del mese</span>
+            <strong id="monthToggleArrow">▼</strong>
+          </div>
           <div id="monthList" class="month-list"></div>
         </div>
 
@@ -339,58 +332,43 @@
     let slotEnabled={morning:true, afternoon:true};
 
     /* ====== WEEKEND / FESTIVI IT ====== */
-function isWeekend(d){
-  const day = d.getDay(); // 0=Dom,6=Sab
-  return day === 0 || day === 6;
-}
-
-// Calcolo Pasqua (Calendario gregoriano, algoritmo di Meeus)
-function easterDate(year){
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19*a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2*e + 2*i - h - k) % 7;
-  const m = Math.floor((a + 11*h + 22*l) / 451);
-  const month = Math.floor((h + l - 7*m + 114) / 31); // 3=Marzo, 4=Aprile
-  const day = ((h + l - 7*m + 114) % 31) + 1;
-  return new Date(year, month-1, day);
-}
-function addDays(date, n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
-
-function sameYMD(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
-
-function isItalianHoliday(d){
-  const y = d.getFullYear();
-  // Festività fisse
-  const fixed = [
-    [1,1],   // Capodanno
-    [1,6],   // Epifania
-    [4,25],  // Liberazione
-    [5,1],   // Lavoro
-    [6,2],   // Repubblica
-    [8,15],  // Ferragosto
-    [11,1],  // Ognissanti
-    [12,8],  // Immacolata
-    [12,25], // Natale
-    [12,26], // Santo Stefano
-  ];
-  for(const [mm,dd] of fixed){
-    if (sameYMD(d, new Date(y, mm-1, dd))) return true;
-  }
-  // Pasquetta (Lunedì dell'Angelo) = Pasqua + 1
-  const easter = easterDate(y);
-  const monday = addDays(easter, 1);
-  if (sameYMD(d, monday)) return true;
-
-  return false;
-}
+    function isWeekend(d){
+      const day = d.getDay(); // 0=Dom,6=Sab
+      return day === 0 || day === 6;
+    }
+    // Pasqua (Meeus)
+    function easterDate(year){
+      const a = year % 19;
+      const b = Math.floor(year / 100);
+      const c = year % 100;
+      const d = Math.floor(b / 4);
+      const e = b % 4;
+      const f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19*a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4);
+      const k = c % 4;
+      const l = (32 + 2*e + 2*i - h - k) % 7;
+      const m = Math.floor((a + 11*h + 22*l) / 451);
+      const month = Math.floor((h + l - 7*m + 114) / 31);
+      const day = ((h + l - 7*m + 114) % 31) + 1;
+      return new Date(year, month-1, day);
+    }
+    function addDays(date, n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+    function sameYMD(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+    function isItalianHoliday(d){
+      const y = d.getFullYear();
+      const fixed = [
+        [1,1],[1,6],[4,25],[5,1],[6,2],[8,15],[11,1],[12,8],[12,25],[12,26],
+      ];
+      for(const [mm,dd] of fixed){
+        if (sameYMD(d, new Date(y, mm-1, dd))) return true;
+      }
+      const easter = easterDate(y);
+      const monday = addDays(easter, 1); // Pasquetta
+      if (sameYMD(d, monday)) return true;
+      return false;
+    }
 
     /* ====== AUTO SCALE ====== */
     function applyAutoScale(){
@@ -411,63 +389,59 @@ function isItalianHoliday(d){
     function fmtISO(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
 
     /* ====== DATE SELECTOR ====== */
-function initDateSelector(){
-  const selector = document.getElementById('dateSelector');
-  selector.innerHTML = '';
-  const today = new Date();
-  const dayLetter = ['D','L','M','M','G','V','S'];
+    function initDateSelector(){
+      const selector = document.getElementById('dateSelector');
+      selector.innerHTML = '';
+      const today = new Date();
+      const dayLetter = ['D','L','M','M','G','V','S'];
 
-  // Ultimi 13 giorni + oggi (oggi ultimo)
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
+      // Ultimi 13 giorni + oggi (oggi ultimo)
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
 
-    const dayDiv = document.createElement('div');
-    dayDiv.className = 'date-day';
-    dayDiv.dataset.date = fmtISO(d);
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'date-day';
+        dayDiv.dataset.date = fmtISO(d);
 
-    // weekend/festivi → classi css
-    if (isWeekend(d)) dayDiv.classList.add('weekend');
-    if (isItalianHoliday(d)) dayDiv.classList.add('holiday');
+        if (isWeekend(d)) dayDiv.classList.add('weekend');
+        if (isItalianHoliday(d)) dayDiv.classList.add('holiday');
 
-    if (i === 0) { // oggi selezionato
-      dayDiv.classList.add('today','selected');
-      selectedDate = today;
+        if (i === 0) {
+          dayDiv.classList.add('today','selected');
+          selectedDate = today;
+        }
+
+        dayDiv.innerHTML = `
+          <div class="day-name">${dayLetter[d.getDay()]}</div>
+          <div class="day-num">${d.getDate()}</div>
+        `;
+        dayDiv.onclick = () => selectDate(dayDiv, d);
+        selector.appendChild(dayDiv);
+      }
+
+      // porta in vista l’ultimo elemento (oggi)
+      const last = selector.lastElementChild;
+      if (last && last.scrollIntoView) {
+        last.scrollIntoView({behavior:'instant', block:'nearest', inline:'end'});
+      }
+
+      updateSummary();
     }
 
-    dayDiv.innerHTML = `
-      <div class="day-name">${dayLetter[d.getDay()]}</div>
-      <div class="day-num">${d.getDate()}</div>
-    `;
-    dayDiv.onclick = () => selectDate(dayDiv, d);
-    selector.appendChild(dayDiv);
-  }
-  updateSummary();
-}
+    function selectDate(el, date){
+      document.querySelectorAll('.date-day').forEach(d => d.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedDate = date;
+      updateSummary();
+    }
 
-  // (opzionale) porta in vista l’ultimo elemento (oggi)
-  const last = selector.lastElementChild;
-  if (last && last.scrollIntoView) {
-    last.scrollIntoView({behavior:'instant', block:'nearest', inline:'end'});
-  }
-  updateSummary();
-}
-
-function selectDate(el, date){
-  // deseleziona tutto e seleziona quello cliccato
-  document.querySelectorAll('.date-day').forEach(d => d.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedDate = date;
-  updateSummary();
-}
-
-function highlightDate(date){
-  const iso = fmtISO(date);
-  document.querySelectorAll('.date-day').forEach(d => {
-    d.classList.toggle('selected', d.dataset.date === iso);
-  });
-}
-
+    function highlightDate(date){
+      const iso = fmtISO(date);
+      document.querySelectorAll('.date-day').forEach(d => {
+        d.classList.toggle('selected', d.dataset.date === iso);
+      });
+    }
 
     /* ====== ORARI ====== */
     function updateTimes(){
@@ -523,14 +497,10 @@ function highlightDate(date){
     function updateSummary(){
       document.getElementById('summaryDate').textContent = fmtDateHuman(selectedDate);
       document.getElementById('summaryTime').textContent = buildOrariString() || '-';
-
-      // Cantiere: priorità -> select, altrimenti manuale
       const cant = selectedCantiere || document.getElementById('cantiereInput').value || '-';
       document.getElementById('summaryCantiere').textContent = cant;
-
       const lav = selectedLavorazione || document.getElementById('lavorazioneInput').value || '-';
       document.getElementById('summaryLavorazione').textContent = lav;
-
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
       let hours=0;
@@ -573,50 +543,48 @@ function highlightDate(date){
       return out.reverse();
     }
     function renderMonthList(){
-  const list=document.getElementById('monthList'); list.innerHTML='';
-  const rows=genMonthMock();
+      const list=document.getElementById('monthList'); list.innerHTML='';
+      const rows=genMonthMock();
 
-  // Titolo mese dinamico (mese corrente)
-  const today = new Date();
-  const mese = today.toLocaleDateString('it-IT',{month:'long'});
-  const titleEl = document.getElementById('monthTitle');
-  if (titleEl) titleEl.textContent = `📆 Presenze mese ${mese}`;
+      // Titolo mese dinamico (mese corrente)
+      const today = new Date();
+      const mese = today.toLocaleDateString('it-IT',{month:'long'});
+      const titleEl = document.getElementById('monthTitle');
+      if (titleEl) titleEl.textContent = `📆 Presenze mese ${mese}`;
 
-  rows.forEach(r=>{
-    const d=new Date(r.dataISO);
-    const item=document.createElement('div');
+      rows.forEach(r=>{
+        const d=new Date(r.dataISO);
+        const item=document.createElement('div');
 
-    // classi weekend/festivi sulla riga
-    const cls = ['month-item'];
-    if (isWeekend(d)) cls.push('weekend');
-    if (isItalianHoliday(d)) cls.push('holiday');
-    item.className = cls.join(' ');
+        const cls = ['month-item'];
+        if (isWeekend(d)) cls.push('weekend');
+        if (isItalianHoliday(d)) cls.push('holiday');
+        item.className = cls.join(' ');
 
-    item.innerHTML=`
-      <div class="mi-left">
-        <div class="mi-date">
-          <div>${pad2(d.getDate())}</div>
-          <div style="font-size:11px;color:var(--text-secondary)">${d.toLocaleDateString('it-IT',{month:'short'})}</div>
-        </div>
-        <div class="mi-main">
-          <div class="mi-cant">${r.cantiere}</div>
-          <div class="mi-lav">${r.lavorazione}</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="mi-ore">${r.ore}h</div>
-        <button class="mi-btn">Usa</button>
-      </div>`;
-    item.querySelector('.mi-btn').onclick=()=>applyTemplate(r,true);
-    list.appendChild(item);
-  });
-}
-
+        item.innerHTML=`
+          <div class="mi-left">
+            <div class="mi-date">
+              <div>${pad2(d.getDate())}</div>
+              <div style="font-size:11px;color:var(--text-secondary)">${d.toLocaleDateString('it-IT',{month:'short'})}</div>
+            </div>
+            <div class="mi-main">
+              <div class="mi-cant">${r.cantiere}</div>
+              <div class="mi-lav">${r.lavorazione}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="mi-ore">${r.ore}h</div>
+            <button class="mi-btn">Usa</button>
+          </div>`;
+        item.querySelector('.mi-btn').onclick=()=>applyTemplate(r,true);
+        list.appendChild(item);
+      });
+    }
     function setupMonthToggle(){
       const toggle = document.getElementById('monthToggle');
       const arrow = document.getElementById('monthToggleArrow');
       const list = document.getElementById('monthList');
-      list.classList.remove('open'); // default chiuso
+      list.classList.remove('open');
       toggle.addEventListener('click', ()=>{
         const isOpen = list.classList.toggle('open');
         arrow.textContent = isOpen ? '▲' : '▼';
@@ -626,7 +594,7 @@ function highlightDate(date){
     /* ====== APPLICA TEMPLATE ====== */
     function applyTemplate(t, highlight=false){
       const dParts=t.dataISO.split('-'); const d=new Date(Number(dParts[0]),Number(dParts[1])-1,Number(dParts[2]));
-      selectedDate=d; highlight && highlightDate(d);
+      selectedDate=d; if (highlight) highlightDate(d);
 
       const parts=t.orari.split('+').map(s=>s.trim());
       const [m,p]=parts;
