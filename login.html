@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Presenze Cantiere</title>
+  <link rel="stylesheet" href="style.css"> <style>
+    /* Stile aggiuntivo per centrare il form di login */
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-card { max-width: 400px; width: 90%; }
+  </style>
+</head>
+<body>
+  <div class="card login-card">
+    <div class="card-title">🔑 Accesso Dipendenti</div>
+    <div class="input-group">
+      <span class="input-icon">✉️</span>
+      <input type="email" id="email" placeholder="Email di lavoro" required>
+    </div>
+    <div class="input-group">
+      <span class="input-icon">🔒</span>
+      <input type="password" id="password" placeholder="Password" required>
+    </div>
+    <p id="error-message" style="color:#ff6b35; margin-top:10px; text-align:center; display:none;"></p>
+    <div class="btn-group">
+      <button id="loginBtn" class="btn">Accedi</button>
+    </div>
+  </div>
+
+  <script type="module" src="login.js"></script>
+</body>
+</html>
