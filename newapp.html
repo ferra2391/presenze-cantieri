@@ -11,16 +11,14 @@
       --primary:#FF6B35;--primary-dark:#E55A2B;--secondary:#004E89;--secondary-light:#1A659E;
       --accent:#F7B801;--success:#06D6A0;--bg:#0A0E27;--bg-light:#1a1f3a;
       --card-bg:rgba(255,255,255,.05);--text:#fff;--text-secondary:#B8C5D6;--border:rgba(255,255,255,.1);
-      /* zoom dinamico impostato da JS */
       --zoom: 1;
-      /* dimensioni “di progetto” per calcolo scala */
-      --base-w: 420; /* px */
-      --base-h: 800; /* px */
+      --morning-grad: linear-gradient(135deg,#4da3ff,#5bc0eb); /* azzurrino sfumato */
+      --afternoon-grad: linear-gradient(135deg,var(--primary),var(--accent));
     }
     body{
       font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-      background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100dvh;position:relative;
-      padding-bottom: env(safe-area-inset-bottom, 0); /* iOS notch */
+      background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;position:relative;
+      padding-bottom: env(safe-area-inset-bottom, 0);
       touch-action: manipulation;
     }
     body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
@@ -31,15 +29,13 @@
       animation:drift 20s ease-in-out infinite;z-index:0}
     @keyframes drift{0%,100%{transform:translate(0,0) rotate(0)}33%{transform:translate(30px,-30px) rotate(5deg)}66%{transform:translate(-20px,20px) rotate(-5deg)}}
 
-    /* === SCALING CONTAINER ===
-       Scala visivamente tutta la UI e compensa le dimensioni per riempire lo schermo. */
+    /* scaling */
     .container{
-      position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0;
+      position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0;min-height:100vh;
       transform: scale(var(--zoom));
       transform-origin: top center;
-      /* compensazione per riempire lo schermo a prescindere dallo zoom */
-      width: calc(100dvw / var(--zoom));
-      min-height: calc(100dvh / var(--zoom));
+      width: calc(100vw / var(--zoom));
+      min-height: calc(100vh / var(--zoom));
       will-change: transform,width;
     }
 
@@ -50,15 +46,18 @@
     .header .subtitle{color:rgba(255,255,255,.9);font-size:16px;font-weight:500}
     .user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:8px 16px;border-radius:20px;margin-top:16px;font-size:14px;font-weight:600}
     .content{padding:24px}
+
     .step-indicator{display:flex;justify-content:space-between;margin-bottom:32px;padding:0 8px}
     .step{flex:1;height:4px;background:var(--card-bg);border-radius:4px;margin:0 4px;position:relative;overflow:hidden;transition:.3s}
     .step.active{background:linear-gradient(90deg,var(--primary),var(--accent))}
     .step.active::after{content:'';position:absolute;top:0;left:0;height:100%;width:30%;background:rgba(255,255,255,.5);animation:shimmer 1.5s infinite}
     @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+
     .card{background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:24px;padding:24px;margin-bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,.2);transition:.3s cubic-bezier(.4,0,.2,1)}
     .card:active{transform:scale(.98)}
     .card-title{font-size:18px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
     .card-title .icon{font-size:24px}
+
     .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:16px}
     .date-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card-bg);border:2px solid transparent;border-radius:12px;cursor:pointer;transition:.3s;font-size:14px}
     .date-day .day-name{font-size:10px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;font-weight:600}
@@ -66,28 +65,52 @@
     .date-day:hover{border-color:var(--primary);transform:scale(1.05)}
     .date-day.selected{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;transform:scale(1.05);box-shadow:0 4px 20px rgba(255,107,53,.4)}
     .date-day.today{border-color:var(--success)}
+
+    /* ORARI – layout allineato */
     .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
-    .time-slot{background:var(--bg-light);border:2px solid var(--border);border-radius:20px;padding:20px;text-align:center;cursor:pointer;transition:.3s;position:relative;overflow:hidden}
-    .time-slot::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--accent));opacity:0;transition:opacity .3s}
-    .time-slot.selected::before{opacity:1}
-    .time-slot > *{position:relative;z-index:1}
-    .time-slot .icon{font-size:32px;margin-bottom:8px;display:block}
-    .time-slot .label{font-size:14px;font-weight:600;margin-bottom:4px}
-    .time-slot .time{font-size:18px;font-weight:700}
-    .time-slot:hover{border-color:var(--primary);transform:translateY(-4px);box-shadow:0 8px 24px rgba(255,107,53,.3)}
-    .time-inputs{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .time-inputs input[type="time"]{width:100%;background:#111833;border:2px solid var(--border);color:var(--text);border-radius:12px;padding:10px 12px;font-size:15px;outline:none;transition:.2s}
-    .time-inputs input[type="time"]:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(255,107,53,.1)}
+    .time-slot{
+      position:relative;overflow:hidden;border-radius:20px;border:2px solid var(--border);
+      box-shadow:0 8px 24px rgba(0,0,0,.15);
+    }
+    .time-slot.morning .slot-bg{background:var(--morning-grad);}
+    .time-slot.afternoon .slot-bg{background:var(--afternoon-grad);}
+    .slot-bg{
+      position:absolute;inset:0;opacity:.9;
+    }
+    .slot-inner{
+      position:relative; z-index:1;
+      display:grid; grid-template-rows:auto auto auto; gap:8px;
+      padding:18px 16px 16px 16px;
+    }
+    .slot-head{display:flex;align-items:center;gap:10px}
+    .slot-head .icon{font-size:28px}
+    .slot-head .label{font-size:14px;font-weight:700;letter-spacing:.2px}
+    .slot-time{font-size:18px;font-weight:800}
+    .time-inputs{
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    }
+    .time-inputs input[type="time"]{
+      width:100%;background:rgba(0,0,0,.25);border:2px solid rgba(255,255,255,.35);
+      color:#fff;border-radius:12px;padding:10px 12px;font-size:15px;outline:none;transition:.2s
+    }
+    .time-inputs input[type="time"]:focus{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+
     .quick-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
     .tag{background:var(--bg-light);border:2px solid var(--border);border-radius:20px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;transition:.3s;display:flex;align-items:center;gap:8px}
     .tag:hover{border-color:var(--primary);transform:scale(1.05)}
-    .tag.selected{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));border-color:transparent;box-shadow:0 4px 16px rgba(0,78,137,.4)}
+    .tag.selected{box-shadow:0 4px 16px rgba(255,255,255,.25)}
+
     .input-group{position:relative;margin-top:16px}
-    .input-group input,.input-group textarea{width:100%;background:var(--bg-light);border:2px solid var(--border);border-radius:16px;padding:16px 20px 16px 50px;font-size:16px;color:var(--text);font-family:inherit;transition:.3s}
+    .input-group input,.input-group textarea, .input-group select{
+      width:100%;background:var(--bg-light);border:2px solid var(--border);border-radius:16px;
+      padding:16px 20px 16px 50px;font-size:16px;color:var(--text);font-family:inherit;transition:.3s
+    }
+    .input-group select{padding-left:50px;appearance:none}
     .input-group textarea{resize:vertical;min-height:100px}
-    .input-group input:focus,.input-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(255,107,53,.1)}
+    .input-group input:focus,.input-group textarea:focus,.input-group select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(255,107,53,.1)}
     .input-group .input-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--text-secondary)}
     .input-group textarea + .input-icon{top:20px;transform:none}
+
     .btn-group{display:flex;gap:12px;margin-top:24px}
     .btn{flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:16px;padding:18px;font-size:16px;font-weight:700;color:var(--text);cursor:pointer;transition:.3s cubic-bezier(.4,0,.2,1);box-shadow:0 4px 16px rgba(255,107,53,.3);display:flex;align-items:center;justify-content:center;gap:8px}
     .btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4)}
@@ -95,11 +118,13 @@
     .btn-secondary{background:var(--card-bg);border:2px solid var(--border);box-shadow:none}
     .btn-success{background:linear-gradient(135deg,var(--success),#05b78b)}
     .btn-success:hover{box-shadow:0 8px 24px rgba(6,214,160,.4)}
+
     .summary-card{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));border:none;padding:28px}
     .summary-row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.1)}
     .summary-row:last-child{border-bottom:none;padding-bottom:0}
     .summary-label{font-size:14px;color:var(--text-secondary);font-weight:600}
     .summary-value{font-size:18px;font-weight:700}
+
     .success-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,14,39,.95);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .3s ease}
     .success-overlay.show{display:flex}
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -109,21 +134,15 @@
     @keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-30px)}60%{transform:translateY(-15px)}}
     .success-title{font-size:28px;font-weight:800;margin-bottom:12px}
     .success-message{font-size:16px;color:var(--text-secondary)}
-    .fab{position:fixed;bottom:24px;right:24px;width:64px;height:64px;background:linear-gradient(135deg,var(--primary),var(--accent));border:none;border-radius:50%;font-size:28px;color:var(--text);cursor:pointer;box-shadow:0 8px 24px rgba(255,107,53,.4);transition:.3s;display:none}
-    .fab:hover{transform:scale(1.1) rotate(90deg)}
-    .quick-action{background:var(--card-bg);border:2px dashed var(--border);border-radius:16px;padding:16px;margin-bottom:20px;cursor:pointer;transition:.3s;display:flex;align-items:center;gap:12px}
-    .quick-action:hover{border-color:var(--accent);border-style:solid;background:rgba(247,184,1,.1)}
-    .quick-action .icon{font-size:32px}
-    .quick-action-text{flex:1}
-    .quick-action-title{font-size:16px;font-weight:700;margin-bottom:4px}
-    .quick-action-desc{font-size:13px;color:var(--text-secondary)}
-    .slide-enter{animation:slideInRight .4s cubic-bezier(.4,0,.2,1)}
-    .slide-exit{animation:slideOutLeft .4s cubic-bezier(.4,0,.2,1)}
-    @keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-    @keyframes slideOutLeft{from{transform:translateX(0);opacity:1}to{transform:translateX(-100%);opacity:0}}
+
     .page{display:none}
     .page.active{display:block;animation:fadeIn .3s ease}
-    .month-list{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+
+    /* Presenze mese toggle */
+    .month-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card-bg);border:1px dashed var(--border);border-radius:16px;padding:14px 16px;cursor:pointer}
+    .month-toggle span{font-weight:700}
+    .month-list{display:none;flex-direction:column;gap:12px;margin-top:12px}
+    .month-list.open{display:flex}
     .month-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg-light);border:1px solid var(--border);border-radius:16px;padding:12px 14px}
     .mi-left{display:flex;align-items:center;gap:12px}
     .mi-date{min-width:54px;text-align:center;font-weight:800;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:6px 8px}
@@ -132,10 +151,13 @@
     .mi-lav{font-size:13px;color:var(--text-secondary)}
     .mi-ore{font-weight:800}
     .mi-btn{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));border:none;border-radius:12px;color:#fff;padding:8px 12px;cursor:pointer}
+
+    /* riquadro lavorazione di ieri */
+    .yday-box{margin-top:12px;padding:12px;border:1px dashed var(--border);border-radius:14px;background:rgba(255,255,255,.04);cursor:pointer}
+    .yday-title{font-size:13px;color:var(--text-secondary);margin-bottom:6px;font-weight:700}
+    .yday-value{font-size:15px;font-weight:700}
+
     @media (max-width:480px){.header{padding:48px 20px 32px}.content{padding:20px}.card{padding:20px}}
-    @media (prefers-reduced-motion: reduce){
-      .slide-enter,.slide-exit,.success-content,.success-icon,.header::before{animation:none!important}
-    }
   </style>
 </head>
 <body>
@@ -151,22 +173,16 @@
 
       <!-- Pagina 1 -->
       <div class="page active" id="page1">
-        <div class="quick-action" onclick="copyYesterday()">
-          <span class="icon">⚡</span>
-          <div class="quick-action-text">
-            <div class="quick-action-title">Copia da ieri</div>
-            <div class="quick-action-desc">Stessa giornata di ieri? Un click!</div>
-          </div>
-          <span style="font-size:24px;">→</span>
-        </div>
-
         <div class="card slide-enter">
           <div class="card-title"><span class="icon">📅</span><span>Seleziona la data</span></div>
           <div class="date-selector" id="dateSelector"></div>
         </div>
 
         <div class="card">
-          <div class="card-title"><span class="icon">📆</span><span>Presenze del mese</span></div>
+          <div class="month-toggle" id="monthToggle">
+            <span>📆 Presenze del mese</span>
+            <strong id="monthToggleArrow">▼</strong>
+          </div>
           <div id="monthList" class="month-list"></div>
         </div>
 
@@ -179,26 +195,41 @@
       <div class="page" id="page2">
         <div class="card slide-enter">
           <div class="card-title"><span class="icon">⏰</span><span>Orario di lavoro</span></div>
+
           <div class="time-picker">
-            <div class="time-slot selected" onclick="toggleSlot(event,'morning')">
-              <span class="icon">☀️</span>
-              <div class="label">Mattina</div>
-              <div class="time" id="morningText">08:00 - 12:00</div>
-              <div class="time-inputs" onclick="event.stopPropagation()">
-                <input type="time" id="mStart" value="08:00" oninput="updateTimes()">
-                <input type="time" id="mEnd"   value="12:00" oninput="updateTimes()">
+            <!-- MATTINA -->
+            <div class="time-slot morning">
+              <div class="slot-bg"></div>
+              <div class="slot-inner">
+                <div class="slot-head">
+                  <span class="icon">☀️</span>
+                  <div class="label">Mattina</div>
+                </div>
+                <div class="slot-time" id="morningText">08:00 - 12:00</div>
+                <div class="time-inputs">
+                  <input type="time" id="mStart" value="08:00" oninput="updateTimes()">
+                  <input type="time" id="mEnd"   value="12:00" oninput="updateTimes()">
+                </div>
               </div>
             </div>
-            <div class="time-slot selected" onclick="toggleSlot(event,'afternoon')">
-              <span class="icon">🌙</span>
-              <div class="label">Pomeriggio</div>
-              <div class="time" id="afternoonText">13:00 - 17:00</div>
-              <div class="time-inputs" onclick="event.stopPropagation()">
-                <input type="time" id="pStart" value="13:00" oninput="updateTimes()">
-                <input type="time" id="pEnd"   value="17:00" oninput="updateTimes()">
+
+            <!-- POMERIGGIO -->
+            <div class="time-slot afternoon">
+              <div class="slot-bg"></div>
+              <div class="slot-inner">
+                <div class="slot-head">
+                  <span class="icon">🌙</span>
+                  <div class="label">Pomeriggio</div>
+                </div>
+                <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
+                <div class="time-inputs">
+                  <input type="time" id="pStart" value="13:00" oninput="updateTimes()">
+                  <input type="time" id="pEnd"   value="17:00" oninput="updateTimes()">
+                </div>
               </div>
             </div>
           </div>
+
           <div style="margin-top:16px;padding:16px;background:var(--bg-light);border-radius:16px;text-align:center;">
             <div style="color:var(--text-secondary);font-size:14px;margin-bottom:4px;">Ore totali</div>
             <div style="font-size:32px;font-weight:800;color:var(--accent);" id="totalHours">8.0h</div>
@@ -215,15 +246,24 @@
       <div class="page" id="page3">
         <div class="card slide-enter">
           <div class="card-title"><span class="icon">🏗️</span><span>Cantiere</span></div>
-          <div class="quick-tags" id="cantierePresets">
-            <div class="tag" onclick="selectCantiere(this)"><span>🏠</span><span>Cantiere A</span></div>
-            <div class="tag" onclick="selectCantiere(this)"><span>🏢</span><span>Cantiere B</span></div>
-            <div class="tag" onclick="selectCantiere(this)"><span>🏭</span><span>Cantiere C</span></div>
-            <div class="tag" onclick="selectCantiere(this)"><span>🏛️</span><span>Cantiere D</span></div>
+
+          <!-- ROTORE (select) -->
+          <div class="input-group">
+            <span class="input-icon">🏷️</span>
+            <select id="cantiereSelect" onchange="onSelectCantiere()">
+              <option value="">— Seleziona cantiere —</option>
+              <option>Condominio Aurora</option>
+              <option>Scuola Media Verdi</option>
+              <option>Capannone Logistica B12</option>
+              <option>Villa Colli Sud</option>
+              <option>Ristrutturazione Via Roma 21</option>
+            </select>
           </div>
+
+          <!-- Inserimento manuale -->
           <div class="input-group">
             <span class="input-icon">🔍</span>
-            <input type="text" placeholder="Oppure scrivi il nome del cantiere..." id="cantiereInput" oninput="selectedCantiere='';updateSummary()">
+            <input type="text" placeholder="Oppure scrivi il nome del cantiere..." id="cantiereInput" oninput="onManualCantiere()">
           </div>
         </div>
 
@@ -237,16 +277,17 @@
       <div class="page" id="page4">
         <div class="card slide-enter">
           <div class="card-title"><span class="icon">🔨</span><span>Lavorazione</span></div>
-        <div class="quick-tags" id="lavorazionePresets">
-            <div class="tag" onclick="selectLavorazione(this)"><span>🧱</span><span>Muratura</span></div>
-            <div class="tag" onclick="selectLavorazione(this)"><span>⚡</span><span>Impianto elettrico</span></div>
-            <div class="tag" onclick="selectLavorazione(this)"><span>💧</span><span>Impianto idraulico</span></div>
-            <div class="tag" onclick="selectLavorazione(this)"><span>🎨</span><span>Pittura</span></div>
-            <div class="tag" onclick="selectLavorazione(this)"><span>🪟</span><span>Serramenti</span></div>
-          </div>
+
+          <!-- SOLO INSERIMENTO MANUALE -->
           <div class="input-group">
             <span class="input-icon">📝</span>
-            <textarea placeholder="Oppure descrivi la lavorazione..." id="lavorazioneInput" oninput="selectedLavorazione='';updateSummary()"></textarea>
+            <textarea placeholder="Descrivi la lavorazione..." id="lavorazioneInput" oninput="selectedLavorazione='';updateSummary()"></textarea>
+          </div>
+
+          <!-- Lavorazione di ieri (hardcoded) -->
+          <div class="yday-box" onclick="useYesterdayWork()">
+            <div class="yday-title">Lavorazione di ieri</div>
+            <div class="yday-value" id="ydayVal">Scalcinatura e rete intonaco – vano scala B</div>
           </div>
         </div>
 
@@ -280,46 +321,16 @@
     let currentPage=1, selectedDate=new Date(), selectedCantiere='', selectedLavorazione='';
     let slotEnabled={morning:true, afternoon:true};
 
-    /* ====== AUTO SCALE MIGLIORATO ====== */
-    function snapScale(val, step=0.025){ return Math.round(val/step)*step; } // riduce blur
-    function isTextInput(el){ return el && (el.tagName==='INPUT' || el.tagName==='TEXTAREA'); }
-
+    /* ====== AUTO SCALE ====== */
     function applyAutoScale(){
-      // usa visualViewport per avere l'altezza reale (barra indirizzi, tastiera, ecc.)
-      const vw = Math.max(320, Math.min(window.innerWidth, 1200));
-      const vh = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
-
-      const baseW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base-w')) || 420;
-      const baseH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base-h')) || 800;
-
-      // scale per larghezza e per altezza, poi prendi il minimo (fit sia in W che in H)
-      const scaleW = vw / baseW;
-      const scaleH = vh / baseH;
-      let scale = Math.min(scaleW, scaleH);
-
-      // evita di ridurre troppo (scroll ok) o di ingrandire eccessivamente
-      scale = Math.max(0.90, Math.min(1.35, scale));
-
-      // se la tastiera è aperta e sei dentro un input, non ricalcolare aggressivamente
-      const keyboardLikelyOpen = window.visualViewport && (window.visualViewport.height < window.innerHeight * 0.8);
-      if (keyboardLikelyOpen && isTextInput(document.activeElement)) {
-        // mantieni la scala corrente
-        const current = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--zoom')) || 1;
-        scale = current;
-      }
-
-      // snap a step per evitare sottopixel sfocati
-      scale = snapScale(scale, 0.025);
+      const base = 420;
+      const w = Math.max(320, Math.min(window.innerWidth, 1024));
+      const scale = Math.max(1, Math.min(1.35, w / base));
       document.documentElement.style.setProperty('--zoom', scale.toFixed(3));
     }
-
-    const rafApply = ()=> requestAnimationFrame(applyAutoScale);
-    window.addEventListener('resize', rafApply, {passive:true});
-    window.addEventListener('orientationchange', rafApply);
-    if (window.visualViewport){
-      window.visualViewport.addEventListener('resize', rafApply, {passive:true});
-      window.visualViewport.addEventListener('scroll', rafApply, {passive:true}); // su iOS varia anche con la barra
-    }
+    window.addEventListener('resize', applyAutoScale, {passive:true});
+    window.addEventListener('orientationchange', applyAutoScale);
+    document.addEventListener('DOMContentLoaded', applyAutoScale);
 
     /* ====== UTILS ORE ====== */
     function toMinutes(hhmm){ if(!hhmm) return 0; const [h,m]=hhmm.split(':').map(Number); return h*60+m; }
@@ -353,12 +364,7 @@
       });
     }
 
-    /* ====== TIME UI ====== */
-    function toggleSlot(ev,which){
-      const card=ev.currentTarget;
-      const on=card.classList.toggle('selected'); slotEnabled[which]=on;
-      updateTimes();
-    }
+    /* ====== ORARI ====== */
     function updateTimes(){
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
@@ -370,20 +376,6 @@
       document.getElementById('totalHours').textContent = hours.toFixed(1)+'h';
       updateSummary();
     }
-
-    /* ====== PRESETS ====== */
-    function selectCantiere(el){
-      document.querySelectorAll('#cantierePresets .tag').forEach(t=>t.classList.remove('selected'));
-      el.classList.add('selected'); selectedCantiere=el.innerText.trim();
-      document.getElementById('cantiereInput').value=''; updateSummary();
-    }
-    function selectLavorazione(el){
-      document.querySelectorAll('#lavorazionePresets .tag').forEach(t=>t.classList.remove('selected'));
-      el.classList.add('selected'); selectedLavorazione=el.innerText.trim();
-      document.getElementById('lavorazioneInput').value=''; updateSummary();
-    }
-
-    /* ====== RIEPILOGO ====== */
     function buildOrariString(){
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
@@ -392,13 +384,48 @@
       if(slotEnabled.afternoon) parts.push(`${ps}-${pe}`);
       return parts.join(' + ');
     }
+
+    /* ====== CANTIERE (select + manuale) ====== */
+    function onSelectCantiere(){
+      const v = document.getElementById('cantiereSelect').value;
+      if(v){
+        selectedCantiere = v;
+        const manual = document.getElementById('cantiereInput');
+        manual.value = '';
+      }else{
+        selectedCantiere = '';
+      }
+      updateSummary();
+    }
+    function onManualCantiere(){
+      const manual = document.getElementById('cantiereInput').value.trim();
+      if(manual){
+        selectedCantiere = '';
+        document.getElementById('cantiereSelect').value = '';
+      }
+      updateSummary();
+    }
+
+    /* ====== LAVORAZIONE DI IERI (hardcoded ora) ====== */
+    function useYesterdayWork(){
+      const v = document.getElementById('ydayVal').textContent.trim();
+      document.getElementById('lavorazioneInput').value = v;
+      selectedLavorazione = '';
+      updateSummary();
+    }
+
+    /* ====== RIEPILOGO ====== */
     function updateSummary(){
       document.getElementById('summaryDate').textContent = fmtDateHuman(selectedDate);
       document.getElementById('summaryTime').textContent = buildOrariString() || '-';
+
+      // Cantiere: priorità -> select, altrimenti manuale
       const cant = selectedCantiere || document.getElementById('cantiereInput').value || '-';
-      const lav  = selectedLavorazione || document.getElementById('lavorazioneInput').value || '-';
       document.getElementById('summaryCantiere').textContent = cant;
+
+      const lav = selectedLavorazione || document.getElementById('lavorazioneInput').value || '-';
       document.getElementById('summaryLavorazione').textContent = lav;
+
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
       let hours=0;
@@ -423,31 +450,16 @@
       window.scrollTo({top:0,behavior:'smooth'});
     }
 
-    /* ====== COPIA DA IERI ====== */
-    function copyYesterday(){
-      const saved = JSON.parse(localStorage.getItem('ultimaPresenza')||'null');
-      if(saved){ applyTemplate(saved,true); return; }
-      const y=new Date(); y.setDate(y.getDate()-1);
-      const template={
-        dataISO:fmtISO(y),
-        orari:'07:30-12:30 + 13:30-17:15',
-        cantiere:'Cantiere B',
-        lavorazione:'Scalcinato e preparato per intonaco',
-        ore: '8.8'
-      };
-      applyTemplate(template,true);
-    }
-
-    /* ====== PRESENZE MESE MOCK ====== */
+    /* ====== PRESENZE MESE (mock + toggle) ====== */
     function genMonthMock(){
       const base=new Date(); const out=[];
       const samples=[
-        {c:'Cantiere A', l:'Muratura pareti interne', or:'08:00-12:00 + 13:00-17:00', h:8.0},
-        {c:'Cantiere B', l:'Scalcinatura e rete', or:'07:30-12:30 + 13:30-17:15', h:8.8},
-        {c:'Cantiere C', l:'Impianto elettrico canaline', or:'08:00-12:00 + 13:00-16:30', h:7.5},
-        {c:'Cantiere D', l:'Pittura primer', or:'08:00-12:30 + 13:30-17:45', h:9.3},
-        {c:'Cantiere B', l:'Posa sottofondi', or:'08:00-12:00 + 13:00-17:00', h:8.0},
-        {c:'Cantiere A', l:'Serramenti – rilievi', or:'09:00-12:00 + 13:00-17:30', h:7.5}
+        {c:'Condominio Aurora', l:'Muratura pareti interne', or:'08:00-12:00 + 13:00-17:00', h:8.0},
+        {c:'Scuola Media Verdi', l:'Scalcinatura e rete', or:'07:30-12:30 + 13:30-17:15', h:8.8},
+        {c:'Capannone Logistica B12', l:'Impianto elettrico canaline', or:'08:00-12:00 + 13:00-16:30', h:7.5},
+        {c:'Villa Colli Sud', l:'Pittura primer', or:'08:00-12:30 + 13:30-17:45', h:9.3},
+        {c:'Ristrutturazione Via Roma 21', l:'Posa sottofondi', or:'08:00-12:00 + 13:00-17:00', h:8.0},
+        {c:'Condominio Aurora', l:'Serramenti – rilievi', or:'09:00-12:00 + 13:00-17:30', h:7.5}
       ];
       for(let i=0;i<6;i++){
         const d=new Date(base); d.setDate(base.getDate()-(i+1));
@@ -480,6 +492,16 @@
         list.appendChild(item);
       });
     }
+    function setupMonthToggle(){
+      const toggle = document.getElementById('monthToggle');
+      const arrow = document.getElementById('monthToggleArrow');
+      const list = document.getElementById('monthList');
+      list.classList.remove('open'); // default chiuso
+      toggle.addEventListener('click', ()=>{
+        const isOpen = list.classList.toggle('open');
+        arrow.textContent = isOpen ? '▲' : '▼';
+      });
+    }
 
     /* ====== APPLICA TEMPLATE ====== */
     function applyTemplate(t, highlight=false){
@@ -488,19 +510,27 @@
 
       const parts=t.orari.split('+').map(s=>s.trim());
       const [m,p]=parts;
-      if(m){ const [ms,me]=m.split('-'); document.getElementById('mStart').value=ms; document.getElementById('mEnd').value=me; slotEnabled.morning=true; document.querySelectorAll('.time-slot')[0].classList.add('selected'); }
-      if(p){ const [ps,pe]=p.split('-'); document.getElementById('pStart').value=ps; document.getElementById('pEnd').value=pe; slotEnabled.afternoon=true; document.querySelectorAll('.time-slot')[1].classList.add('selected'); }
+      if(m){ const [ms,me]=m.split('-'); document.getElementById('mStart').value=ms; document.getElementById('mEnd').value=me; }
+      if(p){ const [ps,pe]=p.split('-'); document.getElementById('pStart').value=ps; document.getElementById('pEnd').value=pe; }
       updateTimes();
 
-      selectedCantiere=''; document.querySelectorAll('#cantierePresets .tag').forEach(tg=>tg.classList.remove('selected'));
-      const match = Array.from(document.querySelectorAll('#cantierePresets .tag')).find(tg=>tg.innerText.trim()===t.cantiere);
-      if(match){ match.classList.add('selected'); selectedCantiere=t.cantiere; document.getElementById('cantiereInput').value=''; }
-      else { document.getElementById('cantiereInput').value=t.cantiere; }
+      // cantiere: prova a settare select, altrimenti manuale
+      const sel = document.getElementById('cantiereSelect');
+      let matched = false;
+      Array.from(sel.options).forEach(o=>{
+        if(o.value && o.text.trim()===t.cantiere){ sel.value=o.value; matched=true; }
+      });
+      if(!matched){
+        sel.value='';
+        document.getElementById('cantiereInput').value=t.cantiere;
+      }else{
+        document.getElementById('cantiereInput').value='';
+        selectedCantiere = sel.value;
+      }
 
-      selectedLavorazione=''; document.querySelectorAll('#lavorazionePresets .tag').forEach(tg=>tg.classList.remove('selected'));
-      const lmatch = Array.from(document.querySelectorAll('#lavorazionePresets .tag')).find(tg=>tg.innerText.trim()===t.lavorazione);
-      if(lmatch){ lmatch.classList.add('selected'); selectedLavorazione=t.lavorazione; document.getElementById('lavorazioneInput').value=''; }
-      else { document.getElementById('lavorazioneInput').value=t.lavorazione; }
+      // lavorazione → campo manuale
+      document.getElementById('lavorazioneInput').value = t.lavorazione;
+      selectedLavorazione = '';
 
       updateSummary();
       nextPage(2);
@@ -511,8 +541,8 @@
       const payload={
         dataISO:fmtISO(selectedDate),
         orari:buildOrariString(),
-        cantiere: selectedCantiere || document.getElementById('cantiereInput').value || '-',
-        lavorazione: selectedLavorazione || document.getElementById('lavorazioneInput').value || '-',
+        cantiere: (selectedCantiere || document.getElementById('cantiereInput').value || '-'),
+        lavorazione: (selectedLavorazione || document.getElementById('lavorazioneInput').value || '-'),
         ore: document.getElementById('summaryHours').textContent.replace('h','')
       };
       localStorage.setItem('ultimaPresenza', JSON.stringify(payload));
@@ -523,14 +553,14 @@
         document.querySelectorAll('.step').forEach((s,i)=>{ if(i===0) s.classList.add('active'); else s.classList.remove('active'); });
         document.querySelectorAll('.page').forEach((p,i)=>{ if(i===0) p.classList.add('active'); else p.classList.remove('active'); });
         window.scrollTo({top:0,behavior:'smooth'});
-      },2000);
+      },1200);
     }
 
     /* ====== INIT ====== */
     document.addEventListener('DOMContentLoaded',()=>{
-      applyAutoScale();            // <-- calcolo iniziale
       initDateSelector();
       renderMonthList();
+      setupMonthToggle();
       updateTimes();
     });
   </script>
