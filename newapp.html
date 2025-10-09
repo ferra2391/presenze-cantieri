@@ -5,57 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Presenze Cantiere</title>
 
-  <style>
-    /* =================== RESET & THEME =================== */
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    :root{
-      --primary:#FF6B35; --primary-dark:#E55A2B;
-      --secondary:#004E89; --secondary-light:#1A659E;
-      --accent:#F7B801; --success:#06D6A0; --danger:#dc2626;
-      --bg:#0A0E27; --bg-light:#1a1f3a;
-      --card-bg:rgba(255,255,255,.05); --border:rgba(255,255,255,.1);
-      --text:#fff; --text-secondary:#B8C5D6;
-      --zoom:1;
-      --morning-grad: linear-gradient(135deg,#4da3ff,#5bc0eb);
-      --afternoon-grad: linear-gradient(135deg,var(--primary),var(--accent));
-      --slot-h: 196px;
-      --radius: 20px;
-    }
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-      background:var(--bg); color:var(--text);
-      overflow-x:hidden; min-height:100vh; position:relative;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-      touch-action: manipulation;
-    }
-    body::before{
-      content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
-      background:
-        radial-gradient(circle at 20% 50%,rgba(255,107,53,.15)0%,transparent 50%),
-        radial-gradient(circle at 80% 80%,rgba(0,78,137,.15)0%,transparent 50%),
-        radial-gradient(circle at 40% 20%,rgba(247,184,1,.1)0%,transparent 50%);
-      animation:drift 20s ease-in-out infinite; z-index:0;
-    }
-    @keyframes drift{ 0%,100%{transform:translate(0,0) rotate(0)} 33%{transform:translate(30px,-30px) rotate(5deg)} 66%{transform:translate(-20px,20px) rotate(-5deg)} }
-    .container{
-      display: none; /* Nascosto di default, mostrato da JS dopo il login */
-      position:relative; z-index:1; max-width:480px; margin:0 auto; min-height:100vh;
-      transform: scale(var(--zoom)); transform-origin: top center;
-      width: calc(100vw / var(--zoom)); min-height: calc(100vh / var(--zoom));
-      will-change: transform,width;
-    }
-    .header{ background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); padding:60px 24px 40px; border-radius:0 0 32px 32px; box-shadow:0 10px 40px rgba(255,107,53,.3); position:relative; overflow:hidden; }
-    .header::before{content:''; position:absolute; top:-50%; right:-20%; width:200px; height:200px; background:rgba(255,255,255,.1); border-radius:50%; animation:float 6s ease-in-out infinite}
-    @keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.1)}}
-    .header h1{font-size:28px; font-weight:800; margin-bottom:8px}
-    .header .subtitle{color:rgba(255,255,255,.9); font-size:16px; font-weight:500}
-    .user-info { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
-    .user-badge{display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.2); backdrop-filter:blur(10px); padding:8px 16px; border-radius:20px; font-size:14px; font-weight:600}
-    #logoutBtn { background: rgba(220, 38, 38, 0.5); border: 1px solid var(--danger); color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 14px; transition: .2s; }
-    #logoutBtn:hover { background: var(--danger); transform: scale(1.05); }
-    .content{padding:24px}
-    /* ... il resto del tuo CSS rimane esattamente lo stesso ... */
-  </style>
+  <!-- Rimosso tutto il CSS da qui -->
+  <!-- Collegato il foglio di stile esterno -->
+  <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
   <!-- Il container principale dell'app. Inizialmente è nascosto. -->
@@ -182,7 +135,7 @@
     </div>
   </div>
 
-  <!-- Tutto il Javascript è stato spostato in main.js -->
+  <!-- Collegato il file JavaScript esterno -->
   <script type="module" src="main.js"></script>
 </body>
 </html>
