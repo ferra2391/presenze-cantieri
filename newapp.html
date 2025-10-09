@@ -340,29 +340,58 @@
     function fmtISO(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
 
     /* ====== DATE SELECTOR ====== */
-    function initDateSelector(){
-      const selector=document.getElementById('dateSelector'); selector.innerHTML='';
-      const today=new Date(); const days=['L','M','M','G','V','S','D'];
-      for(let i=-3;i<=3;i++){
-        const date=new Date(today); date.setDate(today.getDate()+i);
-        const dayDiv=document.createElement('div'); dayDiv.className='date-day';
-        if(i===0){ dayDiv.classList.add('today','selected'); selectedDate=today; }
-        dayDiv.innerHTML=`<div class="day-name">${days[date.getDay()===0?6:date.getDay()-1]}</div><div class="day-num">${date.getDate()}</div>`;
-        dayDiv.onclick=()=>selectDate(dayDiv,date);
-        selector.appendChild(dayDiv);
-      }
-      updateSummary();
+function initDateSelector(){
+  const selector = document.getElementById('dateSelector');
+  selector.innerHTML = '';
+  const today = new Date();
+  // Lettere giorno: 0=Dom ... 6=Sab
+  const dayLetter = ['D','L','M','M','G','V','S'];
+
+  // Ultimi 14 giorni + oggi (oggi deve essere l’ultimo)
+  for (let i = 14; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'date-day';
+    dayDiv.dataset.date = fmtISO(d); // <- ISO per match preciso
+
+    if (i === 0) { // oggi è l'ultimo ed è selezionato
+      dayDiv.classList.add('today','selected');
+      selectedDate = today;
     }
-    function selectDate(el,date){
-      document.querySelectorAll('.date-day').forEach(d=>d.classList.remove('selected'));
-      el.classList.add('selected'); selectedDate=date; updateSummary();
-    }
-    function highlightDate(date){
-      document.querySelectorAll('.date-day').forEach(d=>{
-        const num=d.querySelector('.day-num').textContent.trim();
-        if(Number(num)===date.getDate()) d.classList.add('selected'); else d.classList.remove('selected');
-      });
-    }
+
+    dayDiv.innerHTML = `
+      <div class="day-name">${dayLetter[d.getDay()]}</div>
+      <div class="day-num">${d.getDate()}</div>
+    `;
+    dayDiv.onclick = () => selectDate(dayDiv, d);
+    selector.appendChild(dayDiv);
+  }
+
+  // (opzionale) porta in vista l’ultimo elemento (oggi)
+  const last = selector.lastElementChild;
+  if (last && last.scrollIntoView) {
+    last.scrollIntoView({behavior:'instant', block:'nearest', inline:'end'});
+  }
+  updateSummary();
+}
+
+function selectDate(el, date){
+  // deseleziona tutto e seleziona quello cliccato
+  document.querySelectorAll('.date-day').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDate = date;
+  updateSummary();
+}
+
+function highlightDate(date){
+  const iso = fmtISO(date);
+  document.querySelectorAll('.date-day').forEach(d => {
+    d.classList.toggle('selected', d.dataset.date === iso);
+  });
+}
+
 
     /* ====== ORARI ====== */
     function updateTimes(){
