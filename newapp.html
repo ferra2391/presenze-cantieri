@@ -158,6 +158,22 @@
     .yday-value{font-size:15px;font-weight:700}
 
     @media (max-width:480px){.header{padding:48px 20px 32px}.content{padding:20px}.card{padding:20px}}
+
+    /* Evidenziazione weekend/festivi (tono rosso trasparente) */
+.date-day.weekend:not(.selected),
+.date-day.holiday:not(.selected){
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.month-item.weekend,
+.month-item.holiday{
+  background:
+    linear-gradient(0deg, rgba(220, 38, 38, 0.12), rgba(220, 38, 38, 0.12)),
+    var(--bg-light);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
   </style>
 </head>
 <body>
@@ -179,10 +195,11 @@
         </div>
 
         <div class="card">
-          <div class="month-toggle" id="monthToggle">
-            <span>📆 Presenze del mese</span>
-            <strong id="monthToggleArrow">▼</strong>
-          </div>
+<div class="month-toggle" id="monthToggle">
+  <span id="monthTitle">📆 Presenze del mese</span>
+  <strong id="monthToggleArrow">▼</strong>
+</div>
+
           <div id="monthList" class="month-list"></div>
         </div>
 
@@ -321,6 +338,60 @@
     let currentPage=1, selectedDate=new Date(), selectedCantiere='', selectedLavorazione='';
     let slotEnabled={morning:true, afternoon:true};
 
+    /* ====== WEEKEND / FESTIVI IT ====== */
+function isWeekend(d){
+  const day = d.getDay(); // 0=Dom,6=Sab
+  return day === 0 || day === 6;
+}
+
+// Calcolo Pasqua (Calendario gregoriano, algoritmo di Meeus)
+function easterDate(year){
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l) / 451);
+  const month = Math.floor((h + l - 7*m + 114) / 31); // 3=Marzo, 4=Aprile
+  const day = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(year, month-1, day);
+}
+function addDays(date, n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+
+function sameYMD(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+function isItalianHoliday(d){
+  const y = d.getFullYear();
+  // Festività fisse
+  const fixed = [
+    [1,1],   // Capodanno
+    [1,6],   // Epifania
+    [4,25],  // Liberazione
+    [5,1],   // Lavoro
+    [6,2],   // Repubblica
+    [8,15],  // Ferragosto
+    [11,1],  // Ognissanti
+    [12,8],  // Immacolata
+    [12,25], // Natale
+    [12,26], // Santo Stefano
+  ];
+  for(const [mm,dd] of fixed){
+    if (sameYMD(d, new Date(y, mm-1, dd))) return true;
+  }
+  // Pasquetta (Lunedì dell'Angelo) = Pasqua + 1
+  const easter = easterDate(y);
+  const monday = addDays(easter, 1);
+  if (sameYMD(d, monday)) return true;
+
+  return false;
+}
+
     /* ====== AUTO SCALE ====== */
     function applyAutoScale(){
       const base = 420;
@@ -344,19 +415,22 @@ function initDateSelector(){
   const selector = document.getElementById('dateSelector');
   selector.innerHTML = '';
   const today = new Date();
-  // Lettere giorno: 0=Dom ... 6=Sab
   const dayLetter = ['D','L','M','M','G','V','S'];
 
-  // Ultimi 14 giorni + oggi (oggi deve essere l’ultimo)
+  // Ultimi 13 giorni + oggi (oggi ultimo)
   for (let i = 13; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
 
     const dayDiv = document.createElement('div');
     dayDiv.className = 'date-day';
-    dayDiv.dataset.date = fmtISO(d); // <- ISO per match preciso
+    dayDiv.dataset.date = fmtISO(d);
 
-    if (i === 0) { // oggi è l'ultimo ed è selezionato
+    // weekend/festivi → classi css
+    if (isWeekend(d)) dayDiv.classList.add('weekend');
+    if (isItalianHoliday(d)) dayDiv.classList.add('holiday');
+
+    if (i === 0) { // oggi selezionato
       dayDiv.classList.add('today','selected');
       selectedDate = today;
     }
@@ -368,6 +442,8 @@ function initDateSelector(){
     dayDiv.onclick = () => selectDate(dayDiv, d);
     selector.appendChild(dayDiv);
   }
+  updateSummary();
+}
 
   // (opzionale) porta in vista l’ultimo elemento (oggi)
   const last = selector.lastElementChild;
@@ -497,30 +573,45 @@ function highlightDate(date){
       return out.reverse();
     }
     function renderMonthList(){
-      const list=document.getElementById('monthList'); list.innerHTML='';
-      const rows=genMonthMock();
-      rows.forEach(r=>{
-        const d=new Date(r.dataISO);
-        const item=document.createElement('div'); item.className='month-item';
-        item.innerHTML=`
-          <div class="mi-left">
-            <div class="mi-date">
-              <div>${pad2(d.getDate())}</div>
-              <div style="font-size:11px;color:var(--text-secondary)">${d.toLocaleDateString('it-IT',{month:'short'})}</div>
-            </div>
-            <div class="mi-main">
-              <div class="mi-cant">${r.cantiere}</div>
-              <div class="mi-lav">${r.lavorazione}</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="mi-ore">${r.ore}h</div>
-            <button class="mi-btn">Usa</button>
-          </div>`;
-        item.querySelector('.mi-btn').onclick=()=>applyTemplate(r,true);
-        list.appendChild(item);
-      });
-    }
+  const list=document.getElementById('monthList'); list.innerHTML='';
+  const rows=genMonthMock();
+
+  // Titolo mese dinamico (mese corrente)
+  const today = new Date();
+  const mese = today.toLocaleDateString('it-IT',{month:'long'});
+  const titleEl = document.getElementById('monthTitle');
+  if (titleEl) titleEl.textContent = `📆 Presenze mese ${mese}`;
+
+  rows.forEach(r=>{
+    const d=new Date(r.dataISO);
+    const item=document.createElement('div');
+
+    // classi weekend/festivi sulla riga
+    const cls = ['month-item'];
+    if (isWeekend(d)) cls.push('weekend');
+    if (isItalianHoliday(d)) cls.push('holiday');
+    item.className = cls.join(' ');
+
+    item.innerHTML=`
+      <div class="mi-left">
+        <div class="mi-date">
+          <div>${pad2(d.getDate())}</div>
+          <div style="font-size:11px;color:var(--text-secondary)">${d.toLocaleDateString('it-IT',{month:'short'})}</div>
+        </div>
+        <div class="mi-main">
+          <div class="mi-cant">${r.cantiere}</div>
+          <div class="mi-lav">${r.lavorazione}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="mi-ore">${r.ore}h</div>
+        <button class="mi-btn">Usa</button>
+      </div>`;
+    item.querySelector('.mi-btn').onclick=()=>applyTemplate(r,true);
+    list.appendChild(item);
+  });
+}
+
     function setupMonthToggle(){
       const toggle = document.getElementById('monthToggle');
       const arrow = document.getElementById('monthToggleArrow');
