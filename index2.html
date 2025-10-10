@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <!-- Niente zoom utente: usiamo lo scaling interno per uniformare la UI sui telefoni -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Presenze Cantiere</title>
+
+  <style>
+    /* =================== RESET & THEME =================== */
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{
+      --primary:#FF6B35; --primary-dark:#E55A2B;
+      --secondary:#004E89; --secondary-light:#1A659E;
+      --accent:#F7B801; --success:#06D6A0;
+      --bg:#0A0E27; --bg-light:#1a1f3a;
+      --card-bg:rgba(255,255,255,.05); --border:rgba(255,255,255,.1);
+      --text:#fff; --text-secondary:#B8C5D6;
+      --zoom:1;
+
+      /* Gradient slot orari */
+      --morning-grad: linear-gradient(135deg,#4da3ff,#5bc0eb);
+      --afternoon-grad: linear-gradient(135deg,var(--primary),var(--accent));
+
+      /* Altezza minima slot orari */
+      --slot-h: 196px;
+      /* Raggi per carte */
+      --radius: 20px;
+    }
+
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      background:var(--bg); color:var(--text);
+      overflow-x:hidden; min-height:100vh; position:relative;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      touch-action: manipulation;
+    }
+
+    /* Sfondo animato soft */
+    body::before{
+      content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+      background:
+        radial-gradient(circle at 20% 50%,rgba(255,107,53,.15)0%,transparent 50%),
+        radial-gradient(circle at 80% 80%,rgba(0,78,137,.15)0%,transparent 50%),
+        radial-gradient(circle at 40% 20%,rgba(247,184,1,.1)0%,transparent 50%);
+      animation:drift 20s ease-in-out infinite; z-index:0;
+    }
+    @keyframes drift{
+      0%,100%{transform:translate(0,0) rotate(0)}
+      33%{transform:translate(30px,-30px) rotate(5deg)}
+      66%{transform:translate(-20px,20px) rotate(-5deg)}
+    }
+
+    /* =================== CONTAINER CON AUTO-SCALE =================== */
+    .container{
+      position:relative; z-index:1;
+      max-width:480px; margin:0 auto; min-height:100vh;
+      transform: scale(var(--zoom)); transform-origin: top center;
+      width: calc(100vw / var(--zoom)); min-height: calc(100vh / var(--zoom));
+      will-change: transform,width;
+    }
+
+    /* =================== HEADER =================== */
+    .header{
+      background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+      padding:60px 24px 40px; border-radius:0 0 32px 32px;
+      box-shadow:0 10px 40px rgba(255,107,53,.3); position:relative; overflow:hidden;
+    }
+    .header::before{content:''; position:absolute; top:-50%; right:-20%; width:200px; height:200px; background:rgba(255,255,255,.1); border-radius:50%; animation:float 6s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.1)}}
+    .header h1{font-size:28px; font-weight:800; margin-bottom:8px}
+    .header .subtitle{color:rgba(255,255,255,.9); font-size:16px; font-weight:500}
+    .user-badge{display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.2); backdrop-filter:blur(10px); padding:8px 16px; border-radius:20px; margin-top:16px; font-size:14px; font-weight:600}
+    .content{padding:24px}
+
+    /* =================== STEPS =================== */
+    .step-indicator{display:flex; justify-content:space-between; margin-bottom:32px; padding:0 8px}
+    .step{flex:1; height:4px; background:var(--card-bg); border-radius:4px; margin:0 4px; position:relative; overflow:hidden; transition:.3s}
+    .step.active{background:linear-gradient(90deg,var(--primary),var(--accent))}
+    .step.active::after{content:''; position:absolute; top:0; left:0; height:100%; width:30%; background:rgba(255,255,255,.5); animation:shimmer 1.5s infinite}
+    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+
+    /* =================== CARDS =================== */
+    .card{
+      background:var(--card-bg); backdrop-filter:blur(20px);
+      border:1px solid var(--border); border-radius:24px;
+      padding:24px; margin-bottom:20px; box-shadow:0 8px 32px rgba(0,0,0,.2);
+    }
+    .card-title{font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:10px}
+    .card-title .icon{font-size:24px}
+
+    /* =================== SELETTORE DATA =================== */
+    .date-selector{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:16px}
+    .date-day{
+      aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:var(--card-bg); border:2px solid transparent; border-radius:12px; cursor:pointer; transition:.3s; font-size:14px;
+    }
+    .date-day .day-name{font-size:10px; color:var(--text-secondary); margin-bottom:4px; text-transform:uppercase; font-weight:600}
+    .date-day .day-num{font-size:16px; font-weight:700}
+    .date-day:hover{border-color:var(--primary); transform:scale(1.05)}
+    .date-day.selected{background:linear-gradient(135deg,var(--primary),var(--accent)); border-color:transparent; transform:scale(1.05); box-shadow:0 4px 20px rgba(255,107,53,.4)}
+    .date-day.today{border-color:var(--success)}
+    .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){background: rgba(220, 38, 38, 0.12); border-color: rgba(220, 38, 38, 0.35);}
+
+    /* =================== ORARI DI LAVORO ===================
+       - Fix overflow: padding-contorno + background sotto, contenuto sopra
+       - Input sempre dentro il box colorato, nessuna fuoriuscita
+    */
+    .time-picker{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px}
+    .time-slot{
+      position:relative; overflow:hidden; border-radius:var(--radius);
+      border:2px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.15);
+      min-height:var(--slot-h);
+      /* padding interno per evitare che gli input tocchino i bordi */
+      padding:14px;
+      background:var(--bg-light);
+    }
+    .time-slot.morning .slot-bg{background:var(--morning-grad)}
+    .time-slot.afternoon .slot-bg{background:var(--afternoon-grad)}
+    .slot-bg{
+      position:absolute; inset:0; opacity:.9; border-radius:calc(var(--radius) - 2px);
+    }
+    .slot-inner{
+      position:relative; z-index:1;
+      display:grid; grid-template-rows:auto auto 1fr; gap:10px; height:100%;
+    }
+    .slot-head{display:flex; align-items:center; gap:10px}
+    .slot-head .icon{font-size:28px}
+    .slot-head .label{font-size:14px; font-weight:700; letter-spacing:.2px}
+    .slot-time{font-size:20px; font-weight:800}
+    .time-inputs{
+      align-self:end; display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    }
+    .time-inputs input[type="time"]{
+      width:100%; background:rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.35);
+      color:#fff; border-radius:12px; padding:10px 12px; font-size:16px; outline:none; transition:.2s; box-sizing:border-box;
+    }
+    .time-inputs input[type="time"]:focus{border-color:#fff; box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+    /* Rifiniture dei controlli time per allinearli bene */
+    .time-inputs input[type="time"]::-webkit-datetime-edit{padding:0}
+    .time-inputs input[type="time"]::-webkit-datetime-edit-fields-wrapper{display:flex; justify-content:center}
+    .time-inputs input[type="time"]::-webkit-datetime-edit-hour-field,
+    .time-inputs input[type="time"]::-webkit-datetime-edit-minute-field{padding:0 2px}
+    .time-inputs input[type="time"]::-webkit-inner-spin-button{display:none}
+    .time-inputs input[type="time"]::-webkit-calendar-picker-indicator{opacity:.9; margin-left:6px}
+
+    /* =================== INPUT GENERICI =================== */
+    .input-group{position:relative; margin-top:16px}
+    .input-group input,.input-group textarea,.input-group select{
+      width:100%; background:var(--bg-light); border:2px solid var(--border); border-radius:16px;
+      padding:16px 20px 16px 50px; font-size:16px; color:var(--text); font-family:inherit; transition:.3s;
+    }
+    .input-group select{padding-left:50px; appearance:none}
+    .input-group textarea{resize:vertical; min-height:100px}
+    .input-group input:focus,.input-group textarea:focus,.input-group select:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(255,107,53,.1)}
+    .input-group .input-icon{position:absolute; left:18px; top:50%; transform:translateY(-50%); font-size:20px; color:var(--text-secondary)}
+    .input-group textarea + .input-icon{top:20px; transform:none}
+
+    /* =================== BOTTONI =================== */
+    .btn-group{display:flex; gap:12px; margin-top:24px}
+    .btn{
+      flex:1; background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      border:none; border-radius:16px; padding:18px; font-size:16px; font-weight:700;
+      color:var(--text); cursor:pointer; transition:.3s cubic-bezier(.4,0,.2,1);
+      box-shadow:0 4px 16px rgba(255,107,53,.3); display:flex; align-items:center; justify-content:center; gap:8px
+    }
+    .btn-secondary{background:var(--card-bg); border:2px solid var(--border); box-shadow:none}
+    .btn-success{background:linear-gradient(135deg,var(--success),#05b78b)}
+    .btn:hover{transform:translateY(-2px); box-shadow:0 8px 24px rgba(255,255,255,.4)}
+
+    /* =================== RIEPILOGO =================== */
+    .summary-card{background:linear-gradient(135deg,var(--secondary),var(--secondary-light)); border:none; padding:28px}
+    .summary-row{display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid rgba(255,255,255,.1)}
+    .summary-row:last-child{border-bottom:none; padding-bottom:0}
+    .summary-label{font-size:14px; color:var(--text-secondary); font-weight:600}
+    .summary-value{font-size:18px; font-weight:700}
+
+    .summary-works{display:flex; flex-direction:column; gap:10px}
+    .summary-work{display:flex; flex-direction:column; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:10px}
+    .summary-work .line{display:flex; justify-content:space-between; gap:8px}
+    .summary-work .label{color:var(--text-secondary); font-size:12px}
+    .summary-work .value{font-weight:700}
+
+    /* =================== PRESENZE MESE (toggle) =================== */
+    .month-toggle{display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card-bg); border:1px dashed var(--border); border-radius:16px; padding:14px 16px; cursor:pointer}
+    .month-toggle span{font-weight:700}
+    .month-list{display:none; flex-direction:column; gap:12px; margin-top:12px}
+    .month-list.open{display:flex}
+    .month-item{display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--bg-light); border:1px solid var(--border); border-radius:16px; padding:12px 14px}
+    .mi-left{display:flex; align-items:center; gap:12px}
+    .mi-date{min-width:54px; text-align:center; font-weight:800; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:12px; padding:6px 8px}
+    .mi-main{display:flex; flex-direction:column}
+    .mi-cant{font-weight:700}
+    .mi-lav{font-size:13px; color:var(--text-secondary)}
+    .mi-ore{font-weight:800}
+    .mi-btn{background:linear-gradient(135deg,var(--secondary),var(--secondary-light)); border:none; border-radius:12px; color:#fff; padding:8px 12px; cursor:pointer}
+    .month-item.weekend, .month-item.holiday{
+      background:linear-gradient(0deg, rgba(220, 38, 38, 0.12), rgba(220, 38, 38, 0.12)), var(--bg-light);
+      border-color: rgba(220, 38, 38, 0.35);
+    }
+
+    /* =================== CANTIERI MULTIPLI =================== */
+    .work-item{background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:14px; margin-top:12px}
+    .work-item-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+    .work-item-title{font-weight:800; font-size:14px; color:#fff}
+    .work-item-remove{background:transparent; border:1px solid var(--border); color:#fff; border-radius:10px; padding:6px 10px; cursor:pointer; font-size:12px}
+    .add-work-btn{margin-top:12px; width:100%; background:linear-gradient(135deg,var(--secondary),var(--secondary-light)); color:#fff; border:none; border-radius:14px; padding:12px; font-weight:800; cursor:pointer}
+    .work-item .input-group{margin-top:10px}
+
+    /* =================== MODALE SUCCESSO =================== */
+    .success-overlay{position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,14,39,.95); backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; z-index:1000; animation:fadeIn .3s ease}
+    .success-overlay.show{display:flex}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .success-content{text-align:center; animation:popIn .5s cubic-bezier(.68,-.55,.265,1.55)}
+    @keyframes popIn{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+    .success-icon{font-size:80px; margin-bottom:20px; animation:bounce 1s ease}
+    @keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-30px)}60%{transform:translateY(-15px)}}
+    .success-title{font-size:28px; font-weight:800; margin-bottom:12px}
+    .success-message{font-size:16px; color:var(--text-secondary)}
+
+    /* =================== PAGINE =================== */
+    .page{display:none}
+    .page.active{display:block; animation:fadeIn .3s ease}
+
+    @media (max-width:480px){
+      .header{padding:48px 20px 32px}
+      .content{padding:20px}
+      .card{padding:20px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+      <h1>⚡ Presenze Cantiere</h1>
+      <p class="subtitle">Registra la tua giornata lavorativa</p>
+      <div class="user-badge"><span>👷</span><span id="userName">Mario Rossi</span></div>
+    </div>
+
+    <div class="content">
+      <!-- Progress bar a step -->
+      <div class="step-indicator"><div class="step active"></div><div class="step"></div><div class="step"></div><div class="step"></div></div>
+
+      <!-- ===== Pagina 1: Seleziona data + Lista mese (toggle) ===== -->
+      <div class="page active" id="page1">
+        <div class="card">
+          <div class="card-title"><span class="icon">📅</span><span>Seleziona la data</span></div>
+          <div class="date-selector" id="dateSelector"></div>
+        </div>
+
+        <div class="card">
+          <div class="month-toggle" id="monthToggle">
+            <span id="monthTitle">📆 Presenze del mese</span>
+            <strong id="monthToggleArrow">▼</strong>
+          </div>
+          <div id="monthList" class="month-list"></div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" onclick="nextPage(2)">Avanti <span>→</span></button>
+        </div>
+      </div>
+
+      <!-- ===== Pagina 2: Orari di lavoro ===== -->
+      <div class="page" id="page2">
+        <div class="card">
+          <div class="card-title"><span class="icon">⏰</span><span>Orario di lavoro</span></div>
+
+          <div class="time-picker">
+            <!-- MATTINA -->
+            <div class="time-slot morning">
+              <div class="slot-bg"></div>
+              <div class="slot-inner">
+                <div class="slot-head"><span class="icon">☀️</span><div class="label">Mattina</div></div>
+                <div class="slot-time" id="morningText">08:00 - 12:00</div>
+                <!-- step 30' + estremi 07–15 -->
+                <div class="time-inputs">
+                  <input type="time" id="mStart" value="08:00" min="07:00" max="15:00" step="1800" oninput="updateTimes()">
+                  <input type="time" id="mEnd"   value="12:00" min="07:00" max="15:00" step="1800" oninput="updateTimes()">
+                </div>
+              </div>
+            </div>
+
+            <!-- POMERIGGIO -->
+            <div class="time-slot afternoon">
+              <div class="slot-bg"></div>
+              <div class="slot-inner">
+                <div class="slot-head"><span class="icon">🌙</span><div class="label">Pomeriggio</div></div>
+                <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
+                <!-- step 30' + estremi 12–20 -->
+                <div class="time-inputs">
+                  <input type="time" id="pStart" value="13:00" min="12:00" max="20:00" step="1800" oninput="updateTimes()">
+                  <input type="time" id="pEnd"   value="17:00" min="12:00" max="20:00" step="1800" oninput="updateTimes()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;padding:16px;background:var(--bg-light);border-radius:16px;text-align:center;">
+            <div style="color:var(--text-secondary);font-size:14px;margin-bottom:4px;">Ore totali</div>
+            <div style="font-size:32px;font-weight:800;color:var(--accent);" id="totalHours">8.0h</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="prevPage(1)"><span>←</span>Indietro</button>
+          <button class="btn" onclick="nextPage(3)">Avanti <span>→</span></button>
+        </div>
+      </div>
+
+      <!-- ===== Pagina 3: Cantieri multipli (max 3) ===== -->
+      <div class="page" id="page3">
+        <div class="card">
+          <div class="card-title"><span class="icon">🏗️</span><span>Cantieri</span></div>
+          <div id="workItems"></div>
+          <button class="add-work-btn" id="addWorkBtn" onclick="addWorkItem()">+ Aggiungi cantiere (max 3)</button>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="prevPage(2)"><span>←</span>Indietro</button>
+          <button class="btn" onclick="nextPage(4)">Avanti <span>→</span></button>
+        </div>
+      </div>
+
+      <!-- ===== Pagina 4: Riepilogo + Note ===== -->
+      <div class="page" id="page4">
+        <!-- Note utente -->
+        <div class="card">
+          <div class="card-title"><span class="icon">🗒️</span><span>Note</span></div>
+          <div class="input-group">
+            <span class="input-icon">✏️</span>
+            <textarea id="notesInput" placeholder="Aggiungi eventuali note (facoltative)..." oninput="updateSummary()"></textarea>
+          </div>
+        </div>
+
+        <div class="card summary-card">
+          <div class="card-title" style="color:#fff;margin-bottom:20px;"><span class="icon">📋</span><span>Riepilogo</span></div>
+
+          <div class="summary-row"><span class="summary-label">Data</span><span class="summary-value" id="summaryDate">Oggi</span></div>
+          <div class="summary-row"><span class="summary-label">Orario</span><span class="summary-value" id="summaryTime">08:00 - 17:00</span></div>
+
+          <div style="margin-top:10px"></div>
+          <div class="summary-row" style="border:none;display:block;padding-top:0;">
+            <div class="summary-label" style="margin-bottom:8px">Cantieri & lavorazioni</div>
+            <div class="summary-works" id="summaryWorks"></div>
+          </div>
+
+          <div class="summary-row"><span class="summary-label">Note</span><span class="summary-value" id="summaryNotes">-</span></div>
+
+          <div class="summary-row"><span class="summary-label">Ore totali</span><span class="summary-value" style="color:var(--accent);" id="summaryHours">8.0h</span></div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="prevPage(3)"><span>←</span>Indietro</button>
+          <button class="btn btn-success" onclick="submitPresence()"><span>✓</span>Conferma</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale successo -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-content">
+      <div class="success-icon">✨</div>
+      <div class="success-title">Presenza registrata!</div>
+      <div class="success-message">La tua giornata è stata salvata con successo</div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================
+       STATO BASE
+    ========================================================= */
+    let currentPage = 1;
+    let selectedDate = new Date();
+
+    // stato orari (gli slot sono sempre attivi nella tua UX attuale)
+    const slotEnabled = { morning: true, afternoon: true };
+
+    // stato cantieri: fino a 3
+    // ogni item: { id, siteSelect, siteManual, work }
+    let workState = [];
+
+    /* =========================================================
+       UTILS DATE & TIME
+    ========================================================= */
+    function pad2(n){return String(n).padStart(2,'0');}
+    function fmtISO(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+    function fmtDateHuman(d){ return d.toLocaleDateString('it-IT',{day:'numeric',month:'short'}); }
+
+    function toMinutes(hhmm){ if(!hhmm) return 0; const [h,m]=hhmm.split(':').map(Number); return h*60+m; }
+    function minutesToHHMM(mins){ const h=Math.floor(mins/60), m=mins%60; return `${pad2(h)}:${pad2(m)}`; }
+    function diffHours(s,e){ const a=toMinutes(s), b=toMinutes(e); return Math.max(0,(b-a))/60; }
+
+    // clamp generico (stringa "HH:MM" → clamp tra min e max inclusi)
+    function clampTime(val, min, max){
+      const v=toMinutes(val), mi=toMinutes(min), ma=toMinutes(max);
+      if(v<mi) return min;
+      if(v>ma) return max;
+      return val;
+    }
+
+    /* =========================================================
+       WEEKEND / FESTIVI IT
+    ========================================================= */
+    function isWeekend(d){ const day=d.getDay(); return day===0 || day===6; }
+    function easterDate(year){
+      const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;
+      return new Date(year,month-1,day);
+    }
+    function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+    function sameYMD(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+    function isItalianHoliday(d){
+      const y=d.getFullYear();
+      const fixed=[[1,1],[1,6],[4,25],[5,1],[6,2],[8,15],[11,1],[12,8],[12,25],[12,26]];
+      for(const [mm,dd] of fixed){ if(sameYMD(d,new Date(y,mm-1,dd))) return true; }
+      const easter=easterDate(y);
+      return sameYMD(d, addDays(easter,1)); // Pasquetta
+    }
+
+    /* =========================================================
+       AUTO SCALE (UI consistente sui telefoni)
+    ========================================================= */
+    function applyAutoScale(){
+      const base=420, w=Math.max(320, Math.min(window.innerWidth,1024));
+      const scale=Math.max(1, Math.min(1.35, w/base));
+      document.documentElement.style.setProperty('--zoom', scale.toFixed(3));
+    }
+    window.addEventListener('resize', applyAutoScale, {passive:true});
+    window.addEventListener('orientationchange', applyAutoScale);
+    document.addEventListener('DOMContentLoaded', applyAutoScale);
+
+    /* =========================================================
+       SELETTORE DATA: ultimi 13 giorni + oggi (oggi ultimo)
+    ========================================================= */
+    function initDateSelector(){
+      const selector=document.getElementById('dateSelector'); selector.innerHTML='';
+      const today=new Date(); const dayLetter=['D','L','M','M','G','V','S'];
+      for(let i=13;i>=0;i--){
+        const d=new Date(today); d.setDate(today.getDate()-i);
+        const dayDiv=document.createElement('div');
+        dayDiv.className='date-day'; dayDiv.dataset.date=fmtISO(d);
+        if(isWeekend(d)) dayDiv.classList.add('weekend');
+        if(isItalianHoliday(d)) dayDiv.classList.add('holiday');
+        if(i===0){ dayDiv.classList.add('today','selected'); selectedDate=today; }
+        dayDiv.innerHTML=`<div class="day-name">${dayLetter[d.getDay()]}</div><div class="day-num">${d.getDate()}</div>`;
+        dayDiv.onclick=()=>selectDate(dayDiv,d);
+        selector.appendChild(dayDiv);
+      }
+      const last=selector.lastElementChild; if(last && last.scrollIntoView){ last.scrollIntoView({behavior:'instant',block:'nearest',inline:'end'}); }
+      updateSummary();
+    }
+    function selectDate(el,date){
+      document.querySelectorAll('.date-day').forEach(d=>d.classList.remove('selected'));
+      el.classList.add('selected'); selectedDate=date; updateSummary();
+    }
+
+    /* =========================================================
+       ORARI DI LAVORO (allineamento + clamp + step 30')
+    ========================================================= */
+    function updateTimes(){
+      // clamp ai range richiesti
+      const mStartEl=document.getElementById('mStart');
+      const mEndEl  =document.getElementById('mEnd');
+      const pStartEl=document.getElementById('pStart');
+      const pEndEl  =document.getElementById('pEnd');
+
+      mStartEl.value = clampTime(mStartEl.value, mStartEl.min, mStartEl.max);
+      mEndEl.value   = clampTime(mEndEl.value,   mEndEl.min,   mEndEl.max);
+      pStartEl.value = clampTime(pStartEl.value, pStartEl.min, pStartEl.max);
+      pEndEl.value   = clampTime(pEndEl.value,   pEndEl.min,   pEndEl.max);
+
+      // aggiorna label orari sotto i titoletti
+      document.getElementById('morningText').textContent   = `${mStartEl.value} - ${mEndEl.value}`;
+      document.getElementById('afternoonText').textContent = `${pStartEl.value} - ${pEndEl.value}`;
+
+      // calcolo ore totali (per ora non ripartite per cantiere)
+      let hours=0;
+      if(slotEnabled.morning)   hours+=diffHours(mStartEl.value, mEndEl.value);
+      if(slotEnabled.afternoon) hours+=diffHours(pStartEl.value, pEndEl.value);
+      document.getElementById('totalHours').textContent = hours.toFixed(1)+'h';
+
+      updateSummary();
+    }
+    function buildOrariString(){
+      const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
+      const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
+      return `${ms}-${me} + ${ps}-${pe}`;
+    }
+
+    /* =========================================================
+       CANTIERI MULTIPLI (max 3)
+    ========================================================= */
+    const SITE_OPTIONS = [
+      'Condominio Aurora',
+      'Scuola Media Verdi',
+      'Capannone Logistica B12',
+      'Villa Colli Sud',
+      'Ristrutturazione Via Roma 21'
+    ];
+    function newWorkItem(){ return { id:crypto.randomUUID(), siteSelect:'', siteManual:'', work:'' }; }
+
+    function renderWorkItems(){
+      const wrap=document.getElementById('workItems'); wrap.innerHTML='';
+      workState.forEach((item, idx)=>{
+        const el=document.createElement('div');
+        el.className='work-item'; el.dataset.id=item.id;
+        el.innerHTML=`
+          <div class="work-item-head">
+            <div class="work-item-title">Cantiere ${idx+1}</div>
+            ${idx>0 ? '<button class="work-item-remove" onclick="removeWorkItem(\''+item.id+'\')">Rimuovi</button>' : ''}
+          </div>
+          <div class="input-group">
+            <span class="input-icon">🏷️</span>
+            <select onchange="onWorkSelectChange('${item.id}', this.value)">
+              <option value="">— Seleziona cantiere —</option>
+              ${SITE_OPTIONS.map(s=>`<option ${item.siteSelect===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="input-group">
+            <span class="input-icon">🔍</span>
+            <input type="text" placeholder="Oppure scrivi il nome del cantiere..." value="${item.siteManual.replace(/"/g,'&quot;')}" oninput="onWorkManualChange('${item.id}', this.value)">
+          </div>
+          <div class="input-group">
+            <span class="input-icon">📝</span>
+            <textarea placeholder="Descrivi la lavorazione..." oninput="onWorkTextChange('${item.id}', this.value)">${item.work}</textarea>
+          </div>
+        `;
+        wrap.appendChild(el);
+      });
+      document.getElementById('addWorkBtn').disabled = (workState.length>=3);
+      updateSummary();
+    }
+    function addWorkItem(){ if(workState.length>=3) return; workState.push(newWorkItem()); renderWorkItems(); }
+    function removeWorkItem(id){ workState = workState.filter(w=>w.id!==id); if(workState.length===0) workState.push(newWorkItem()); renderWorkItems(); }
+    function onWorkSelectChange(id,val){ const it=workState.find(w=>w.id===id); if(!it) return; it.siteSelect=val||''; if(val) it.siteManual=''; updateSummary(); }
+    function onWorkManualChange(id,val){ const it=workState.find(w=>w.id===id); if(!it) return; it.siteManual=val; if(val.trim()) it.siteSelect=''; updateSummary(); }
+    function onWorkTextChange(id,val){ const it=workState.find(w=>w.id===id); if(!it) return; it.work=val; updateSummary(); }
+
+    /* =========================================================
+       RIEPILOGO
+    ========================================================= */
+    function updateSummary(){
+      // Data & orario
+      document.getElementById('summaryDate').textContent = fmtDateHuman(selectedDate);
+      document.getElementById('summaryTime').textContent = buildOrariString();
+
+      // Cantieri & lavorazioni
+      const box=document.getElementById('summaryWorks'); box.innerHTML='';
+      workState.forEach((it, idx)=>{
+        const name=(it.siteSelect || it.siteManual || '-').trim() || '-';
+        const work=(it.work || '-').trim() || '-';
+        const div=document.createElement('div');
+        div.className='summary-work';
+        div.innerHTML=`
+          <div class="line"><span class="label">Cantiere ${idx+1}</span><span class="value">${name}</span></div>
+          <div class="line"><span class="label">Lavorazione</span><span class="value">${work}</span></div>
+        `;
+        box.appendChild(div);
+      });
+
+      // Note
+      const notes = (document.getElementById('notesInput')?.value || '').trim();
+      document.getElementById('summaryNotes').textContent = notes || '-';
+
+      // Ore totali
+      const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
+      const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
+      let hours=0; hours+=diffHours(ms,me); hours+=diffHours(ps,pe);
+      document.getElementById('summaryHours').textContent=hours.toFixed(1)+'h';
+    }
+
+    /* =========================================================
+       NAVIGAZIONE TRA PAGINE
+    ========================================================= */
+    function nextPage(p){
+      document.querySelector('.page.active').classList.remove('active');
+      document.getElementById(`page${p}`).classList.add('active');
+      currentPage=p;
+      document.querySelectorAll('.step').forEach((s,i)=> s.classList.toggle('active', i<=p-1));
+      window.scrollTo({top:0,behavior:'smooth'});
+      updateSummary();
+    }
+    function prevPage(p){ nextPage(p); }
+
+    /* =========================================================
+       PRESENZE MESE (mock + toggle)
+    ========================================================= */
+    function genMonthMock(){
+      const base=new Date(); const out=[];
+      const samples=[
+        {c:'Condominio Aurora', l:'Muratura pareti interne', or:'08:00-12:00 + 13:00-17:00', h:8.0},
+        {c:'Scuola Media Verdi', l:'Scalcinatura e rete', or:'07:30-12:30 + 13:30-17:15', h:8.8},
+        {c:'Capannone Logistica B12', l:'Impianto elettrico canaline', or:'08:00-12:00 + 13:00-16:30', h:7.5},
+        {c:'Villa Colli Sud', l:'Pittura primer', or:'08:00-12:30 + 13:30-17:45', h:9.3},
+        {c:'Ristrutturazione Via Roma 21', l:'Posa sottofondi', or:'08:00-12:00 + 13:00-17:00', h:8.0},
+        {c:'Condominio Aurora', l:'Serramenti – rilievi', or:'09:00-12:00 + 13:00-17:30', h:7.5}
+      ];
+      for(let i=0;i<6;i++){
+        const d=new Date(base); d.setDate(base.getDate()-(i+1));
+        out.push({dataISO:fmtISO(d), cantiere:samples[i].c, lavorazione:samples[i].l, orari:samples[i].or, ore:String(samples[i].h)});
+      }
+      return out.reverse();
+    }
+    function renderMonthList(){
+      const list=document.getElementById('monthList'); list.innerHTML='';
+      const rows=genMonthMock();
+      const today=new Date(); const mese=today.toLocaleDateString('it-IT',{month:'long'});
+      const titleEl=document.getElementById('monthTitle'); if(titleEl) titleEl.textContent=`📆 Presenze mese ${mese}`;
+      rows.forEach(r=>{
+        const d=new Date(r.dataISO);
+        const item=document.createElement('div');
+        const cls=['month-item']; if(isWeekend(d)) cls.push('weekend'); if(isItalianHoliday(d)) cls.push('holiday');
+        item.className=cls.join(' ');
+        item.innerHTML=`
+          <div class="mi-left">
+            <div class="mi-date">
+              <div>${pad2(d.getDate())}</div>
+              <div style="font-size:11px;color:var(--text-secondary)">${d.toLocaleDateString('it-IT',{month:'short'})}</div>
+            </div>
+            <div class="mi-main">
+              <div class="mi-cant">${r.cantiere}</div>
+              <div class="mi-lav">${r.lavorazione}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="mi-ore">${r.ore}h</div>
+            <button class="mi-btn">Usa</button>
+          </div>`;
+        item.querySelector('.mi-btn').onclick=()=>applyTemplateFromMonth(r);
+        list.appendChild(item);
+      });
+    }
+    function setupMonthToggle(){
+      const toggle=document.getElementById('monthToggle');
+      const arrow=document.getElementById('monthToggleArrow');
+      const list=document.getElementById('monthList');
+      list.classList.remove('open');
+      toggle.addEventListener('click', ()=>{
+        const isOpen=list.classList.toggle('open');
+        arrow.textContent=isOpen?'▲':'▼';
+      });
+    }
+    function applyTemplateFromMonth(r){
+      // data
+      const dParts=r.dataISO.split('-'); const d=new Date(+dParts[0],+dParts[1]-1,+dParts[2]);
+      selectedDate=d;
+      document.querySelectorAll('.date-day').forEach(dd=>dd.classList.toggle('selected', dd.dataset.date===r.dataISO));
+      // orari
+      const parts=r.orari.split('+').map(s=>s.trim()); const [m,p]=parts;
+      if(m){ const [ms,me]=m.split('-'); document.getElementById('mStart').value=ms; document.getElementById('mEnd').value=me; }
+      if(p){ const [ps,pe]=p.split('-'); document.getElementById('pStart').value=ps; document.getElementById('pEnd').value=pe; }
+      updateTimes();
+      // cantieri: riempiamo il primo
+      workState=[ newWorkItem() ];
+      workState[0].siteSelect = SITE_OPTIONS.includes(r.cantiere) ? r.cantiere : '';
+      workState[0].siteManual = SITE_OPTIONS.includes(r.cantiere) ? '' : r.cantiere;
+      workState[0].work = r.lavorazione;
+      renderWorkItems();
+      nextPage(2);
+    }
+
+    /* =========================================================
+       SUBMIT (mock: salva in localStorage)
+    ========================================================= */
+    function submitPresence(){
+      const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
+      const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
+      const payload={
+        dataISO:fmtISO(selectedDate),
+        orari:`${ms}-${me} + ${ps}-${pe}`,
+        ore:document.getElementById('summaryHours').textContent.replace('h',''),
+        note:(document.getElementById('notesInput').value||'').trim(),
+        lavori: workState.map(w=>({
+          cantiere: (w.siteSelect || w.siteManual || '-'),
+          lavorazione: (w.work || '-')
+        }))
+      };
+      localStorage.setItem('ultimaPresenza', JSON.stringify(payload));
+
+      document.getElementById('successOverlay').classList.add('show');
+      setTimeout(()=>{
+        document.getElementById('successOverlay').classList.remove('show');
+        nextPage(1);
+      },1200);
+    }
+
+    /* =========================================================
+       INIT
+    ========================================================= */
+    document.addEventListener('DOMContentLoaded', ()=>{
+      applyAutoScale();
+      initDateSelector();
+      renderMonthList();
+      setupMonthToggle();
+      // Stato iniziale: 1 cantiere
+      workState=[ newWorkItem() ];
+      renderWorkItems();
+      updateTimes(); // inizializza etichette + ore
+    });
+  </script>
+</body>
+</html>
