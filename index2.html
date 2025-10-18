@@ -411,16 +411,19 @@
       return res.json();
     }
     async function apiPost(payload){
-      const body = {...payload};
-      if(AUTH.token && body.action!=='login'){ body.token = AUTH.token; }
-      const res = await fetch(API_URL, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(body)
-      });
-      if(!res.ok) throw new Error('POST failed');
-      return res.json();
-    }
+  const body = {...payload};
+  if (AUTH.token && body.action !== 'login') body.token = AUTH.token;
+
+  // niente headers: evitiamo la preflight
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(body) // verrà mandato come text/plain
+  });
+
+  if (!res.ok) throw new Error('POST failed');
+  return res.json();
+}
+
 
     /* ===================== LOGIN FLOW ===================== */
     function showLogin(){ 
