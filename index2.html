@@ -34,7 +34,15 @@
     .header .subtitle{color:rgba(255,255,255,.9);font-size:15px;font-weight:500}
     .user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:6px 14px;border-radius:20px;margin-top:12px;font-size:13px;font-weight:600}
     .content{padding:20px}
+    .step-indicator{display:flex;justify-content:space-between;margin-bottom:24px;padding:0 8px}
+    .step{flex:1;height:4px;background:var(--card-bg);border-radius:4px;margin:0 4px;position:relative;overflow:hidden;transition:.3s}
+    .step.active{background:linear-gradient(90deg,var(--primary),var(--accent))}
+    .step.active::after{content:'';position:absolute;top:0;left:0;height:100%;width:30%;background:rgba(255,255,255,.5);animation:shimmer 1.5s infinite}
+    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
     .topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;gap:8px}
+    .mode-switch{display:flex;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .mode-btn{background:transparent;border:none;color:var(--text-secondary);padding:6px 12px;cursor:pointer;font-weight:600;font-size:12px;transition:.2s}
+    .mode-btn.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
     .mode-switch{display:flex;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;overflow:hidden}
     .mode-btn{background:transparent;border:none;color:var(--text-secondary);padding:6px 12px;cursor:pointer;font-weight:600;font-size:12px;transition:.2s}
     .mode-btn.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
@@ -86,6 +94,16 @@
     .add-work-btn{width:100%;background:var(--card-bg);border:2px dashed var(--border);border-radius:12px;padding:12px;margin-top:12px;color:var(--text-secondary);cursor:pointer;font-weight:600;font-size:13px;transition:.2s}
     .add-work-btn:hover{border-color:var(--primary);color:var(--primary)}
     .add-work-btn:disabled{opacity:.4;cursor:not-allowed}
+    .summary-card{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));border:none;padding:24px}
+    .summary-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+    .summary-row:last-child{border-bottom:none;padding-bottom:0}
+    .summary-label{font-size:13px;color:rgba(255,255,255,.8);font-weight:600}
+    .summary-value{font-size:16px;font-weight:700}
+    .summary-works{display:flex;flex-direction:column;gap:10px}
+    .summary-work{display:flex;flex-direction:column;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px}
+    .summary-work .line{display:flex;justify-content:space-between;gap:8px}
+    .summary-work .label{color:rgba(255,255,255,.7);font-size:11px}
+    .summary-work .value{font-weight:700;font-size:13px}
     .month-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card-bg);border:1px dashed var(--border);border-radius:14px;padding:12px 14px;cursor:pointer}
     .month-toggle span{font-weight:700;font-size:14px}
     .month-list{display:none;flex-direction:column;gap:10px;margin-top:10px}
@@ -148,10 +166,6 @@
   <!-- APP -->
   <div class="container" id="appContainer" style="display:none;">
     <div class="topbar">
-      <div class="mode-switch">
-        <button class="mode-btn active" onclick="switchMode('standard')">Standard</button>
-        <button class="mode-btn" onclick="switchMode('express')">Express</button>
-      </div>
       <button class="logout-btn" onclick="handleLogout()">Esci</button>
     </div>
 
@@ -162,14 +176,20 @@
     </div>
 
     <div class="content">
-      <!-- VIEW: DATA -->
-      <div class="view active" id="viewDate">
+      <div class="step-indicator">
+        <div class="step active"></div>
+        <div class="step"></div>
+        <div class="step"></div>
+        <div class="step"></div>
+      </div>
+
+      <!-- Pagina 1: DATA -->
+      <div class="view active" id="page1">
         <div class="card">
           <div class="card-title"><span class="icon">📅</span><span>Seleziona la data</span></div>
           <div class="date-selector" id="dateSelector"></div>
           
           <div class="quick-actions">
-            <button class="quick-btn" onclick="useLastPresence()">⚡ Usa ultima presenza</button>
             <button class="quick-btn" onclick="repeatYesterday()">↻ Ripeti ieri</button>
           </div>
         </div>
@@ -183,12 +203,12 @@
         </div>
 
         <div class="btn-group">
-          <button class="btn" onclick="showView('form')">Avanti <span>→</span></button>
+          <button class="btn" onclick="nextPage(2)">Avanti <span>→</span></button>
         </div>
       </div>
 
-      <!-- VIEW: FORM COMPILAZIONE -->
-      <div class="view" id="viewForm">
+      <!-- Pagina 2: ORARI -->
+      <div class="view" id="page2">
         <div id="smartHint" class="smart-hint" style="display:none;">
           <span>💡</span>
           <span id="smartHintText"></span>
@@ -229,22 +249,51 @@
           </div>
         </div>
 
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="prevPage(1)"><span>←</span> Indietro</button>
+          <button class="btn" onclick="nextPage(3)">Avanti <span>→</span></button>
+        </div>
+      </div>
+
+      <!-- Pagina 3: CANTIERI -->
+      <div class="view" id="page3">
         <div class="card">
           <div class="card-title"><span class="icon">🏗️</span><span>Cantieri</span></div>
           <div id="workItems"></div>
           <button class="add-work-btn" id="addWorkBtn" onclick="addWorkItem()">+ Aggiungi cantiere (max 3)</button>
         </div>
 
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="prevPage(2)"><span>←</span> Indietro</button>
+          <button class="btn" onclick="nextPage(4)">Avanti <span>→</span></button>
+        </div>
+      </div>
+
+      <!-- Pagina 4: NOTE + RIEPILOGO -->
+      <div class="view" id="page4">
         <div class="card">
           <div class="card-title"><span class="icon">🗒️</span><span>Note (facoltative)</span></div>
           <div class="input-group">
             <span class="input-icon">✏️</span>
-            <textarea id="notesInput" placeholder="Aggiungi eventuali note..."></textarea>
+            <textarea id="notesInput" placeholder="Aggiungi eventuali note..." oninput="updateSummary()"></textarea>
           </div>
         </div>
 
+        <div class="card summary-card">
+          <div class="card-title" style="color:#fff;margin-bottom:20px;"><span class="icon">📋</span><span>Riepilogo</span></div>
+          <div class="summary-row"><span class="summary-label">Data</span><span class="summary-value" id="summaryDate">Oggi</span></div>
+          <div class="summary-row"><span class="summary-label">Orario</span><span class="summary-value" id="summaryTime">08:00 - 17:00</span></div>
+          <div style="margin-top:10px"></div>
+          <div class="summary-row" style="border:none;display:block;padding-top:0;">
+            <div class="summary-label" style="margin-bottom:8px">Cantieri & lavorazioni</div>
+            <div class="summary-works" id="summaryWorks"></div>
+          </div>
+          <div class="summary-row"><span class="summary-label">Note</span><span class="summary-value" id="summaryNotes">-</span></div>
+          <div class="summary-row"><span class="summary-label">Ore totali</span><span class="summary-value" style="color:var(--accent);" id="summaryHours">8.0h</span></div>
+        </div>
+
         <div class="btn-group">
-          <button class="btn btn-secondary" onclick="showView('date')"><span>←</span> Indietro</button>
+          <button class="btn btn-secondary" onclick="prevPage(3)"><span>←</span> Indietro</button>
           <button class="btn btn-success" onclick="submitPresence()"><span>✓</span> Conferma</button>
         </div>
       </div>
@@ -265,8 +314,8 @@
     const L0URL    = "https://script.google.com/macros/s/AKfycbxPtNkoQlypf1RKNgIAQEJPgMsmoUDVpYeIzbqMeDICK3-hsZTKrPC718hBy0o7dQDa/exec";
 
     let AUTH = { user:null, nome:null, ruolo:null };
-    let APP_MODE = 'standard'; // 'standard' o 'express'
     let selectedDate = new Date();
+    let currentPage = 1;
     let workState = [];
     let SITE_OPTIONS = [];
     let LAST_PRESENZE = []; // cache delle presenze
@@ -323,7 +372,6 @@
       await loadCantieri();
       await loadPresenze();
       await renderMonthList();
-      await applySmartDefaults(); // pre-compila con l'ultima presenza
     }
 
     // ==================== SMART DEFAULTS ====================
@@ -614,6 +662,13 @@
         return d.getFullYear() === y && (d.getMonth()+1) === m;
       });
       
+      console.log('Presenze per il mese:', rows.length); // Debug
+      
+      if(rows.length === 0){
+        list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-secondary);font-size:14px;">Nessuna presenza registrata per questo mese</div>';
+        return;
+      }
+      
       rows.forEach(r => {
         const d = r.dataPresenza;
         const item = document.createElement('div');
@@ -675,7 +730,37 @@
       renderWorkItems();
       
       showSmartHint(`Copiato da ${fmtDateHuman(d)}`);
-      showView('form');
+      nextPage(2);
+    }
+
+    // ==================== SUMMARY ====================
+    function updateSummary(){
+      document.getElementById('summaryDate').textContent = fmtDateHuman(selectedDate);
+      document.getElementById('summaryTime').textContent = buildOrariString();
+      
+      const box = document.getElementById('summaryWorks');
+      box.innerHTML = '';
+      workState.forEach((it, idx) => {
+        const name = (it.siteSelect || it.siteManual || '-').trim() || '-';
+        const work = (it.work || '-').trim() || '-';
+        const div = document.createElement('div');
+        div.className = 'summary-work';
+        div.innerHTML = `
+          <div class="line"><span class="label">Cantiere ${idx+1}</span><span class="value">${name}</span></div>
+          <div class="line"><span class="label">Lavorazione</span><span class="value">${work}</span></div>
+        `;
+        box.appendChild(div);
+      });
+      
+      const notes = (document.getElementById('notesInput')?.value || '').trim();
+      document.getElementById('summaryNotes').textContent = notes || '-';
+      
+      const ms = document.getElementById('mStart').value;
+      const me = document.getElementById('mEnd').value;
+      const ps = document.getElementById('pStart').value;
+      const pe = document.getElementById('pEnd').value;
+      let hours = diffHours(ms,me) + diffHours(ps,pe);
+      document.getElementById('summaryHours').textContent = hours.toFixed(1) + 'h';
     }
 
     // ==================== SUBMIT ====================
@@ -731,7 +816,7 @@
         document.getElementById('successOverlay').classList.remove('show');
         await loadPresenze();
         await renderMonthList();
-        showView('date');
+        nextPage(1);
       }, 1000);
     }
 
