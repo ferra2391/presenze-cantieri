@@ -18,13 +18,10 @@
       --text:#fff; --text-secondary:#B8C5D6;
       --zoom:1;
 
-      /* Gradient slot orari */
       --morning-grad: linear-gradient(135deg,#4da3ff,#5bc0eb);
       --afternoon-grad: linear-gradient(135deg,var(--primary),var(--accent));
 
-      /* Altezza minima slot orari */
       --slot-h: 196px;
-      /* Raggi per carte */
       --radius: 20px;
     }
 
@@ -162,6 +159,7 @@
     .btn-secondary{background:var(--card-bg); border:2px solid var(--border); box-shadow:none}
     .btn-success{background:linear-gradient(135deg,var(--success),#05b78b)}
     .btn:hover{transform:translateY(-2px); box-shadow:0 8px 24px rgba(255,255,255,.4)}
+    .btn{ pointer-events:auto; } /* forza click sempre attivo */
 
     /* =================== RIEPILOGO =================== */
     .summary-card{background:linear-gradient(135deg,var(--secondary),var(--secondary-light)); border:none; padding:28px}
@@ -217,6 +215,10 @@
     .page{display:none}
     .page.active{display:block; animation:fadeIn .3s ease}
 
+    /* Z-index login vs app */
+    #loginPage { position:relative; z-index:2; }
+    #appContainer { position:relative; z-index:1; }
+
     @media (max-width:480px){
       .header{padding:48px 20px 32px}
       .content{padding:20px}
@@ -240,7 +242,7 @@
         <input id="loginPass" type="password" placeholder="Password">
       </div>
       <div class="btn-group" style="margin-top:18px;">
-        <button class="btn" onclick="handleLogin()">Entra</button>
+        <button id="loginBtn" class="btn" type="button">Entra</button>
       </div>
       <div id="loginError" style="margin-top:12px;color:#ff7b7b;font-weight:700;display:none;">Credenziali errate</div>
     </div>
@@ -348,7 +350,7 @@
           <div class="card-title"><span class="icon">🗒️</span><span>Note</span></div>
           <div class="input-group">
             <span class="input-icon">✏️</span>
-            <textarea id="notesInput" placeholder="Aggiungi eventuali note (facoltative)..." oninput="updateSummary"></textarea>
+            <textarea id="notesInput" placeholder="Aggiungi eventuali note (facoltative)..." oninput="updateSummary()"></textarea>
           </div>
         </div>
 
@@ -389,7 +391,7 @@
   <script>
     /* ===================== CONFIG BACKEND ===================== */
     // <<< METTI QUI L'URL /exec DELLA TUA WEB APP >>>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyA_r3mJq7Qr5qJyNsQyPabMf_JhM6iMo6gBN0HaHd47RYlDYAz5YjUfJn3GS9VFqcW/exec";
+    const API_URL = "https://script.google.com/macros/library/d/11LhpwtPOhcbLvmn3hwvGrJIN3Qdg3evNm6BTc-ngdWrhXazoKcB9EX0B/1";
 
     /* ===================== AUTH STATE ===================== */
     let AUTH = {
@@ -430,7 +432,8 @@
       document.getElementById('appContainer').style.display = 'block';
     }
 
-    async function handleLogin(){
+    // Esporto la funzione in globale (robusto con qualsiasi scope)
+    window.handleLogin = async function handleLogin(){
       const u = (document.getElementById('loginUser').value || '').trim();
       const p = document.getElementById('loginPass').value || '';
       document.getElementById('loginError').style.display = 'none';
@@ -452,7 +455,7 @@
         console.error(err);
         document.getElementById('loginError').style.display = 'block';
       }
-    }
+    };
 
     function handleLogout(){
       localStorage.removeItem('sess_token');
@@ -792,6 +795,10 @@
 
     /* =================== INIT =================== */
     document.addEventListener('DOMContentLoaded', async ()=>{
+      // bind esplicito del bottone login (in più rispetto a window.handleLogin)
+      const btn = document.getElementById('loginBtn');
+      if(btn) btn.addEventListener('click', window.handleLogin);
+
       await tryRestoreSession(); // gestisce login o restore; poi postLoginInit()
     });
   </script>
