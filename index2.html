@@ -34,6 +34,11 @@
     .step{flex:1;height:4px;background:var(--card-bg);border-radius:4px;margin:0 4px}
     .step.active{background:linear-gradient(90deg,var(--primary),var(--accent))}
 
+    /* IMPORTANTE: nasconde le pagine non attive */
+    .view{display:none}
+    .view.active{display:block;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
     .card{background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
     .card-title{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
     .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
@@ -61,6 +66,9 @@
     .input-group{position:relative;margin-top:12px}
     .input-group input,.input-group textarea,.input-group select{width:100%;background:var(--bg-light);border:2px solid var(--border);border-radius:14px;padding:12px 16px 12px 42px;font-size:14px;color:var(--text)}
     .input-group .input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--text-secondary)}
+    .input-group textarea{min-height:80px;resize:vertical}
+    .input-group textarea + .input-icon{top:20px;transform:none}
+    
     .btn-group{display:flex;gap:10px;margin-top:20px}
     .btn{flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer}
     .btn-secondary{background:var(--card-bg);border:2px solid var(--border)}
@@ -117,7 +125,7 @@
     <div class="content">
       <div class="step-indicator"><div class="step active"></div><div class="step"></div><div class="step"></div><div class="step"></div></div>
 
-      <!-- Pagina 1 -->
+      <!-- Pagina 1: DATA -->
       <div class="view active" id="page1">
         <div class="card">
           <div class="card-title"><span>📅</span><span>Seleziona la data</span></div>
@@ -136,7 +144,7 @@
         <div class="btn-group"><button class="btn" onclick="goFromPage1()">Avanti →</button></div>
       </div>
 
-      <!-- Pagina 2 -->
+      <!-- Pagina 2: ORARI -->
       <div class="view" id="page2">
         <div class="card">
           <div class="card-title"><span>⏰</span><span>Orario di lavoro</span></div>
@@ -169,12 +177,12 @@
         </div>
       </div>
 
-      <!-- Pagina 3 -->
+      <!-- Pagina 3: CANTIERI -->
       <div class="view" id="page3">
         <div class="card">
           <div class="card-title"><span>🏗️</span><span>Cantieri</span></div>
           <div id="workItems"></div>
-          <button class="chip" id="addWorkBtn" onclick="addWorkItem()">+ Aggiungi cantiere (max 3)</button>
+          <button class="chip" id="addWorkBtn" onclick="addWorkItem()" style="width:100%;margin-top:12px">+ Aggiungi cantiere (max 3)</button>
         </div>
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="prevPage(2)">← Indietro</button>
@@ -182,7 +190,7 @@
         </div>
       </div>
 
-      <!-- Pagina 4 -->
+      <!-- Pagina 4: RIEPILOGO -->
       <div class="view" id="page4">
         <div class="card summary-card">
           <div class="card-title"><span>📋</span><span>Riepilogo</span></div>
@@ -218,7 +226,7 @@
     let SITE_OPTIONS = [];
     let workState = [];
     let LAST_PRESENZE = [];
-    let ABSENT_MODE = false; // <— assenza attiva per la data selezionata
+    let ABSENT_MODE = false;
 
     // ---------- utils ----------
     function pad2(n){return String(n).padStart(2,'0');}
@@ -262,14 +270,23 @@
     function showApp(){   document.getElementById('loginPage').style.display='none';  document.getElementById('appContainer').style.display='block'; }
 
     // ---------- step nav ----------
-    function setStep(p){ document.querySelectorAll('.step').forEach((el,i)=> el.classList.toggle('active', i<=p-1)); currentPage=p; window.scrollTo({top:0,behavior:'smooth'}); }
-    function nextPage(p){ document.getElementById('page'+currentPage).classList.remove('active'); document.getElementById('page'+p).classList.add('active'); setStep(p); updateSummary(); }
+    function setStep(p){ 
+      document.querySelectorAll('.step').forEach((el,i)=> el.classList.toggle('active', i<=p-1)); 
+      currentPage=p; 
+      window.scrollTo({top:0,behavior:'smooth'}); 
+    }
+    function nextPage(p){ 
+      document.getElementById('page'+currentPage).classList.remove('active'); 
+      document.getElementById('page'+p).classList.add('active'); 
+      setStep(p); 
+      updateSummary(); 
+    }
     function prevPage(p){ nextPage(p); }
 
     // ---------- date selector (Mon→Sun, weekend alla fine) ----------
     function initDateSelector(){
       const cont = document.getElementById('dateSelector'); cont.innerHTML='';
-      const today = new Date(); const start = startOfWeekMonday(addDays(today,-7)); // due settimane, lun→dom
+      const today = new Date(); const start = startOfWeekMonday(addDays(today,-7));
       const dayLabel=['L','M','M','G','V','S','D'];
       for(let w=0; w<2; w++){
         for(let i=0;i<7;i++){
@@ -428,7 +445,6 @@
       document.querySelectorAll('.date-day').forEach(dd=> dd.classList.toggle('selected', dd.dataset.date===fmtISO(yest)));
       ABSENT_MODE=false; updateAssenteChip();
 
-      // precompila orari/lavori
       const parts=(found.orari||'').split('+').map(s=>s.trim());
       const [m1,p1]=parts;
       if(m1){ const [a,b]=m1.split('-'); document.getElementById('mStart').value=a; document.getElementById('mEnd').value=b; }
@@ -466,7 +482,7 @@
         document.getElementById('successOverlay').classList.remove('show');
         await loadPresenze();
         await renderMonthList();
-        prevPage(1);
+        nextPage(1);
       }, 800);
     }
 
