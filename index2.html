@@ -1,281 +1,670 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Presenze Cantiere</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    :root{
-      --primary:#FF6B35; --primary-dark:#E55A2B;
-      --secondary:#004E89; --secondary-light:#1A659E;
-      --accent:#F7B801; --success:#06D6A0; --danger:#ef4444;
-      --muted:#94a3b8; --text:#fff; --text-secondary:#B8C5D6;
-      --bg:#0A0E27; --bg-light:#111634; --card:#151a3b; --border:rgba(255,255,255,.12);
-      --slot-h: 160px;
-    }
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-    .container{max-width:480px;margin:0 auto;min-height:100vh}
-    .topbar{display:flex;justify-content:flex-end;padding:10px 16px}
-    .logout-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;border-radius:12px;padding:6px 10px;cursor:pointer;font-weight:700;font-size:12px}
-    .header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:18px;border-radius:0 0 20px 20px}
-    .header h1{font-size:18px;font-weight:800;margin-bottom:6px}
-    .user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:6px 10px;border-radius:14px;font-size:12px;font-weight:600}
-    .content{padding:16px}
-    .step-indicator{display:flex;gap:8px;margin-bottom:12px}
-    .step{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:4px}
-    .step.active{background:linear-gradient(90deg,var(--primary),var(--accent))}
-    .view{display:none}
-    .view.active{display:block}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px}
-    .card-title{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-    .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}
-    .date-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:2px solid transparent;border-radius:10px;cursor:pointer;font-size:12px}
-    .date-day .day-name{font-size:9px;color:var(--text-secondary);margin-bottom:2px;text-transform:uppercase;font-weight:600}
-    .date-day .day-num{font-size:14px;font-weight:800}
-    .date-day.selected{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent}
-    .date-day.today{outline:2px solid var(--success)}
-    .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){background: rgba(220,38,38,.12); border-color: rgba(220,38,38,.35);}
-    .date-actions{display:flex;gap:8px;margin-top:8px}
-    .chip{flex:1;background:rgba(255,255,255,.06);border:1px dashed var(--border);border-radius:12px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:700;color:#e5e7eb;text-align:center}
-    .chip.active{border-style:solid;border-color:var(--danger);background:linear-gradient(135deg,#9f123999,#7f1d1d77)}
-    .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
-    .time-slot{position:relative;overflow:hidden;border-radius:16px;border:1px solid var(--border);background:var(--bg-light);min-height:var(--slot-h);padding:10px;isolation:isolate}
-    .slot-bg{position:absolute;inset:0;border-radius:16px;opacity:.95;transform:translateZ(0)}
-    .time-slot.morning .slot-bg{background:linear-gradient(135deg,#4da3ff,#5bc0eb)}
-    .time-slot.afternoon .slot-bg{background:linear-gradient(135deg,var(--primary),var(--accent))}
-    .slot-inner{position:relative;z-index:1;display:grid;grid-template-rows:auto 1fr auto;gap:8px;height:100%}
-    .slot-head{display:flex;align-items:center;justify-content:space-between}
-    .slot-time{font-size:16px;font-weight:900;text-align:left}
-    .slot-badge{font-size:12px;font-weight:800;padding:4px 8px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.4)}
-    .time-inputs{align-self:end;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .time-inputs input[type="time"]{width:100%;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:10px;padding:8px 10px;font-size:14px;outline:none}
-    .total-card{margin-top:8px;text-align:center}
-    .total-card small{display:block;color:var(--text-secondary)}
-    .total-card strong{display:block;font-size:22px}
-    .btn-group{display:flex;gap:10px;margin-top:12px}
-    .btn{flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:800;color:#fff;cursor:pointer}
-    .btn-secondary{background:rgba(255,255,255,.06);border:1px solid var(--border)}
-    .btn-success{background:linear-gradient(135deg,var(--success),#05b78b)}
-    .summary-card{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));border:none}
-    .summary-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.15)}
-    .summary-row:last-child{border-bottom:none}
-    .summary-works{display:flex;flex-direction:column;gap:10px}
-    .summary-work{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px}
-    .month-list{display:none;flex-direction:column;gap:8px;margin-top:8px}
-    .month-list.open{display:flex}
-    .month-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
-    .mi-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-    .mi-date{min-width:46px;text-align:center;font-weight:900;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:4px 6px;font-size:12px}
-    .mi-main{display:flex;flex-direction:column;min-width:0;flex:1}
-    .mi-cant{font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .mi-lav{font-size:12px;color:#e5e7eb;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .mi-right{display:flex;align-items:center;gap:8px}
-    .mi-ore{font-weight:900;font-size:14px}
-    .preview-card{display:none}
-    .preview-card.show{display:block}
-    .preview-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.12)}
-    .preview-row:last-child{border-bottom:none}
-    .preview-actions{display:flex;gap:8px;margin-top:12px}
-    .notes-area{width:100%;min-height:70px;background:#0b102a;border:1px solid rgba(255,255,255,.55);border-radius:10px;color:#fff;padding:10px;font-size:14px}
-    .notes-area::placeholder{color:#cbd5e1;opacity:.9}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Presenze Cantiere</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --primary:#FF6B35; --primary-dark:#E55A2B;
+    --secondary:#004E89; --secondary-light:#1A659E;
+    --accent:#F7B801; --success:#06D6A0;
+    --danger:#ef4444; --muted:#94a3b8;
+    --bg:#0A0E27; --bg-light:#121632;
+    --card-bg:rgba(255,255,255,.06); --border:rgba(255,255,255,.14);
+    --text:#fff; --text-secondary:#B8C5D6;
+    --slot-h: 150px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  .container{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh}
+
+  /* Header compatto */
+  .header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);padding:18px 16px;border-radius:0 0 18px 18px;box-shadow:0 10px 40px rgba(255,107,53,.3)}
+  .header h1{font-size:18px;font-weight:900;letter-spacing:.2px}
+  .user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);padding:4px 10px;border-radius:14px;margin-top:8px;font-size:12px;font-weight:700}
+
+  .content{padding:14px 16px 20px}
+  .topbar{display:flex;justify-content:flex-end;padding:10px 16px}
+  .logout-btn{background:var(--card-bg);border:1px solid var(--border);color:#fff;border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:700;font-size:12px}
+
+  .step-indicator{display:flex;gap:6px;margin:10px 0 14px}
+  .step{flex:1;height:4px;background:var(--card-bg);border-radius:4px}
+  .step.active{background:linear-gradient(90deg,var(--primary),var(--accent))}
+
+  .view{display:none}
+  .view.active{display:block;animation:fadeIn .25s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  .card{background:var(--card-bg);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 6px 22px rgba(0,0,0,.22)}
+  .card-title{font-size:14px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+
+  /* Date selector (L→D, weekend evidenziati) */
+  .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+  .date-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-light);border:2px solid transparent;border-radius:10px;cursor:pointer;transition:.12s;font-size:12px}
+  .date-day .day-name{font-size:9px;color:var(--text-secondary);margin-bottom:3px;font-weight:800;text-transform:uppercase}
+  .date-day .day-num{font-size:14px;font-weight:900}
+  .date-day:hover{border-color:var(--primary);transform:scale(1.03)}
+  .date-day.selected{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent}
+  .date-day.today{border-color:var(--success)}
+  .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){background: rgba(220, 38, 38, 0.12); border-color: rgba(220, 38, 38, 0.35);}
+
+  .date-actions{display:flex;gap:8px;margin-top:10px}
+  .chip{flex:1;background:var(--bg-light);border:1px dashed var(--border);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:800;color:var(--text-secondary);text-align:center}
+  .chip.active{border-style:solid;border-color:var(--danger);color:#fff;background:linear-gradient(135deg,#b91c1c66,#7f1d1d66)}
+
+  /* Time slots (no sovrapposizioni + centrati) */
+  .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .time-slot{position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--border);min-height:var(--slot-h);padding:10px;background:var(--bg-light)}
+  .slot-bg{position:absolute;inset:0;opacity:.92;border-radius:10px;z-index:0}
+  .time-slot.morning .slot-bg{background:linear-gradient(135deg,#4da3ff,#5bc0eb)}
+  .time-slot.afternoon .slot-bg{background:linear-gradient(135deg,var(--primary),var(--accent))}
+  .slot-inner{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:space-between;height:100%}
+  .slot-time{font-size:16px;font-weight:900;text-align:center;margin-top:2px}
+  .slot-hours{margin-top:4px;align-self:center;font-size:12px;font-weight:800;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.25);padding:3px 8px;border-radius:999px}
+  .time-inputs{margin-top:6px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .time-inputs input[type="time"]{width:100%;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:8px 10px;font-size:14px;outline:none}
+
+  .total-hours-badge{margin-top:8px;padding:10px;background:var(--bg-light);border:1px solid var(--border);border-radius:10px;text-align:center}
+  .total-hours-badge .label{color:var(--text-secondary);font-size:11px;margin-bottom:2px}
+  .total-hours-badge .value{font-size:20px;font-weight:900;color:var(--accent)}
+
+  .input-group{position:relative;margin-top:10px}
+  .input-group input,.input-group textarea,.input-group select{width:100%;background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:12px 14px 12px 42px;font-size:14px;color:var(--text)}
+  .input-group .input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text-secondary)}
+  .input-group textarea{min-height:90px;resize:vertical}
+  .input-group textarea::placeholder{color:#e5e7eb;opacity:.75}
+  .input-group textarea + .input-icon{top:18px;transform:none}
+
+  .btn-group{display:flex;gap:8px;margin-top:12px}
+  .btn{flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:900;color:#fff;cursor:pointer}
+  .btn-secondary{background:var(--bg-light);border:1px solid var(--border)}
+  .btn-success{background:linear-gradient(135deg,var(--success),#05b78b)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+
+  /* Presenze mese collapsible */
+  .month-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-light);border:1px dashed var(--border);border-radius:12px;padding:10px 12px;cursor:pointer}
+  .month-title-text{font-weight:900;font-size:14px}
+  .month-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .month-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+  .mi-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+  .mi-date{min-width:46px;text-align:center;font-weight:900;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:4px 6px;font-size:12px}
+  .mi-main{display:flex;flex-direction:column;min-width:0;flex:1}
+  .mi-cant{font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mi-lav{font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mi-right{display:flex;align-items:center;gap:6px}
+  .mi-ore{font-weight:900;font-size:13px}
+  .month-item.weekend,.month-item.holiday{background:linear-gradient(0deg, rgba(220, 38, 38, 0.12), rgba(220, 38, 38, 0.12)), var(--bg-light);border-color: rgba(220, 38, 38, 0.35);}
+  .month-item.today{outline:2px solid var(--success);}
+  .month-item.future{opacity:.65}
+  .badge-missing{display:inline-block;padding:3px 7px;border-radius:999px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:#fecaca;font-weight:900;font-size:11px}
+  .badge-future{display:inline-block;padding:3px 7px;border-radius:999px;background:rgba(148,163,184,.15);border:1px solid rgba(148,163,184,.35);color:#e5e7eb;font-weight:900;font-size:11px}
+
+  .success-overlay{position:fixed;inset:0;background:rgba(10,14,39,.95);display:none;align-items:center;justify-content:center;z-index:1000}
+  .success-overlay.show{display:flex}
+
+  /* Preview ripeti ieri */
+  .preview-card{display:none}
+  .preview-card.show{display:block}
+  .preview-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+  .preview-row:last-child{border-bottom:none}
+  .preview-actions{display:flex;gap:8px;margin-top:12px}
+</style>
 </head>
 <body>
 
-  <!-- LOGIN -->
-  <div id="loginPage" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
-    <div class="card" style="max-width:420px;width:100%">
-      <h2 style="margin-bottom:10px;">🔐 Accesso</h2>
-      <div style="display:grid;gap:8px">
-        <input id="loginUser" type="text" placeholder="User" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-light);color:#fff">
-        <input id="loginPass" type="password" placeholder="Password" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-light);color:#fff">
-        <button id="loginBtn" class="btn">Entra</button>
-        <div id="loginError" style="margin-top:6px;color:#ff7b7b;font-weight:800;display:none;">Credenziali errate</div>
-      </div>
-    </div>
+<!-- LOGIN -->
+<div id="loginPage" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="width:100%;max-width:420px" class="card">
+    <h2 style="margin-bottom:10px;">🔐 Accesso</h2>
+    <div class="input-group"><span class="input-icon">👤</span><input id="loginUser" type="text" placeholder="User"></div>
+    <div class="input-group"><span class="input-icon">🔒</span><input id="loginPass" type="password" placeholder="Password"></div>
+    <div class="btn-group" style="margin-top:14px;"><button id="loginBtn" class="btn" type="button" onclick="handleLogin()">Entra</button></div>
+    <div id="loginError" style="margin-top:10px;color:#ff7b7b;font-weight:800;display:none;">Credenziali errate</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="container" id="appContainer" style="display:none;">
+  <div class="topbar"><button class="logout-btn" onclick="handleLogout()">Esci</button></div>
+
+  <div class="header">
+    <h1>⚡ Presenze Cantiere</h1>
+    <div class="user-badge"><span>👷</span><span id="userName">-</span></div>
   </div>
 
-  <!-- APP -->
-  <div class="container" id="appContainer" style="display:none;">
-    <div class="topbar"><button class="logout-btn" onclick="handleLogout()">Esci</button></div>
+  <div class="content">
+    <div class="step-indicator"><div class="step active"></div><div class="step"></div><div class="step"></div><div class="step"></div></div>
 
-    <div class="header">
-      <h1>⚡ Presenze Cantiere</h1>
-      <div class="user-badge"><span>👷</span><span id="userName">-</span></div>
-    </div>
-
-    <div class="content">
-      <div class="step-indicator"><div class="step active"></div><div class="step"></div><div class="step"></div><div class="step"></div></div>
-
-      <!-- Pagina 1 -->
-      <div class="view active" id="page1">
-        <div class="card">
-          <div class="card-title">📅 Seleziona la data</div>
-          <div class="date-selector" id="dateSelector"></div>
-          <div class="date-actions">
-            <button class="chip" onclick="repeatYesterday()">↻ Ripeti ieri</button>
-            <button id="assenteChip" class="chip" onclick="toggleAssente()">🚫 Assente</button>
-          </div>
+    <!-- Pagina 1: DATA -->
+    <div class="view active" id="page1">
+      <div class="card">
+        <div class="card-title"><span>📅</span><span>Seleziona la data</span></div>
+        <div class="date-selector" id="dateSelector"></div>
+        <div class="date-actions">
+          <button id="repeatBtn" class="chip" onclick="repeatYesterday()">↻ Ripeti ieri</button>
+          <button id="assenteChip" class="chip" onclick="toggleAssente()">🚫 Assente</button>
         </div>
-
-        <!-- Preview ripeti ieri -->
-        <div class="card preview-card" id="previewCard">
-          <div class="card-title">⚡ Riepilogo di ieri</div>
-          <div class="preview-row"><span>Data</span><span id="previewDate">-</span></div>
-          <div class="preview-row"><span>Orario</span><span id="previewTime">-</span></div>
-          <div class="preview-row"><span>Ore totali</span><span id="previewHours">-</span></div>
-          <div class="preview-row"><span>Cantiere</span><span id="previewSite">-</span></div>
-          <div class="preview-row"><span>Lavorazione</span><span id="previewWork">-</span></div>
-          <div class="preview-actions">
-            <button class="btn btn-success" onclick="confirmRepeat()">✓ Usa questo</button>
-            <button class="btn btn-secondary" onclick="cancelRepeat()">✗ Annulla</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title" id="monthTitle" style="cursor:pointer" onclick="toggleMonthList()">📆 Presenze del mese ▾</div>
-          <div id="monthList" class="month-list"></div>
-        </div>
-
-        <div class="btn-group"><button class="btn" onclick="goFromPage1()">Avanti →</button></div>
       </div>
 
-      <!-- Pagina 2: orari -->
-      <div class="view" id="page2">
-        <div class="card">
-          <div class="card-title">⏰ Orario di lavoro</div>
-          <div class="time-picker">
-            <div class="time-slot morning">
-              <div class="slot-bg"></div>
-              <div class="slot-inner">
-                <div class="slot-head">
-                  <div class="slot-time" id="morningText">08:00 - 12:00</div>
-                  <div class="slot-badge" id="mHours">4.0h</div>
-                </div>
-                <div class="time-inputs">
-                  <input type="time" id="mStart" value="08:00" min="07:00" max="15:00" step="1800" oninput="updateTimes()">
-                  <input type="time" id="mEnd"   value="12:00" min="07:00" max="15:00" step="1800" oninput="updateTimes()">
-                </div>
-              </div>
-            </div>
-            <div class="time-slot afternoon">
-              <div class="slot-bg"></div>
-              <div class="slot-inner">
-                <div class="slot-head">
-                  <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
-                  <div class="slot-badge" id="pHours">4.0h</div>
-                </div>
-                <div class="time-inputs">
-                  <input type="time" id="pStart" value="13:00" min="12:00" max="20:00" step="1800" oninput="updateTimes()">
-                  <input type="time" id="pEnd"   value="17:00" min="12:00" max="20:00" step="1800" oninput="updateTimes()">
-                </div>
+      <!-- Preview "Ripeti ieri" -->
+      <div class="card preview-card" id="previewCard">
+        <div class="card-title"><span>⚡</span><span>Riepilogo di ieri</span></div>
+        <div class="preview-row"><span>Data</span><span id="previewDate">-</span></div>
+        <div class="preview-row"><span>Orario</span><span id="previewTime">-</span></div>
+        <div class="preview-row"><span>Ore totali</span><span id="previewHours">-</span></div>
+        <div class="preview-row"><span>Cantiere</span><span id="previewSite">-</span></div>
+        <div class="preview-row"><span>Lavorazione</span><span id="previewWork">-</span></div>
+        <div class="preview-row"><span>Note</span><span id="previewNotes">-</span></div>
+        <div class="preview-actions">
+          <button class="btn btn-success" onclick="confirmRepeat()">✓ Usa questo</button>
+          <button class="btn btn-secondary" onclick="cancelRepeat()">✗ Annulla</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <button id="monthToggle" class="month-toggle" type="button">
+          <span class="month-title-text" id="monthTitle">📆 Presenze del mese</span>
+          <span id="monthArrow">▼</span>
+        </button>
+        <div id="monthList" class="month-list" hidden></div>
+      </div>
+
+      <div class="btn-group"><button class="btn" onclick="goFromPage1()">Avanti →</button></div>
+    </div>
+
+    <!-- Pagina 2: ORARI -->
+    <div class="view" id="page2">
+      <div class="card">
+        <div class="card-title"><span>⏰</span><span>Orario di lavoro</span></div>
+
+        <div class="time-picker">
+          <div class="time-slot morning">
+            <div class="slot-bg"></div>
+            <div class="slot-inner">
+              <div class="slot-time" id="morningText">08:00 - 12:00</div>
+              <div class="slot-hours" id="morningHours">4.0 h</div>
+              <div class="time-inputs">
+                <input type="time" id="mStart" value="08:00" min="06:00" max="15:00" step="1800" oninput="updateTimes()">
+                <input type="time" id="mEnd"   value="12:00" min="06:00" max="15:00" step="1800" oninput="updateTimes()">
               </div>
             </div>
           </div>
-          <div class="card total-card">
-            <small>Ore totali</small>
-            <strong id="totalHours">8.0h</strong>
+
+          <div class="time-slot afternoon">
+            <div class="slot-bg"></div>
+            <div class="slot-inner">
+              <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
+              <div class="slot-hours" id="afternoonHours">4.0 h</div>
+              <div class="time-inputs">
+                <input type="time" id="pStart" value="13:00" min="12:00" max="21:30" step="1800" oninput="updateTimes()">
+                <input type="time" id="pEnd"   value="17:00" min="12:00" max="21:30" step="1800" oninput="updateTimes()">
+              </div>
+            </div>
           </div>
         </div>
-        <div class="btn-group">
-          <button class="btn btn-secondary" onclick="prevPage(1)">← Indietro</button>
-          <button class="btn" onclick="nextPage(3)">Avanti →</button>
+
+        <div class="total-hours-badge">
+          <div class="label">Ore totali</div>
+          <div class="value" id="totalHours">8.0h</div>
         </div>
       </div>
 
-      <!-- Pagina 3: cantieri -->
-      <div class="view" id="page3">
-        <div class="card">
-          <div class="card-title">🏗️ Cantieri</div>
-          <div id="workItems"></div>
-          <button class="chip" id="addWorkBtn" onclick="addWorkItem()" style="width:100%;margin-top:10px">+ Aggiungi cantiere (max 3)</button>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-secondary" onclick="prevPage(2)">← Indietro</button>
-          <button class="btn" onclick="nextPage(4)">Avanti →</button>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="prevPage(1)">← Indietro</button>
+        <button class="btn" onclick="nextPage(3)">Avanti →</button>
+      </div>
+    </div>
+
+    <!-- Pagina 3: CANTIERI -->
+    <div class="view" id="page3">
+      <div class="card">
+        <div class="card-title"><span>🏗️</span><span>Cantieri</span></div>
+        <div id="workItems"></div>
+        <button class="chip" id="addWorkBtn" onclick="addWorkItem()" style="width:100%;margin-top:10px">+ Aggiungi cantiere (max 3)</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="prevPage(2)">← Indietro</button>
+        <button class="btn" onclick="nextPage(4)">Avanti →</button>
+      </div>
+    </div>
+
+    <!-- Pagina 4: RIEPILOGO -->
+    <div class="view" id="page4">
+      <div class="card">
+        <div class="card-title"><span>🗒️</span><span>Note (facoltative)</span></div>
+        <div class="input-group">
+          <span class="input-icon">✏️</span>
+          <textarea id="notesInput" placeholder="Aggiungi eventuali note..." oninput="updateSummary()"></textarea>
         </div>
       </div>
 
-      <!-- Pagina 4: riepilogo -->
-      <div class="view" id="page4">
-        <div class="card summary-card">
-          <div class="card-title">📋 Riepilogo</div>
-          <div class="summary-row"><span>Data</span><span id="summaryDate">-</span></div>
-          <div class="summary-row"><span>Orario</span><span id="summaryTime">—</span></div>
-          <div class="summary-row" style="border:none;display:block;padding-top:0;">
-            <div style="margin-bottom:6px;color:#e2e8f0">Cantieri & lavorazioni</div>
-            <div class="summary-works" id="summaryWorks"></div>
-          </div>
-          <div class="summary-row" style="align-items:flex-start">
-            <span>Note</span>
-            <span style="flex:1;max-width:60%">
-              <textarea id="notesInput" class="notes-area" placeholder="Aggiungi note..." oninput="updateSummary()"></textarea>
-            </span>
-          </div>
-          <div class="summary-row"><span>Ore totali</span><span id="summaryHours">0.0h</span></div>
+      <div class="card">
+        <div class="card-title"><span>📋</span><span>Riepilogo</span></div>
+        <div class="preview-row"><span>Data</span><span id="summaryDate">-</span></div>
+        <div class="preview-row"><span>Orario</span><span id="summaryTime">—</span></div>
+        <div class="preview-row" style="display:block;border:none;padding-top:8px">
+          <div style="margin-bottom:6px;color:#e2e8f0;font-weight:800">Cantieri & lavorazioni</div>
+          <div class="summary-works" id="summaryWorks"></div>
         </div>
-        <div class="btn-group">
-          <button class="btn btn-secondary" onclick="prevPage(3)">← Indietro</button>
-          <button class="btn btn-success" onclick="submitPresence()">✓ Conferma</button>
-        </div>
+        <div class="preview-row"><span>Note</span><span id="summaryNotes">-</span></div>
+        <div class="preview-row"><span>Ore totali</span><span id="summaryHours">0.0h</span></div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="prevPage(3)">← Indietro</button>
+        <button class="btn btn-success" onclick="submitPresence()">✓ Conferma</button>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="success-overlay" id="successOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,14,39,.95);align-items:center;justify-content:center;z-index:1000">
-    <div class="card"><h2>✨ Presenza registrata!</h2></div>
-  </div>
+<div class="success-overlay" id="successOverlay">
+  <div class="card"><h2>✨ Presenza registrata!</h2></div>
+</div>
 
-  <script>
-    const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
-    const OS_BASE  = `https://opensheet.elk.sh/${SHEET_ID}/`;
-    const L0URL    = "https://script.google.com/macros/s/AKfycbxPtNkoQlypf1RKNgIAQEJPgMsmoUDVpYeIzbqMeDICK3-hsZTKrPC718hBy0o7dQDa/exec";
+<script>
+  /* ====== CONFIG ====== */
+  const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
+  const OS_BASE  = `https://opensheet.elk.sh/${SHEET_ID}/`;
+  const L0URL    = "https://script.google.com/macros/s/AKfycbxPtNkoQlypf1RKNgIAQEJPgMsmoUDVpYeIzbqMeDICK3-hsZTKrPC718hBy0o7dQDa/exec";
 
-    let AUTH = { user:null, nome:null, ruolo:null };
-    let selectedDate = new Date();
-    let currentPage = 1;
-    let SITE_OPTIONS = [];
-    let workState = [];
-    let LAST_PRESENZE = [];
-    let ABSENT_MODE = false;
-    let PREVIEW_DATA = null;
-    let MONTH_OPEN = false; // stato collassabile
+  /* ====== STATE ====== */
+  let AUTH = { user:null, nome:null, ruolo:null };
+  let selectedDate = new Date();
+  let currentPage = 1;
+  let SITE_OPTIONS = [];
+  let workState = [];
+  let LAST_PRESENZE = [];
+  let ABSENT_MODE = false;
+  let PREVIEW_DATA = null;
+  let MONTH_OPEN = false;
 
-    // ---------- utils ----------
-    function pad2(n){return String(n).padStart(2,'0');}
-    function fmtISO(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
-    function fmtHuman(d){return d.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}
-    function toMinutes(hhmm){if(!hhmm) return 0; const [h,m]=hhmm.split(':').map(Number); return h*60+m;}
-    function diffHours(a,b){return Math.max(0,(toMinutes(b)-toMinutes(a)))/60;}
-    function sameYMD(a,b){return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();}
-    function addDays(d,n){const x=new Date(d); x.setDate(x.getDate()+n); return x;}
-    function startOfWeekMonday(d){const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x;}
-    function easterDate(year){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(year,month-1,day);}
-    function isItalianHoliday(d){const y=d.getFullYear(); const fixed=[[1,1],[1,6],[4,25],[5,1],[6,2],[8,15],[11,1],[12,8],[12,25],[12,26]]; for(const [mm,dd] of fixed){ if(sameYMD(d,new Date(y,mm-1,dd))) return true; } return sameYMD(d, addDays(easterDate(y),1));}
+  /* ====== UTILS ====== */
+  function pad2(n){return String(n).padStart(2,'0');}
+  function fmtISO(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
+  function fmtHuman(d){return d.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}
+  function toMinutes(hhmm){if(!hhmm) return 0; const [h,m]=hhmm.split(':').map(Number); return h*60+m;}
+  function diffHours(a,b){return Math.max(0,(toMinutes(b)-toMinutes(a)))/60;}
+  function sameYMD(a,b){return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();}
+  function addDays(d,n){const x=new Date(d); x.setDate(x.getDate()+n); x.setHours(0,0,0,0); return x;}
+  function startOfWeekMonday(d){const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x;}
+  function isWeekend(d){const g=d.getDay(); return g===0||g===6;}
+  function easterDate(year){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(year,month-1,day);}
+  function isItalianHoliday(d){const y=d.getFullYear(); const fixed=[[1,1],[1,6],[4,25],[5,1],[6,2],[8,15],[11,1],[12,8],[12,25],[12,26]]; for(const [mm,dd] of fixed){ if(sameYMD(d,new Date(y,mm-1,dd))) return true; } return sameYMD(d, addDays(easterDate(y),1));}
+  function parseDateFlex(v){
+    if (v instanceof Date) return v;
+    if (typeof v!=='string') return new Date(NaN);
+    const s=v.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
+    const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+    if(m){const d=+m[1], mo=+m[2]-1, y=+m[3], hh=+(m[4]||0), mm=+(m[5]||0); return new Date(y,mo,d,hh,mm);}
+    return new Date(s);
+  }
 
-    // ---------- cache locale SWR ----------
-    function cacheGet(key, maxAgeMs){
-      try{ const raw=localStorage.getItem(key); if(!raw) return null; const obj=JSON.parse(raw); if(Date.now()-obj.t>maxAgeMs) return null; return obj.v; }catch{ return null; }
+  /* ====== LOGIN ====== */
+  async function handleLogin(){
+    const btn = document.getElementById('loginBtn');
+    const errBox = document.getElementById('loginError');
+    errBox.style.display = 'none';
+
+    const u = (document.getElementById('loginUser').value || '').trim();
+    const p = document.getElementById('loginPass').value || '';
+
+    if(!u || !p){
+      errBox.textContent = 'Inserisci user e password';
+      errBox.style.display = 'block';
+      return;
     }
-    function cacheSet(key, value){ try{ localStorage.setItem(key, JSON.stringify({t:Date.now(), v:value})); }catch{} }
 
-    // ---------- login ----------
-    async function handleLogin(){
-      const u=(document.getElementById('loginUser').value||'').trim();
-      const p=(document.getElementById('loginPass').value||'');
-      document.getElementById('loginError').style.display='none';
-      try{
-        const rows = await (await fetch(OS_BASE+'Credenziali')).json();
-        const rec  = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
-        if(!rec) throw new Error('BAD');
-        AUTH.user=rec.User; AUTH.nome=rec.Nome||rec.User; AUTH.ruolo=rec.Ruolo||'';
-        document.getElementById('userName').textContent=AUTH.nome;
-        showApp();
-        await postLoginInit();
-      }catch(e){
-        document.getElementById('loginError').style.display='block';
+    const originalText = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Verifico...';
+
+    try{
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), 8000);
+      const res = await fetch(OS_BASE+'Credenziali', {signal: ctrl.signal, cache:'no-store'});
+      clearTimeout(timer);
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const rows = await res.json();
+
+      const rec = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
+      if(!rec){ errBox.textContent='Credenziali errate'; errBox.style.display='block'; return; }
+
+      AUTH.user = rec.User;
+      AUTH.nome = rec.Nome || rec.User;
+      AUTH.ruolo = rec.Ruolo || '';
+      document.getElementById('userName').textContent = AUTH.nome;
+
+      showApp();
+      await postLoginInit();
+    }catch(e){
+      errBox.textContent = 'Accesso non riuscito. Verifica il foglio “Credenziali” e la pubblicazione.';
+      errBox.style.display = 'block';
+      console.error(e);
+    }finally{
+      btn.disabled = false; btn.textContent = originalText;
+    }
+  }
+  function handleLogout(){ AUTH={user:null,nome:null,ruolo:null}; showLogin(); }
+  function showLogin(){ document.getElementById('loginPage').style.display='flex'; document.getElementById('appContainer').style.display='none'; }
+  function showApp(){   document.getElementById('loginPage').style.display='none';  document.getElementById('appContainer').style.display='block'; }
+
+  /* ====== NAV ====== */
+  function setStep(p){
+    document.querySelectorAll('.step').forEach((el,i)=> el.classList.toggle('active', i<=p-1));
+    currentPage=p;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function nextPage(p){
+    document.getElementById('page'+currentPage).classList.remove('active');
+    document.getElementById('page'+p).classList.add('active');
+    setStep(p);
+    updateSummary();
+  }
+  function prevPage(p){ nextPage(p); }
+
+  /* ====== DATE SELECTOR (L→D) ====== */
+  function initDateSelector(){
+    const cont = document.getElementById('dateSelector'); cont.innerHTML='';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const start = startOfWeekMonday(addDays(today,-7));
+    const dayLabel=['L','M','M','G','V','S','D'];
+    for(let w=0; w<2; w++){
+      for(let i=0;i<7;i++){
+        const d = addDays(start, w*7+i);
+        const div=document.createElement('div'); div.className='date-day'; div.dataset.date=fmtISO(d);
+        if(isWeekend(d)) div.classList.add('weekend');
+        if(isItalianHoliday(d)) div.classList.add('holiday');
+        if(sameYMD(d,today)){ div.classList.add('today','selected'); selectedDate=today; }
+        div.innerHTML=`<div class="day-name">${dayLabel[i]}</div><div class="day-num">${d.getDate()}</div>`;
+        div.onclick=()=> selectDate(div,d);
+        cont.appendChild(div);
       }
     }
-    function handleLogout(){ AUTH={user:null,nome:null,ruolo:null}; showLogin(); }
-    function showLogin(){ document.getElementById('loginPage').style.display='flex'; document.getElementById('appContainer').style.display='none';
+  }
+  function selectDate(el,d){
+    document.querySelectorAll('.date-day').forEach(x=>x.classList.remove('selected'));
+    el.classList.add('selected'); selectedDate=d; ABSENT_MODE=false; updateAssenteChip(); renderMonthList();
+  }
+
+  /* ====== ASSENTE ====== */
+  function toggleAssente(){ ABSENT_MODE=!ABSENT_MODE; updateAssenteChip(); }
+  function updateAssenteChip(){ document.getElementById('assenteChip').classList.toggle('active', ABSENT_MODE); }
+  function goFromPage1(){ ABSENT_MODE ? (updateSummary(), nextPage(4)) : nextPage(2); }
+
+  /* ====== ORARI ====== */
+  function updateTimes(){
+    const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
+    const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
+
+    document.getElementById('morningText').textContent = `${ms} - ${me}`;
+    document.getElementById('afternoonText').textContent = `${ps} - ${pe}`;
+
+    const hM = diffHours(ms,me);
+    const hP = diffHours(ps,pe);
+    document.getElementById('morningHours').textContent = `${hM.toFixed(1)} h`;
+    document.getElementById('afternoonHours').textContent = `${hP.toFixed(1)} h`;
+    document.getElementById('totalHours').textContent = (hM+hP).toFixed(1)+'h';
+
+    updateSummary();
+  }
+
+  /* ====== CANTIERI ====== */
+  function newWorkItem(){ return {id:crypto.randomUUID(), siteSelect:'', siteManual:'', work:''}; }
+  async function loadCantieri(){
+    try{
+      const rows = await (await fetch(OS_BASE+'Cantieri')).json();
+      SITE_OPTIONS = rows.map(r => r.Cantiere || r[Object.keys(r)[0]]).map(x=>String(x||'').trim()).filter(Boolean);
+    }catch{ SITE_OPTIONS=[]; }
+    if (!workState.length) workState=[newWorkItem()];
+    renderWorkItems();
+  }
+  function renderWorkItems(){
+    const wrap=document.getElementById('workItems'); wrap.innerHTML='';
+    workState.forEach((it,idx)=>{
+      const el=document.createElement('div'); el.className='card'; el.style.padding='12px';
+      el.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-weight:900">Cantiere ${idx+1}</div>
+          ${idx>0?`<button class="chip" onclick="removeWorkItem('${it.id}')">Rimuovi</button>`:''}
+        </div>
+        <div class="input-group"><span class="input-icon">🏷️</span>
+          <select onchange="onSel('${it.id}', this.value)">
+            <option value="">— Seleziona cantiere —</option>
+            ${SITE_OPTIONS.map(s=>`<option ${it.siteSelect===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="input-group"><span class="input-icon">🔍</span>
+          <input type="text" placeholder="Oppure scrivi il nome..." value="${(it.siteManual||'').replace(/"/g,'&quot;')}" oninput="onMan('${it.id}', this.value)">
+        </div>
+        <div class="input-group"><span class="input-icon">📝</span>
+          <textarea placeholder="Descrivi la lavorazione..." oninput="onWork('${it.id}', this.value)">${it.work||''}</textarea>
+        </div>`;
+      wrap.appendChild(el);
+    });
+    document.getElementById('addWorkBtn').disabled = (workState.length>=3);
+    updateSummary();
+  }
+  function addWorkItem(){ if(workState.length<3){ workState.push(newWorkItem()); renderWorkItems(); } }
+  function removeWorkItem(id){ workState=workState.filter(w=>w.id!==id); if(workState.length===0) workState=[newWorkItem()]; renderWorkItems(); }
+  function onSel(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.siteSelect=v||''; if(v) it.siteManual=''; updateSummary(); }
+  function onMan(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.siteManual=v; if(v.trim()) it.siteSelect=''; updateSummary(); }
+  function onWork(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.work=v; updateSummary(); }
+
+  /* ====== PRESENZE (OpenSheet) ====== */
+  async function loadPresenze(){
+    try{
+      const rows = await (await fetch(OS_BASE+'Presenze',{cache:'no-store'})).json();
+      const target = (AUTH.nome||'').toLowerCase();
+      LAST_PRESENZE = rows.map(r=>({
+        dataPresenza: parseDateFlex(r["Data Presenza"]||r["Data"]||''),
+        cantiere: r["Cantiere"]||'',
+        lavorazione: r["Lavorazione"]||'',
+        ore: r["Ore"]||'',
+        orari: r["Orari"]||'',
+        nome: String(r["Nome Operaio"]||'')
+      })).filter(x=>x.nome.toLowerCase()===target && !isNaN(x.dataPresenza)).sort((a,b)=>b.dataPresenza-a.dataPresenza);
+    }catch(e){
+      console.error('loadPresenze error', e);
+      LAST_PRESENZE=[];
+    }
+  }
+
+  /* ====== PRESENZE MESE (collapsible) ====== */
+  function setupMonthToggle(){
+    const btn = document.getElementById('monthToggle');
+    const list = document.getElementById('monthList');
+    const arrow = document.getElementById('monthArrow');
+    const apply = () => { list.hidden = !MONTH_OPEN; arrow.textContent = MONTH_OPEN ? '▲' : '▼'; }
+    btn.addEventListener('click', ()=>{ MONTH_OPEN = !MONTH_OPEN; apply(); });
+    apply();
+  }
+
+  async function renderMonthList(){
+    const list=document.getElementById('monthList'); list.innerHTML='';
+    const y=selectedDate.getFullYear(), m=selectedDate.getMonth();
+    const days=new Date(y,m+1,0).getDate();
+    const today=new Date(); today.setHours(0,0,0,0);
+    document.getElementById('monthTitle').textContent = `📆 Presenze mese ${selectedDate.toLocaleDateString('it-IT',{month:'long'})}`;
+
+    for(let d=1; d<=days; d++){
+      const dt=new Date(y,m,d);
+      const entries=LAST_PRESENZE.filter(p=> sameYMD(p.dataPresenza, dt));
+
+      const item=document.createElement('div');
+      item.className='month-item';
+      if(isWeekend(dt)) item.classList.add('weekend');
+      if(isItalianHoliday(dt)) item.classList.add('holiday');
+      if(sameYMD(dt,today)) item.classList.add('today');
+      if(dt>today) item.classList.add('future');
+
+      item.innerHTML = `
+        <div class="mi-left">
+          <div class="mi-date">
+            <div>${pad2(d)}</div>
+            <div style="font-size:10px;opacity:.8">${dt.toLocaleDateString('it-IT',{month:'short'})}</div>
+          </div>
+          <div class="mi-main">
+            <div class="mi-cant">${entries[0]?.cantiere || (dt<today?'<span class="badge-missing">NON COMPILATO</span>':'' )}</div>
+            <div class="mi-lav">${entries[0]?.lavorazione || ''}</div>
+          </div>
+        </div>
+        <div class="mi-right">
+          ${dt>today?'<span class="badge-future">FUTURO</span>': `<div class="mi-ore">${entries[0]?.ore?entries[0].ore+'h':'-'}</div>`}
+        </div>`;
+      list.appendChild(item);
+    }
+  }
+
+  /* ====== SUMMARY ====== */
+  function updateSummary(){
+    document.getElementById('summaryDate').textContent = fmtHuman(selectedDate);
+    const worksBox=document.getElementById('summaryWorks'); worksBox.innerHTML='';
+
+    if(ABSENT_MODE){
+      document.getElementById('summaryTime').textContent='—';
+      document.getElementById('summaryHours').textContent='0.0h';
+      const div=document.createElement('div'); div.className='summary-work';
+      div.innerHTML = `<div><strong>Cantiere:</strong> ASSENTE</div><div><strong>Lavorazione:</strong> ASSENTE</div>`;
+      worksBox.appendChild(div);
+      document.getElementById('summaryNotes').textContent = (document.getElementById('notesInput').value||'-') || '-';
+      return;
+    }
+
+    const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
+    const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
+    document.getElementById('summaryTime').textContent=`${ms}-${me} + ${ps}-${pe}`;
+    const tot=diffHours(ms,me)+diffHours(ps,pe);
+    document.getElementById('summaryHours').textContent = tot.toFixed(1)+'h';
+
+    workState.forEach((w,i)=>{
+      const name=(w.siteSelect||w.siteManual||'-').trim()||'-';
+      const lav=(w.work||'-').trim()||'-';
+      const div=document.createElement('div'); div.className='summary-work';
+      div.innerHTML=`<div><strong>Cantiere ${i+1}:</strong> ${name}</div><div><strong>Lavorazione:</strong> ${lav}</div>`;
+      worksBox.appendChild(div);
+    });
+
+    const note = (document.getElementById('notesInput').value||'').trim();
+    document.getElementById('summaryNotes').textContent = note || '-';
+  }
+
+  /* ====== RIPETI IERI ====== */
+  async function repeatYesterday(){
+    // Se i dati non sono ancora caricati, prova a caricarli ora
+    if (!LAST_PRESENZE.length) { await loadPresenze(); }
+    const yest = addDays(new Date(), -1);
+    const found = LAST_PRESENZE.find(p=> sameYMD(p.dataPresenza,yest));
+    if(!found){ alert('Nessuna presenza trovata per ieri'); return; }
+
+    PREVIEW_DATA = found;
+    document.getElementById('previewDate').textContent = fmtHuman(yest);
+    document.getElementById('previewTime').textContent = found.orari || '-';
+    document.getElementById('previewHours').textContent = found.ore ? found.ore + 'h' : '-';
+    document.getElementById('previewSite').textContent = found.cantiere || '-';
+    document.getElementById('previewWork').textContent = found.lavorazione || '-';
+    document.getElementById('previewNotes').textContent = '-';
+    document.getElementById('previewCard').classList.add('show');
+    document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function confirmRepeat(){
+    if(!PREVIEW_DATA) return;
+    const yest = addDays(new Date(), -1);
+    selectedDate = yest;
+    document.querySelectorAll('.date-day').forEach(dd=> dd.classList.toggle('selected', dd.dataset.date===fmtISO(yest)));
+    ABSENT_MODE = false; updateAssenteChip();
+
+    const parts = (PREVIEW_DATA.orari||'').split('+').map(s=>s.trim());
+    const [m1,p1] = parts;
+    if(m1){ const [a,b] = m1.split('-'); document.getElementById('mStart').value = a; document.getElementById('mEnd').value = b; }
+    if(p1){ const [c,d] = p1.split('-'); document.getElementById('pStart').value = c; document.getElementById('pEnd').value = d; }
+
+    workState = [newWorkItem()];
+    const cantiere = PREVIEW_DATA.cantiere || '';
+    if(SITE_OPTIONS.includes(cantiere)){ workState[0].siteSelect = cantiere; workState[0].siteManual=''; }
+    else { workState[0].siteManual = cantiere; workState[0].siteSelect=''; }
+    workState[0].work = PREVIEW_DATA.lavorazione || '';
+
+    renderWorkItems();
+    updateTimes();
+    document.getElementById('previewCard').classList.remove('show');
+    PREVIEW_DATA = null;
+    nextPage(2);
+  }
+  function cancelRepeat(){ document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA = null; }
+
+  /* ====== SUBMIT ====== */
+  async function submitPresence(){
+    const notes = (document.getElementById('notesInput').value||'').trim();
+
+    if(ABSENT_MODE){
+      const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes };
+      try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
+    }else{
+      const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
+      const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
+      const tot=diffHours(ms,me)+diffHours(ps,pe);
+      const lavori=workState.map(w=>({cantiere:(w.siteSelect||w.siteManual||'').trim(), lavorazione:(w.work||'').trim()})).filter(x=>x.cantiere||x.lavorazione);
+      if(lavori.length===0){ alert('Inserisci almeno un cantiere e una lavorazione.'); return; }
+      const quota = tot / lavori.length;
+      for(const w of lavori){
+        const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes };
+        try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
+        await new Promise(r=>setTimeout(r,110));
+      }
+    }
+    document.getElementById('successOverlay').classList.add('show');
+    setTimeout(async ()=>{
+      document.getElementById('successOverlay').classList.remove('show');
+      await loadPresenze();
+      await renderMonthList();
+      nextPage(1);
+    }, 750);
+  }
+
+  /* ====== INIT ====== */
+  document.addEventListener('DOMContentLoaded', ()=>{
+    showLogin();
+    // Enter = login
+    document.getElementById('loginUser').addEventListener('keypress', e=>{ if(e.key==='Enter') handleLogin(); });
+    document.getElementById('loginPass').addEventListener('keypress', e=>{ if(e.key==='Enter') handleLogin(); });
+
+    // Chiudi eventuale preview rimasta (hot reload)
+    document.getElementById('previewCard')?.classList.remove('show');
+
+    // Toggle mese
+    setupMonthToggle();
+  });
+
+  async function postLoginInit(){
+    initDateSelector();
+    await loadCantieri();
+    await loadPresenze();
+    await renderMonthList();
+    if (!workState.length) workState=[newWorkItem()];
+    renderWorkItems();
+    updateTimes();
+    updateSummary();
+    // abilita "ripeti ieri" solo quando i dati sono pronti
+    document.getElementById('repeatBtn').disabled = false;
+  }
+
+  /* ====== ESPORTA FUNZIONI GLOBALI (Safari/iOS inline onclick) ====== */
+  window.handleLogin = handleLogin;
+  window.handleLogout = handleLogout;
+  window.nextPage = nextPage;
+  window.prevPage = prevPage;
+  window.goFromPage1 = goFromPage1;
+  window.toggleAssente = toggleAssente;
+  window.repeatYesterday = repeatYesterday;
+  window.confirmRepeat = confirmRepeat;
+  window.cancelRepeat = cancelRepeat;
+  window.addWorkItem = addWorkItem;
+  window.removeWorkItem = removeWorkItem;
+  window.onSel = onSel;
+  window.onMan = onMan;
+  window.onWork = onWork;
+</script>
+</body>
+</html>
