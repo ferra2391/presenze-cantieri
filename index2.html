@@ -85,7 +85,10 @@
   /* Presenze mese collapsible */
   .month-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-light);border:1px dashed var(--border);border-radius:12px;padding:10px 12px;cursor:pointer}
   .month-title-text{font-weight:900;font-size:14px}
-  .month-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  /* Collassabile: chiuso di default */
+.month-list{display:none;flex-direction:column;gap:8px;margin-top:10px}
+.month-list.open{display:flex}
+
   .month-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
   .mi-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
   .mi-date{min-width:46px;text-align:center;font-weight:900;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:4px 6px;font-size:12px}
@@ -167,7 +170,8 @@
           <span class="month-title-text" id="monthTitle">📆 Presenze del mese</span>
           <span id="monthArrow">▼</span>
         </button>
-        <div id="monthList" class="month-list" hidden></div>
+       <div id="monthList" class="month-list"></div>
+
       </div>
 
       <div class="btn-group"><button class="btn" onclick="goFromPage1()">Avanti →</button></div>
@@ -472,14 +476,25 @@
   }
 
   /* ====== PRESENZE MESE (collapsible) ====== */
-  function setupMonthToggle(){
-    const btn = document.getElementById('monthToggle');
-    const list = document.getElementById('monthList');
-    const arrow = document.getElementById('monthArrow');
-    const apply = () => { list.hidden = !MONTH_OPEN; arrow.textContent = MONTH_OPEN ? '▲' : '▼'; }
-    btn.addEventListener('click', ()=>{ MONTH_OPEN = !MONTH_OPEN; apply(); });
+ function setupMonthToggle(){
+  const btn   = document.getElementById('monthToggle');
+  const list  = document.getElementById('monthList');
+  const arrow = document.getElementById('monthArrow');
+
+  const apply = () => {
+    list.classList.toggle('open', MONTH_OPEN);
+    arrow.textContent = MONTH_OPEN ? '▲' : '▼';
+  };
+
+  btn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    MONTH_OPEN = !MONTH_OPEN;
     apply();
-  }
+  });
+
+  apply(); // stato iniziale (chiuso)
+}
+
 
   async function renderMonthList(){
     const list=document.getElementById('monthList'); list.innerHTML='';
