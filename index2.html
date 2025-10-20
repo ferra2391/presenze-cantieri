@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Presenze Cantiere</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -14,127 +14,82 @@
       --bg:#0A0E27; --bg-light:#1a1f3a;
       --card-bg:rgba(255,255,255,.05); --border:rgba(255,255,255,.1);
       --text:#fff; --text-secondary:#B8C5D6;
-      --zoom:1; --slot-h:170px;
-      --morning-grad: linear-gradient(135deg,#4da3ff,#5bc0eb);
-      --afternoon-grad: linear-gradient(135deg,var(--primary),var(--accent));
+      --slot-h: 148px;
     }
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-    .container{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh;transform:scale(var(--zoom));transform-origin:top center;width:calc(100vw/var(--zoom))}
-    /* HEADER COMPATTO */
-    .header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);padding:18px 18px;border-radius:0 0 22px 22px;box-shadow:0 8px 30px rgba(255,107,53,.28)}
-    .header h1{font-size:20px;font-weight:900;letter-spacing:.3px}
-    .user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);padding:5px 10px;border-radius:16px;margin-top:8px;font-size:12px;font-weight:700}
-    .topbar{display:flex;justify-content:flex-end;padding:8px 12px}
-    .logout-btn{background:var(--card-bg);border:1px solid var(--border);color:#fff;border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:700;font-size:12px}
-
-    .content{padding:16px}
-    .step-indicator{display:flex;gap:10px;margin:12px 0 16px}
+    .container{max-width:480px;margin:0 auto;min-height:100vh}
+    .topbar{display:flex;justify-content:flex-end;padding:10px 16px}
+    .logout-btn{background:var(--card-bg);border:1px solid var(--border);color:#fff;border-radius:12px;padding:6px 10px;cursor:pointer;font-weight:700;font-size:12px}
+    .header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:22px 18px;border-radius:0 0 22px 22px}
+    .header h1{font-size:20px;font-weight:800;margin-bottom:6px}
+    .user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600}
+    .content{padding:18px}
+    .step-indicator{display:flex;gap:8px;margin-bottom:16px}
     .step{flex:1;height:4px;background:var(--card-bg);border-radius:4px}
     .step.active{background:linear-gradient(90deg,var(--primary),var(--accent))}
-
     .view{display:none}
-    .view.active{display:block;animation:fadeIn .25s ease}
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-    .card{background:var(--card-bg);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 8px 26px rgba(0,0,0,.2)}
-    .card-title{font-size:15px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-
-    /* DATE SELECTOR (Lun→Dom, weekend a dx) */
-    .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-    .date-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card-bg);border:2px solid transparent;border-radius:10px;cursor:pointer;transition:.15s;font-size:13px}
-    .date-day .day-name{font-size:9px;color:var(--text-secondary);margin-bottom:3px;text-transform:uppercase;font-weight:700}
-    .date-day .day-num{font-size:15px;font-weight:800}
-    .date-day:hover{border-color:var(--primary);transform:scale(1.03)}
-    .date-day.selected{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;transform:scale(1.03)}
-    .date-day.today{outline:2px solid var(--success)}
-    .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){background: rgba(220,38,38,.12); border-color: rgba(220,38,38,.35);}
-    .date-actions{display:flex;gap:8px;margin-top:10px}
-    .chip{flex:1;background:var(--card-bg);border:1px dashed var(--border);border-radius:12px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:800;color:var(--text-secondary);text-align:center}
+    .view.active{display:block}
+    .card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+    .card-title{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+    .date-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card-bg);border:2px solid transparent;border-radius:10px;cursor:pointer;font-size:12px}
+    .date-day .day-name{font-size:9px;color:var(--text-secondary);margin-bottom:2px;text-transform:uppercase;font-weight:600}
+    .date-day .day-num{font-size:14px;font-weight:700}
+    .date-day.selected{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent}
+    .date-day.today{border-color:var(--success)}
+    .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){background: rgba(220, 38, 38, 0.12); border-color: rgba(220, 38, 38, 0.35);}
+    .date-actions{display:flex;gap:8px;margin-top:8px}
+    .chip{flex:1;background:var(--card-bg);border:1px dashed var(--border);border-radius:12px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-secondary);text-align:center}
     .chip.active{border-style:solid;border-color:var(--danger);color:#fff;background:linear-gradient(135deg,#b91c1c55,#7f1d1d55)}
-
-    /* TIME SECTION */
-    .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .time-slot{position:relative;overflow:hidden;border-radius:14px;border:2px solid var(--border);min-height:var(--slot-h);padding:12px;background:var(--bg-light);display:flex}
-    .time-slot .slot-bg{position:absolute;inset:0;opacity:.9;border-radius:12px}
-    .time-slot.morning .slot-bg{background:var(--morning-grad)}
-    .time-slot.afternoon .slot-bg{background:var(--afternoon-grad)}
-    .slot-inner{position:relative;z-index:1;display:grid;grid-template-rows:auto auto auto 1fr;gap:6px;height:100%;width:100%;overflow:hidden}
-    .slot-time, .slot-hours{font-weight:800;text-align:center}
-    .slot-time{font-size:18px}
-    .slot-hours{font-size:13px;opacity:.95}
+    .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .time-slot{position:relative;overflow:hidden;border-radius:16px;border:1px solid var(--border);background:var(--bg-light);min-height:var(--slot-h);padding:10px}
+    .slot-inner{position:relative;z-index:1;display:grid;grid-template-rows:auto auto 1fr;gap:6px;height:100%}
+    .slot-time{font-size:16px;font-weight:800}
     .time-inputs{align-self:end;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .time-inputs input[type="time"]{width:100%;background:rgba(0,0,0,.25);border:2px solid rgba(255,255,255,.35);color:#fff;border-radius:10px;padding:0 10px;height:40px;line-height:40px;text-align:center;font-size:14px}
-    /* iOS normalizzazione: rimuovi pill e indicatori */
-    .time-inputs input[type="time"]{-webkit-appearance:textfield;appearance:textfield}
-    .time-inputs input[type="time"]::-webkit-calendar-picker-indicator,
-    .time-inputs input[type="time"]::-webkit-clear-button,
-    .time-inputs input[type="time"]::-webkit-inner-spin-button{display:none}
-    .time-inputs input[type="time"]::-webkit-datetime-edit{padding:0}
-    .time-inputs input[type="time"]::-webkit-datetime-edit-fields-wrapper{display:flex;justify-content:center}
-    .time-inputs input[type="time"]::-webkit-date-and-time-value{text-align:center}
-
-    .total-box{margin-top:10px;padding:12px;background:var(--bg-light);border:1px solid var(--border);border-radius:12px;text-align:center}
-    .total-label{font-size:12px;color:var(--text-secondary)}
-    .total-value{font-size:24px;font-weight:900;margin-top:4px}
-
-    .input-group{position:relative;margin-top:12px}
-    .input-group input,.input-group textarea,.input-group select{width:100%;background:var(--bg-light);border:2px solid var(--border);border-radius:14px;padding:12px 16px 12px 42px;font-size:14px;color:var(--text)}
-    .input-group textarea{min-height:80px;resize:vertical}
-    .input-group .input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--text-secondary)}
-    .input-group textarea + .input-icon{top:20px;transform:none}
-
-    .btn-group{display:flex;gap:10px;margin-top:16px}
-    .btn{flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:800;color:#fff;cursor:pointer}
-    .btn-secondary{background:var(--card-bg);border:2px solid var(--border)}
+    .time-inputs input[type="time"]{width:100%;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:10px;padding:8px 10px;font-size:14px;outline:none}
+    .btn-group{display:flex;gap:10px;margin-top:14px}
+    .btn{flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer}
+    .btn-secondary{background:var(--card-bg);border:1px solid var(--border)}
     .btn-success{background:linear-gradient(135deg,var(--success),#05b78b)}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-
-    /* MONTH LIST */
-    .month-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-    .month-header .arrow{transition:.15s}
-    .month-list{display:none;flex-direction:column;gap:10px;margin-top:10px}
+    .summary-card{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));border:none}
+    .summary-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+    .summary-row:last-child{border-bottom:none}
+    .summary-works{display:flex;flex-direction:column;gap:10px}
+    .summary-work{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px}
+    .month-list{display:none;flex-direction:column;gap:8px;margin-top:8px}
     .month-list.open{display:flex}
-    .month-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-light);border:1px solid var(--border);border-radius:14px;padding:10px 12px}
+    .month-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
     .mi-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-    .mi-date{min-width:48px;text-align:center;font-weight:800;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:4px 6px;font-size:13px}
+    .mi-date{min-width:46px;text-align:center;font-weight:800;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:4px 6px;font-size:12px}
     .mi-main{display:flex;flex-direction:column;min-width:0;flex:1}
     .mi-cant{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .mi-lav{font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .mi-right{display:flex;align-items:center;gap:8px}
     .mi-ore{font-weight:800;font-size:14px}
-    .month-item.weekend,.month-item.holiday{background:linear-gradient(0deg, rgba(220,38,38,.12), rgba(220,38,38,.12)), var(--bg-light);border-color: rgba(220,38,38,.35);}
-    .month-item.today{outline:2px solid var(--success);}
-    .month-item.future{opacity:.65}
-    .badge-missing{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:#fecaca;font-weight:800;font-size:12px}
-    .badge-future{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(148,163,184,.15);border:1px solid rgba(148,163,184,.35);color:#e5e7eb;font-weight:800;font-size:12px}
-
-    .summary-card{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));border:none;padding:20px}
-    .summary-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.1)}
-    .summary-row:last-child{border-bottom:none}
-    .summary-works{display:flex;flex-direction:column;gap:10px}
-    .summary-work{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px}
-
-    /* Preview "Ripeti ieri" */
+    /* preview "ripeti ieri" */
     .preview-card{display:none}
     .preview-card.show{display:block}
     .preview-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
     .preview-row:last-child{border-bottom:none}
     .preview-actions{display:flex;gap:8px;margin-top:12px}
-
-    .success-overlay{position:fixed;inset:0;background:rgba(10,14,39,.95);display:none;align-items:center;justify-content:center;z-index:1000}
-    .success-overlay.show{display:flex}
+    /* login card */
+    .login-card{max-width:420px;margin:0 auto}
   </style>
 </head>
 <body>
 
   <!-- LOGIN -->
   <div id="loginPage" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
-    <div style="width:100%;max-width:420px" class="card">
+    <div class="card login-card">
       <h2 style="margin-bottom:10px;">🔐 Accesso</h2>
-      <div class="input-group"><span class="input-icon">👤</span><input id="loginUser" type="text" placeholder="User"></div>
-      <div class="input-group"><span class="input-icon">🔒</span><input id="loginPass" type="password" placeholder="Password"></div>
-      <div class="btn-group" style="margin-top:14px;"><button id="loginBtn" class="btn" type="button">Entra</button></div>
-      <div id="loginError" style="margin-top:10px;color:#ff7b7b;font-weight:800;display:none;">Credenziali errate</div>
+      <div class="card" style="padding:12px">
+        <div style="display:grid;gap:8px">
+          <input id="loginUser" type="text" placeholder="User" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-light);color:#fff">
+          <input id="loginPass" type="password" placeholder="Password" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-light);color:#fff">
+          <button id="loginBtn" class="btn">Entra</button>
+          <div id="loginError" style="margin-top:8px;color:#ff7b7b;font-weight:700;display:none;">Credenziali errate</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -150,10 +105,10 @@
     <div class="content">
       <div class="step-indicator"><div class="step active"></div><div class="step"></div><div class="step"></div><div class="step"></div></div>
 
-      <!-- Pagina 1: DATA -->
+      <!-- Pagina 1 -->
       <div class="view active" id="page1">
         <div class="card">
-          <div class="card-title"><span>📅</span><span>Seleziona la data</span></div>
+          <div class="card-title">📅 Seleziona la data</div>
           <div class="date-selector" id="dateSelector"></div>
           <div class="date-actions">
             <button class="chip" onclick="repeatYesterday()">↻ Ripeti ieri</button>
@@ -161,54 +116,45 @@
           </div>
         </div>
 
-        <!-- Preview "Ripeti ieri" -->
+        <!-- Preview ripeti ieri -->
         <div class="card preview-card" id="previewCard">
-          <div class="card-title"><span>⚡</span><span>Riepilogo di ieri</span></div>
+          <div class="card-title">⚡ Riepilogo di ieri</div>
           <div class="preview-row"><span>Data</span><span id="previewDate">-</span></div>
           <div class="preview-row"><span>Orario</span><span id="previewTime">-</span></div>
           <div class="preview-row"><span>Ore totali</span><span id="previewHours">-</span></div>
           <div class="preview-row"><span>Cantiere</span><span id="previewSite">-</span></div>
           <div class="preview-row"><span>Lavorazione</span><span id="previewWork">-</span></div>
-          <div class="preview-row"><span>Note</span><span id="previewNotes">-</span></div>
           <div class="preview-actions">
             <button class="btn btn-success" onclick="confirmRepeat()">✓ Usa questo</button>
             <button class="btn btn-secondary" onclick="cancelRepeat()">✗ Annulla</button>
           </div>
         </div>
 
-        <!-- Calendario mese: COLLASSABILE -->
         <div class="card">
-          <div class="month-header" id="monthHeader">
-            <div class="card-title" style="margin:0" id="monthTitle">📆 Presenze del mese</div>
-            <div class="arrow" id="monthArrow">▼</div>
-          </div>
+          <div class="card-title" id="monthTitle" style="cursor:pointer" onclick="toggleMonthList()">📆 Presenze del mese ▾</div>
           <div id="monthList" class="month-list"></div>
         </div>
 
         <div class="btn-group"><button class="btn" onclick="goFromPage1()">Avanti →</button></div>
       </div>
 
-      <!-- Pagina 2: ORARI -->
+      <!-- Pagina 2: orari -->
       <div class="view" id="page2">
         <div class="card">
-          <div class="card-title"><span>⏰</span><span>Orario di lavoro</span></div>
+          <div class="card-title">⏰ Orario di lavoro</div>
           <div class="time-picker">
-            <div class="time-slot morning">
-              <div class="slot-bg"></div>
+            <div class="time-slot">
               <div class="slot-inner">
                 <div class="slot-time" id="morningText">08:00 - 12:00</div>
-                <div class="slot-hours" id="morningHours">Ore: 4.0h</div>
                 <div class="time-inputs">
                   <input type="time" id="mStart" value="08:00" min="07:00" max="15:00" step="1800" oninput="updateTimes()">
                   <input type="time" id="mEnd"   value="12:00" min="07:00" max="15:00" step="1800" oninput="updateTimes()">
                 </div>
               </div>
             </div>
-            <div class="time-slot afternoon">
-              <div class="slot-bg"></div>
+            <div class="time-slot">
               <div class="slot-inner">
                 <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
-                <div class="slot-hours" id="afternoonHours">Ore: 4.0h</div>
                 <div class="time-inputs">
                   <input type="time" id="pStart" value="13:00" min="12:00" max="20:00" step="1800" oninput="updateTimes()">
                   <input type="time" id="pEnd"   value="17:00" min="12:00" max="20:00" step="1800" oninput="updateTimes()">
@@ -216,9 +162,9 @@
               </div>
             </div>
           </div>
-          <div class="total-box">
-            <div class="total-label">Ore totali</div>
-            <div class="total-value" id="totalHours">8.0h</div>
+          <div class="card" style="margin-top:10px">
+            <div style="text-align:center;font-size:12px;color:var(--text-secondary)">Ore totali</div>
+            <div style="text-align:center;font-weight:800;font-size:24px" id="totalHours">8.0h</div>
           </div>
         </div>
         <div class="btn-group">
@@ -227,12 +173,12 @@
         </div>
       </div>
 
-      <!-- Pagina 3: CANTIERI -->
+      <!-- Pagina 3: cantieri -->
       <div class="view" id="page3">
         <div class="card">
-          <div class="card-title"><span>🏗️</span><span>Cantieri</span></div>
+          <div class="card-title">🏗️ Cantieri</div>
           <div id="workItems"></div>
-          <button class="chip" id="addWorkBtn" onclick="addWorkItem()" style="width:100%;margin-top:12px">+ Aggiungi cantiere (max 3)</button>
+          <button class="chip" id="addWorkBtn" onclick="addWorkItem()" style="width:100%;margin-top:10px">+ Aggiungi cantiere (max 3)</button>
         </div>
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="prevPage(2)">← Indietro</button>
@@ -240,28 +186,24 @@
         </div>
       </div>
 
-      <!-- Pagina 4: RIEPILOGO -->
+      <!-- Pagina 4: riepilogo -->
       <div class="view" id="page4">
         <div class="card summary-card">
-          <div class="card-title"><span>📋</span><span>Riepilogo</span></div>
+          <div class="card-title">📋 Riepilogo</div>
           <div class="summary-row"><span>Data</span><span id="summaryDate">-</span></div>
           <div class="summary-row"><span>Orario</span><span id="summaryTime">—</span></div>
           <div class="summary-row" style="border:none;display:block;padding-top:0;">
-            <div style="margin-bottom:8px;color:#e2e8f0">Cantieri & lavorazioni</div>
+            <div style="margin-bottom:6px;color:#e2e8f0">Cantieri & lavorazioni</div>
             <div class="summary-works" id="summaryWorks"></div>
           </div>
-          <div class="summary-row"><span>Note</span><span id="summaryNotes">-</span></div>
+          <div class="summary-row" style="align-items:flex-start">
+            <span>Note</span>
+            <span style="flex:1;max-width:60%">
+              <textarea id="notesInput" placeholder="Aggiungi note..." oninput="updateSummary()" style="width:100%;min-height:60px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;padding:8px"></textarea>
+            </span>
+          </div>
           <div class="summary-row"><span>Ore totali</span><span id="summaryHours">0.0h</span></div>
         </div>
-
-        <div class="card">
-          <div class="card-title"><span>🗒️</span><span>Note</span></div>
-          <div class="input-group">
-            <span class="input-icon">✏️</span>
-            <textarea id="notesInput" placeholder="Aggiungi note (facoltative)..." oninput="updateSummary()"></textarea>
-          </div>
-        </div>
-
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="prevPage(3)">← Indietro</button>
           <button class="btn btn-success" onclick="submitPresence()">✓ Conferma</button>
@@ -270,7 +212,7 @@
     </div>
   </div>
 
-  <div class="success-overlay" id="successOverlay">
+  <div class="success-overlay" id="successOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,14,39,.95);align-items:center;justify-content:center;z-index:1000">
     <div class="card"><h2>✨ Presenza registrata!</h2></div>
   </div>
 
@@ -295,50 +237,43 @@
     function toMinutes(hhmm){if(!hhmm) return 0; const [h,m]=hhmm.split(':').map(Number); return h*60+m;}
     function diffHours(a,b){return Math.max(0,(toMinutes(b)-toMinutes(a)))/60;}
     function sameYMD(a,b){return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();}
+    function addDays(d,n){const x=new Date(d); x.setDate(x.getDate()+n); return x;}
     function startOfWeekMonday(d){const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x;}
     function isWeekend(d){const g=d.getDay(); return g===0||g===6;}
-    function addDays(d,n){const x=new Date(d); x.setDate(x.getDate()+n); return x;}
     function easterDate(year){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(year,month-1,day);}
     function isItalianHoliday(d){const y=d.getFullYear(); const fixed=[[1,1],[1,6],[4,25],[5,1],[6,2],[8,15],[11,1],[12,8],[12,25],[12,26]]; for(const [mm,dd] of fixed){ if(sameYMD(d,new Date(y,mm-1,dd))) return true; } return sameYMD(d, addDays(easterDate(y),1));}
-    function parseDateFlex(v){
-      if (v instanceof Date) return v;
-      if (typeof v!=='string') return new Date(NaN);
-      const s=v.trim();
-      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
-      const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
-      if(m){const d=+m[1], mo=+m[2]-1, y=+m[3], hh=+(m[4]||0), mm=+(m[5]||0); return new Date(y,mo,d,hh,mm);}
-      return new Date(s);
+
+    // ---------- cache locale SWR ----------
+    function ymOf(date){ return date.toISOString().slice(0,7); }
+    function cacheGet(key, maxAgeMs){
+      try{ const raw=localStorage.getItem(key); if(!raw) return null; const obj=JSON.parse(raw); if(Date.now()-obj.t>maxAgeMs) return null; return obj.v; }catch{ return null; }
     }
+    function cacheSet(key, value){ try{ localStorage.setItem(key, JSON.stringify({t:Date.now(), v:value})); }catch{} }
 
     // ---------- login ----------
     async function handleLogin(){
       const u=(document.getElementById('loginUser').value||'').trim();
-      const p=document.getElementById('loginPass').value||'';
+      const p=(document.getElementById('loginPass').value||'');
       document.getElementById('loginError').style.display='none';
       try{
         const rows = await (await fetch(OS_BASE+'Credenziali')).json();
-        const rec = rows.find(r=>String(r.User||'').trim()===u && String(r.Password||'')===p);
+        const rec  = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
         if(!rec) throw new Error('BAD');
         AUTH.user=rec.User; AUTH.nome=rec.Nome||rec.User; AUTH.ruolo=rec.Ruolo||'';
         document.getElementById('userName').textContent=AUTH.nome;
         showApp();
         await postLoginInit();
-      }catch(e){ document.getElementById('loginError').style.display='block'; }
+      }catch(e){
+        document.getElementById('loginError').style.display='block';
+      }
     }
     function handleLogout(){ AUTH={user:null,nome:null,ruolo:null}; showLogin(); }
     function showLogin(){ document.getElementById('loginPage').style.display='flex'; document.getElementById('appContainer').style.display='none'; }
     function showApp(){   document.getElementById('loginPage').style.display='none';  document.getElementById('appContainer').style.display='block'; }
 
     // ---------- step nav ----------
-    function setStep(p){
-      document.querySelectorAll('.step').forEach((el,i)=> el.classList.toggle('active', i<=p-1));
-      currentPage=p; window.scrollTo({top:0,behavior:'smooth'});
-    }
-    function nextPage(p){
-      document.getElementById('page'+currentPage).classList.remove('active');
-      document.getElementById('page'+p).classList.add('active');
-      setStep(p); updateSummary();
-    }
+    function setStep(p){ document.querySelectorAll('.step').forEach((el,i)=> el.classList.toggle('active', i<=p-1)); currentPage=p; window.scrollTo({top:0,behavior:'smooth'});}
+    function nextPage(p){ document.getElementById('page'+currentPage).classList.remove('active'); document.getElementById('page'+p).classList.add('active'); setStep(p); updateSummary(); }
     function prevPage(p){ nextPage(p); }
 
     // ---------- date selector ----------
@@ -371,14 +306,12 @@
 
     // ---------- orari ----------
     function updateTimes(){
-      const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
-      const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
-      document.getElementById('morningText').textContent=`${ms} - ${me}`;
-      document.getElementById('afternoonText').textContent=`${ps} - ${pe}`;
-      const mh = diffHours(ms,me), ah = diffHours(ps,pe);
-      document.getElementById('morningHours').textContent = `Ore: ${mh.toFixed(1)}h`;
-      document.getElementById('afternoonHours').textContent = `Ore: ${ah.toFixed(1)}h`;
-      document.getElementById('totalHours').textContent = (mh+ah).toFixed(1)+'h';
+      const ms=document.getElementById('mStart'), me=document.getElementById('mEnd');
+      const ps=document.getElementById('pStart'), pe=document.getElementById('pEnd');
+      document.getElementById('morningText').textContent=`${ms.value} - ${me.value}`;
+      document.getElementById('afternoonText').textContent=`${ps.value} - ${pe.value}`;
+      const tot = diffHours(ms.value,me.value) + diffHours(ps.value,pe.value);
+      document.getElementById('totalHours').textContent = tot.toFixed(1) + 'h';
       updateSummary();
     }
 
@@ -394,21 +327,17 @@
       const wrap=document.getElementById('workItems'); wrap.innerHTML='';
       workState.forEach((it,idx)=>{
         const el=document.createElement('div'); el.className='card'; el.style.padding='12px'; el.innerHTML=`
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div style="font-weight:800">Cantiere ${idx+1}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div style="font-weight:700">Cantiere ${idx+1}</div>
             ${idx>0?`<button class="chip" onclick="removeWorkItem('${it.id}')">Rimuovi</button>`:''}
           </div>
-          <div class="input-group"><span class="input-icon">🏷️</span>
-            <select onchange="onSel('${it.id}', this.value)">
+          <div style="display:grid;gap:8px">
+            <select onchange="onSel('${it.id}', this.value)" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-light);color:#fff">
               <option value="">— Seleziona cantiere —</option>
               ${SITE_OPTIONS.map(s=>`<option ${it.siteSelect===s?'selected':''}>${s}</option>`).join('')}
             </select>
-          </div>
-          <div class="input-group"><span class="input-icon">🔍</span>
-            <input type="text" placeholder="Oppure scrivi il nome..." value="${(it.siteManual||'').replace(/"/g,'&quot;')}" oninput="onMan('${it.id}', this.value)">
-          </div>
-          <div class="input-group"><span class="input-icon">📝</span>
-            <textarea placeholder="Descrivi la lavorazione..." oninput="onWork('${it.id}', this.value)">${it.work||''}</textarea>
+            <input type="text" placeholder="Oppure scrivi il nome..." value="${(it.siteManual||'').replace(/"/g,'&quot;')}" oninput="onMan('${it.id}', this.value)" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-light);color:#fff">
+            <textarea placeholder="Descrivi la lavorazione..." oninput="onWork('${it.id}', this.value)" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-light);color:#fff;min-height:68px">${it.work||''}</textarea>
           </div>`;
         wrap.appendChild(el);
       });
@@ -421,31 +350,68 @@
     function onMan(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.siteManual=v; if(v.trim()) it.siteSelect=''; updateSummary(); }
     function onWork(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.work=v; updateSummary(); }
 
-    // ---------- presenze (OpenSheet) ----------
-    async function loadPresenze(){
-      const rows = await (await fetch(OS_BASE+'Presenze')).json();
-      const target = (AUTH.nome||'').toLowerCase();
-      LAST_PRESENZE = rows.map(r=>({
-        dataPresenza: parseDateFlex(r["Data Presenza"]||r["Data"]||''),
-        cantiere: r["Cantiere"]||'',
-        lavorazione: r["Lavorazione"]||'',
-        ore: r["Ore"]||'',
-        orari: r["Orari"]||'',
-        nome: String(r["Nome Operaio"]||'')
-      })).filter(x=>x.nome.toLowerCase()===target && !isNaN(x.dataPresenza)).sort((a,b)=>b.dataPresenza-a.dataPresenza);
+    // ---------- presenze: FAST GET ----------
+    async function fetchMonthFast(userName, dateRef){
+      const ym = dateRef.toISOString().slice(0,7);
+      const url = `${L0URL}?action=month&user=${encodeURIComponent(userName)}&ym=${ym}`;
+      const cacheKey = `presenze:${userName.toLowerCase()}:${ym}`;
+
+      // 1) cache immediata
+      const cached = cacheGet(cacheKey, 10*60*1000);
+      if (cached) {
+        LAST_PRESENZE = cached.rows.map(r => ({
+          dataPresenza: new Date(r.dateISO), cantiere:r.cantiere, lavorazione:r.lavorazione, ore:r.ore, orari:r.orari
+        })).sort((a,b)=> b.dataPresenza - a.dataPresenza);
+        renderMonthList(); // subito
+      }
+
+      // 2) rete in background
+      try{
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json && json.ok) {
+          cacheSet(cacheKey, json);
+          LAST_PRESENZE = json.rows.map(r => ({
+            dataPresenza: new Date(r.dateISO), cantiere:r.cantiere, lavorazione:r.lavorazione, ore:r.ore, orari:r.orari
+          })).sort((a,b)=> b.dataPresenza - a.dataPresenza);
+          renderMonthList();
+        }
+      }catch(_){}
+    }
+
+    async function fetchLastFast(userName){
+      const url = `${L0URL}?action=last&user=${encodeURIComponent(userName)}`;
+      const cacheKey = `last:${userName.toLowerCase()}`;
+
+      const cached = cacheGet(cacheKey, 10*60*1000);
+      if (cached && cached.last) return cached.last;
+
+      try{
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json && json.ok) { cacheSet(cacheKey, json); return json.last || null; }
+      }catch(_){}
+      return cached?.last || null;
     }
 
     // ---------- mese corrente ----------
+    function toggleMonthList(){
+      const list = document.getElementById('monthList');
+      list.classList.toggle('open');
+      const title = document.getElementById('monthTitle');
+      title.textContent = `📆 Presenze del mese ${selectedDate.toLocaleDateString('it-IT',{month:'long'})} ${list.classList.contains('open')?'▴':'▾'}`;
+    }
+
     async function renderMonthList(){
       const list=document.getElementById('monthList'); list.innerHTML='';
       const y=selectedDate.getFullYear(), m=selectedDate.getMonth();
       const days=new Date(y,m+1,0).getDate();
       const today=new Date(); today.setHours(0,0,0,0);
-      document.getElementById('monthTitle').textContent = `📆 Presenze mese ${selectedDate.toLocaleDateString('it-IT',{month:'long'})}`;
+      document.getElementById('monthTitle').textContent = `📆 Presenze del mese ${selectedDate.toLocaleDateString('it-IT',{month:'long'})} ▾`;
+
       for(let d=1; d<=days; d++){
         const dt=new Date(y,m,d);
         const entries=LAST_PRESENZE.filter(p=> sameYMD(p.dataPresenza, dt));
-
         const item=document.createElement('div');
         item.className='month-item';
         if(isWeekend(dt)) item.classList.add('weekend');
@@ -453,32 +419,19 @@
         if(sameYMD(dt,today)) item.classList.add('today');
         if(dt>today) item.classList.add('future');
 
-        const left=`<div class="mi-left">
+        item.innerHTML = `
+          <div class="mi-left">
             <div class="mi-date"><div>${pad2(d)}</div><div style="font-size:10px;opacity:.8">${dt.toLocaleDateString('it-IT',{month:'short'})}</div></div>
             <div class="mi-main">
-              <div class="mi-cant">${entries[0]?.cantiere || (dt<today?'<span class="badge-missing">NON COMPILATO</span>':'' )}</div>
+              <div class="mi-cant">${entries[0]?.cantiere || (dt<today?'<span style="color:#fecaca">NON COMPILATO</span>':'' )}</div>
               <div class="mi-lav">${entries[0]?.lavorazione || ''}</div>
             </div>
+          </div>
+          <div class="mi-right">
+            ${dt>today?'<span style="opacity:.75">FUTURO</span>': `<div class="mi-ore">${entries[0]?.ore?entries[0].ore+'h':'-'}</div>`}
           </div>`;
-        const right=`<div class="mi-right">
-            ${dt>today?'<span class="badge-future">FUTURO</span>': `<div class="mi-ore">${entries[0]?.ore?entries[0].ore+'h':'-'}</div>`}
-          </div>`;
-        item.innerHTML= left + right;
         list.appendChild(item);
       }
-    }
-
-    // Collassa/espandi lista mese
-    function setupMonthToggle(){
-      const header = document.getElementById('monthHeader');
-      const list = document.getElementById('monthList');
-      const arrow = document.getElementById('monthArrow');
-      // di default CHIUSA
-      list.classList.remove('open'); arrow.textContent='▼';
-      header.addEventListener('click', ()=>{
-        const open = list.classList.toggle('open');
-        arrow.textContent = open ? '▲' : '▼';
-      });
     }
 
     // ---------- summary ----------
@@ -491,14 +444,12 @@
         const div=document.createElement('div'); div.className='summary-work';
         div.innerHTML = `<div><strong>Cantiere:</strong> ASSENTE</div><div><strong>Lavorazione:</strong> ASSENTE</div>`;
         worksBox.appendChild(div);
-        const notes=(document.getElementById('notesInput')?.value||'').trim();
-        document.getElementById('summaryNotes').textContent = notes||'-';
         return;
       }
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
       document.getElementById('summaryTime').textContent=`${ms}-${me} + ${ps}-${pe}`;
-      const tot=diffHours(ms,me)+diffHours(ps,pe);
+      let tot=diffHours(ms,me)+diffHours(ps,pe);
       document.getElementById('summaryHours').textContent = tot.toFixed(1)+'h';
       workState.forEach((w,i)=>{
         const name=(w.siteSelect||w.siteManual||'-').trim()||'-';
@@ -507,22 +458,21 @@
         div.innerHTML=`<div><strong>Cantiere ${i+1}:</strong> ${name}</div><div><strong>Lavorazione:</strong> ${lav}</div>`;
         worksBox.appendChild(div);
       });
-      const notes=(document.getElementById('notesInput')?.value||'').trim();
-      document.getElementById('summaryNotes').textContent = notes||'-';
     }
 
-    // ---------- quick: ripeti ieri ----------
-    function repeatYesterday(){
+    // ---------- quick: ripeti ieri (usa endpoint last se serve) ----------
+    async function repeatYesterday(){
       const yest = addDays(new Date(), -1);
-      const found = LAST_PRESENZE.find(p=> sameYMD(p.dataPresenza,yest));
+      let found = LAST_PRESENZE.find(p=> sameYMD(p.dataPresenza,yest));
+      if(!found){ found = await fetchLastFast(AUTH.nome || AUTH.user || ''); }
       if(!found){ alert('Nessuna presenza trovata per ieri'); return; }
+
       PREVIEW_DATA = found;
       document.getElementById('previewDate').textContent = fmtHuman(yest);
       document.getElementById('previewTime').textContent = found.orari || '-';
-      document.getElementById('previewHours').textContent = found.ore ? found.ore + 'h' : '-';
+      document.getElementById('previewHours').textContent = (found.ore?Number(found.ore).toFixed(1)+'h':'-');
       document.getElementById('previewSite').textContent = found.cantiere || '-';
       document.getElementById('previewWork').textContent = found.lavorazione || '-';
-      document.getElementById('previewNotes').textContent = '-';
       document.getElementById('previewCard').classList.add('show');
       document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -531,25 +481,29 @@
       const yest = addDays(new Date(), -1);
       selectedDate = yest;
       document.querySelectorAll('.date-day').forEach(dd=> dd.classList.toggle('selected', dd.dataset.date===fmtISO(yest)));
-      ABSENT_MODE = false; updateAssenteChip();
-      const parts = (PREVIEW_DATA.orari||'').split('+').map(s=>s.trim());
-      const [m1,p1] = parts;
-      if(m1){ const [a,b] = m1.split('-'); document.getElementById('mStart').value = a; document.getElementById('mEnd').value = b; }
-      if(p1){ const [c,d] = p1.split('-'); document.getElementById('pStart').value = c; document.getElementById('pEnd').value = d; }
-      workState = [newWorkItem()];
-      const cantiere = PREVIEW_DATA.cantiere || '';
-      if(SITE_OPTIONS.includes(cantiere)){ workState[0].siteSelect = cantiere; workState[0].siteManual = ''; }
-      else { workState[0].siteManual = cantiere; workState[0].siteSelect=''; }
-      workState[0].work = PREVIEW_DATA.lavorazione || '';
-      renderWorkItems(); updateTimes();
-      document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA = null;
+      ABSENT_MODE=false; updateAssenteChip();
+
+      const parts=(PREVIEW_DATA.orari||'').split('+').map(s=>s.trim());
+      const [m1,p1]=parts;
+      if(m1){ const [a,b]=m1.split('-'); document.getElementById('mStart').value=a; document.getElementById('mEnd').value=b; }
+      if(p1){ const [c,d]=p1.split('-'); document.getElementById('pStart').value=c; document.getElementById('pEnd').value=d; }
+      workState=[newWorkItem()];
+      const cantiere=PREVIEW_DATA.cantiere||'';
+      if(SITE_OPTIONS.includes(cantiere)){ workState[0].siteSelect=cantiere; workState[0].siteManual=''; }
+      else { workState[0].siteManual=cantiere; workState[0].siteSelect=''; }
+      workState[0].work=PREVIEW_DATA.lavorazione||'';
+      renderWorkItems();
+      updateTimes();
+
+      document.getElementById('previewCard').classList.remove('show');
+      PREVIEW_DATA=null;
       nextPage(2);
     }
-    function cancelRepeat(){ document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA = null; }
+    function cancelRepeat(){ document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA=null; }
 
     // ---------- submit ----------
     async function submitPresence(){
-      const notes=(document.getElementById('notesInput')?.value||'').trim();
+      const notes = (document.getElementById('notesInput')?.value || '').trim();
       if(ABSENT_MODE){
         const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note:notes };
         try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
@@ -563,16 +517,15 @@
         for(const w of lavori){
           const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note:notes };
           try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
-          await new Promise(r=>setTimeout(r,120));
+          await new Promise(r=>setTimeout(r,100));
         }
       }
-      document.getElementById('successOverlay').classList.add('show');
+      document.getElementById('successOverlay').style.display='flex';
       setTimeout(async ()=>{
-        document.getElementById('successOverlay').classList.remove('show');
-        await loadPresenze();
-        await renderMonthList();
+        document.getElementById('successOverlay').style.display='none';
+        await fetchMonthFast(AUTH.nome || AUTH.user || '', selectedDate); // ricarica mese corrente (cache invalidata lato server)
         nextPage(1);
-      }, 800);
+      }, 700);
     }
 
     // ---------- init ----------
@@ -586,10 +539,13 @@
     // ---------- post-login ----------
     async function postLoginInit(){
       initDateSelector();
-      setupMonthToggle();
       await loadCantieri();
-      await loadPresenze();
-      await renderMonthList();
+      // carico mese + ultimo in parallelo
+      const [ _m, last ] = await Promise.all([
+        fetchMonthFast(AUTH.nome || AUTH.user || '', selectedDate),
+        fetchLastFast(AUTH.nome || AUTH.user || '')
+      ]);
+      // opzionale: potresti usare "last" per una anteprima all'avvio
       workState=[newWorkItem()];
       renderWorkItems();
       updateTimes();
