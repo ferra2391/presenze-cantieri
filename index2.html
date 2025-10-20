@@ -96,6 +96,15 @@
     .month-item.future{opacity:.65}
     .success-overlay{position:fixed;inset:0;background:rgba(10,14,39,.95);display:none;align-items:center;justify-content:center;z-index:1000}
     .success-overlay.show{display:flex}
+
+
+    /* sotto agli altri stili */
+.preview-card{display:none}
+.preview-card.show{display:block}
+.preview-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.preview-row:last-child{border-bottom:none}
+.preview-actions{display:flex;gap:8px;margin-top:12px}
+
   </style>
 </head>
 <body>
@@ -242,7 +251,6 @@
     let workState = [];
     let LAST_PRESENZE = [];
     let ABSENT_MODE = false;
-    let PREVIEW_DATA = null; // dati temporanei per "ripeti ieri"
     let PREVIEW_DATA = null; // dati temporanei per "ripeti ieri"
 
     // ---------- utils ----------
@@ -564,6 +572,8 @@
       document.getElementById('loginBtn').addEventListener('click', handleLogin);
       document.getElementById('loginUser').addEventListener('keypress', e=>{ if(e.key==='Enter') handleLogin(); });
       document.getElementById('loginPass').addEventListener('keypress', e=>{ if(e.key==='Enter') handleLogin(); });
+      // nascondi eventuale preview rimasta
+  document.getElementById('previewCard')?.classList.remove('show');
     });
 
     // ---------- post-login ----------
