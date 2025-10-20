@@ -34,14 +34,13 @@
     .step{flex:1;height:4px;background:var(--card-bg);border-radius:4px;margin:0 4px}
     .step.active{background:linear-gradient(90deg,var(--primary),var(--accent))}
 
-    /* nasconde le pagine non attive */
+    /* IMPORTANTE: nasconde le pagine non attive */
     .view{display:none}
     .view.active{display:block;animation:fadeIn .3s ease}
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
     .card{background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
     .card-title{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-
     .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
     .date-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card-bg);border:2px solid transparent;border-radius:10px;cursor:pointer;transition:.15s;font-size:13px}
     .date-day .day-name{font-size:9px;color:var(--text-secondary);margin-bottom:3px;text-transform:uppercase;font-weight:600}
@@ -64,16 +63,12 @@
     .time-inputs{align-self:end;display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .time-inputs input[type="time"]{width:100%;background:rgba(0,0,0,.25);border:2px solid rgba(255,255,255,.35);color:#fff;border-radius:10px;padding:8px 10px;font-size:14px;outline:none}
 
-    .total-hours{margin-top:12px;padding:12px;background:var(--bg-light);border:1px solid var(--border);border-radius:12px;text-align:center}
-    .total-hours .label{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
-    .total-hours .value{font-size:22px;font-weight:800}
-
     .input-group{position:relative;margin-top:12px}
     .input-group input,.input-group textarea,.input-group select{width:100%;background:var(--bg-light);border:2px solid var(--border);border-radius:14px;padding:12px 16px 12px 42px;font-size:14px;color:var(--text)}
     .input-group .input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--text-secondary)}
     .input-group textarea{min-height:80px;resize:vertical}
     .input-group textarea + .input-icon{top:20px;transform:none}
-
+    
     .btn-group{display:flex;gap:10px;margin-top:20px}
     .btn{flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer}
     .btn-secondary{background:var(--card-bg);border:2px solid var(--border)}
@@ -85,15 +80,9 @@
     .summary-row:last-child{border-bottom:none}
     .summary-works{display:flex;flex-direction:column;gap:10px}
     .summary-work{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px}
-
     .badge-missing{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:#fecaca;font-weight:800;font-size:12px}
     .badge-future{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(148,163,184,.15);border:1px solid rgba(148,163,184,.35);color:#e5e7eb;font-weight:800;font-size:12px}
-
-    /* mese collassabile */
-    .month-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
-    .month-toggle .arrow{font-weight:800}
-    .month-list{display:none;flex-direction:column;gap:10px;margin-top:10px}
-    .month-list.open{display:flex}
+    .month-list{display:flex;flex-direction:column;gap:10px;margin-top:10px}
     .month-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-light);border:1px solid var(--border);border-radius:14px;padding:10px 12px}
     .mi-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
     .mi-date{min-width:48px;text-align:center;font-weight:800;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:4px 6px;font-size:13px}
@@ -105,7 +94,6 @@
     .month-item.weekend,.month-item.holiday{background:linear-gradient(0deg, rgba(220, 38, 38, 0.12), rgba(220, 38, 38, 0.12)), var(--bg-light);border-color: rgba(220, 38, 38, 0.35);}
     .month-item.today{outline:2px solid var(--success);}
     .month-item.future{opacity:.65}
-
     .success-overlay{position:fixed;inset:0;background:rgba(10,14,39,.95);display:none;align-items:center;justify-content:center;z-index:1000}
     .success-overlay.show{display:flex}
   </style>
@@ -148,11 +136,23 @@
           </div>
         </div>
 
-        <div class="card">
-          <div class="month-toggle" id="monthToggle">
-            <div class="card-title" style="margin:0"><span>📆</span><span id="monthTitle">Presenze del mese</span></div>
-            <span id="monthArrow" class="arrow">▼</span>
+        <!-- Preview "Ripeti ieri" -->
+        <div class="card preview-card" id="previewCard">
+          <div class="card-title"><span>⚡</span><span>Riepilogo di ieri</span></div>
+          <div class="preview-row"><span class="preview-label">Data</span><span class="preview-value" id="previewDate">-</span></div>
+          <div class="preview-row"><span class="preview-label">Orario</span><span class="preview-value" id="previewTime">-</span></div>
+          <div class="preview-row"><span class="preview-label">Ore totali</span><span class="preview-value" id="previewHours">-</span></div>
+          <div class="preview-row"><span class="preview-label">Cantiere</span><span class="preview-value" id="previewSite">-</span></div>
+          <div class="preview-row"><span class="preview-label">Lavorazione</span><span class="preview-value" id="previewWork">-</span></div>
+          <div class="preview-row"><span class="preview-label">Note</span><span class="preview-value" id="previewNotes">-</span></div>
+          <div class="preview-actions">
+            <button class="btn btn-success" onclick="confirmRepeat()">✓ Usa questo</button>
+            <button class="btn btn-secondary" onclick="cancelRepeat()">✗ Annulla</button>
           </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" id="monthTitle">📆 Presenze del mese</div>
           <div id="monthList" class="month-list"></div>
         </div>
 
@@ -185,14 +185,7 @@
               </div>
             </div>
           </div>
-
-          <!-- badge ore totali -->
-          <div class="total-hours">
-            <div class="label">Ore totali</div>
-            <div id="totalHours" class="value">8.0h</div>
-          </div>
         </div>
-
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="prevPage(1)">← Indietro</button>
           <button class="btn" onclick="nextPage(3)">Avanti →</button>
@@ -214,14 +207,6 @@
 
       <!-- Pagina 4: RIEPILOGO -->
       <div class="view" id="page4">
-        <div class="card">
-          <div class="card-title"><span>🗒️</span><span>Note (facoltative)</span></div>
-          <div class="input-group">
-            <span class="input-icon">✏️</span>
-            <textarea id="notesInput" placeholder="Aggiungi eventuali note..." oninput="updateSummary()"></textarea>
-          </div>
-        </div>
-
         <div class="card summary-card">
           <div class="card-title"><span>📋</span><span>Riepilogo</span></div>
           <div class="summary-row"><span>Data</span><span id="summaryDate">-</span></div>
@@ -257,6 +242,7 @@
     let workState = [];
     let LAST_PRESENZE = [];
     let ABSENT_MODE = false;
+    let PREVIEW_DATA = null; // dati temporanei per "ripeti ieri"
 
     // ---------- utils ----------
     function pad2(n){return String(n).padStart(2,'0');}
@@ -313,7 +299,7 @@
     }
     function prevPage(p){ nextPage(p); }
 
-    // ---------- date selector ----------
+    // ---------- date selector (Mon→Sun, weekend alla fine) ----------
     function initDateSelector(){
       const cont = document.getElementById('dateSelector'); cont.innerHTML='';
       const today = new Date(); const start = startOfWeekMonday(addDays(today,-7));
@@ -336,18 +322,6 @@
       el.classList.add('selected'); selectedDate=d; ABSENT_MODE=false; updateAssenteChip(); renderMonthList();
     }
 
-    // ---------- toggle mese ----------
-    function setupMonthToggle(){
-      const toggle=document.getElementById('monthToggle');
-      const arrow=document.getElementById('monthArrow');
-      const list=document.getElementById('monthList');
-      list.classList.remove('open'); // default chiuso
-      toggle.addEventListener('click', ()=>{
-        const open=list.classList.toggle('open');
-        arrow.textContent = open ? '▲' : '▼';
-      });
-    }
-
     // ---------- assente ----------
     function toggleAssente(){ ABSENT_MODE=!ABSENT_MODE; updateAssenteChip(); }
     function updateAssenteChip(){ document.getElementById('assenteChip').classList.toggle('active', ABSENT_MODE); }
@@ -359,8 +333,6 @@
       const ps=document.getElementById('pStart'), pe=document.getElementById('pEnd');
       document.getElementById('morningText').textContent=`${ms.value} - ${me.value}`;
       document.getElementById('afternoonText').textContent=`${ps.value} - ${pe.value}`;
-      const tot = diffHours(ms.value,me.value) + diffHours(ps.value,pe.value);
-      const th = document.getElementById('totalHours'); if(th) th.textContent = tot.toFixed(1) + 'h';
       updateSummary();
     }
 
@@ -417,16 +389,17 @@
       })).filter(x=>x.nome.toLowerCase()===target && !isNaN(x.dataPresenza)).sort((a,b)=>b.dataPresenza-a.dataPresenza);
     }
 
-    // ---------- mese corrente ----------
+    // ---------- mese corrente: tutti i giorni + evidenze ----------
     async function renderMonthList(){
       const list=document.getElementById('monthList'); list.innerHTML='';
       const y=selectedDate.getFullYear(), m=selectedDate.getMonth();
       const days=new Date(y,m+1,0).getDate();
       const today=new Date(); today.setHours(0,0,0,0);
-      document.getElementById('monthTitle').textContent = `Presenze mese ${selectedDate.toLocaleDateString('it-IT',{month:'long'})}`;
+      document.getElementById('monthTitle').textContent = `📆 Presenze mese ${selectedDate.toLocaleDateString('it-IT',{month:'long'})}`;
 
       for(let d=1; d<=days; d++){
         const dt=new Date(y,m,d);
+        const iso=fmtISO(dt);
         const entries=LAST_PRESENZE.filter(p=> sameYMD(p.dataPresenza, dt));
 
         const item=document.createElement('div');
@@ -436,17 +409,17 @@
         if(sameYMD(dt,today)) item.classList.add('today');
         if(dt>today) item.classList.add('future');
 
-        item.innerHTML = `
-          <div class="mi-left">
+        const left=`<div class="mi-left">
             <div class="mi-date"><div>${pad2(d)}</div><div style="font-size:10px;opacity:.8">${dt.toLocaleDateString('it-IT',{month:'short'})}</div></div>
             <div class="mi-main">
               <div class="mi-cant">${entries[0]?.cantiere || (dt<today?'<span class="badge-missing">NON COMPILATO</span>':'' )}</div>
               <div class="mi-lav">${entries[0]?.lavorazione || ''}</div>
             </div>
-          </div>
-          <div class="mi-right">
+          </div>`;
+        const right=`<div class="mi-right">
             ${dt>today?'<span class="badge-future">FUTURO</span>': `<div class="mi-ore">${entries[0]?.ore?entries[0].ore+'h':'-'}</div>`}
           </div>`;
+        item.innerHTML= left + right;
         list.appendChild(item);
       }
     }
@@ -476,38 +449,92 @@
         div.innerHTML=`<div><strong>Cantiere ${i+1}:</strong> ${name}</div><div><strong>Lavorazione:</strong> ${lav}</div>`;
         worksBox.appendChild(div);
       });
-      const notes=(document.getElementById('notesInput')?.value||'').trim();
-      document.getElementById('summaryNotes').textContent= notes || '-';
+      document.getElementById('summaryNotes').textContent='-';
     }
 
     // ---------- quick: ripeti ieri ----------
     function repeatYesterday(){
       const yest = addDays(new Date(), -1);
       const found = LAST_PRESENZE.find(p=> sameYMD(p.dataPresenza,yest));
-      if(!found){ alert('Nessuna presenza trovata per ieri'); return; }
-      selectedDate=yest;
-      document.querySelectorAll('.date-day').forEach(dd=> dd.classList.toggle('selected', dd.dataset.date===fmtISO(yest)));
-      ABSENT_MODE=false; updateAssenteChip();
+      if(!found){ 
+        alert('Nessuna presenza trovata per ieri'); 
+        return; 
+      }
 
-      const parts=(found.orari||'').split('+').map(s=>s.trim());
-      const [m1,p1]=parts;
-      if(m1){ const [a,b]=m1.split('-'); document.getElementById('mStart').value=a; document.getElementById('mEnd').value=b; }
-      if(p1){ const [c,d]=p1.split('-'); document.getElementById('pStart').value=c; document.getElementById('pEnd').value=d; }
-      workState=[newWorkItem()];
-      const cantiere=found.cantiere||'';
-      if(SITE_OPTIONS.includes(cantiere)){ workState[0].siteSelect=cantiere; workState[0].siteManual=''; }
-      else { workState[0].siteManual=cantiere; workState[0].siteSelect=''; }
-      workState[0].work=found.lavorazione||'';
+      // Salva i dati e mostra il preview
+      PREVIEW_DATA = found;
+      
+      // Popola il preview card
+      document.getElementById('previewDate').textContent = fmtHuman(yest);
+      document.getElementById('previewTime').textContent = found.orari || '-';
+      document.getElementById('previewHours').textContent = found.ore ? found.ore + 'h' : '-';
+      document.getElementById('previewSite').textContent = found.cantiere || '-';
+      document.getElementById('previewWork').textContent = found.lavorazione || '-';
+      document.getElementById('previewNotes').textContent = '-'; // le note non vengono salvate nel DB
+      
+      // Mostra il preview card
+      document.getElementById('previewCard').classList.add('show');
+      
+      // Scroll al preview
+      document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function confirmRepeat(){
+      if(!PREVIEW_DATA) return;
+      
+      const yest = addDays(new Date(), -1);
+      selectedDate = yest;
+      document.querySelectorAll('.date-day').forEach(dd=> 
+        dd.classList.toggle('selected', dd.dataset.date===fmtISO(yest))
+      );
+      ABSENT_MODE = false; 
+      updateAssenteChip();
+
+      // Applica i dati
+      const parts = (PREVIEW_DATA.orari||'').split('+').map(s=>s.trim());
+      const [m1,p1] = parts;
+      if(m1){ 
+        const [a,b] = m1.split('-'); 
+        document.getElementById('mStart').value = a; 
+        document.getElementById('mEnd').value = b; 
+      }
+      if(p1){ 
+        const [c,d] = p1.split('-'); 
+        document.getElementById('pStart').value = c; 
+        document.getElementById('pEnd').value = d; 
+      }
+      
+      workState = [newWorkItem()];
+      const cantiere = PREVIEW_DATA.cantiere || '';
+      if(SITE_OPTIONS.includes(cantiere)){ 
+        workState[0].siteSelect = cantiere; 
+        workState[0].siteManual = ''; 
+      } else { 
+        workState[0].siteManual = cantiere; 
+        workState[0].siteSelect = ''; 
+      }
+      workState[0].work = PREVIEW_DATA.lavorazione || '';
+      
       renderWorkItems();
       updateTimes();
+      
+      // Nascondi il preview
+      document.getElementById('previewCard').classList.remove('show');
+      PREVIEW_DATA = null;
+      
+      // Vai alla pagina 2
       nextPage(2);
+    }
+
+    function cancelRepeat(){
+      document.getElementById('previewCard').classList.remove('show');
+      PREVIEW_DATA = null;
     }
 
     // ---------- submit ----------
     async function submitPresence(){
-      const notes=(document.getElementById('notesInput')?.value||'').trim();
       if(ABSENT_MODE){
-        const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes||"" };
+        const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note:"" };
         try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
       }else{
         const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
@@ -517,7 +544,7 @@
         if(lavori.length===0){ alert('Inserisci almeno un cantiere e una lavorazione.'); return; }
         const quota = tot / lavori.length;
         for(const w of lavori){
-          const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes||"" };
+          const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note:"" };
           try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
           await new Promise(r=>setTimeout(r,120));
         }
@@ -527,7 +554,7 @@
         document.getElementById('successOverlay').classList.remove('show');
         await loadPresenze();
         await renderMonthList();
-        prevPage(1);
+        nextPage(1);
       }, 800);
     }
 
@@ -541,7 +568,6 @@
     // ---------- post-login ----------
     async function postLoginInit(){
       initDateSelector();
-      setupMonthToggle();
       await loadCantieri();
       await loadPresenze();
       await renderMonthList();
