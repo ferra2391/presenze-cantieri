@@ -6,7 +6,7 @@
 <title>Presenze Cantiere</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-
+  
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   :root{
     --primary:#FF6B35; --primary-dark:#E55A2B;
@@ -17,126 +17,742 @@
     --card-bg:rgba(255,255,255,.08); --border:rgba(255,255,255,.15);
     --text:#fff; --text-secondary:#cbd5e1;
   }
-
-  @keyframes gradientShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-
+  
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
   body{
     font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-    background-size:200% 200%;
+    background-size: 200% 200%;
     animation: gradientShift 15s ease infinite;
-    color:var(--text); min-height:100vh; position:relative; overflow-x:hidden;
+    color:var(--text);
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
   }
-  body::before{
-    content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
-    background: radial-gradient(circle, rgba(99,102,241,.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255,107,53,.1) 0%, transparent 50%);
-    animation: float 20s ease-in-out infinite; pointer-events:none; z-index:0;
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
+    animation: float 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
   }
-
+  
   .container{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh}
 
+  /* Header pulito */
   .header{
     background:linear-gradient(135deg,var(--primary) 0%,#c026d3 50%,var(--secondary) 100%);
-    padding:20px 16px; border-radius:0 0 24px 24px; box-shadow:0 10px 50px rgba(255,107,53,.4);
+    padding:20px 16px;
+    border-radius:0 0 24px 24px;
+    box-shadow:0 10px 50px rgba(255,107,53,.4);
+    position:relative;
   }
-  .header h1{ font-size:22px; font-weight:900; letter-spacing:.5px; text-shadow:2px 2px 8px rgba(0,0,0,.3) }
+  .header h1{
+    font-size:22px;
+    font-weight:900;
+    letter-spacing:.5px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,.3);
+  }
   .user-badge{
-    display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.25);
-    backdrop-filter:blur(20px); padding:6px 12px; border-radius:20px; margin-top:10px;
-    font-size:13px; font-weight:700; border:1px solid rgba(255,255,255,.3); box-shadow:0 4px 15px rgba(0,0,0,.2);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(255,255,255,.25);
+    backdrop-filter:blur(20px);
+    padding:6px 12px;
+    border-radius:20px;
+    margin-top:10px;
+    font-size:13px;
+    font-weight:700;
+    border:1px solid rgba(255,255,255,.3);
+    box-shadow:0 4px 15px rgba(0,0,0,.2);
     transition:all .3s ease;
   }
+  .user-badge:hover {
+    transform: scale(1.05);
+    background:rgba(255,255,255,.35);
+  }
 
-  .content{padding:20px 16px}
+  .content{padding:20px 16px 20px}
   .topbar{display:flex;justify-content:flex-end;padding:12px 16px}
-  .logout-btn{ background:var(--card-bg); backdrop-filter:blur(20px); border:1px solid var(--border); color:#fff;
-    border-radius:12px; padding:8px 14px; cursor:pointer; font-weight:700; font-size:13px; transition:.3s }
+  .logout-btn{
+    background:var(--card-bg);
+    backdrop-filter:blur(20px);
+    border:1px solid var(--border);
+    color:#fff;
+    border-radius:12px;
+    padding:8px 14px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:13px;
+    transition:all .3s ease;
+    box-shadow:0 4px 15px rgba(0,0,0,.2);
+  }
+  .logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow:0 6px 20px rgba(0,0,0,.3);
+    border-color:var(--danger);
+    background:rgba(239,68,68,.2);
+  }
 
   .step-indicator{display:flex;gap:8px;margin:12px 0 16px}
-  .step{flex:1;height:5px;background:var(--card-bg);border-radius:10px}
-  .step.active{background:linear-gradient(90deg,var(--primary),var(--accent),var(--secondary));background-size:200% 100%;animation:gradientShift 3s ease infinite}
+  .step{
+    flex:1;
+    height:5px;
+    background:var(--card-bg);
+    border-radius:10px;
+    position:relative;
+    overflow:hidden;
+    transition:all .4s ease;
+  }
+  .step.active{
+    background:linear-gradient(90deg,var(--primary),var(--accent),var(--secondary));
+    background-size:200% 100%;
+    animation: gradientShift 3s ease infinite;
+    box-shadow:0 2px 10px rgba(255,107,53,.5);
+  }
 
   .view{display:none}
-  .view.active{display:block;animation:fadeIn .35s ease}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)}}
+  .view.active{display:block;animation:fadeIn .4s ease}
+  @keyframes fadeIn{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
+  }
 
-  .card{ background:var(--card-bg); backdrop-filter:blur(30px); border:1px solid var(--border);
-    border-radius:20px; padding:18px; margin-bottom:14px; box-shadow:0 8px 32px rgba(0,0,0,.3) }
-  .card-title{font-size:15px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:10px;color:var(--text)}
+  .card{
+    background:var(--card-bg);
+    backdrop-filter:blur(30px);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:18px;
+    margin-bottom:14px;
+    box-shadow:0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);
+    transition:all .3s ease;
+    position:relative;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow:0 12px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.15);
+    border-color:rgba(255,255,255,.25);
+  }
+  .card-title{
+    font-size:15px;
+    font-weight:800;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--text);
+  }
+  .card-title span:first-child {
+    font-size:20px;
+    animation:float 3s ease-in-out infinite;
+  }
 
+  /* Date selector */
   .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:10px}
-  .date-day{ aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    background:linear-gradient(135deg,var(--bg-light),rgba(30,41,59,.8)); border:2px solid transparent; border-radius:14px; cursor:pointer; transition:.2s }
-  .date-day .day-name{ font-size:9px; color:var(--text-secondary); margin-bottom:3px; font-weight:800; text-transform:uppercase; letter-spacing:1px }
-  .date-day .day-num{ font-size:16px; font-weight:900 }
-  .date-day.selected{ background:linear-gradient(135deg,var(--primary),var(--accent),var(--secondary)); border-color:transparent; transform:scale(1.03) }
-  .date-day.today{border-color:var(--success)}
-  .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){background:linear-gradient(135deg, rgba(220,38,38,.15), rgba(127,29,29,.15)); border-color:rgba(220,38,38,.4)}
+  .date-day{
+    aspect-ratio:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg, var(--bg-light), rgba(30,41,59,.8));
+    border:2px solid transparent;
+    border-radius:14px;
+    cursor:pointer;
+    transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size:12px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 4px 15px rgba(0,0,0,.2);
+  }
+  .date-day::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,107,53,.1), rgba(99,102,241,.1));
+    opacity: 0;
+    transition: opacity .3s ease;
+  }
+  .date-day:hover::before {
+    opacity: 1;
+  }
+  .date-day .day-name{
+    font-size:9px;
+    color:var(--text-secondary);
+    margin-bottom:3px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  .date-day .day-num{
+    font-size:16px;
+    font-weight:900;
+    text-shadow:0 2px 4px rgba(0,0,0,.3);
+  }
+  .date-day:hover{
+    border-color:var(--primary);
+    transform:scale(1.08) translateY(-3px);
+    box-shadow:0 8px 25px rgba(255,107,53,.4);
+  }
+  .date-day.selected{
+    background:linear-gradient(135deg,var(--primary),var(--accent),var(--secondary));
+    background-size:200% 200%;
+    animation: gradientShift 4s ease infinite;
+    border-color:transparent;
+    transform:scale(1.05);
+    box-shadow:0 8px 30px rgba(255,107,53,.6), 0 0 20px rgba(251,191,36,.3);
+  }
+  .date-day.today{
+    border-color:var(--success);
+    box-shadow:0 0 20px rgba(16,185,129,.4);
+  }
+  .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){
+    background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15));
+    border-color:rgba(220, 38, 38, 0.4);
+  }
 
   .date-actions{display:flex;gap:10px;margin-top:12px}
-  .chip{ flex:1; background:var(--bg-light); border:2px dashed var(--border); border-radius:14px; padding:10px 12px; cursor:pointer; font-size:13px; font-weight:800; color:var(--text-secondary); text-align:center }
-  .chip.active{ border-style:solid; border-color:var(--danger); color:#fff; background:linear-gradient(135deg,rgba(239,68,68,.3),rgba(127,29,29,.3)) }
-
-  /* TIME SLOTS */
-  .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
-  .time-slot{ position:relative; overflow:hidden; border-radius:16px; border:2px solid var(--border); min-height:160px; padding:14px 10px; background:var(--bg-light); display:flex; }
-  .slot-bg{ position:absolute; inset:0; opacity:.9; border-radius:14px; z-index:0 }
-  .time-slot.morning .slot-bg{ background:linear-gradient(135deg,#3b82f6,#06b6d4,#8b5cf6) }
-  .time-slot.afternoon .slot-bg{ background:linear-gradient(135deg,var(--primary),#f59e0b,#ec4899) }
-
-  .slot-inner{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; width:100% }
-  .slot-time{ font-size:18px; font-weight:900; text-align:center; font-variant-numeric: tabular-nums; line-height:1 }
-  .slot-hours{ font-size:13px; font-weight:800; background:rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.3); padding:4px 10px; border-radius:999px; font-variant-numeric: tabular-nums; line-height:1; text-align:center }
-
-  .time-inputs{ display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100% }
-  .time-inputs input[type="time"]{
-    width:100%; background:rgba(0,0,0,.22); border:none; color:#fff; border-radius:12px; padding:10px 8px;
-    font-size:18px; font-weight:900; outline:none; text-align:center; box-shadow:inset 0 2px 8px rgba(0,0,0,.25);
-    font-variant-numeric: tabular-nums;
+  .chip{
+    flex:1;
+    background:var(--bg-light);
+    backdrop-filter:blur(20px);
+    border:2px dashed var(--border);
+    border-radius:14px;
+    padding:10px 12px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:800;
+    color:var(--text-secondary);
+    text-align:center;
+    transition:all .3s ease;
+    position:relative;
+    overflow:hidden;
   }
-  /* Centro il testo dentro l'input time anche su WebKit/iOS */
-  .time-inputs input[type="time"]::-webkit-date-and-time-value { text-align:center }
-  .time-inputs input[type="time"]::-webkit-calendar-picker-indicator{ filter:invert(1) brightness(.8); opacity:.6; cursor:pointer; width:18px; height:18px }
+  .chip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,107,53,.1), rgba(99,102,241,.1));
+    opacity: 0;
+    transition: opacity .3s ease;
+  }
+  .chip:hover {
+    transform: translateY(-2px);
+    border-color:var(--primary);
+    color:var(--text);
+    box-shadow:0 6px 20px rgba(0,0,0,.3);
+  }
+  .chip:hover::before {
+    opacity: 1;
+  }
+  .chip.active{
+    border-style:solid;
+    border-color:var(--danger);
+    color:#fff;
+    background:linear-gradient(135deg,rgba(239,68,68,.3),rgba(127,29,29,.3));
+    box-shadow:0 4px 20px rgba(239,68,68,.4);
+  }
 
-  .total-hours-badge{ margin-top:10px; padding:14px; background:linear-gradient(135deg,var(--card-bg),rgba(99,102,241,.1)); border:2px solid var(--border); border-radius:14px; text-align:center }
-  .total-hours-badge .label{ color:var(--text-secondary); font-size:12px; margin-bottom:4px; font-weight:700; letter-spacing:1px; text-transform:uppercase }
-  .total-hours-badge .value{ font-size:28px; font-weight:900 }
+  /* Time slots semplificati */
+  .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+  .time-slot{
+    position:relative;
+    overflow:hidden;
+    border-radius:16px;
+    border:2px solid var(--border);
+    min-height:180px;
+    padding:16px 12px;
+    background:var(--bg-light);
+    transition:all .3s ease;
+    box-shadow:0 4px 20px rgba(0,0,0,.2);
+    display:flex;
+    flex-direction:column;
+  }
+  .time-slot:hover {
+    transform: translateY(-4px);
+    box-shadow:0 8px 30px rgba(0,0,0,.3);
+    border-color:rgba(255,255,255,.3);
+  }
+  .slot-bg{
+    position:absolute;
+    inset:0;
+    opacity:.9;
+    border-radius:14px;
+    z-index:0;
+    transition:opacity .3s ease;
+  }
+  .time-slot:hover .slot-bg {
+    opacity:1;
+  }
+  .time-slot.morning .slot-bg{
+    background:linear-gradient(135deg,#3b82f6,#06b6d4,#8b5cf6);
+    background-size:200% 200%;
+    animation: gradientShift 6s ease infinite;
+  }
+  .time-slot.afternoon .slot-bg{
+    background:linear-gradient(135deg,var(--primary),#f59e0b,#ec4899);
+    background-size:200% 200%;
+    animation: gradientShift 6s ease infinite;
+  }
+  .slot-inner{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100%;
+    gap:8px;
+  }
+  .slot-time{
+    font-size:18px;
+    font-weight:900;
+    text-align:center;
+    text-shadow:2px 2px 8px rgba(0,0,0,.4);
+    letter-spacing:.5px;
+  }
+  .slot-hours{
+    font-size:13px;
+    font-weight:800;
+    background:rgba(0,0,0,.35);
+    border:2px solid rgba(255,255,255,.3);
+    padding:4px 10px;
+    border-radius:999px;
+    box-shadow:0 4px 15px rgba(0,0,0,.3);
+    transition:all .3s ease;
+  }
+  .time-slot:hover .slot-hours {
+    transform: scale(1.05);
+    box-shadow:0 6px 20px rgba(0,0,0,.4);
+  }
+  .time-selects{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+  }
+  .time-selects select{
+    background:rgba(0,0,0,.3);
+    backdrop-filter:blur(10px);
+    border:none;
+    color:#fff;
+    border-radius:12px;
+    padding:12px 10px;
+    font-size:18px;
+    font-weight:900;
+    outline:none;
+    transition:all .3s ease;
+    cursor:pointer;
+    text-align:center;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.25);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    text-align-last: center;
+    flex:1;
+    max-width:70px;
+  }
+  .time-selects select:focus {
+    background:rgba(0,0,0,.45);
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.3), 0 0 15px rgba(255,255,255,.2);
+    transform: scale(1.02);
+  }
+  .time-selects select:hover {
+    background:rgba(0,0,0,.35);
+  }
+  .time-selects select option {
+    background:var(--bg-light);
+    color:var(--text);
+    text-align:center;
+  }
+  .time-separator {
+    font-size:20px;
+    font-weight:900;
+    color:rgba(255,255,255,.5);
+    text-shadow:2px 2px 8px rgba(0,0,0,.4);
+  }
+
+  .total-hours-badge{
+    margin-top:10px;
+    padding:14px;
+    background:linear-gradient(135deg, var(--card-bg), rgba(99,102,241,.1));
+    backdrop-filter:blur(20px);
+    border:2px solid var(--border);
+    border-radius:14px;
+    text-align:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.2);
+    transition:all .3s ease;
+  }
+  .total-hours-badge:hover {
+    transform: scale(1.02);
+    box-shadow:0 6px 25px rgba(0,0,0,.3);
+  }
+  .total-hours-badge .label{
+    color:var(--text-secondary);
+    font-size:12px;
+    margin-bottom:4px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  .total-hours-badge .value{
+    font-size:28px;
+    font-weight:900;
+    background:linear-gradient(135deg, var(--accent), var(--primary));
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    text-shadow:0 0 20px rgba(251,191,36,.3);
+  }
 
   .input-group{position:relative;margin-top:12px}
   .input-group input,.input-group textarea,.input-group select{
-    width:100%; background:var(--bg-light); border:2px solid var(--border); border-radius:14px;
-    padding:14px 14px 14px 48px; font-size:14px; font-weight:600; color:var(--text)
+    width:100%;
+    background:var(--bg-light);
+    border:2px solid var(--border);
+    border-radius:14px;
+    padding:14px 14px 14px 48px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--text);
+    transition:all .3s ease;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
   }
-  .input-group .input-icon{ position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; color:var(--text-secondary) }
+  .input-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+  }
+  .input-group select option {
+    background:var(--bg-light);
+    color:var(--text);
+    padding:10px;
+  }
+  .input-group input:focus,.input-group textarea:focus,.input-group select:focus{
+    outline:none;
+    border-color:var(--primary);
+    box-shadow:0 0 20px rgba(255,107,53,.3), 0 4px 15px rgba(0,0,0,.3);
+    transform: translateY(-2px);
+  }
+  .input-group input:hover,.input-group textarea:hover,.input-group select:hover{
+    border-color:rgba(255,255,255,.3);
+  }
+  .input-group .input-icon{
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:18px;
+    color:var(--text-secondary);
+    transition:all .3s ease;
+  }
+  .input-group:focus-within .input-icon {
+    color:var(--primary);
+    transform: translateY(-50%) scale(1.2);
+  }
   .input-group textarea{min-height:100px;resize:vertical}
+  .input-group textarea::placeholder{color:#cbd5e1;opacity:.7}
   .input-group textarea + .input-icon{top:20px;transform:none}
+  .input-group:has(textarea):focus-within .input-icon {
+    transform: scale(1.2);
+  }
 
   .btn-group{display:flex;gap:10px;margin-top:14px}
-  .btn{ flex:1; background:linear-gradient(135deg,var(--primary),#ec4899,var(--secondary)); border:none; border-radius:14px; padding:14px; font-size:15px; font-weight:900; color:#fff; cursor:pointer }
-  .btn-secondary{ background:var(--bg-light); border:2px solid var(--border) }
-  .btn-success{ background:linear-gradient(135deg,var(--success),#10b981,#14b8a6) }
+  .btn{
+    flex:1;
+    background:linear-gradient(135deg,var(--primary),#ec4899,var(--secondary));
+    background-size:200% 200%;
+    animation: gradientShift 5s ease infinite;
+    border:none;
+    border-radius:14px;
+    padding:14px;
+    font-size:15px;
+    font-weight:900;
+    color:#fff;
+    cursor:pointer;
+    transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:0 4px 20px rgba(255,107,53,.4);
+    position:relative;
+    overflow:hidden;
+    letter-spacing:.5px;
+    text-shadow:0 2px 4px rgba(0,0,0,.3);
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.2), transparent);
+    opacity: 0;
+    transition: opacity .3s ease;
+  }
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow:0 8px 30px rgba(255,107,53,.6);
+  }
+  .btn:hover::before {
+    opacity: 1;
+  }
+  .btn:active {
+    transform: translateY(-1px);
+  }
+  .btn-secondary{
+    background:var(--bg-light);
+    backdrop-filter:blur(20px);
+    border:2px solid var(--border);
+    box-shadow:0 4px 15px rgba(0,0,0,.3);
+    animation: none;
+  }
+  .btn-secondary:hover {
+    border-color:var(--primary);
+    box-shadow:0 6px 25px rgba(0,0,0,.4);
+  }
+  .btn-success{
+    background:linear-gradient(135deg,var(--success),#10b981,#14b8a6);
+    background-size:200% 200%;
+    animation: gradientShift 5s ease infinite;
+    box-shadow:0 4px 20px rgba(16,185,129,.4);
+  }
+  .btn-success:hover {
+    box-shadow:0 8px 30px rgba(16,185,129,.6);
+  }
+  .btn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    transform:none !important;
+  }
 
-  .month-toggle{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(135deg,var(--bg-light),rgba(99,102,241,.1)); border:2px dashed var(--border); border-radius:14px; padding:12px 14px; cursor:pointer }
-  .month-title-text{ font-weight:900; font-size:15px }
-  .month-list{ display:none; flex-direction:column; gap:10px; margin-top:12px }
-  .month-list.open{ display:flex }
-  .month-item{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:linear-gradient(135deg,var(--bg-light),rgba(30,41,59,.8)); border:2px solid var(--border); border-radius:14px; padding:12px 14px }
+  /* Presenze mese */
+  .month-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.1));
+    backdrop-filter:blur(20px);
+    border:2px dashed var(--border);
+    border-radius:14px;
+    padding:12px 14px;
+    cursor:pointer;
+    transition:all .3s ease;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+  }
+  .month-toggle:hover {
+    border-style:solid;
+    border-color:var(--primary);
+    transform: translateY(-2px);
+    box-shadow:0 6px 20px rgba(0,0,0,.3);
+    background:linear-gradient(135deg, var(--bg-light), rgba(255,107,53,.1));
+  }
+  .month-title-text{
+    font-weight:900;
+    font-size:15px;
+    background:linear-gradient(135deg, var(--text), var(--primary));
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .month-list{
+    display:none;
+    flex-direction:column;
+    gap:10px;
+    margin-top:12px;
+  }
+  .month-list.open{
+    display:flex;
+    animation: fadeIn .4s ease;
+  }
+
+  .month-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:linear-gradient(135deg, var(--bg-light), rgba(30,41,59,.8));
+    backdrop-filter:blur(20px);
+    border:2px solid var(--border);
+    border-radius:14px;
+    padding:12px 14px;
+    transition:all .3s ease;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+  }
+  .month-item:hover {
+    transform: translateX(4px);
+    border-color:rgba(255,255,255,.3);
+    box-shadow:0 4px 20px rgba(0,0,0,.3);
+  }
   .mi-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-  .mi-date{ min-width:52px; text-align:center; font-weight:900; background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(255,107,53,.2)); border:2px solid var(--border); border-radius:12px; padding:6px 8px; font-size:13px }
+  .mi-date{
+    min-width:52px;
+    text-align:center;
+    font-weight:900;
+    background:linear-gradient(135deg, rgba(99,102,241,.2), rgba(255,107,53,.2));
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:6px 8px;
+    font-size:13px;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+  }
   .mi-main{display:flex;flex-direction:column;min-width:0;flex:1}
-  .mi-cant{ font-weight:800; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text) }
-  .mi-lav{ font-size:11px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .mi-cant{
+    font-weight:800;
+    font-size:13px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    color:var(--text);
+  }
+  .mi-lav{
+    font-size:11px;
+    color:var(--text-secondary);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
   .mi-right{display:flex;align-items:center;gap:8px}
-  .mi-ore{ font-weight:900; font-size:14px }
-  .badge-missing{ display:inline-block; padding:4px 9px; border-radius:999px; background:rgba(239,68,68,.2); border:2px solid rgba(239,68,68,.4); color:#fecaca; font-weight:900; font-size:10px; text-transform:uppercase; letter-spacing:.5px }
-  .badge-future{ display:inline-block; padding:4px 9px; border-radius:999px; background:rgba(148,163,184,.2); border:2px solid rgba(148,163,184,.4); color:#e5e7eb; font-weight:900; font-size:10px; text-transform:uppercase; letter-spacing:.5px }
+  .mi-ore{
+    font-weight:900;
+    font-size:14px;
+    background:linear-gradient(135deg, var(--accent), var(--primary));
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .month-item.weekend,.month-item.holiday{
+    background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15));
+    border-color:rgba(220, 38, 38, 0.4);
+  }
+  .month-item.today{
+    outline:3px solid var(--success);
+    outline-offset:2px;
+    box-shadow:0 0 30px rgba(16,185,129,.3);
+  }
+  .month-item.future{
+    opacity:.7;
+    filter:grayscale(0.3);
+  }
+  .badge-missing{
+    display:inline-block;
+    padding:4px 9px;
+    border-radius:999px;
+    background:rgba(239,68,68,.2);
+    border:2px solid rgba(239,68,68,.4);
+    color:#fecaca;
+    font-weight:900;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    box-shadow:0 2px 10px rgba(239,68,68,.3);
+  }
+  .badge-future{
+    display:inline-block;
+    padding:4px 9px;
+    border-radius:999px;
+    background:rgba(148,163,184,.2);
+    border:2px solid rgba(148,163,184,.4);
+    color:#e5e7eb;
+    font-weight:900;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
 
-  .preview-card{ display:none; border:2px solid var(--primary) }
-  .preview-card.show{ display:block }
-  .preview-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:2px solid rgba(255,255,255,.1) }
+  .success-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.97);
+    backdrop-filter:blur(20px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    animation:fadeIn .3s ease;
+  }
+  .success-overlay.show{display:flex}
+  .success-overlay .card {
+    animation:float 2s ease-in-out infinite;
+    box-shadow:0 20px 60px rgba(16,185,129,.4), 0 0 100px rgba(16,185,129,.2);
+    border:2px solid var(--success);
+  }
+  .success-overlay h2 {
+    background:linear-gradient(135deg, var(--success), var(--accent));
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    font-size:24px;
+    text-align:center;
+  }
+
+  /* Preview ripeti ieri */
+  .preview-card{
+    display:none;
+    border:2px solid var(--primary);
+    box-shadow:0 0 30px rgba(255,107,53,.3);
+  }
+  .preview-card.show{
+    display:block;
+    animation:fadeIn .4s ease;
+  }
+  .preview-row{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:2px solid rgba(255,255,255,.1);
+    transition:all .3s ease;
+  }
+  .preview-row:hover {
+    padding-left:6px;
+    border-bottom-color:rgba(255,255,255,.2);
+  }
   .preview-row:last-child{border-bottom:none}
+  .preview-row span:first-child {
+    font-weight:700;
+    color:var(--text-secondary);
+  }
+  .preview-row span:last-child {
+    font-weight:900;
+    color:var(--text);
+  }
+  .preview-actions{display:flex;gap:10px;margin-top:14px}
+  
+  .summary-work {
+    padding:10px 12px;
+    margin-bottom:8px;
+    background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.05));
+    border:2px solid var(--border);
+    border-radius:12px;
+    transition:all .3s ease;
+  }
+  .summary-work:hover {
+    transform: translateX(4px);
+    border-color:rgba(255,255,255,.25);
+  }
+  .summary-work:last-child {
+    margin-bottom:0;
+  }
 </style>
 </head>
 <body>
@@ -164,7 +780,7 @@
   <div class="content">
     <div class="step-indicator"><div class="step active"></div><div class="step"></div><div class="step"></div><div class="step"></div></div>
 
-    <!-- Pagina 1 -->
+    <!-- Pagina 1: DATA -->
     <div class="view active" id="page1">
       <div class="card">
         <div class="card-title"><span>📅</span><span>Seleziona la data</span></div>
@@ -175,6 +791,7 @@
         </div>
       </div>
 
+      <!-- Preview "Ripeti ieri" -->
       <div class="card preview-card" id="previewCard">
         <div class="card-title"><span>⚡</span><span>Riepilogo di ieri</span></div>
         <div class="preview-row"><span>Data</span><span id="previewDate">-</span></div>
@@ -183,7 +800,7 @@
         <div class="preview-row"><span>Cantiere</span><span id="previewSite">-</span></div>
         <div class="preview-row"><span>Lavorazione</span><span id="previewWork">-</span></div>
         <div class="preview-row"><span>Note</span><span id="previewNotes">-</span></div>
-        <div class="btn-group">
+        <div class="preview-actions">
           <button class="btn btn-success" onclick="confirmRepeat()">✓ Usa questo</button>
           <button class="btn btn-secondary" onclick="cancelRepeat()">✗ Annulla</button>
         </div>
@@ -194,13 +811,14 @@
           <span class="month-title-text" id="monthTitle">📆 Presenze del mese</span>
           <span id="monthArrow">▼</span>
         </button>
-        <div id="monthList" class="month-list"></div>
+       <div id="monthList" class="month-list"></div>
+
       </div>
 
       <div class="btn-group"><button class="btn" onclick="goFromPage1()">Avanti →</button></div>
     </div>
 
-    <!-- Pagina 2: ORARI -->
+    <!-- Pagina 2: ORARI SEMPLIFICATI -->
     <div class="view" id="page2">
       <div class="card">
         <div class="card-title"><span>⏰</span><span>Orario di lavoro</span></div>
@@ -211,9 +829,10 @@
             <div class="slot-inner">
               <div class="slot-time" id="morningText">08:00 - 12:00</div>
               <div class="slot-hours" id="morningHours">4.0 h</div>
-              <div class="time-inputs">
-                <input type="time" id="mStart" value="08:00" min="06:00" max="15:00" step="1800" oninput="updateTimes()" />
-                <input type="time" id="mEnd"   value="12:00" min="06:00" max="15:00" step="1800" oninput="updateTimes()" />
+              <div class="time-selects">
+                <select id="mStart" onchange="updateTimes()"></select>
+                <span class="time-separator">-</span>
+                <select id="mEnd" onchange="updateTimes()"></select>
               </div>
             </div>
           </div>
@@ -223,9 +842,10 @@
             <div class="slot-inner">
               <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
               <div class="slot-hours" id="afternoonHours">4.0 h</div>
-              <div class="time-inputs">
-                <input type="time" id="pStart" value="13:00" min="12:00" max="20:00" step="1800" oninput="updateTimes()" />
-                <input type="time" id="pEnd"   value="17:00" min="12:00" max="20:00" step="1800" oninput="updateTimes()" />
+              <div class="time-selects">
+                <select id="pStart" onchange="updateTimes()"></select>
+                <span class="time-separator">-</span>
+                <select id="pEnd" onchange="updateTimes()"></select>
               </div>
             </div>
           </div>
@@ -243,7 +863,7 @@
       </div>
     </div>
 
-    <!-- Pagina 3 -->
+    <!-- Pagina 3: CANTIERI -->
     <div class="view" id="page3">
       <div class="card">
         <div class="card-title"><span>🏗️</span><span>Cantieri</span></div>
@@ -256,7 +876,7 @@
       </div>
     </div>
 
-    <!-- Pagina 4 -->
+    <!-- Pagina 4: RIEPILOGO -->
     <div class="view" id="page4">
       <div class="card">
         <div class="card-title"><span>🗒️</span><span>Note (facoltative)</span></div>
@@ -286,7 +906,7 @@
   </div>
 </div>
 
-<div class="success-overlay" id="successOverlay" style="display:none">
+<div class="success-overlay" id="successOverlay">
   <div class="card"><h2>✨ Presenza registrata!</h2></div>
 </div>
 
@@ -308,29 +928,55 @@
   let MONTH_OPEN = false;
 
   /* ====== UTILS ====== */
-  const pad2 = n => String(n).padStart(2, '0');
-  const fmtISO = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-  const fmtHuman = d => d.toLocaleDateString('it-IT',{day:'numeric',month:'long'});
-  const toMinutes = v => { if(!v) return 0; const [h,m]=v.split(':').map(Number); return h*60+m; };
-  const diffHours = (a,b) => Math.max(0,(toMinutes(b)-toMinutes(a)))/60;
-  const sameYMD = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
-  const addDays = (d,n)=>{const x=new Date(d); x.setDate(x.getDate()+n); x.setHours(0,0,0,0); return x;};
-  const startOfWeekMonday = d => {const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x;};
-  const isWeekend = d => {const g=d.getDay(); return g===0||g===6;};
+  function pad2(n){return String(n).padStart(2,'0');}
+  function fmtISO(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
+  function fmtHuman(d){return d.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}
+  function toMinutes(hhmm){if(!hhmm) return 0; const [h,m]=hhmm.split(':').map(Number); return h*60+m;}
+  function diffHours(a,b){return Math.max(0,(toMinutes(b)-toMinutes(a)))/60;}
+  function sameYMD(a,b){return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();}
+  function addDays(d,n){const x=new Date(d); x.setDate(x.getDate()+n); x.setHours(0,0,0,0); return x;}
+  function startOfWeekMonday(d){const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x;}
+  function isWeekend(d){const g=d.getDay(); return g===0||g===6;}
   function easterDate(year){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(year,month-1,day);}
-  const isItalianHoliday = d => {const y=d.getFullYear(); const fixed=[[1,1],[1,6],[4,25],[5,1],[6,2],[8,15],[11,1],[12,8],[12,25],[12,26]]; for(const [mm,dd] of fixed){ if(sameYMD(d,new Date(y,mm-1,dd))) return true; } return sameYMD(d, addDays(easterDate(y),1));};
+  function isItalianHoliday(d){const y=d.getFullYear(); const fixed=[[1,1],[1,6],[4,25],[5,1],[6,2],[8,15],[11,1],[12,8],[12,25],[12,26]]; for(const [mm,dd] of fixed){ if(sameYMD(d,new Date(y,mm-1,dd))) return true; } return sameYMD(d, addDays(easterDate(y),1));}
+  function parseDateFlex(v){
+    if (v instanceof Date) return v;
+    if (typeof v!=='string') return new Date(NaN);
+    const s=v.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
+    const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+    if(m){const d=+m[1], mo=+m[2]-1, y=+m[3], hh=+(m[4]||0), mm=+(m[5]||0); return new Date(y,mo,d,hh,mm);}
+    return new Date(s);
+  }
 
-  // ---- Helpers per SNAP/CLAMP a 30 minuti in range ----
-  const hhmmToMin = s => { const [h,m]=s.split(':').map(Number); return h*60+m; };
-  const minToHHMM = m => pad2(Math.floor(m/60))+':'+pad2(m%60);
-  const clamp = (n, mi, ma) => Math.max(mi, Math.min(ma, n));
-  const snap30 = m => Math.round(m/30)*30;
+  /* ====== GENERA OPZIONI ORARI ====== */
+  function generateTimeOptions(minHour, maxHour) {
+    const options = [];
+    for(let h = minHour; h <= maxHour; h++) {
+      options.push(`${pad2(h)}:00`);
+      if(h < maxHour) options.push(`${pad2(h)}:30`);
+    }
+    return options;
+  }
 
-  function sanitizeTimeValue(value, minStr, maxStr){
-    const minM = hhmmToMin(minStr), maxM = hhmmToMin(maxStr);
-    let mins = hhmmToMin(value || minStr);
-    mins = clamp(snap30(mins), minM, maxM);
-    return minToHHMM(mins);
+  function populateTimeSelects() {
+    const morningOptions = generateTimeOptions(6, 15);
+    const afternoonOptions = generateTimeOptions(12, 20);
+    
+    const mStart = document.getElementById('mStart');
+    const mEnd = document.getElementById('mEnd');
+    const pStart = document.getElementById('pStart');
+    const pEnd = document.getElementById('pEnd');
+    
+    mStart.innerHTML = morningOptions.map(t => `<option value="${t}">${t}</option>`).join('');
+    mEnd.innerHTML = morningOptions.map(t => `<option value="${t}">${t}</option>`).join('');
+    pStart.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}</option>`).join('');
+    pEnd.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}</option>`).join('');
+    
+    mStart.value = '08:00';
+    mEnd.value = '12:00';
+    pStart.value = '13:00';
+    pEnd.value = '17:00';
   }
 
   /* ====== LOGIN ====== */
@@ -384,12 +1030,14 @@
   /* ====== NAV ====== */
   function setStep(p){
     document.querySelectorAll('.step').forEach((el,i)=> el.classList.toggle('active', i<=p-1));
-    currentPage=p; window.scrollTo({top:0,behavior:'smooth'});
+    currentPage=p;
+    window.scrollTo({top:0,behavior:'smooth'});
   }
   function nextPage(p){
     document.getElementById('page'+currentPage).classList.remove('active');
     document.getElementById('page'+p).classList.add('active');
-    setStep(p); updateSummary();
+    setStep(p);
+    updateSummary();
   }
   function prevPage(p){ nextPage(p); }
 
@@ -422,37 +1070,19 @@
   function updateAssenteChip(){ document.getElementById('assenteChip').classList.toggle('active', ABSENT_MODE); }
   function goFromPage1(){ ABSENT_MODE ? (updateSummary(), nextPage(4)) : nextPage(2); }
 
-  /* ====== ORARI (Range + Snap 30m + Ordine) ====== */
+  /* ====== ORARI ====== */
   function updateTimes(){
-    const mS = document.getElementById('mStart');
-    const mE = document.getElementById('mEnd');
-    const pS = document.getElementById('pStart');
-    const pE = document.getElementById('pEnd');
+    const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
+    const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
 
-    // Snap & clamp su range richiesti
-    const newMS = sanitizeTimeValue(mS.value, '06:00', '15:00');
-    const newME = sanitizeTimeValue(mE.value, '06:00', '15:00');
-    const newPS = sanitizeTimeValue(pS.value, '12:00', '20:00');
-    const newPE = sanitizeTimeValue(pE.value, '12:00', '20:00');
+    document.getElementById('morningText').textContent = `${ms} - ${me}`;
+    document.getElementById('afternoonText').textContent = `${ps} - ${pe}`;
 
-    if (mS.value !== newMS) mS.value = newMS;
-    if (mE.value !== newME) mE.value = newME;
-    if (pS.value !== newPS) pS.value = newPS;
-    if (pE.value !== newPE) pE.value = newPE;
-
-    // Garanzia: end >= start
-    if (toMinutes(mE.value) < toMinutes(mS.value)) mE.value = mS.value;
-    if (toMinutes(pE.value) < toMinutes(pS.value)) pE.value = pS.value;
-
-    // Aggiorna testi / ore
-    document.getElementById('morningText').textContent   = `${mS.value} - ${mE.value}`;
-    document.getElementById('afternoonText').textContent = `${pS.value} - ${pE.value}`;
-
-    const hM = diffHours(mS.value, mE.value);
-    const hP = diffHours(pS.value, pE.value);
-    document.getElementById('morningHours').textContent   = `${hM.toFixed(1)} h`;
+    const hM = diffHours(ms,me);
+    const hP = diffHours(ps,pe);
+    document.getElementById('morningHours').textContent = `${hM.toFixed(1)} h`;
     document.getElementById('afternoonHours').textContent = `${hP.toFixed(1)} h`;
-    document.getElementById('totalHours').textContent     = (hM+hP).toFixed(1)+'h';
+    document.getElementById('totalHours').textContent = (hM+hP).toFixed(1)+'h';
 
     updateSummary();
   }
@@ -470,7 +1100,8 @@
   function renderWorkItems(){
     const wrap=document.getElementById('workItems'); wrap.innerHTML='';
     workState.forEach((it,idx)=>{
-      const el=document.createElement('div'); el.className='card'; el.style.padding='12px'; el.innerHTML=`
+      const el=document.createElement('div'); el.className='card'; el.style.padding='12px';
+      el.innerHTML=`
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <div style="font-weight:900">Cantiere ${idx+1}</div>
           ${idx>0?`<button class="chip" onclick="removeWorkItem('${it.id}')">Rimuovi</button>`:''}
@@ -511,19 +1142,32 @@
         orari: r["Orari"]||'',
         nome: String(r["Nome Operaio"]||'')
       })).filter(x=>x.nome.toLowerCase()===target && !isNaN(x.dataPresenza)).sort((a,b)=>b.dataPresenza-a.dataPresenza);
-    }catch(e){ console.error('loadPresenze error', e); LAST_PRESENZE=[]; }
+    }catch(e){
+      console.error('loadPresenze error', e);
+      LAST_PRESENZE=[];
+    }
   }
 
-  /* ====== PRESENZE MESE (toggle) ====== */
-  function setupMonthToggle(){
-    const btn   = document.getElementById('monthToggle');
-    const list  = document.getElementById('monthList');
-    const arrow = document.getElementById('monthArrow');
+  /* ====== PRESENZE MESE ====== */
+ function setupMonthToggle(){
+  const btn   = document.getElementById('monthToggle');
+  const list  = document.getElementById('monthList');
+  const arrow = document.getElementById('monthArrow');
 
-    const apply = () => { list.classList.toggle('open', MONTH_OPEN); arrow.textContent = MONTH_OPEN ? '▲' : '▼'; };
-    btn.addEventListener('click', e=>{ e.preventDefault(); MONTH_OPEN = !MONTH_OPEN; apply(); });
+  const apply = () => {
+    list.classList.toggle('open', MONTH_OPEN);
+    arrow.textContent = MONTH_OPEN ? '▲' : '▼';
+  };
+
+  btn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    MONTH_OPEN = !MONTH_OPEN;
     apply();
-  }
+  });
+
+  apply();
+}
+
   async function renderMonthList(){
     const list=document.getElementById('monthList'); list.innerHTML='';
     const y=selectedDate.getFullYear(), m=selectedDate.getMonth();
@@ -534,12 +1178,14 @@
     for(let d=1; d<=days; d++){
       const dt=new Date(y,m,d);
       const entries=LAST_PRESENZE.filter(p=> sameYMD(p.dataPresenza, dt));
+
       const item=document.createElement('div');
       item.className='month-item';
       if(isWeekend(dt)) item.classList.add('weekend');
       if(isItalianHoliday(dt)) item.classList.add('holiday');
       if(sameYMD(dt,today)) item.classList.add('today');
       if(dt>today) item.classList.add('future');
+
       item.innerHTML = `
         <div class="mi-left">
           <div class="mi-date">
@@ -592,15 +1238,6 @@
   }
 
   /* ====== RIPETI IERI ====== */
-  function parseDateFlex(v){
-    if (v instanceof Date) return v;
-    if (typeof v!=='string') return new Date(NaN);
-    const s=v.trim();
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
-    const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
-    if(m){const d=+m[1], mo=+m[2]-1, y=+m[3], hh=+(m[4]||0), mm=+(m[5]||0); return new Date(y,mo,d,hh,mm);}
-    return new Date(s);
-  }
   async function repeatYesterday(){
     if (!LAST_PRESENZE.length) { await loadPresenze(); }
     const yest = addDays(new Date(), -1);
@@ -629,9 +1266,6 @@
     if(m1){ const [a,b] = m1.split('-'); document.getElementById('mStart').value = a; document.getElementById('mEnd').value = b; }
     if(p1){ const [c,d] = p1.split('-'); document.getElementById('pStart').value = c; document.getElementById('pEnd').value = d; }
 
-    // snap/clamp agli intervalli richiesti
-    updateTimes();
-
     workState = [newWorkItem()];
     const cantiere = PREVIEW_DATA.cantiere || '';
     if(SITE_OPTIONS.includes(cantiere)){ workState[0].siteSelect = cantiere; workState[0].siteManual=''; }
@@ -639,6 +1273,7 @@
     workState[0].work = PREVIEW_DATA.lavorazione || '';
 
     renderWorkItems();
+    updateTimes();
     document.getElementById('previewCard').classList.remove('show');
     PREVIEW_DATA = null;
     nextPage(2);
@@ -665,9 +1300,9 @@
         await new Promise(r=>setTimeout(r,110));
       }
     }
-    document.getElementById('successOverlay').style.display='flex';
+    document.getElementById('successOverlay').classList.add('show');
     setTimeout(async ()=>{
-      document.getElementById('successOverlay').style.display='none';
+      document.getElementById('successOverlay').classList.remove('show');
       await loadPresenze();
       await renderMonthList();
       nextPage(1);
@@ -684,6 +1319,7 @@
   });
 
   async function postLoginInit(){
+    populateTimeSelects();
     initDateSelector();
     await loadCantieri();
     await loadPresenze();
@@ -695,7 +1331,7 @@
     document.getElementById('repeatBtn').disabled = false;
   }
 
-  /* ====== EXPORT FUNZIONI GLOBALI ====== */
+  /* ====== ESPORTA FUNZIONI GLOBALI ====== */
   window.handleLogin = handleLogin;
   window.handleLogout = handleLogout;
   window.nextPage = nextPage;
