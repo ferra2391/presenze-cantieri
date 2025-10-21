@@ -935,7 +935,11 @@
   /* ====== ADMIN: UI ====== */
   function showAdminUI(){
     if(!isAdmin()) return;
-    document.querySelectorAll('.admin-only').forEach(el=> el.style.display='block');
+    // Rimuove display:none per mostrare i pulsanti admin
+    document.querySelectorAll('.admin-only').forEach(el=> {
+      el.style.display = '';
+      el.style.removeProperty('display');
+    });
   }
   function openGestioneCantieri(){
     window.location.href = "https://ferra2391.github.io/presenze-cantieri/gestione.html";
