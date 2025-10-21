@@ -179,10 +179,7 @@
     display:flex;
     align-items:center;
     gap:10px;
-    background:linear-gradient(135deg, var(--primary), var(--secondary));
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    background-clip:text;
+    color:var(--text);
   }
   .card-title span:first-child {
     font-size:20px;
@@ -368,35 +365,34 @@
   }
   .time-inputs{
     margin-top:8px;
-    background:rgba(0,0,0,.3);
-    backdrop-filter:blur(10px);
-    border:2px solid rgba(255,255,255,.25);
-    border-radius:12px;
-    padding:10px;
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px;
   }
   .time-inputs input[type="time"]{
     width:100%;
-    background:rgba(0,0,0,.4);
-    border:2px solid rgba(255,255,255,.4);
+    background:rgba(255,255,255,.15);
+    backdrop-filter:blur(10px);
+    border:2px solid rgba(255,255,255,.5);
     color:#fff;
     border-radius:10px;
     padding:10px 12px;
-    font-size:14px;
-    font-weight:700;
+    font-size:15px;
+    font-weight:900;
     outline:none;
     transition:all .3s ease;
     cursor:pointer;
+    text-align:center;
   }
   .time-inputs input[type="time"]:focus {
-    border-color:var(--accent);
-    box-shadow:0 0 20px rgba(251,191,36,.4);
-    transform: scale(1.02);
+    border-color:#fff;
+    box-shadow:0 0 20px rgba(255,255,255,.6);
+    transform: scale(1.05);
+    background:rgba(255,255,255,.25);
   }
   .time-inputs input[type="time"]:hover {
-    border-color:rgba(255,255,255,.6);
+    border-color:#fff;
+    background:rgba(255,255,255,.2);
   }
 
   .total-hours-badge{
@@ -435,7 +431,7 @@
   .input-group{position:relative;margin-top:12px}
   .input-group input,.input-group textarea,.input-group select{
     width:100%;
-    background:linear-gradient(135deg, var(--bg-light), rgba(30,41,59,.8));
+    background:var(--bg-light);
     border:2px solid var(--border);
     border-radius:14px;
     padding:14px 14px 14px 48px;
@@ -444,6 +440,20 @@
     color:var(--text);
     transition:all .3s ease;
     box-shadow:0 2px 10px rgba(0,0,0,.2);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+  .input-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+  }
+  .input-group select option {
+    background:var(--bg-light);
+    color:var(--text);
+    padding:10px;
   }
   .input-group input:focus,.input-group textarea:focus,.input-group select:focus{
     outline:none;
