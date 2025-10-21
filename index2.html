@@ -1280,9 +1280,60 @@
   }
   function cancelRepeat(){ document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA = null; }
 
-  /* ====== SUBMIT ====== */
+  /* ====== CONTROLLA GIORNI MANCANTI NELLA SETTIMANA ====== */
+  function checkMissingWorkdays(){
+    const missing = [];
+    const target = new Date(selectedDate);
+    target.setHours(0,0,0,0);
+    
+    // Trova l'ultima presenza registrata
+    let lastPresenza = null;
+    for(const p of LAST_PRESENZE){
+      if(p.dataPresenza < target){
+        lastPresenza = p.dataPresenza;
+        break;
+      }
+    }
+    
+    // Se non ci sono presenze precedenti, non controllare
+    if(!lastPresenza) return [];
+    
+    // Controlla ogni giorno lavorativo tra l'ultima presenza e oggi
+    let checkDate = new Date(lastPresenza);
+    checkDate.setDate(checkDate.getDate() + 1);
+    
+    while(checkDate < target){
+      const dayOfWeek = checkDate.getDay();
+      // Solo lunedì (1) - venerdì (5)
+      if(dayOfWeek >= 1 && dayOfWeek <= 5){
+        // Controlla se è festivo
+        if(!isItalianHoliday(checkDate)){
+          // Controlla se esiste una presenza per questo giorno
+          const hasPresenza = LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, checkDate));
+          if(!hasPresenza){
+            missing.push(new Date(checkDate));
+          }
+        }
+      }
+      checkDate.setDate(checkDate.getDate() + 1);
+    }
+    
+    return missing;
+  }
+
+  /* ====== SUBMIT CON VALIDAZIONI ====== */
   async function submitPresence(){
     const notes = (document.getElementById('notesInput').value||'').trim();
+
+    // VALIDAZIONE 1: Controlla buchi nella settimana (solo se non è ASSENTE)
+    if(!ABSENT_MODE){
+      const missingDays = checkMissingWorkdays();
+      if(missingDays.length > 0){
+        const dateList = missingDays.map(d => d.toLocaleDateString('it-IT', {weekday: 'long', day: 'numeric', month: 'long'})).join('\n• ');
+        alert(`⚠️ ATTENZIONE!\n\nDevi prima compilare le presenze per questi giorni:\n\n• ${dateList}\n\nCompila i giorni mancanti (anche come "Assente") prima di proseguire.`);
+        return;
+      }
+    }
 
     if(ABSENT_MODE){
       const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes };
@@ -1292,7 +1343,19 @@
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
       const tot=diffHours(ms,me)+diffHours(ps,pe);
       const lavori=workState.map(w=>({cantiere:(w.siteSelect||w.siteManual||'').trim(), lavorazione:(w.work||'').trim()})).filter(x=>x.cantiere||x.lavorazione);
-      if(lavori.length===0){ alert('Inserisci almeno un cantiere e una lavorazione.'); return; }
+      
+      // VALIDAZIONE 2: Controlla che tutti i cantieri abbiano ENTRAMBI i campi compilati
+      const invalidItems = workState.filter(w => {
+        const hasCantiere = (w.siteSelect || w.siteManual || '').trim() !== '';
+        const hasLavorazione = (w.work || '').trim() !== '';
+        return hasCantiere !== hasLavorazione || (!hasCantiere && !hasLavorazione);
+      });
+      
+      if(invalidItems.length > 0 || lavori.length === 0){
+        alert('⚠️ CAMPI OBBLIGATORI\n\nDevi compilare ENTRAMBI i campi per ogni cantiere:\n• Nome cantiere\n• Descrizione lavorazione\n\nSe non hai altri cantieri, rimuovili.');
+        return;
+      }
+      
       const quota = tot / lavori.length;
       for(const w of lavori){
         const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes };
