@@ -191,27 +191,10 @@
     opacity: 0;
     transition: opacity .3s ease;
   }
-  .date-day:hover::before {
-    opacity: 1;
-  }
-  .date-day .day-name{
-    font-size:9px;
-    color:var(--text-secondary);
-    margin-bottom:3px;
-    font-weight:800;
-    text-transform:uppercase;
-    letter-spacing:1px;
-  }
-  .date-day .day-num{
-    font-size:16px;
-    font-weight:900;
-    text-shadow:0 2px 4px rgba(0,0,0,.3);
-  }
-  .date-day:hover{
-    border-color:var(--primary);
-    transform:scale(1.08) translateY(-3px);
-    box-shadow:0 8px 25px rgba(255,107,53,.4);
-  }
+  .date-day:hover::before { opacity: 1; }
+  .date-day .day-name{ font-size:9px; color:var(--text-secondary); margin-bottom:3px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
+  .date-day .day-num{ font-size:16px; font-weight:900; text-shadow:0 2px 4px rgba(0,0,0,.3); }
+  .date-day:hover{ border-color:var(--primary); transform:scale(1.08) translateY(-3px); box-shadow:0 8px 25px rgba(255,107,53,.4); }
   .date-day.selected{
     background:linear-gradient(135deg,var(--primary),var(--accent),var(--secondary));
     background-size:200% 200%;
@@ -220,16 +203,13 @@
     transform:scale(1.05);
     box-shadow:0 8px 30px rgba(255,107,53,.6), 0 0 20px rgba(251,191,36,.3);
   }
-  .date-day.today{
-    border-color:var(--success);
-    box-shadow:0 0 20px rgba(16,185,129,.4);
-  }
+  .date-day.today{ border-color:var(--success); box-shadow:0 0 20px rgba(16,185,129,.4); }
   .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){
     background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15));
     border-color:rgba(220, 38, 38, 0.4);
   }
 
-  .date-actions{display:flex;gap:10px;margin-top:12px}
+  .date-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
   .chip{
     flex:1;
     background:var(--bg-light);
@@ -245,6 +225,7 @@
     transition:all .3s ease;
     position:relative;
     overflow:hidden;
+    min-width:42%;
   }
   .chip::before {
     content: '';
@@ -260,9 +241,7 @@
     color:var(--text);
     box-shadow:0 6px 20px rgba(0,0,0,.3);
   }
-  .chip:hover::before {
-    opacity: 1;
-  }
+  .chip:hover::before { opacity: 1; }
   .chip.active{
     border-style:solid;
     border-color:var(--danger);
@@ -271,159 +250,29 @@
     box-shadow:0 4px 20px rgba(239,68,68,.4);
   }
 
-  /* Time slots semplificati */
+  /* Time slots semplificati (invariati) */
   .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
-  .time-slot{
-    position:relative;
-    overflow:hidden;
-    border-radius:16px;
-    border:2px solid var(--border);
-    min-height:180px;
-    padding:16px 12px;
-    background:var(--bg-light);
-    transition:all .3s ease;
-    box-shadow:0 4px 20px rgba(0,0,0,.2);
-    display:flex;
-    flex-direction:column;
-  }
-  .time-slot:hover {
-    transform: translateY(-4px);
-    box-shadow:0 8px 30px rgba(0,0,0,.3);
-    border-color:rgba(255,255,255,.3);
-  }
-  .slot-bg{
-    position:absolute;
-    inset:0;
-    opacity:.9;
-    border-radius:14px;
-    z-index:0;
-    transition:opacity .3s ease;
-  }
-  .time-slot:hover .slot-bg {
-    opacity:1;
-  }
-  .time-slot.morning .slot-bg{
-    background:linear-gradient(135deg,#3b82f6,#06b6d4,#8b5cf6);
-    background-size:200% 200%;
-    animation: gradientShift 6s ease infinite;
-  }
-  .time-slot.afternoon .slot-bg{
-    background:linear-gradient(135deg,var(--primary),#f59e0b,#ec4899);
-    background-size:200% 200%;
-    animation: gradientShift 6s ease infinite;
-  }
-  .slot-inner{
-    position:relative;
-    z-index:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    height:100%;
-    gap:8px;
-  }
-  .slot-time{
-    font-size:18px;
-    font-weight:900;
-    text-align:center;
-    text-shadow:2px 2px 8px rgba(0,0,0,.4);
-    letter-spacing:.5px;
-  }
-  .slot-hours{
-    font-size:13px;
-    font-weight:800;
-    background:rgba(0,0,0,.35);
-    border:2px solid rgba(255,255,255,.3);
-    padding:4px 10px;
-    border-radius:999px;
-    box-shadow:0 4px 15px rgba(0,0,0,.3);
-    transition:all .3s ease;
-  }
-  .time-slot:hover .slot-hours {
-    transform: scale(1.05);
-    box-shadow:0 6px 20px rgba(0,0,0,.4);
-  }
-  .time-selects{
-    margin-top:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    width:100%;
-  }
-  .time-selects select{
-    background:rgba(0,0,0,.3);
-    backdrop-filter:blur(10px);
-    border:none;
-    color:#fff;
-    border-radius:12px;
-    padding:12px 10px;
-    font-size:18px;
-    font-weight:900;
-    outline:none;
-    transition:all .3s ease;
-    cursor:pointer;
-    text-align:center;
-    box-shadow:inset 0 2px 8px rgba(0,0,0,.25);
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    text-align-last: center;
-    flex:1;
-    max-width:70px;
-  }
-  .time-selects select:focus {
-    background:rgba(0,0,0,.45);
-    box-shadow:inset 0 2px 8px rgba(0,0,0,.3), 0 0 15px rgba(255,255,255,.2);
-    transform: scale(1.02);
-  }
-  .time-selects select:hover {
-    background:rgba(0,0,0,.35);
-  }
-  .time-selects select option {
-    background:var(--bg-light);
-    color:var(--text);
-    text-align:center;
-  }
-  .time-separator {
-    font-size:20px;
-    font-weight:900;
-    color:rgba(255,255,255,.5);
-    text-shadow:2px 2px 8px rgba(0,0,0,.4);
-  }
+  .time-slot{ position:relative; overflow:hidden; border-radius:16px; border:2px solid var(--border); min-height:180px; padding:16px 12px; background:var(--bg-light); transition:all .3s ease; box-shadow:0 4px 20px rgba(0,0,0,.2); display:flex; flex-direction:column;}
+  .time-slot:hover { transform: translateY(-4px); box-shadow:0 8px 30px rgba(0,0,0,.3); border-color:rgba(255,255,255,.3);}
+  .slot-bg{ position:absolute; inset:0; opacity:.9; border-radius:14px; z-index:0; transition:opacity .3s ease;}
+  .time-slot:hover .slot-bg { opacity:1; }
+  .time-slot.morning .slot-bg{ background:linear-gradient(135deg,#3b82f6,#06b6d4,#8b5cf6); background-size:200% 200%; animation: gradientShift 6s ease infinite;}
+  .time-slot.afternoon .slot-bg{ background:linear-gradient(135deg,var(--primary),#f59e0b,#ec4899); background-size:200% 200%; animation: gradientShift 6s ease infinite;}
+  .slot-inner{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:8px;}
+  .slot-time{ font-size:18px; font-weight:900; text-align:center; text-shadow:2px 2px 8px rgba(0,0,0,.4); letter-spacing:.5px;}
+  .slot-hours{ font-size:13px; font-weight:800; background:rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.3); padding:4px 10px; border-radius:999px; box-shadow:0 4px 15px rgba(0,0,0,.3); transition:all .3s ease;}
+  .time-slot:hover .slot-hours { transform: scale(1.05); box-shadow:0 6px 20px rgba(0,0,0,.4); }
+  .time-selects{ margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px; width:100%;}
+  .time-selects select{ background:rgba(0,0,0,.3); backdrop-filter:blur(10px); border:none; color:#fff; border-radius:12px; padding:12px 10px; font-size:18px; font-weight:900; outline:none; transition:all .3s ease; cursor:pointer; text-align:center; box-shadow:inset 0 2px 8px rgba(0,0,0,.25); -webkit-appearance: none; -moz-appearance: none; appearance: none; text-align-last: center; flex:1; max-width:70px;}
+  .time-selects select:focus { background:rgba(0,0,0,.45); box-shadow:inset 0 2px 8px rgba(0,0,0,.3), 0 0 15px rgba(255,255,255,.2); transform: scale(1.02);}
+  .time-selects select:hover { background:rgba(0,0,0,.35);}
+  .time-selects select option { background:var(--bg-light); color:var(--text); text-align:center;}
+  .time-separator { font-size:20px; font-weight:900; color:rgba(255,255,255,.5); text-shadow:2px 2px 8px rgba(0,0,0,.4); }
 
-  .total-hours-badge{
-    margin-top:10px;
-    padding:14px;
-    background:linear-gradient(135deg, var(--card-bg), rgba(99,102,241,.1));
-    backdrop-filter:blur(20px);
-    border:2px solid var(--border);
-    border-radius:14px;
-    text-align:center;
-    box-shadow:0 4px 20px rgba(0,0,0,.2);
-    transition:all .3s ease;
-  }
-  .total-hours-badge:hover {
-    transform: scale(1.02);
-    box-shadow:0 6px 25px rgba(0,0,0,.3);
-  }
-  .total-hours-badge .label{
-    color:var(--text-secondary);
-    font-size:12px;
-    margin-bottom:4px;
-    font-weight:700;
-    letter-spacing:1px;
-    text-transform:uppercase;
-  }
-  .total-hours-badge .value{
-    font-size:28px;
-    font-weight:900;
-    background:linear-gradient(135deg, var(--accent), var(--primary));
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    background-clip:text;
-    text-shadow:0 0 20px rgba(251,191,36,.3);
-  }
+  .total-hours-badge{ margin-top:10px; padding:14px; background:linear-gradient(135deg, var(--card-bg), rgba(99,102,241,.1)); backdrop-filter:blur(20px); border:2px solid var(--border); border-radius:14px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,.2); transition:all .3s ease;}
+  .total-hours-badge:hover { transform: scale(1.02); box-shadow:0 6px 25px rgba(0,0,0,.3); }
+  .total-hours-badge .label{ color:var(--text-secondary); font-size:12px; margin-bottom:4px; font-weight:700; letter-spacing:1px; text-transform:uppercase;}
+  .total-hours-badge .value{ font-size:28px; font-weight:900; background:linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-shadow:0 0 20px rgba(251,191,36,.3);}
 
   .input-group{position:relative;margin-top:12px}
   .input-group input,.input-group textarea,.input-group select{
@@ -447,312 +296,80 @@
     background-position: right 14px center;
     padding-right: 40px;
   }
-  .input-group select option {
-    background:var(--bg-light);
-    color:var(--text);
-    padding:10px;
-  }
+  .input-group select option { background:var(--bg-light); color:var(--text); padding:10px; }
   .input-group input:focus,.input-group textarea:focus,.input-group select:focus{
     outline:none;
     border-color:var(--primary);
     box-shadow:0 0 20px rgba(255,107,53,.3), 0 4px 15px rgba(0,0,0,.3);
     transform: translateY(-2px);
   }
-  .input-group input:hover,.input-group textarea:hover,.input-group select:hover{
-    border-color:rgba(255,255,255,.3);
-  }
+  .input-group input:hover,.input-group textarea:hover,.input-group select:hover{ border-color:rgba(255,255,255,.3); }
   .input-group .input-icon{
-    position:absolute;
-    left:14px;
-    top:50%;
-    transform:translateY(-50%);
-    font-size:18px;
-    color:var(--text-secondary);
-    transition:all .3s ease;
+    position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; color:var(--text-secondary); transition:all .3s ease;
   }
-  .input-group:focus-within .input-icon {
-    color:var(--primary);
-    transform: translateY(-50%) scale(1.2);
-  }
+  .input-group:focus-within .input-icon { color:var(--primary); transform: translateY(-50%) scale(1.2); }
   .input-group textarea{min-height:100px;resize:vertical}
   .input-group textarea::placeholder{color:#cbd5e1;opacity:.7}
   .input-group textarea + .input-icon{top:20px;transform:none}
-  .input-group:has(textarea):focus-within .input-icon {
-    transform: scale(1.2);
-  }
+  .input-group:has(textarea):focus-within .input-icon { transform: scale(1.2); }
 
   .btn-group{display:flex;gap:10px;margin-top:14px}
   .btn{
-    flex:1;
-    background:linear-gradient(135deg,var(--primary),#ec4899,var(--secondary));
-    background-size:200% 200%;
-    animation: gradientShift 5s ease infinite;
-    border:none;
-    border-radius:14px;
-    padding:14px;
-    font-size:15px;
-    font-weight:900;
-    color:#fff;
-    cursor:pointer;
-    transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow:0 4px 20px rgba(255,107,53,.4);
-    position:relative;
-    overflow:hidden;
-    letter-spacing:.5px;
-    text-shadow:0 2px 4px rgba(0,0,0,.3);
+    flex:1; background:linear-gradient(135deg,var(--primary),#ec4899,var(--secondary));
+    background-size:200% 200%; animation: gradientShift 5s ease infinite;
+    border:none; border-radius:14px; padding:14px; font-size:15px; font-weight:900; color:#fff; cursor:pointer;
+    transition:all .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow:0 4px 20px rgba(255,107,53,.4);
+    position:relative; overflow:hidden; letter-spacing:.5px; text-shadow:0 2px 4px rgba(0,0,0,.3);
   }
-  .btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,.2), transparent);
-    opacity: 0;
-    transition: opacity .3s ease;
-  }
-  .btn:hover {
-    transform: translateY(-3px);
-    box-shadow:0 8px 30px rgba(255,107,53,.6);
-  }
-  .btn:hover::before {
-    opacity: 1;
-  }
-  .btn:active {
-    transform: translateY(-1px);
-  }
-  .btn-secondary{
-    background:var(--bg-light);
-    backdrop-filter:blur(20px);
-    border:2px solid var(--border);
-    box-shadow:0 4px 15px rgba(0,0,0,.3);
-    animation: none;
-  }
-  .btn-secondary:hover {
-    border-color:var(--primary);
-    box-shadow:0 6px 25px rgba(0,0,0,.4);
-  }
-  .btn-success{
-    background:linear-gradient(135deg,var(--success),#10b981,#14b8a6);
-    background-size:200% 200%;
-    animation: gradientShift 5s ease infinite;
-    box-shadow:0 4px 20px rgba(16,185,129,.4);
-  }
-  .btn-success:hover {
-    box-shadow:0 8px 30px rgba(16,185,129,.6);
-  }
-  .btn:disabled{
-    opacity:.5;
-    cursor:not-allowed;
-    transform:none !important;
-  }
+  .btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.2), transparent); opacity: 0; transition: opacity .3s ease; }
+  .btn:hover { transform: translateY(-3px); box-shadow:0 8px 30px rgba(255,107,53,.6); }
+  .btn:hover::before { opacity: 1; }
+  .btn:active { transform: translateY(-1px); }
+  .btn-secondary{ background:var(--bg-light); backdrop-filter:blur(20px); border:2px solid var(--border); box-shadow:0 4px 15px rgba(0,0,0,.3); animation: none; }
+  .btn-secondary:hover { border-color:var(--primary); box-shadow:0 6px 25px rgba(0,0,0,.4); }
+  .btn-success{ background:linear-gradient(135deg,var(--success),#10b981,#14b8a6); background-size:200% 200%; animation: gradientShift 5s ease infinite; box-shadow:0 4px 20px rgba(16,185,129,.4); }
+  .btn-success:hover { box-shadow:0 8px 30px rgba(16,185,129,.6); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none !important; }
 
-  /* Presenze mese */
-  .month-toggle{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.1));
-    backdrop-filter:blur(20px);
-    border:2px dashed var(--border);
-    border-radius:14px;
-    padding:12px 14px;
-    cursor:pointer;
-    transition:all .3s ease;
-    box-shadow:0 2px 10px rgba(0,0,0,.2);
-  }
-  .month-toggle:hover {
-    border-style:solid;
-    border-color:var(--primary);
-    transform: translateY(-2px);
-    box-shadow:0 6px 20px rgba(0,0,0,.3);
-    background:linear-gradient(135deg, var(--bg-light), rgba(255,107,53,.1));
-  }
-  .month-title-text{
-    font-weight:900;
-    font-size:15px;
-    background:linear-gradient(135deg, var(--text), var(--primary));
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    background-clip:text;
-  }
-  .month-list{
-    display:none;
-    flex-direction:column;
-    gap:10px;
-    margin-top:12px;
-  }
-  .month-list.open{
-    display:flex;
-    animation: fadeIn .4s ease;
-  }
-
-  .month-item{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    background:linear-gradient(135deg, var(--bg-light), rgba(30,41,59,.8));
-    backdrop-filter:blur(20px);
-    border:2px solid var(--border);
-    border-radius:14px;
-    padding:12px 14px;
-    transition:all .3s ease;
-    box-shadow:0 2px 10px rgba(0,0,0,.2);
-  }
-  .month-item:hover {
-    transform: translateX(4px);
-    border-color:rgba(255,255,255,.3);
-    box-shadow:0 4px 20px rgba(0,0,0,.3);
-  }
+  /* Presenze mese (invariato) */
+  .month-toggle{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.1)); backdrop-filter:blur(20px); border:2px dashed var(--border); border-radius:14px; padding:12px 14px; cursor:pointer; transition:all .3s ease; box-shadow:0 2px 10px rgba(0,0,0,.2); }
+  .month-toggle:hover { border-style:solid; border-color:var(--primary); transform: translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.3); background:linear-gradient(135deg, var(--bg-light), rgba(255,107,53,.1)); }
+  .month-title-text{ font-weight:900; font-size:15px; background:linear-gradient(135deg, var(--text), var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .month-list{ display:none; flex-direction:column; gap:10px; margin-top:12px; }
+  .month-list.open{ display:flex; animation: fadeIn .4s ease; }
+  .month-item{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:linear-gradient(135deg, var(--bg-light), rgba(30,41,59,.8)); backdrop-filter:blur(20px); border:2px solid var(--border); border-radius:14px; padding:12px 14px; transition:all .3s ease; box-shadow:0 2px 10px rgba(0,0,0,.2); }
+  .month-item:hover { transform: translateX(4px); border-color:rgba(255,255,255,.3); box-shadow:0 4px 20px rgba(0,0,0,.3); }
   .mi-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-  .mi-date{
-    min-width:52px;
-    text-align:center;
-    font-weight:900;
-    background:linear-gradient(135deg, rgba(99,102,241,.2), rgba(255,107,53,.2));
-    border:2px solid var(--border);
-    border-radius:12px;
-    padding:6px 8px;
-    font-size:13px;
-    box-shadow:0 2px 10px rgba(0,0,0,.2);
-  }
+  .mi-date{ min-width:52px; text-align:center; font-weight:900; background:linear-gradient(135deg, rgba(99,102,241,.2), rgba(255,107,53,.2)); border:2px solid var(--border); border-radius:12px; padding:6px 8px; font-size:13px; box-shadow:0 2px 10px rgba(0,0,0,.2); }
   .mi-main{display:flex;flex-direction:column;min-width:0;flex:1}
-  .mi-cant{
-    font-weight:800;
-    font-size:13px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    color:var(--text);
-  }
-  .mi-lav{
-    font-size:11px;
-    color:var(--text-secondary);
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
+  .mi-cant{ font-weight:800; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text); }
+  .mi-lav{ font-size:11px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .mi-right{display:flex;align-items:center;gap:8px}
-  .mi-ore{
-    font-weight:900;
-    font-size:14px;
-    background:linear-gradient(135deg, var(--accent), var(--primary));
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    background-clip:text;
-  }
-  .month-item.weekend,.month-item.holiday{
-    background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15));
-    border-color:rgba(220, 38, 38, 0.4);
-  }
-  .month-item.today{
-    outline:3px solid var(--success);
-    outline-offset:2px;
-    box-shadow:0 0 30px rgba(16,185,129,.3);
-  }
-  .month-item.future{
-    opacity:.7;
-    filter:grayscale(0.3);
-  }
-  .badge-missing{
-    display:inline-block;
-    padding:4px 9px;
-    border-radius:999px;
-    background:rgba(239,68,68,.2);
-    border:2px solid rgba(239,68,68,.4);
-    color:#fecaca;
-    font-weight:900;
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:.5px;
-    box-shadow:0 2px 10px rgba(239,68,68,.3);
-  }
-  .badge-future{
-    display:inline-block;
-    padding:4px 9px;
-    border-radius:999px;
-    background:rgba(148,163,184,.2);
-    border:2px solid rgba(148,163,184,.4);
-    color:#e5e7eb;
-    font-weight:900;
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:.5px;
-  }
+  .mi-ore{ font-weight:900; font-size:14px; background:linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .month-item.weekend,.month-item.holiday{ background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15)); border-color:rgba(220, 38, 38, 0.4); }
+  .month-item.today{ outline:3px solid var(--success); outline-offset:2px; box-shadow:0 0 30px rgba(16,185,129,.3); }
+  .month-item.future{ opacity:.7; filter:grayscale(0.3); }
+  .badge-missing{ display:inline-block; padding:4px 9px; border-radius:999px; background:rgba(239,68,68,.2); border:2px solid rgba(239,68,68,.4); color:#fecaca; font-weight:900; font-size:10px; text-transform:uppercase; letter-spacing:.5px; box-shadow:0 2px 10px rgba(239,68,68,.3); }
+  .badge-future{ display:inline-block; padding:4px 9px; border-radius:999px; background:rgba(148,163,184,.2); border:2px solid rgba(148,163,184,.4); color:#e5e7eb; font-weight:900; font-size:10px; text-transform:uppercase; letter-spacing:.5px; }
 
-  .success-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(15,23,42,.97);
-    backdrop-filter:blur(20px);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:1000;
-    animation:fadeIn .3s ease;
-  }
+  .success-overlay{ position:fixed; inset:0; background:rgba(15,23,42,.97); backdrop-filter:blur(20px); display:none; align-items:center; justify-content:center; z-index:1000; animation:fadeIn .3s ease; }
   .success-overlay.show{display:flex}
-  .success-overlay .card {
-    animation:float 2s ease-in-out infinite;
-    box-shadow:0 20px 60px rgba(16,185,129,.4), 0 0 100px rgba(16,185,129,.2);
-    border:2px solid var(--success);
-  }
-  .success-overlay h2 {
-    background:linear-gradient(135deg, var(--success), var(--accent));
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    background-clip:text;
-    font-size:24px;
-    text-align:center;
-  }
+  .success-overlay .card { animation:float 2s ease-in-out infinite; box-shadow:0 20px 60px rgba(16,185,129,.4), 0 0 100px rgba(16,185,129,.2); border:2px solid var(--success); }
+  .success-overlay h2 { background:linear-gradient(135deg, var(--success), var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size:24px; text-align:center; }
 
   /* Preview ripeti ieri */
-  .preview-card{
-    display:none;
-    border:2px solid var(--primary);
-    box-shadow:0 0 30px rgba(255,107,53,.3);
-  }
-  .preview-card.show{
-    display:block;
-    animation:fadeIn .4s ease;
-  }
-  .preview-row{
-    display:flex;
-    justify-content:space-between;
-    padding:10px 0;
-    border-bottom:2px solid rgba(255,255,255,.1);
-    transition:all .3s ease;
-  }
-  .preview-row:hover {
-    padding-left:6px;
-    border-bottom-color:rgba(255,255,255,.2);
-  }
+  .preview-card{ display:none; border:2px solid var(--primary); box-shadow:0 0 30px rgba(255,107,53,.3); }
+  .preview-card.show{ display:block; animation:fadeIn .4s ease; }
+  .preview-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:2px solid rgba(255,255,255,.1); transition:all .3s ease; }
+  .preview-row:hover { padding-left:6px; border-bottom-color:rgba(255,255,255,.2); }
   .preview-row:last-child{border-bottom:none}
-  .preview-row span:first-child {
-    font-weight:700;
-    color:var(--text-secondary);
-  }
-  .preview-row span:last-child {
-    font-weight:900;
-    color:var(--text);
-  }
+  .preview-row span:first-child { font-weight:700; color:var(--text-secondary); }
+  .preview-row span:last-child { font-weight:900; color:var(--text); }
   .preview-actions{display:flex;gap:10px;margin-top:14px}
   
-  .summary-work {
-    padding:10px 12px;
-    margin-bottom:8px;
-    background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.05));
-    border:2px solid var(--border);
-    border-radius:12px;
-    transition:all .3s ease;
-  }
-  .summary-work:hover {
-    transform: translateX(4px);
-    border-color:rgba(255,255,255,.25);
-  }
-  .summary-work:last-child {
-    margin-bottom:0;
-  }
+  .summary-work { padding:10px 12px; margin-bottom:8px; background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.05)); border:2px solid var(--border); border-radius:12px; transition:all .3s ease; }
+  .summary-work:hover { transform: translateX(4px); border-color:rgba(255,255,255,.25); }
+  .summary-work:last-child { margin-bottom:0; }
 </style>
 </head>
 <body>
@@ -788,6 +405,9 @@
         <div class="date-actions">
           <button id="repeatBtn" class="chip" onclick="repeatYesterday()">↻ Ripeti ieri</button>
           <button id="assenteChip" class="chip" onclick="toggleAssente()">🚫 Assente</button>
+          <!-- SOLO ADMIN -->
+          <button id="gestBtn" class="chip admin-only" style="display:none" onclick="openGestioneCantieri()">🛠️ Gestione Cantiere</button>
+          <button id="selOpBtn" class="chip admin-only" style="display:none" onclick="openSelectOperaio()">👥 Seleziona Operaio</button>
         </div>
       </div>
 
@@ -803,6 +423,16 @@
         <div class="preview-actions">
           <button class="btn btn-success" onclick="confirmRepeat()">✓ Usa questo</button>
           <button class="btn btn-secondary" onclick="cancelRepeat()">✗ Annulla</button>
+        </div>
+      </div>
+
+      <!-- Card selezione operaio (SOLO ADMIN) -->
+      <div class="card preview-card" id="selectOperaioCard">
+        <div class="card-title"><span>👥</span><span>Seleziona operaio</span></div>
+        <div id="opList"></div>
+        <div class="preview-actions">
+          <button class="btn btn-secondary" onclick="closeSelectOperaio()">Chiudi</button>
+          <button class="btn" onclick="clearSelectedOperaio()">Annulla selezione</button>
         </div>
       </div>
 
@@ -882,7 +512,7 @@
         <div class="card-title"><span>🗒️</span><span>Note (facoltative)</span></div>
         <div class="input-group">
           <span class="input-icon">✏️</span>
-          <textarea id="notesInput" placeholder="Aggiungi eventuali note..." oninput="updateSummary()"></textarea>
+          <textarea id="notesInput" placeholder="Aggiungi eventuali note..." oninput="updateSummary"></textarea>
         </div>
       </div>
 
@@ -918,6 +548,10 @@
 
   /* ====== STATE ====== */
   let AUTH = { user:null, nome:null, ruolo:null };
+  let ALL_CRED_ROWS = [];                 // tutte le righe del foglio "Credenziali"
+  let ACTIVE_NOME = null;                 // per chi sto compilando/visualizzando
+  let ADMIN_SELECTED = null;              // operaio scelto dall'amministratore
+
   let selectedDate = new Date();
   let currentPage = 1;
   let SITE_OPTIONS = [];
@@ -948,6 +582,7 @@
     if(m){const d=+m[1], mo=+m[2]-1, y=+m[3], hh=+(m[4]||0), mm=+(m[5]||0); return new Date(y,mo,d,hh,mm);}
     return new Date(s);
   }
+  function isAdmin(){ return String(AUTH.ruolo||'').trim().toLowerCase()==='amministratore'; }
 
   /* ====== GENERA OPZIONI ORARI ====== */
   function generateTimeOptions(minHour, maxHour) {
@@ -1004,6 +639,7 @@
       clearTimeout(timer);
       if(!res.ok) throw new Error('HTTP '+res.status);
       const rows = await res.json();
+      ALL_CRED_ROWS = rows || [];
 
       const rec = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
       if(!rec){ errBox.textContent='Credenziali errate'; errBox.style.display='block'; return; }
@@ -1011,6 +647,7 @@
       AUTH.user = rec.User;
       AUTH.nome = rec.Nome || rec.User;
       AUTH.ruolo = rec.Ruolo || '';
+      ACTIVE_NOME = AUTH.nome;  // default: compilo per me
       document.getElementById('userName').textContent = AUTH.nome;
 
       showApp();
@@ -1023,7 +660,7 @@
       btn.disabled = false; btn.textContent = originalText;
     }
   }
-  function handleLogout(){ AUTH={user:null,nome:null,ruolo:null}; showLogin(); }
+  function handleLogout(){ AUTH={user:null,nome:null,ruolo:null}; ACTIVE_NOME=null; ADMIN_SELECTED=null; showLogin(); }
   function showLogin(){ document.getElementById('loginPage').style.display='flex'; document.getElementById('appContainer').style.display='none'; }
   function showApp(){   document.getElementById('loginPage').style.display='none';  document.getElementById('appContainer').style.display='block'; }
 
@@ -1133,7 +770,7 @@
   async function loadPresenze(){
     try{
       const rows = await (await fetch(OS_BASE+'Presenze',{cache:'no-store'})).json();
-      const target = (AUTH.nome||'').toLowerCase();
+      const target = (ACTIVE_NOME||AUTH.nome||'').toLowerCase();
       LAST_PRESENZE = rows.map(r=>({
         dataPresenza: parseDateFlex(r["Data Presenza"]||r["Data"]||''),
         cantiere: r["Cantiere"]||'',
@@ -1280,13 +917,68 @@
   }
   function cancelRepeat(){ document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA = null; }
 
+  /* ====== ADMIN: UI ====== */
+  function showAdminUI(){
+    if(!isAdmin()) return;
+    document.querySelectorAll('.admin-only').forEach(el=> el.style.display='block');
+  }
+  function openGestioneCantieri(){
+    window.location.href = "https://ferra2391.github.io/presenze-cantieri/gestione.html";
+  }
+  function openSelectOperaio(){
+    if(!isAdmin()) return;
+    const listBox = document.getElementById('opList');
+    listBox.innerHTML = '';
+    // Operai = Ruolo "operaio"
+    const operai = (ALL_CRED_ROWS||[]).filter(r => String(r.Ruolo||'').trim().toLowerCase()==='operaio');
+    if(!operai.length){
+      const div=document.createElement('div'); div.className='preview-row';
+      div.innerHTML = `<span>Lista operai</span><span>Nessun operaio trovato</span>`;
+      listBox.appendChild(div);
+    }else{
+      operai.forEach(r=>{
+        const nome = (r.Nome && r.Nome.trim()) ? r.Nome.trim() : String(r.User||'').trim();
+        const row = document.createElement('div');
+        row.className = 'month-item';
+        row.innerHTML = `
+          <div class="mi-left">
+            <div class="mi-main">
+              <div class="mi-cant">${nome}</div>
+              <div class="mi-lav">Tocca per selezionare</div>
+            </div>
+          </div>
+          <div class="mi-right"><div class="mi-ore">Seleziona</div></div>`;
+        row.onclick = ()=> selectOperaio(nome);
+        listBox.appendChild(row);
+      });
+    }
+    const card=document.getElementById('selectOperaioCard');
+    card.classList.add('show');
+    card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+  function closeSelectOperaio(){ document.getElementById('selectOperaioCard').classList.remove('show'); }
+  async function selectOperaio(nome){
+    ADMIN_SELECTED = nome;
+    ACTIVE_NOME = nome;      // per mostrare storico/“ripeti ieri”/mese dell’operaio selezionato
+    closeSelectOperaio();
+    await loadPresenze();
+    await renderMonthList();
+    alert(`Operaio selezionato: ${nome}`);
+  }
+  async function clearSelectedOperaio(){
+    ADMIN_SELECTED = null;
+    ACTIVE_NOME = AUTH.nome;
+    closeSelectOperaio();
+    await loadPresenze();
+    await renderMonthList();
+    alert('Selezione operaio annullata.');
+  }
+
   /* ====== CONTROLLA GIORNI MANCANTI NELLA SETTIMANA ====== */
   function checkMissingWorkdays(){
     const missing = [];
     const target = new Date(selectedDate);
     target.setHours(0,0,0,0);
-    
-    // Trova l'ultima presenza registrata
     let lastPresenza = null;
     for(const p of LAST_PRESENZE){
       if(p.dataPresenza < target){
@@ -1294,30 +986,19 @@
         break;
       }
     }
-    
-    // Se non ci sono presenze precedenti, non controllare
     if(!lastPresenza) return [];
-    
-    // Controlla ogni giorno lavorativo tra l'ultima presenza e oggi
     let checkDate = new Date(lastPresenza);
     checkDate.setDate(checkDate.getDate() + 1);
-    
     while(checkDate < target){
       const dayOfWeek = checkDate.getDay();
-      // Solo lunedì (1) - venerdì (5)
       if(dayOfWeek >= 1 && dayOfWeek <= 5){
-        // Controlla se è festivo
         if(!isItalianHoliday(checkDate)){
-          // Controlla se esiste una presenza per questo giorno
           const hasPresenza = LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, checkDate));
-          if(!hasPresenza){
-            missing.push(new Date(checkDate));
-          }
+          if(!hasPresenza){ missing.push(new Date(checkDate)); }
         }
       }
       checkDate.setDate(checkDate.getDate() + 1);
     }
-    
     return missing;
   }
 
@@ -1325,7 +1006,6 @@
   async function submitPresence(){
     const notes = (document.getElementById('notesInput').value||'').trim();
 
-    // VALIDAZIONE 1: Controlla buchi nella settimana (solo se non è ASSENTE)
     if(!ABSENT_MODE){
       const missingDays = checkMissingWorkdays();
       if(missingDays.length > 0){
@@ -1335,30 +1015,31 @@
       }
     }
 
+    // Campi identità in base al ruolo
+    const isAdminActing = isAdmin() && !!ADMIN_SELECTED;
+    const USERID = isAdminActing ? "Admin" : (AUTH.user||"");
+    const NOME_OPERAIO = isAdminActing ? ADMIN_SELECTED : (AUTH.nome||AUTH.user||"");
+
     if(ABSENT_MODE){
-      const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes };
+      const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: NOME_OPERAIO, user: USERID, cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes };
       try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
     }else{
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
       const tot=diffHours(ms,me)+diffHours(ps,pe);
       const lavori=workState.map(w=>({cantiere:(w.siteSelect||w.siteManual||'').trim(), lavorazione:(w.work||'').trim()})).filter(x=>x.cantiere||x.lavorazione);
-      
-      // VALIDAZIONE 2: Controlla che tutti i cantieri abbiano ENTRAMBI i campi compilati
       const invalidItems = workState.filter(w => {
         const hasCantiere = (w.siteSelect || w.siteManual || '').trim() !== '';
         const hasLavorazione = (w.work || '').trim() !== '';
         return hasCantiere !== hasLavorazione || (!hasCantiere && !hasLavorazione);
       });
-      
       if(invalidItems.length > 0 || lavori.length === 0){
         alert('⚠️ CAMPI OBBLIGATORI\n\nDevi compilare ENTRAMBI i campi per ogni cantiere:\n• Nome cantiere\n• Descrizione lavorazione\n\nSe non hai altri cantieri, rimuovili.');
         return;
       }
-      
       const quota = tot / lavori.length;
       for(const w of lavori){
-        const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: AUTH.nome||AUTH.user||"", user: AUTH.user||"", cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes };
+        const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: NOME_OPERAIO, user: USERID, cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes };
         try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
         await new Promise(r=>setTimeout(r,110));
       }
@@ -1387,6 +1068,7 @@
     await loadCantieri();
     await loadPresenze();
     await renderMonthList();
+    showAdminUI(); // mostra pulsanti aggiuntivi solo all'amministratore
     if (!workState.length) workState=[newWorkItem()];
     renderWorkItems();
     updateTimes();
@@ -1412,6 +1094,13 @@
   window.submitPresence = submitPresence;
   window.updateSummary = updateSummary;
   window.updateTimes = updateTimes;
+
+  // Admin
+  window.openGestioneCantieri = openGestioneCantieri;
+  window.openSelectOperaio = openSelectOperaio;
+  window.closeSelectOperaio = closeSelectOperaio;
+  window.selectOperaio = selectOperaio;
+  window.clearSelectedOperaio = clearSelectedOperaio;
 </script>
 </body>
 </html>
