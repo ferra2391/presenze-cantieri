@@ -391,7 +391,10 @@
 
   <div class="header">
     <h1>⚡ Presenze Cantiere</h1>
-    <div class="user-badge"><span>👷</span><span id="userName">-</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <div class="user-badge"><span>👷</span><span id="userName">-</span></div>
+      <div class="user-badge" id="compilingForBadge" style="display:none;background:rgba(251,191,36,.35)"><span>📝</span><span id="compilingFor">-</span></div>
+    </div>
   </div>
 
   <div class="content">
@@ -408,6 +411,7 @@
           <!-- SOLO ADMIN -->
           <button id="gestBtn" class="chip admin-only" style="display:none" onclick="openGestioneCantieri()">🛠️ Gestione Cantiere</button>
           <button id="selOpBtn" class="chip admin-only" style="display:none" onclick="openSelectOperaio()">👥 Seleziona Operaio</button>
+          <button id="clearOpBtn" class="chip admin-only" style="display:none" onclick="clearSelectedOperaio()">✖️ Annulla selezione</button>
         </div>
       </div>
 
@@ -428,11 +432,20 @@
 
       <!-- Card selezione operaio (SOLO ADMIN) -->
       <div class="card preview-card" id="selectOperaioCard">
-        <div class="card-title"><span>👥</span><span>Seleziona operaio</span></div>
-        <div id="opList"></div>
+        <div class="card-title"><span>👥</span><span>Seleziona operaio o subappaltatore</span></div>
+        <div class="input-group">
+          <span class="input-icon">👤</span>
+          <select id="operaioSelect" onchange="onOperaioSelectChange()">
+            <option value="">— Seleziona —</option>
+          </select>
+        </div>
+        <div class="input-group" id="numLavoratoriGroup" style="display:none">
+          <span class="input-icon">👥</span>
+          <input type="number" id="numLavoratori" min="1" max="20" value="1" placeholder="N° lavoratori">
+        </div>
         <div class="preview-actions">
           <button class="btn btn-secondary" onclick="closeSelectOperaio()">Chiudi</button>
-          <button class="btn" onclick="clearSelectedOperaio()">Annulla selezione</button>
+          <button class="btn" onclick="confirmSelectOperaio()">Conferma</button>
         </div>
       </div>
 
@@ -551,6 +564,8 @@
   let ALL_CRED_ROWS = [];                 // tutte le righe del foglio "Credenziali"
   let ACTIVE_NOME = null;                 // per chi sto compilando/visualizzando
   let ADMIN_SELECTED = null;              // operaio scelto dall'amministratore
+  let SELECTED_RUOLO = null;              // ruolo dell'operaio selezionato (operaio/sub)
+  let NUM_LAVORATORI = 1;                 // numero lavoratori per Sub
 
   let selectedDate = new Date();
   let currentPage = 1;
@@ -927,48 +942,110 @@
   }
   function openSelectOperaio(){
     if(!isAdmin()) return;
-    const listBox = document.getElementById('opList');
-    listBox.innerHTML = '';
-    // Operai = Ruolo "operaio"
-    const operai = (ALL_CRED_ROWS||[]).filter(r => String(r.Ruolo||'').trim().toLowerCase()==='operaio');
-    if(!operai.length){
-      const div=document.createElement('div'); div.className='preview-row';
-      div.innerHTML = `<span>Lista operai</span><span>Nessun operaio trovato</span>`;
-      listBox.appendChild(div);
+    const select = document.getElementById('operaioSelect');
+    select.innerHTML = '<option value="">— Seleziona —</option>';
+    
+    // Filtra operai e sub
+    const operaiSub = (ALL_CRED_ROWS||[]).filter(r => {
+      const ruolo = String(r.Ruolo||'').trim().toLowerCase();
+      return ruolo === 'operaio' || ruolo === 'sub';
+    });
+    
+    if(!operaiSub.length){
+      select.innerHTML = '<option value="">Nessun operaio/sub trovato</option>';
     }else{
-      operai.forEach(r=>{
+      operaiSub.forEach(r=>{
         const nome = (r.Nome && r.Nome.trim()) ? r.Nome.trim() : String(r.User||'').trim();
-        const row = document.createElement('div');
-        row.className = 'month-item';
-        row.innerHTML = `
-          <div class="mi-left">
-            <div class="mi-main">
-              <div class="mi-cant">${nome}</div>
-              <div class="mi-lav">Tocca per selezionare</div>
-            </div>
-          </div>
-          <div class="mi-right"><div class="mi-ore">Seleziona</div></div>`;
-        row.onclick = ()=> selectOperaio(nome);
-        listBox.appendChild(row);
+        const ruolo = String(r.Ruolo||'').trim();
+        const option = document.createElement('option');
+        option.value = JSON.stringify({nome: nome, ruolo: ruolo});
+        option.textContent = `${nome} (${ruolo})`;
+        select.appendChild(option);
       });
     }
+    
+    document.getElementById('numLavoratoriGroup').style.display = 'none';
+    document.getElementById('numLavoratori').value = '1';
+    
     const card=document.getElementById('selectOperaioCard');
     card.classList.add('show');
     card.scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
-  function closeSelectOperaio(){ document.getElementById('selectOperaioCard').classList.remove('show'); }
-  async function selectOperaio(nome){
-    ADMIN_SELECTED = nome;
-    ACTIVE_NOME = nome;      // per mostrare storico/“ripeti ieri”/mese dell’operaio selezionato
-    closeSelectOperaio();
-    await loadPresenze();
-    await renderMonthList();
-    alert(`Operaio selezionato: ${nome}`);
+  
+  function onOperaioSelectChange(){
+    const select = document.getElementById('operaioSelect');
+    const value = select.value;
+    
+    if(!value){
+      document.getElementById('numLavoratoriGroup').style.display = 'none';
+      return;
+    }
+    
+    try{
+      const data = JSON.parse(value);
+      const ruolo = String(data.ruolo||'').trim().toLowerCase();
+      
+      if(ruolo === 'sub'){
+        document.getElementById('numLavoratoriGroup').style.display = 'block';
+      }else{
+        document.getElementById('numLavoratoriGroup').style.display = 'none';
+        document.getElementById('numLavoratori').value = '1';
+      }
+    }catch(e){
+      document.getElementById('numLavoratoriGroup').style.display = 'none';
+    }
   }
+  
+  function closeSelectOperaio(){ 
+    document.getElementById('selectOperaioCard').classList.remove('show'); 
+  }
+  
+  async function confirmSelectOperaio(){
+    const select = document.getElementById('operaioSelect');
+    const value = select.value;
+    
+    if(!value){
+      alert('Seleziona un operaio o sub');
+      return;
+    }
+    
+    try{
+      const data = JSON.parse(value);
+      const nome = data.nome;
+      const ruolo = String(data.ruolo||'').trim().toLowerCase();
+      
+      ADMIN_SELECTED = nome;
+      SELECTED_RUOLO = ruolo;
+      ACTIVE_NOME = nome;
+      
+      if(ruolo === 'sub'){
+        const num = parseInt(document.getElementById('numLavoratori').value) || 1;
+        NUM_LAVORATORI = Math.max(1, Math.min(20, num));
+      }else{
+        NUM_LAVORATORI = 1;
+      }
+      
+      // Mostra il badge "Compilando per"
+      document.getElementById('compilingFor').textContent = `Compilando per: ${nome}${ruolo === 'sub' ? ` (${NUM_LAVORATORI} lav.)` : ''}`;
+      document.getElementById('compilingForBadge').style.display = 'inline-flex';
+      
+      closeSelectOperaio();
+      await loadPresenze();
+      await renderMonthList();
+      
+      alert(`Selezionato: ${nome} (${data.ruolo})${ruolo === 'sub' ? ` - ${NUM_LAVORATORI} lavoratori` : ''}`);
+    }catch(e){
+      alert('Errore nella selezione');
+      console.error(e);
+    }
+  }
+  
   async function clearSelectedOperaio(){
     ADMIN_SELECTED = null;
+    SELECTED_RUOLO = null;
+    NUM_LAVORATORI = 1;
     ACTIVE_NOME = AUTH.nome;
-    closeSelectOperaio();
+    document.getElementById('compilingForBadge').style.display = 'none';
     await loadPresenze();
     await renderMonthList();
     alert('Selezione operaio annullata.');
@@ -1019,10 +1096,15 @@
     const isAdminActing = isAdmin() && !!ADMIN_SELECTED;
     const USERID = isAdminActing ? "Admin" : (AUTH.user||"");
     const NOME_OPERAIO = isAdminActing ? ADMIN_SELECTED : (AUTH.nome||AUTH.user||"");
+    const isSub = SELECTED_RUOLO === 'sub';
+    const numRighe = isSub ? NUM_LAVORATORI : 1;
 
     if(ABSENT_MODE){
-      const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: NOME_OPERAIO, user: USERID, cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes };
-      try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
+      for(let i = 0; i < numRighe; i++){
+        const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: NOME_OPERAIO, user: USERID, cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes };
+        try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
+        if(i < numRighe - 1) await new Promise(r=>setTimeout(r,110));
+      }
     }else{
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
@@ -1039,9 +1121,11 @@
       }
       const quota = tot / lavori.length;
       for(const w of lavori){
-        const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: NOME_OPERAIO, user: USERID, cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes };
-        try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
-        await new Promise(r=>setTimeout(r,110));
+        for(let i = 0; i < numRighe; i++){
+          const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: NOME_OPERAIO, user: USERID, cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes };
+          try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
+          await new Promise(r=>setTimeout(r,110));
+        }
       }
     }
     document.getElementById('successOverlay').classList.add('show');
@@ -1099,7 +1183,8 @@
   window.openGestioneCantieri = openGestioneCantieri;
   window.openSelectOperaio = openSelectOperaio;
   window.closeSelectOperaio = closeSelectOperaio;
-  window.selectOperaio = selectOperaio;
+  window.onOperaioSelectChange = onOperaioSelectChange;
+  window.confirmSelectOperaio = confirmSelectOperaio;
   window.clearSelectedOperaio = clearSelectedOperaio;
 </script>
 </body>
