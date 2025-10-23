@@ -155,8 +155,7 @@
   .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){
     background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15)); border-color:rgba(220, 38, 38, 0.4);
   }
-
-  /* Triangolo presenza (più grande) */
+  /* Triangoli presenza */
   .date-day .corner-flag{
     position:absolute; top:0; right:0; width:0; height:0;
     border-left: 18px solid transparent; border-top: 18px solid transparent; pointer-events:none;
@@ -175,7 +174,7 @@
   .chip:hover::before { opacity: 1; }
   .chip.active{ border-style:solid;border-color:var(--danger);color:#fff;background:linear-gradient(135deg,rgba(239,68,68,.3),rgba(127,29,29,.3));box-shadow:0 4px 20px rgba(239,68,68,.4); }
 
-  /* Time slots – più piccoli & testo bianco */
+  /* Time slots (più compatti, testo bianco) */
   .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
   .time-slot{ position:relative; overflow:hidden; border-radius:16px; border:2px solid var(--border); min-height:180px; padding:16px 12px; background:var(--bg-light); transition:all .3s ease; box-shadow:0 4px 20px rgba(0,0,0,.2); display:flex; flex-direction:column;}
   .time-slot:hover { transform: translateY(-4px); box-shadow:0 8px 30px rgba(0,0,0,.3); border-color:rgba(255,255,255,.3);}
@@ -311,7 +310,7 @@
         <div class="card-title"><span>📅</span><span>Seleziona la data</span></div>
         <div class="date-selector" id="dateSelector"></div>
         <div class="date-actions">
-          <button id="repeatBtn" class="chip" onclick="repeatYesterday()">↻ Ripeti ieri</button>
+          <button id="repeatBtn" class="chip" onclick="repeatYesterday()" disabled title="Disponibile solo per la data di oggi">↻ Ripeti ieri</button>
           <button id="assenteChip" class="chip" onclick="toggleAssente()">🚫 Assente</button>
           <!-- SOLO ADMIN -->
           <button id="gestBtn" class="chip admin-only" style="display:none" onclick="openGestioneCantieri()">🛠️ Gestione Cantiere</button>
@@ -322,8 +321,8 @@
 
       <!-- Preview "Ripeti ieri" -->
       <div class="card preview-card" id="previewCard">
-        <div class="card-title"><span>⚡</span><span>Riepilogo di ieri</span></div>
-        <div class="preview-row"><span>Data</span><span id="previewDate">-</span></div>
+        <div class="card-title"><span>⚡</span><span>Ripeti ieri (registrazione per OGGI)</span></div>
+        <div class="preview-row"><span>Data che verrà registrata</span><span id="previewDate">-</span></div>
         <div class="preview-row"><span>Orario</span><span id="previewTime">-</span></div>
         <div class="preview-row"><span>Ore totali</span><span id="previewHours">-</span></div>
         <div class="preview-row"><span>Cantiere</span><span id="previewSite">-</span></div>
@@ -360,7 +359,6 @@
           <span id="monthArrow">▼</span>
         </button>
        <div id="monthList" class="month-list"></div>
-
       </div>
 
       <div class="btn-group"><button class="btn" onclick="goFromPage1()">Avanti →</button></div>
@@ -563,7 +561,7 @@
       const rows = await res.json();
       ALL_CRED_ROWS = rows || [];
 
-      await sleep(350); // respiro
+      await sleep(350); // respiro per caricare meglio
 
       const rec = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
       if(!rec){ errBox.textContent='Credenziali errate'; errBox.style.display='block'; return; }
@@ -637,10 +635,22 @@
     });
   }
 
+  function updateRepeatBtnState(){
+    const btn = document.getElementById('repeatBtn');
+    const enabled = isToday(selectedDate);
+    btn.disabled = !enabled;
+    btn.title = enabled ? 'Copia i dati di IERI e registra per OGGI' : 'Disponibile solo per la data di OGGI';
+  }
+
   function selectDate(el,d){
     document.querySelectorAll('.date-day').forEach(x=>x.classList.remove('selected'));
-    el.classList.add('selected'); selectedDate=d; ABSENT_MODE=false; updateAssenteChip(); renderMonthList();
+    el.classList.add('selected'); 
+    selectedDate=d; 
+    ABSENT_MODE=false; 
+    updateAssenteChip(); 
+    renderMonthList();
     updateDateIndicators();
+    updateRepeatBtnState();
   }
 
   /* ====== ASSENTE ====== */
@@ -649,7 +659,6 @@
 
   /* ====== BLOCCO IMMEDIATO IN PAG.1 ====== */
   function goFromPage1(){
-    // Se sto compilando OGGI, prima devo aver chiuso tutti i lavorativi precedenti (anche come Assente)
     if (isToday(selectedDate)) {
       const missingDays = checkMissingWorkdays();
       if (missingDays.length > 0) {
@@ -660,7 +669,6 @@
         return;
       }
     }
-    // Se tutto ok, procedo
     ABSENT_MODE ? (updateSummary(), nextPage(4)) : nextPage(2);
   }
 
@@ -831,15 +839,21 @@
     document.getElementById('summaryNotes').textContent = note || '-';
   }
 
-  /* ====== RIPETI IERI ====== */
+  /* ====== RIPETI IERI (solo per OGGI, data registrata = OGGI) ====== */
   async function repeatYesterday(){
+    if(!isToday(selectedDate)){
+      alert('“Ripeti ieri” è disponibile solo quando stai compilando OGGI.');
+      return;
+    }
     if (!LAST_PRESENZE.length) { await loadPresenze(); }
-    const yest = addDays(new Date(), -1);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const yest = addDays(today, -1);
     const found = LAST_PRESENZE.find(p=> sameYMD(p.dataPresenza,yest));
     if(!found){ alert('Nessuna presenza trovata per ieri'); return; }
 
     PREVIEW_DATA = found;
-    document.getElementById('previewDate').textContent = fmtHuman(yest);
+    // L'anteprima chiarisce che registreremo OGGI
+    document.getElementById('previewDate').textContent = fmtHuman(today);
     document.getElementById('previewTime').textContent = found.orari || '-';
     document.getElementById('previewHours').textContent = found.ore ? found.ore + 'h' : '-';
     document.getElementById('previewSite').textContent = found.cantiere || '-';
@@ -850,11 +864,8 @@
   }
   function confirmRepeat(){
     if(!PREVIEW_DATA) return;
-    const yest = addDays(new Date(), -1);
-    selectedDate = yest;
-    document.querySelectorAll('.date-day').forEach(dd=> dd.classList.toggle('selected', dd.dataset.date===fmtISO(yest)));
-    ABSENT_MODE = false; updateAssenteChip();
 
+    // NON cambiamo la data selezionata: resta OGGI
     const parts = (PREVIEW_DATA.orari||'').split('+').map(s=>s.trim());
     const [m1,p1] = parts;
     if(m1){ const [a,b] = m1.split('-'); document.getElementById('mStart').value = a; document.getElementById('mEnd').value = b; }
@@ -1072,7 +1083,7 @@
     renderWorkItems();
     updateTimes();
     updateSummary();
-    document.getElementById('repeatBtn').disabled = false;
+    updateRepeatBtnState(); // abilita/disabilita “Ripeti ieri” in base alla data selezionata
   }
 
   /* ====== ESPORTA FUNZIONI GLOBALI ====== */
