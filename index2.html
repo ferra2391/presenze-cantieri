@@ -163,6 +163,14 @@
   .date-day.has-pres .corner-flag{ border-top-color: var(--success); }
   .date-day.no-pres  .corner-flag{ border-top-color: var(--danger);  }
 
+  /* >>> BLOCCO altri giorni durante "Ripeti ieri" <<< */
+  .date-day.disabled{
+    pointer-events: none;
+    opacity: .45;
+    filter: grayscale(.4);
+    cursor: not-allowed;
+  }
+
   .date-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
   .chip{
     flex:1;background:var(--bg-light);backdrop-filter:blur(20px);border:2px dashed var(--border);
@@ -174,7 +182,7 @@
   .chip:hover::before { opacity: 1; }
   .chip.active{ border-style:solid;border-color:var(--danger);color:#fff;background:linear-gradient(135deg,rgba(239,68,68,.3),rgba(127,29,29,.3));box-shadow:0 4px 20px rgba(239,68,68,.4); }
 
-  /* Time slots (più compatti, testo bianco) */
+  /* Time slots */
   .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
   .time-slot{ position:relative; overflow:hidden; border-radius:16px; border:2px solid var(--border); min-height:180px; padding:16px 12px; background:var(--bg-light); transition:all .3s ease; box-shadow:0 4px 20px rgba(0,0,0,.2); display:flex; flex-direction:column;}
   .time-slot:hover { transform: translateY(-4px); box-shadow:0 8px 30px rgba(0,0,0,.3); border-color:rgba(255,255,255,.3);}
@@ -185,14 +193,11 @@
   .slot-inner{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:8px;}
   .slot-time{ font-size:16px; font-weight:900; text-align:center; text-shadow:2px 2px 8px rgba(0,0,0,.4); letter-spacing:.5px; color:#fff; }
   .slot-hours{ font-size:12px; font-weight:800; background:rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.3); padding:4px 10px; border-radius:999px; box-shadow:0 4px 15px rgba(0,0,0,.3); transition:all .3s ease; color:#fff; }
-  .time-slot:hover .slot-hours { transform: scale(1.05); box-shadow:0 6px 20px rgba(0,0,0,.4); }
   .time-selects{ margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px; width:100%;}
   .time-selects select{ background:rgba(0,0,0,.3); backdrop-filter:blur(10px); border:none; color:#fff; border-radius:12px; padding:12px 10px; font-size:16px; font-weight:900; outline:none; transition:all .3s ease; cursor:pointer; text-align:center; box-shadow:inset 0 2px 8px rgba(0,0,0,.25); -webkit-appearance: none; -moz-appearance: none; appearance: none; text-align-last: center; flex:1; max-width:70px;}
-  .time-selects select:focus { background:rgba(0,0,0,.45); box-shadow:inset 0 2px 8px rgba(0,0,0,.3), 0 0 15px rgba(255,255,255,.2); transform: scale(1.02);}
   .time-separator { font-size:18px; font-weight:900; color:rgba(255,255,255,.8); text-shadow:2px 2px 8px rgba(0,0,0,.4); }
 
   .total-hours-badge{ margin-top:10px; padding:14px; background:linear-gradient(135deg, var(--card-bg), rgba(99,102,241,.1)); backdrop-filter:blur(20px); border:2px solid var(--border); border-radius:14px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,.2); transition:all .3s ease;}
-  .total-hours-badge:hover { transform: scale(1.02); box-shadow:0 6px 25px rgba(0,0,0,.3); }
   .total-hours-badge .label{ color:var(--text-secondary); font-size:12px; margin-bottom:4px; font-weight:700; letter-spacing:1px; text-transform:uppercase;}
   .total-hours-badge .value{ font-size:28px; font-weight:900; background:linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-shadow:0 0 20px rgba(251,191,36,.3);}
 
@@ -206,18 +211,7 @@
     background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
   }
   .input-group select option { background:var(--bg-light); color:var(--text); padding:10px; }
-  .input-group input:focus,.input-group textarea:focus,.input-group select:focus{
-    outline:none;border-color:var(--primary);box-shadow:0 0 20px rgba(255,107,53,.3), 0 4px 15px rgba(0,0,0,.3);transform: translateY(-2px);
-  }
-  .input-group input:hover,.input-group textarea:hover,.input-group select:hover{ border-color:rgba(255,255,255,.3); }
-  .input-group .input-icon{
-    position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; color:var(--text-secondary); transition:all .3s ease;
-  }
-  .input-group:focus-within .input-icon { color:var(--primary); transform: translateY(-50%) scale(1.2); }
   .input-group textarea{min-height:100px;resize:vertical}
-  .input-group textarea::placeholder{color:#cbd5e1;opacity:.7}
-  .input-group textarea + .input-icon{top:20px;transform:none}
-  .input-group:has(textarea):focus-within .input-icon { transform: scale(1.2); }
 
   .btn-group{display:flex;gap:10px;margin-top:14px}
   .btn{
@@ -227,32 +221,22 @@
   }
   .btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.2), transparent); opacity: 0; transition: opacity .3s ease; }
   .btn:hover { transform: translateY(-3px); box-shadow:0 8px 30px rgba(255,107,53,.6); }
-  .btn:hover::before { opacity: 1; }
-  .btn:active { transform: translateY(-1px); }
-  .btn-secondary{ background:var(--bg-light); backdrop-filter:blur(20px); border:2px solid var(--border); box-shadow:0 4px 15px rgba(0,0,0,.3); animation: none; }
-  .btn-secondary:hover { border-color:var(--primary); box-shadow:0 6px 25px rgba(0,0,0,.4); }
-  .btn-success{ background:linear-gradient(135deg,var(--success),#10b981,#14b8a6); background-size:200% 200%; animation: gradientShift 5s ease infinite; box-shadow:0 4px 20px rgba(16,185,129,.4); }
-  .btn-success:hover { box-shadow:0 8px 30px rgba(16,185,129,.6); }
   .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none !important; }
 
   /* Presenze mese */
   .month-toggle{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.1)); backdrop-filter:blur(20px); border:2px dashed var(--border); border-radius:14px; padding:12px 14px; cursor:pointer; transition:all .3s ease; box-shadow:0 2px 10px rgba(0,0,0,.2); }
-  .month-toggle:hover { border-style:solid; border-color:var(--primary); transform: translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.3); background:linear-gradient(135deg, var(--bg-light), rgba(255,107,53,.1)); }
   .month-title-text{ font-weight:900; font-size:15px; background:linear-gradient(135deg, var(--text), var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
   .month-list{ display:none; flex-direction:column; gap:10px; margin-top:12px; }
   .month-list.open{ display:flex; animation: fadeIn .4s ease; }
   .month-item{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:linear-gradient(135deg, var(--bg-light), rgba(30,41,59,.8)); backdrop-filter:blur(20px); border:2px solid var(--border); border-radius:14px; padding:12px 14px; transition:all .3s ease; box-shadow:0 2px 10px rgba(0,0,0,.2); }
-  .month-item:hover { transform: translateX(4px); border-color:rgba(255,255,255,.3); box-shadow:0 4px 20px rgba(0,0,0,.3); }
-  .mi-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+  .mi-left{display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0}
   .mi-date{ min-width:52px; text-align:center; font-weight:900; background:linear-gradient(135deg, rgba(99,102,241,.2), rgba(255,107,53,.2)); border:2px solid var(--border); border-radius:12px; padding:6px 8px; font-size:13px; box-shadow:0 2px 10px rgba(0,0,0,.2); }
   .mi-main{display:flex;flex-direction:column;min-width:0;flex:1}
   .mi-cant{ font-weight:800; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text); }
   .mi-lav{ font-size:11px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .mi-right{display:flex;align-items:center;gap:8px}
   .mi-ore{ font-weight:900; font-size:14px; background:linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .month-item.weekend,.month-item.holiday{ background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15)); border-color:rgba(220, 38, 38, 0.4); }
-  .month-item.today{ outline:3px solid var(--success); outline-offset:2px; box-shadow:0 0 30px rgba(16,185,129,.3); }
-  .month-item.future{ opacity:.7; filter:grayscale(0.3); }
+
   .badge-missing{ display:inline-block; padding:4px 9px; border-radius:999px; background:rgba(239,68,68,.2); border:2px solid rgba(239,68,68,.4); color:#fecaca; font-weight:900; font-size:10px; text-transform:uppercase; letter-spacing:.5px; box-shadow:0 2px 10px rgba(239,68,68,.3); }
   .badge-future{ display:inline-block; padding:4px 9px; border-radius:999px; background:rgba(148,163,184,.2); border:2px solid rgba(148,163,184,.4); color:#e5e7eb; font-weight:900; font-size:10px; text-transform:uppercase; letter-spacing:.5px; }
 
@@ -261,19 +245,12 @@
   .success-overlay .card { animation:float 2s ease-in-out infinite; box-shadow:0 20px 60px rgba(16,185,129,.4), 0 0 100px rgba(16,185,129,.2); border:2px solid var(--success); }
   .success-overlay h2 { background:linear-gradient(135deg, var(--success), var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size:24px; text-align:center; }
 
-  /* Preview ripeti ieri */
   .preview-card{ display:none; border:2px solid var(--primary); box-shadow:0 0 30px rgba(255,107,53,.3); }
   .preview-card.show{ display:block; animation:fadeIn .4s ease; }
-  .preview-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:2px solid rgba(255,255,255,.1); transition:all .3s ease; }
-  .preview-row:hover { padding-left:6px; border-bottom-color:rgba(255,255,255,.2); }
+  .preview-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:2px solid rgba(255,255,255,.1); }
   .preview-row:last-child{border-bottom:none}
-  .preview-row span:first-child { font-weight:700; color:var(--text-secondary); }
-  .preview-row span:last-child { font-weight:900; color:var(--text); }
   .preview-actions{display:flex;gap:10px;margin-top:14px}
-  
-  .summary-work { padding:10px 12px; margin-bottom:8px; background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.05)); border:2px solid var(--border); border-radius:12px; transition:all .3s ease; }
-  .summary-work:hover { transform: translateX(4px); border-color:rgba(255,255,255,.25); }
-  .summary-work:last-child { margin-bottom:0; }
+  .summary-work { padding:10px 12px; margin-bottom:8px; background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.05)); border:2px solid var(--border); border-radius:12px; }
 </style>
 </head>
 <body>
@@ -479,6 +456,9 @@
   let PREVIEW_DATA = null;
   let MONTH_OPEN = false;
 
+  // >>> Stato lock per "Ripeti ieri"
+  let LOCK_OTHER_DAYS = false;
+
   /* ====== UTILS ====== */
   const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
   function pad2(n){return String(n).padStart(2,'0');}
@@ -504,6 +484,21 @@
   function isAdmin(){ return String(AUTH.ruolo||'').trim().toLowerCase()==='amministratore'; }
   function isToday(d){ const t=new Date(); t.setHours(0,0,0,0); return sameYMD(d,t); }
 
+  /* ====== BLOCCO altri giorni (Ripeti ieri) ====== */
+  function lockOtherDaysExceptToday(lock = true){
+    LOCK_OTHER_DAYS = !!lock;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayISO = fmtISO(today);
+    document.querySelectorAll('.date-day').forEach(el=>{
+      const iso = el.dataset.date;
+      const isTodayCell = (iso === todayISO);
+      if(!isTodayCell){
+        el.classList.toggle('disabled', LOCK_OTHER_DAYS);
+        if (LOCK_OTHER_DAYS) el.setAttribute('aria-disabled','true'); else el.removeAttribute('aria-disabled');
+      }
+    });
+  }
+
   /* ====== GENERA OPZIONI ORARI ====== */
   function generateTimeOptions(minHour, maxHour) {
     const options = [];
@@ -513,25 +508,19 @@
     }
     return options;
   }
-
   function populateTimeSelects() {
     const morningOptions = generateTimeOptions(6, 15);
     const afternoonOptions = generateTimeOptions(12, 20);
-    
     const mStart = document.getElementById('mStart');
     const mEnd = document.getElementById('mEnd');
     const pStart = document.getElementById('pStart');
     const pEnd = document.getElementById('pEnd');
-    
     mStart.innerHTML = morningOptions.map(t => `<option value="${t}">${t}</option>`).join('');
     mEnd.innerHTML = morningOptions.map(t => `<option value="${t}">${t}</option>`).join('');
     pStart.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}</option>`).join('');
     pEnd.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}</option>`).join('');
-    
-    mStart.value = '08:00';
-    mEnd.value = '12:00';
-    pStart.value = '13:00';
-    pEnd.value = '17:00';
+    mStart.value = '08:00'; mEnd.value = '12:00';
+    pStart.value = '13:00'; pEnd.value = '17:00';
   }
 
   /* ====== LOGIN ====== */
@@ -561,7 +550,7 @@
       const rows = await res.json();
       ALL_CRED_ROWS = rows || [];
 
-      await sleep(350); // respiro per caricare meglio
+      await sleep(350);
 
       const rec = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
       if(!rec){ errBox.textContent='Credenziali errate'; errBox.style.display='block'; return; }
@@ -620,7 +609,6 @@
       }
     }
   }
-
   function hasPresenceOnDate(d){ return LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, d)); }
   function updateDateIndicators(){
     const today = new Date(); today.setHours(0,0,0,0);
@@ -634,15 +622,14 @@
       }
     });
   }
-
   function updateRepeatBtnState(){
     const btn = document.getElementById('repeatBtn');
     const enabled = isToday(selectedDate);
     btn.disabled = !enabled;
     btn.title = enabled ? 'Copia i dati di IERI e registra per OGGI' : 'Disponibile solo per la data di OGGI';
   }
-
   function selectDate(el,d){
+    if (LOCK_OTHER_DAYS && !isToday(d)) { return; } // blocco durante Ripeti ieri
     document.querySelectorAll('.date-day').forEach(x=>x.classList.remove('selected'));
     el.classList.add('selected'); 
     selectedDate=d; 
@@ -676,21 +663,18 @@
   function updateTimes(){
     const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
     const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
-
     document.getElementById('morningText').textContent = `${ms} - ${me}`;
     document.getElementById('afternoonText').textContent = `${ps} - ${pe}`;
-
     const hM = diffHours(ms,me);
     const hP = diffHours(ps,pe);
     document.getElementById('morningHours').textContent = `${hM.toFixed(1)} h`;
     document.getElementById('afternoonHours').textContent = `${hP.toFixed(1)} h`;
     document.getElementById('totalHours').textContent = (hM+hP).toFixed(1)+'h';
-
     updateSummary();
   }
 
   /* ====== CANTIERI ====== */
-  function newWorkItem(){ return {id:crypto.randomUUID(), siteSelect:'', siteManual:'', work:''}; }
+  function newWorkItem(){ return {id:crypto.randomUUID(), siteSelect:'', work:''}; }
   async function loadCantieri(){
     try{
       const rows = await (await fetch(OS_BASE+'Cantieri')).json();
@@ -714,9 +698,6 @@
             ${SITE_OPTIONS.map(s=>`<option ${it.siteSelect===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </div>
-        <div class="input-group"><span class="input-icon">🔍</span>
-          <input type="text" placeholder="Oppure scrivi il nome..." value="${(it.siteManual||'').replace(/"/g,'&quot;')}" oninput="onMan('${it.id}', this.value)">
-        </div>
         <div class="input-group"><span class="input-icon">📝</span>
           <textarea placeholder="Descrivi la lavorazione..." oninput="onWork('${it.id}', this.value)">${it.work||''}</textarea>
         </div>`;
@@ -727,8 +708,7 @@
   }
   function addWorkItem(){ if(workState.length<3){ workState.push(newWorkItem()); renderWorkItems(); } }
   function removeWorkItem(id){ workState=workState.filter(w=>w.id!==id); if(workState.length===0) workState=[newWorkItem()]; renderWorkItems(); }
-  function onSel(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.siteSelect=v||''; if(v) it.siteManual=''; updateSummary(); }
-  function onMan(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.siteManual=v; if(v.trim()) it.siteSelect=''; updateSummary(); }
+  function onSel(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.siteSelect=v||''; updateSummary(); }
   function onWork(id,v){ const it=workState.find(w=>w.id===id); if(!it) return; it.work=v; updateSummary(); }
 
   /* ====== PRESENZE ====== */
@@ -755,20 +735,12 @@
     const btn   = document.getElementById('monthToggle');
     const list  = document.getElementById('monthList');
     const arrow = document.getElementById('monthArrow');
-
-    const apply = () => {
-      list.classList.toggle('open', MONTH_OPEN);
-      arrow.textContent = MONTH_OPEN ? '▲' : '▼';
-    };
-
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      MONTH_OPEN = !MONTH_OPEN;
-      apply();
-    });
-
+    const apply = () => { list.classList.toggle('open', MONTH_OPEN); arrow.textContent = MONTH_OPEN ? '▲' : '▼'; };
+    btn.addEventListener('click', (e)=>{ e.preventDefault(); MONTH_OPEN = !MONTH_OPEN; apply(); });
     apply();
   }
+
+  function safeParseFloat(x){ const n = parseFloat(String(x).replace(',','.')); return isNaN(n) ? 0 : n; }
 
   async function renderMonthList(){
     const list=document.getElementById('monthList'); list.innerHTML='';
@@ -788,6 +760,22 @@
       if(sameYMD(dt,today)) item.classList.add('today');
       if(dt>today) item.classList.add('future');
 
+      // Costruisco blocco con TUTTE le presenze del giorno
+      let innerList = '';
+      if(entries.length){
+        innerList = entries.map(e => {
+          const cant = (e.cantiere||'').trim() || '—';
+          const lav  = (e.lavorazione||'').trim() || '';
+          return `<div class="mi-cant">${cant}</div><div class="mi-lav">${lav}</div>`;
+        }).join('');
+      } else if(dt<today){
+        innerList = `<span class="badge-missing">NON COMPILATO</span>`;
+      } else {
+        innerList = '';
+      }
+
+      const totalHours = entries.reduce((acc, e)=> acc + safeParseFloat(e.ore), 0);
+
       item.innerHTML = `
         <div class="mi-left">
           <div class="mi-date">
@@ -795,12 +783,11 @@
             <div style="font-size:10px;opacity:.8">${dt.toLocaleDateString('it-IT',{month:'short'})}</div>
           </div>
           <div class="mi-main">
-            <div class="mi-cant">${entries[0]?.cantiere || (dt<today?'<span class="badge-missing">NON COMPILATO</span>':'' )}</div>
-            <div class="mi-lav">${entries[0]?.lavorazione || ''}</div>
+            ${innerList}
           </div>
         </div>
         <div class="mi-right">
-          ${dt>today?'<span class="badge-future">FUTURO</span>': `<div class="mi-ore">${entries[0]?.ore?entries[0].ore+'h':'-'}</div>`}
+          ${dt>today?'<span class="badge-future">FUTURO</span>': `<div class="mi-ore">${entries.length? (totalHours.toFixed(2)+'h') : '-'}</div>`}
         </div>`;
       list.appendChild(item);
     }
@@ -828,7 +815,7 @@
     document.getElementById('summaryHours').textContent = tot.toFixed(1)+'h';
 
     workState.forEach((w,i)=>{
-      const name=(w.siteSelect||w.siteManual||'-').trim()||'-';
+      const name=(w.siteSelect||'-').trim()||'-';
       const lav=(w.work||'-').trim()||'-';
       const div=document.createElement('div'); div.className='summary-work';
       div.innerHTML=`<div><strong>Cantiere ${i+1}:</strong> ${name}</div><div><strong>Lavorazione:</strong> ${lav}</div>`;
@@ -839,7 +826,7 @@
     document.getElementById('summaryNotes').textContent = note || '-';
   }
 
-  /* ====== RIPETI IERI (solo per OGGI, data registrata = OGGI) ====== */
+  /* ====== RIPETI IERI ====== */
   async function repeatYesterday(){
     if(!isToday(selectedDate)){
       alert('“Ripeti ieri” è disponibile solo quando stai compilando OGGI.');
@@ -852,7 +839,6 @@
     if(!found){ alert('Nessuna presenza trovata per ieri'); return; }
 
     PREVIEW_DATA = found;
-    // L'anteprima chiarisce che registreremo OGGI
     document.getElementById('previewDate').textContent = fmtHuman(today);
     document.getElementById('previewTime').textContent = found.orari || '-';
     document.getElementById('previewHours').textContent = found.ore ? found.ore + 'h' : '-';
@@ -861,11 +847,13 @@
     document.getElementById('previewNotes').textContent = '-';
     document.getElementById('previewCard').classList.add('show');
     document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // >>> blocca altri giorni
+    lockOtherDaysExceptToday(true);
   }
   function confirmRepeat(){
     if(!PREVIEW_DATA) return;
 
-    // NON cambiamo la data selezionata: resta OGGI
     const parts = (PREVIEW_DATA.orari||'').split('+').map(s=>s.trim());
     const [m1,p1] = parts;
     if(m1){ const [a,b] = m1.split('-'); document.getElementById('mStart').value = a; document.getElementById('mEnd').value = b; }
@@ -873,17 +861,21 @@
 
     workState = [newWorkItem()];
     const cantiere = PREVIEW_DATA.cantiere || '';
-    if(SITE_OPTIONS.includes(cantiere)){ workState[0].siteSelect = cantiere; workState[0].siteManual=''; }
-    else { workState[0].siteManual = cantiere; workState[0].siteSelect=''; }
+    if(SITE_OPTIONS.includes(cantiere)){ workState[0].siteSelect = cantiere; }
+    else { workState[0].siteSelect=''; }
     workState[0].work = PREVIEW_DATA.lavorazione || '';
 
     renderWorkItems();
     updateTimes();
     document.getElementById('previewCard').classList.remove('show');
     PREVIEW_DATA = null;
+
+    // >>> sblocca
+    lockOtherDaysExceptToday(false);
+
     nextPage(2);
   }
-  function cancelRepeat(){ document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA = null; }
+  function cancelRepeat(){ document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA = null; lockOtherDaysExceptToday(false); }
 
   /* ====== ADMIN: UI ====== */
   function showAdminUI(){
@@ -962,7 +954,7 @@
     alert('Selezione operaio annullata.');
   }
 
-  /* ====== CONTROLLA GIORNI MANCANTI NELLA SETTIMANA ====== */
+  /* ====== CONTROLLA GIORNI MANCANTI ====== */
   function checkMissingWorkdays(){
     const missing = [];
     const target = new Date(selectedDate);
@@ -987,12 +979,11 @@
     return missing;
   }
 
-  /* ====== SUBMIT: overlay immediato + rete di sicurezza ====== */
+  /* ====== SUBMIT ====== */
   async function submitPresence(){
     const overlay = document.getElementById('successOverlay');
     const notes = (document.getElementById('notesInput').value||'').trim();
 
-    // Rete di sicurezza: blocco anche qui se sto inviando "oggi"
     if (isToday(selectedDate)) {
       const missingDays = checkMissingWorkdays();
       if (missingDays.length > 0) {
@@ -1004,10 +995,8 @@
       }
     }
 
-    // Feedback immediato
     overlay.classList.add('show');
 
-    // Identità
     const isAdminActing = isAdmin() && !!ADMIN_SELECTED;
     const USERID = isAdminActing ? "Admin" : (AUTH.user||"");
     const NOME_OPERAIO = isAdminActing ? ADMIN_SELECTED : (AUTH.nome||AUTH.user||"");
@@ -1023,9 +1012,9 @@
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
       const tot=diffHours(ms,me)+diffHours(ps,pe);
-      const lavori=workState.map(w=>({cantiere:(w.siteSelect||w.siteManual||'').trim(), lavorazione:(w.work||'').trim()})).filter(x=>x.cantiere||x.lavorazione);
+      const lavori=workState.map(w=>({cantiere:(w.siteSelect||'').trim(), lavorazione:(w.work||'').trim()})).filter(x=>x.cantiere||x.lavorazione);
       const invalidItems = workState.filter(w => {
-        const hasCantiere = (w.siteSelect || w.siteManual || '').trim() !== '';
+        const hasCantiere = (w.siteSelect || '').trim() !== '';
         const hasLavorazione = (w.work || '').trim() !== '';
         return hasCantiere !== hasLavorazione || (!hasCantiere && !hasLavorazione);
       });
@@ -1042,7 +1031,6 @@
       }
     }
 
-    // Invio in parallelo con throttle
     const chunkSize = 10;
     for(let i=0;i<payloads.length;i+=chunkSize){
       const chunk = payloads.slice(i,i+chunkSize).map(body =>
@@ -1083,7 +1071,9 @@
     renderWorkItems();
     updateTimes();
     updateSummary();
-    updateRepeatBtnState(); // abilita/disabilita “Ripeti ieri” in base alla data selezionata
+    updateRepeatBtnState();
+    // assicurati che all'avvio sia sbloccato
+    lockOtherDaysExceptToday(false);
   }
 
   /* ====== ESPORTA FUNZIONI GLOBALI ====== */
@@ -1099,7 +1089,6 @@
   window.addWorkItem = addWorkItem;
   window.removeWorkItem = removeWorkItem;
   window.onSel = onSel;
-  window.onMan = onMan;
   window.onWork = onWork;
   window.submitPresence = submitPresence;
   window.updateSummary = updateSummary;
