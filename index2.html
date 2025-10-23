@@ -509,9 +509,10 @@
     }
     return null;
   }
-  function mustBlockForYesterday(){
-    const today = new Date(); today.setHours(0,0,0,0);
-    const prev = previousWorkingDay(today);
+  // nuovo: blocco sempre in base alla DATA SELEZIONATA
+  function mustBlockForPreviousWorkingDay(baseDate){
+    const d = new Date(baseDate); d.setHours(0,0,0,0);
+    const prev = previousWorkingDay(d);
     if (!prev) return false;
     return !hasPresenceOnDate(prev);
   }
@@ -552,7 +553,7 @@
     
     mStart.innerHTML = morningOptions.map(t => `<option value="${t}">${t}</option>`).join('');
     mEnd.innerHTML = morningOptions.map(t => `<option value="${t}">${t}</option>`).join('');
-    pStart.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}"></option>`).join('').replace('">"','">'); // safe
+    pStart.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}"></option>`).join('').replace('">"','">');
     pEnd.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}</option>`).join('');
     
     mStart.value = '08:00';
@@ -588,7 +589,7 @@
       const rows = await res.json();
       ALL_CRED_ROWS = rows || [];
 
-      await sleep(350); // respiro per caricare meglio
+      await sleep(350);
 
       const rec = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
       if(!rec){ errBox.textContent='Credenziali errate'; errBox.style.display='block'; return; }
@@ -689,19 +690,21 @@
 
   /* ====== BLOCCO IMMEDIATO IN PAG.1 ====== */
   function goFromPage1(){
-    // >>> Avviso se sulla data selezionata esiste già almeno una presenza
+    // Avviso se sulla data selezionata esiste già almeno una presenza
     const now = new Date(); now.setHours(0,0,0,0);
     if (selectedDate <= now && hasPresenceOnDate(selectedDate)) {
       const cont = confirm('⚠️ Per questo giorno risulta già una registrazione.\nVuoi continuare comunque e inserirne un\'altra?');
       if (!cont) return;
     }
 
-    // >>> blocco sul precedente giorno lavorativo se sto compilando OGGI
-    if (isToday(selectedDate) && mustBlockForYesterday()){
-      alert('⚠️ Devi prima compilare il precedente giorno lavorativo (anche come ASSENTE).');
+    // Blocco sul precedente giorno lavorativo rispetto alla DATA SELEZIONATA
+    if (mustBlockForPreviousWorkingDay(selectedDate)){
+      const prev = previousWorkingDay(selectedDate);
+      alert(`⚠️ Devi prima compilare il precedente giorno lavorativo: ${prev.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })} (anche come ASSENTE).`);
       return;
     }
 
+    // Rete esistente: se sto compilando OGGI verifica eventuali giorni mancanti
     if (isToday(selectedDate)) {
       const missingDays = checkMissingWorkdays();
       if (missingDays.length > 0) {
@@ -829,7 +832,7 @@
       if(sameYMD(dt,today)) item.classList.add('today');
       if(dt>today) item.classList.add('future');
 
-      // Mostra tutte le presenze del giorno (più cantieri) e somma ore
+      // Mostra tutte le presenze del giorno e somma ore
       let innerList = '';
       if(entries.length){
         innerList = entries.map(e => {
@@ -1051,9 +1054,10 @@
 
   /* ====== SUBMIT: overlay + rete di sicurezza ====== */
   async function submitPresence(){
-    // >>> blocco sul precedente giorno lavorativo se sto inviando OGGI
-    if (isToday(selectedDate) && mustBlockForYesterday()){
-      alert('⚠️ Devi prima compilare il precedente giorno lavorativo (anche come ASSENTE).');
+    // Blocco sul precedente giorno lavorativo rispetto alla DATA SELEZIONATA
+    if (mustBlockForPreviousWorkingDay(selectedDate)){
+      const prev = previousWorkingDay(selectedDate);
+      alert(`⚠️ Devi prima compilare il precedente giorno lavorativo: ${prev.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })} (anche come ASSENTE).`);
       return;
     }
 
