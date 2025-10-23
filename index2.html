@@ -204,25 +204,21 @@
     box-shadow:0 8px 30px rgba(255,107,53,.6), 0 0 20px rgba(251,191,36,.3);
   }
   .date-day.today{ border-color:var(--success); box-shadow:0 0 20px rgba(16,185,129,.4); }
-  .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){
+  .date-day.weekend:not(.selected), .date-day.holiday:not(.selected)){
     background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15));
     border-color:rgba(220, 38, 38, 0.4);
   }
 
-  /* Flag triangolino in alto a destra per stato presenza */
+  /* Triangolo presenza più grande (in alto a destra) */
   .date-day .corner-flag{
     position:absolute; top:0; right:0;
     width:0; height:0;
-    border-left: 12px solid transparent;
-    border-top: 12px solid transparent; /* default invisibile */
+    border-left: 18px solid transparent;
+    border-top: 18px solid transparent; /* default invisibile */
     pointer-events:none;
   }
-  .date-day.has-pres .corner-flag{
-    border-top-color: var(--success); /* verde */
-  }
-  .date-day.no-pres .corner-flag{
-    border-top-color: var(--danger);  /* rosso */
-  }
+  .date-day.has-pres .corner-flag{ border-top-color: var(--success); }
+  .date-day.no-pres  .corner-flag{ border-top-color: var(--danger);  }
 
   .date-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
   .chip{
@@ -265,7 +261,7 @@
     box-shadow:0 4px 20px rgba(239,68,68,.4);
   }
 
-  /* Time slots semplificati (invariati) */
+  /* Time slots – leggermente più piccoli e bianchi */
   .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
   .time-slot{ position:relative; overflow:hidden; border-radius:16px; border:2px solid var(--border); min-height:180px; padding:16px 12px; background:var(--bg-light); transition:all .3s ease; box-shadow:0 4px 20px rgba(0,0,0,.2); display:flex; flex-direction:column;}
   .time-slot:hover { transform: translateY(-4px); box-shadow:0 8px 30px rgba(0,0,0,.3); border-color:rgba(255,255,255,.3);}
@@ -274,15 +270,13 @@
   .time-slot.morning .slot-bg{ background:linear-gradient(135deg,#3b82f6,#06b6d4,#8b5cf6); background-size:200% 200%; animation: gradientShift 6s ease infinite;}
   .time-slot.afternoon .slot-bg{ background:linear-gradient(135deg,var(--primary),#f59e0b,#ec4899); background-size:200% 200%; animation: gradientShift 6s ease infinite;}
   .slot-inner{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:8px;}
-  .slot-time{ font-size:18px; font-weight:900; text-align:center; text-shadow:2px 2px 8px rgba(0,0,0,.4); letter-spacing:.5px;}
-  .slot-hours{ font-size:13px; font-weight:800; background:rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.3); padding:4px 10px; border-radius:999px; box-shadow:0 4px 15px rgba(0,0,0,.3); transition:all .3s ease;}
+  .slot-time{ font-size:16px; font-weight:900; text-align:center; text-shadow:2px 2px 8px rgba(0,0,0,.4); letter-spacing:.5px; color:#fff; }
+  .slot-hours{ font-size:12px; font-weight:800; background:rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.3); padding:4px 10px; border-radius:999px; box-shadow:0 4px 15px rgba(0,0,0,.3); transition:all .3s ease; color:#fff; }
   .time-slot:hover .slot-hours { transform: scale(1.05); box-shadow:0 6px 20px rgba(0,0,0,.4); }
   .time-selects{ margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px; width:100%;}
-  .time-selects select{ background:rgba(0,0,0,.3); backdrop-filter:blur(10px); border:none; color:#fff; border-radius:12px; padding:12px 10px; font-size:18px; font-weight:900; outline:none; transition:all .3s ease; cursor:pointer; text-align:center; box-shadow:inset 0 2px 8px rgba(0,0,0,.25); -webkit-appearance: none; -moz-appearance: none; appearance: none; text-align-last: center; flex:1; max-width:70px;}
+  .time-selects select{ background:rgba(0,0,0,.3); backdrop-filter:blur(10px); border:none; color:#fff; border-radius:12px; padding:12px 10px; font-size:16px; font-weight:900; outline:none; transition:all .3s ease; cursor:pointer; text-align:center; box-shadow:inset 0 2px 8px rgba(0,0,0,.25); -webkit-appearance: none; -moz-appearance: none; appearance: none; text-align-last: center; flex:1; max-width:70px;}
   .time-selects select:focus { background:rgba(0,0,0,.45); box-shadow:inset 0 2px 8px rgba(0,0,0,.3), 0 0 15px rgba(255,255,255,.2); transform: scale(1.02);}
-  .time-selects select:hover { background:rgba(0,0,0,.35);}
-  .time-selects select option { background:var(--bg-light); color:var(--text); text-align:center;}
-  .time-separator { font-size:20px; font-weight:900; color:rgba(255,255,255,.5); text-shadow:2px 2px 8px rgba(0,0,0,.4); }
+  .time-separator { font-size:18px; font-weight:900; color:rgba(255,255,255,.8); text-shadow:2px 2px 8px rgba(0,0,0,.4); }
 
   .total-hours-badge{ margin-top:10px; padding:14px; background:linear-gradient(135deg, var(--card-bg), rgba(99,102,241,.1)); backdrop-filter:blur(20px); border:2px solid var(--border); border-radius:14px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,.2); transition:all .3s ease;}
   .total-hours-badge:hover { transform: scale(1.02); box-shadow:0 6px 25px rgba(0,0,0,.3); }
@@ -346,7 +340,7 @@
   .btn-success:hover { box-shadow:0 8px 30px rgba(16,185,129,.6); }
   .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none !important; }
 
-  /* Presenze mese (invariato) */
+  /* Presenze mese */
   .month-toggle{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.1)); backdrop-filter:blur(20px); border:2px dashed var(--border); border-radius:14px; padding:12px 14px; cursor:pointer; transition:all .3s ease; box-shadow:0 2px 10px rgba(0,0,0,.2); }
   .month-toggle:hover { border-style:solid; border-color:var(--primary); transform: translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.3); background:linear-gradient(135deg, var(--bg-light), rgba(255,107,53,.1)); }
   .month-title-text{ font-weight:900; font-size:15px; background:linear-gradient(135deg, var(--text), var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
@@ -367,7 +361,7 @@
   .badge-missing{ display:inline-block; padding:4px 9px; border-radius:999px; background:rgba(239,68,68,.2); border:2px solid rgba(239,68,68,.4); color:#fecaca; font-weight:900; font-size:10px; text-transform:uppercase; letter-spacing:.5px; box-shadow:0 2px 10px rgba(239,68,68,.3); }
   .badge-future{ display:inline-block; padding:4px 9px; border-radius:999px; background:rgba(148,163,184,.2); border:2px solid rgba(148,163,184,.4); color:#e5e7eb; font-weight:900; font-size:10px; text-transform:uppercase; letter-spacing:.5px; }
 
-  .success-overlay{ position:fixed; inset:0; background:rgba(15,23,42,.97); backdrop-filter:blur(20px); display:none; align-items:center; justify-content:center; z-index:1000; animation:fadeIn .3s ease; }
+  .success-overlay{ position:fixed; inset:0; background:rgba(15,23,42,.97); backdrop-filter:blur(20px); display:none; align-items:center; justify-content:center; z-index:1000; animation:fadeIn .2s ease; }
   .success-overlay.show{display:flex}
   .success-overlay .card { animation:float 2s ease-in-out infinite; box-shadow:0 20px 60px rgba(16,185,129,.4), 0 0 100px rgba(16,185,129,.2); border:2px solid var(--success); }
   .success-overlay h2 { background:linear-gradient(135deg, var(--success), var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size:24px; text-align:center; }
@@ -476,7 +470,7 @@
       <div class="btn-group"><button class="btn" onclick="goFromPage1()">Avanti →</button></div>
     </div>
 
-    <!-- Pagina 2: ORARI SEMPLIFICATI -->
+    <!-- Pagina 2: ORARI -->
     <div class="view" id="page2">
       <div class="card">
         <div class="card-title"><span>⏰</span><span>Orario di lavoro</span></div>
@@ -576,11 +570,11 @@
 
   /* ====== STATE ====== */
   let AUTH = { user:null, nome:null, ruolo:null };
-  let ALL_CRED_ROWS = [];                 // tutte le righe del foglio "Credenziali"
-  let ACTIVE_NOME = null;                 // per chi sto compilando/visualizzando
-  let ADMIN_SELECTED = null;              // operaio scelto dall'amministratore
-  let SELECTED_RUOLO = null;              // ruolo dell'operaio selezionato (operaio/sub)
-  let NUM_LAVORATORI = 1;                 // numero lavoratori per Sub
+  let ALL_CRED_ROWS = [];
+  let ACTIVE_NOME = null;
+  let ADMIN_SELECTED = null;
+  let SELECTED_RUOLO = null;
+  let NUM_LAVORATORI = 1;
 
   let selectedDate = new Date();
   let currentPage = 1;
@@ -592,6 +586,7 @@
   let MONTH_OPEN = false;
 
   /* ====== UTILS ====== */
+  const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
   function pad2(n){return String(n).padStart(2,'0');}
   function fmtISO(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
   function fmtHuman(d){return d.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}
@@ -664,12 +659,15 @@
 
     try{
       const ctrl = new AbortController();
-      const timer = setTimeout(()=>ctrl.abort(), 8000);
+      const timer = setTimeout(()=>ctrl.abort(), 9000); // leggermente più lungo
       const res = await fetch(OS_BASE+'Credenziali', {signal: ctrl.signal, cache:'no-store'});
       clearTimeout(timer);
       if(!res.ok) throw new Error('HTTP '+res.status);
       const rows = await res.json();
       ALL_CRED_ROWS = rows || [];
+
+      // pausa di "qualche millisecondo" per dare respiro al caricamento
+      await sleep(350);
 
       const rec = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
       if(!rec){ errBox.textContent='Credenziali errate'; errBox.style.display='block'; return; }
@@ -677,7 +675,7 @@
       AUTH.user = rec.User;
       AUTH.nome = rec.Nome || rec.User;
       AUTH.ruolo = rec.Ruolo || '';
-      ACTIVE_NOME = AUTH.nome;  // default: compilo per me
+      ACTIVE_NOME = AUTH.nome;
       document.getElementById('userName').textContent = AUTH.nome;
 
       showApp();
@@ -734,7 +732,7 @@
     }
   }
 
-  /* Triangolino verde/rosso in base alla presenza del giorno */
+  /* Triangolo verde/rosso in base alla presenza del giorno */
   function hasPresenceOnDate(d){
     return LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, d));
   }
@@ -754,7 +752,6 @@
   function selectDate(el,d){
     document.querySelectorAll('.date-day').forEach(x=>x.classList.remove('selected'));
     el.classList.add('selected'); selectedDate=d; ABSENT_MODE=false; updateAssenteChip(); renderMonthList();
-    /* opzionale: refresh flag (non necessario ma innocuo) */
     updateDateIndicators();
   }
 
@@ -842,24 +839,24 @@
   }
 
   /* ====== PRESENZE MESE ====== */
- function setupMonthToggle(){
-  const btn   = document.getElementById('monthToggle');
-  const list  = document.getElementById('monthList');
-  const arrow = document.getElementById('monthArrow');
+  function setupMonthToggle(){
+    const btn   = document.getElementById('monthToggle');
+    const list  = document.getElementById('monthList');
+    const arrow = document.getElementById('monthArrow');
 
-  const apply = () => {
-    list.classList.toggle('open', MONTH_OPEN);
-    arrow.textContent = MONTH_OPEN ? '▲' : '▼';
-  };
+    const apply = () => {
+      list.classList.toggle('open', MONTH_OPEN);
+      arrow.textContent = MONTH_OPEN ? '▲' : '▼';
+    };
 
-  btn.addEventListener('click', (e)=>{
-    e.preventDefault();
-    MONTH_OPEN = !MONTH_OPEN;
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      MONTH_OPEN = !MONTH_OPEN;
+      apply();
+    });
+
     apply();
-  });
-
-  apply();
-}
+  }
 
   async function renderMonthList(){
     const list=document.getElementById('monthList'); list.innerHTML='';
@@ -976,26 +973,20 @@
   /* ====== ADMIN: UI ====== */
   function showAdminUI(){
     if(!isAdmin()) return;
-    // Rimuove display:none per mostrare i pulsanti admin
     document.querySelectorAll('.admin-only').forEach(el=> {
       el.style.display = '';
       el.style.removeProperty('display');
     });
   }
-  function openGestioneCantieri(){
-    window.location.href = "https://ferra2391.github.io/presenze-cantieri/gestione.html";
-  }
+  function openGestioneCantieri(){ window.location.href = "https://ferra2391.github.io/presenze-cantieri/gestione.html"; }
   function openSelectOperaio(){
     if(!isAdmin()) return;
     const select = document.getElementById('operaioSelect');
     select.innerHTML = '<option value="">— Seleziona —</option>';
-    
-    // Filtra operai e sub
     const operaiSub = (ALL_CRED_ROWS||[]).filter(r => {
       const ruolo = String(r.Ruolo||'').trim().toLowerCase();
       return ruolo === 'operaio' || ruolo === 'sub';
     });
-    
     if(!operaiSub.length){
       select.innerHTML = '<option value="">Nessun operaio/sub trovato</option>';
     }else{
@@ -1008,93 +999,54 @@
         select.appendChild(option);
       });
     }
-    
     document.getElementById('numLavoratoriGroup').style.display = 'none';
     document.getElementById('numLavoratori').value = '1';
-    
     const card=document.getElementById('selectOperaioCard');
     card.classList.add('show');
     card.scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
-  
   function onOperaioSelectChange(){
     const select = document.getElementById('operaioSelect');
     const value = select.value;
-    
     if(!value){
       document.getElementById('numLavoratoriGroup').style.display = 'none';
       return;
     }
-    
     try{
       const data = JSON.parse(value);
       const ruolo = String(data.ruolo||'').trim().toLowerCase();
-      
       if(ruolo === 'sub'){
         document.getElementById('numLavoratoriGroup').style.display = 'block';
       }else{
         document.getElementById('numLavoratoriGroup').style.display = 'none';
         document.getElementById('numLavoratori').value = '1';
       }
-    }catch(e){
-      document.getElementById('numLavoratoriGroup').style.display = 'none';
-    }
+    }catch{ document.getElementById('numLavoratoriGroup').style.display = 'none'; }
   }
-  
-  function closeSelectOperaio(){ 
-    document.getElementById('selectOperaioCard').classList.remove('show'); 
-  }
-  
+  function closeSelectOperaio(){ document.getElementById('selectOperaioCard').classList.remove('show'); }
   async function confirmSelectOperaio(){
     const select = document.getElementById('operaioSelect');
     const value = select.value;
-    
-    if(!value){
-      alert('Seleziona un operaio o sub');
-      return;
-    }
-    
+    if(!value){ alert('Seleziona un operaio o sub'); return; }
     try{
       const data = JSON.parse(value);
       const nome = data.nome;
       const ruolo = String(data.ruolo||'').trim().toLowerCase();
-      
-      ADMIN_SELECTED = nome;
-      SELECTED_RUOLO = ruolo;
-      ACTIVE_NOME = nome;
-      
-      if(ruolo === 'sub'){
-        const num = parseInt(document.getElementById('numLavoratori').value) || 1;
-        NUM_LAVORATORI = Math.max(1, Math.min(20, num));
-      }else{
-        NUM_LAVORATORI = 1;
-      }
-      
-      // Mostra il badge "Compilando per"
+      ADMIN_SELECTED = nome; SELECTED_RUOLO = ruolo; ACTIVE_NOME = nome;
+      NUM_LAVORATORI = (ruolo==='sub') ? Math.max(1, Math.min(20, parseInt(document.getElementById('numLavoratori').value)||1)) : 1;
       document.getElementById('compilingFor').textContent = `Compilando per: ${nome}${ruolo === 'sub' ? ` (${NUM_LAVORATORI} lav.)` : ''}`;
       document.getElementById('compilingForBadge').style.display = 'inline-flex';
-      
       closeSelectOperaio();
       await loadPresenze();
       await renderMonthList();
       updateDateIndicators();
-      
       alert(`Selezionato: ${nome} (${data.ruolo})${ruolo === 'sub' ? ` - ${NUM_LAVORATORI} lavoratori` : ''}`);
-    }catch(e){
-      alert('Errore nella selezione');
-      console.error(e);
-    }
+    }catch(e){ alert('Errore nella selezione'); console.error(e); }
   }
-  
   async function clearSelectedOperaio(){
-    ADMIN_SELECTED = null;
-    SELECTED_RUOLO = null;
-    NUM_LAVORATORI = 1;
-    ACTIVE_NOME = AUTH.nome;
+    ADMIN_SELECTED = null; SELECTED_RUOLO = null; NUM_LAVORATORI = 1; ACTIVE_NOME = AUTH.nome;
     document.getElementById('compilingForBadge').style.display = 'none';
-    await loadPresenze();
-    await renderMonthList();
-    updateDateIndicators();
+    await loadPresenze(); await renderMonthList(); updateDateIndicators();
     alert('Selezione operaio annullata.');
   }
 
@@ -1105,10 +1057,7 @@
     target.setHours(0,0,0,0);
     let lastPresenza = null;
     for(const p of LAST_PRESENZE){
-      if(p.dataPresenza < target){
-        lastPresenza = p.dataPresenza;
-        break;
-      }
+      if(p.dataPresenza < target){ lastPresenza = p.dataPresenza; break; }
     }
     if(!lastPresenza) return [];
     let checkDate = new Date(lastPresenza);
@@ -1126,8 +1075,9 @@
     return missing;
   }
 
-  /* ====== SUBMIT CON VALIDAZIONI ====== */
+  /* ====== SUBMIT: overlay immediato + POST in parallelo ====== */
   async function submitPresence(){
+    const overlay = document.getElementById('successOverlay');
     const notes = (document.getElementById('notesInput').value||'').trim();
 
     if(!ABSENT_MODE){
@@ -1139,18 +1089,21 @@
       }
     }
 
-    // Campi identità in base al ruolo
+    // Mostra subito l'overlay per eliminare il "lag" percepito
+    overlay.classList.add('show');
+
+    // Identità
     const isAdminActing = isAdmin() && !!ADMIN_SELECTED;
     const USERID = isAdminActing ? "Admin" : (AUTH.user||"");
     const NOME_OPERAIO = isAdminActing ? ADMIN_SELECTED : (AUTH.nome||AUTH.user||"");
     const isSub = SELECTED_RUOLO === 'sub';
     const numRighe = isSub ? NUM_LAVORATORI : 1;
 
+    // Costruisci i payload
+    const payloads = [];
     if(ABSENT_MODE){
-      for(let i = 0; i < numRighe; i++){
-        const body={ dataISO: fmtISO(selectedDate), orari: "-", operaio: NOME_OPERAIO, user: USERID, cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes };
-        try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
-        if(i < numRighe - 1) await new Promise(r=>setTimeout(r,110));
+      for(let i=0;i<numRighe;i++){
+        payloads.push({ dataISO: fmtISO(selectedDate), orari: "-", operaio: NOME_OPERAIO, user: USERID, cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes });
       }
     }else{
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
@@ -1163,26 +1116,38 @@
         return hasCantiere !== hasLavorazione || (!hasCantiere && !hasLavorazione);
       });
       if(invalidItems.length > 0 || lavori.length === 0){
+        overlay.classList.remove('show');
         alert('⚠️ CAMPI OBBLIGATORI\n\nDevi compilare ENTRAMBI i campi per ogni cantiere:\n• Nome cantiere\n• Descrizione lavorazione\n\nSe non hai altri cantieri, rimuovili.');
         return;
       }
       const quota = tot / lavori.length;
       for(const w of lavori){
-        for(let i = 0; i < numRighe; i++){
-          const body={ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: NOME_OPERAIO, user: USERID, cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes };
-          try{ await fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(_){}
-          await new Promise(r=>setTimeout(r,110));
+        for(let i=0;i<numRighe;i++){
+          payloads.push({ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: NOME_OPERAIO, user: USERID, cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes });
         }
       }
     }
-    document.getElementById('successOverlay').classList.add('show');
-    setTimeout(async ()=>{
-      document.getElementById('successOverlay').classList.remove('show');
-      await loadPresenze();
-      await renderMonthList();
-      updateDateIndicators();
-      nextPage(1);
-    }, 750);
+
+    // Invio in parallelo con piccola "throttle" (chunk di 10)
+    const chunkSize = 10;
+    for(let i=0;i<payloads.length;i+=chunkSize){
+      const chunk = payloads.slice(i,i+chunkSize).map(body =>
+        fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+        .catch(()=>null)
+      );
+      await Promise.allSettled(chunk);
+      await sleep(40); // micro pausa
+    }
+
+    // refresh dati + chiudi overlay dopo breve feedback
+    await loadPresenze();
+    await renderMonthList();
+    updateDateIndicators();
+
+    // Tiene a schermo l'overlay un attimo per il feedback, poi chiude e torna a pagina 1
+    await sleep(600);
+    overlay.classList.remove('show');
+    nextPage(1);
   }
 
   /* ====== INIT ====== */
@@ -1200,8 +1165,8 @@
     await loadCantieri();
     await loadPresenze();
     await renderMonthList();
-    updateDateIndicators(); // <-- aggiorna triangolini all'avvio
-    showAdminUI(); // mostra pulsanti aggiuntivi solo all'amministratore
+    updateDateIndicators();
+    showAdminUI();
     if (!workState.length) workState=[newWorkItem()];
     renderWorkItems();
     updateTimes();
