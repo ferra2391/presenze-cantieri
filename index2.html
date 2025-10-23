@@ -55,7 +55,7 @@
   
   .container{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh}
 
-  /* Header pulito */
+  /* Header */
   .header{
     background:linear-gradient(135deg,var(--primary) 0%,#c026d3 50%,var(--secondary) 100%);
     padding:20px 16px;
@@ -84,10 +84,7 @@
     box-shadow:0 4px 15px rgba(0,0,0,.2);
     transition:all .3s ease;
   }
-  .user-badge:hover {
-    transform: scale(1.05);
-    background:rgba(255,255,255,.35);
-  }
+  .user-badge:hover { transform: scale(1.05); background:rgba(255,255,255,.35); }
 
   .content{padding:20px 16px 20px}
   .topbar{display:flex;justify-content:flex-end;padding:12px 16px}
@@ -113,13 +110,7 @@
 
   .step-indicator{display:flex;gap:8px;margin:12px 0 16px}
   .step{
-    flex:1;
-    height:5px;
-    background:var(--card-bg);
-    border-radius:10px;
-    position:relative;
-    overflow:hidden;
-    transition:all .4s ease;
+    flex:1;height:5px;background:var(--card-bg);border-radius:10px;position:relative;overflow:hidden;transition:all .4s ease;
   }
   .step.active{
     background:linear-gradient(90deg,var(--primary),var(--accent),var(--secondary));
@@ -130,138 +121,61 @@
 
   .view{display:none}
   .view.active{display:block;animation:fadeIn .4s ease}
-  @keyframes fadeIn{
-    from{opacity:0;transform:translateY(10px)}
-    to{opacity:1;transform:translateY(0)}
-  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
   .card{
-    background:var(--card-bg);
-    backdrop-filter:blur(30px);
-    border:1px solid var(--border);
-    border-radius:20px;
-    padding:18px;
-    margin-bottom:14px;
+    background:var(--card-bg);backdrop-filter:blur(30px);border:1px solid var(--border);
+    border-radius:20px;padding:18px;margin-bottom:14px;
     box-shadow:0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);
-    transition:all .3s ease;
-    position:relative;
+    transition:all .3s ease;position:relative;
   }
-  .card:hover {
-    transform: translateY(-2px);
-    box-shadow:0 12px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.15);
-    border-color:rgba(255,255,255,.25);
-  }
-  .card-title{
-    font-size:15px;
-    font-weight:800;
-    margin-bottom:12px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    color:var(--text);
-  }
-  .card-title span:first-child {
-    font-size:20px;
-    animation:float 3s ease-in-out infinite;
-  }
+  .card:hover { transform: translateY(-2px); box-shadow:0 12px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.15); border-color:rgba(255,255,255,.25); }
+  .card-title{font-size:15px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:10px;color:var(--text);}
+  .card-title span:first-child { font-size:20px; animation:float 3s ease-in-out infinite; }
 
   /* Date selector */
   .date-selector{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:10px}
   .date-day{
-    aspect-ratio:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
+    aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     background:linear-gradient(135deg, var(--bg-light), rgba(30,41,59,.8));
-    border:2px solid transparent;
-    border-radius:14px;
-    cursor:pointer;
-    transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size:12px;
-    position:relative;
-    overflow:hidden;
-    box-shadow:0 4px 15px rgba(0,0,0,.2);
+    border:2px solid transparent;border-radius:14px;cursor:pointer;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size:12px;position:relative;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,.2);
   }
-  .date-day::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,107,53,.1), rgba(99,102,241,.1));
-    opacity: 0;
-    transition: opacity .3s ease;
-  }
+  .date-day::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg, rgba(255,107,53,.1), rgba(99,102,241,.1));opacity:0;transition:opacity .3s ease;}
   .date-day:hover::before { opacity: 1; }
-  .date-day .day-name{ font-size:9px; color:var(--text-secondary); margin-bottom:3px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
-  .date-day .day-num{ font-size:16px; font-weight:900; text-shadow:0 2px 4px rgba(0,0,0,.3); }
+  .date-day .day-name{ font-size:9px;color:var(--text-secondary);margin-bottom:3px;font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+  .date-day .day-num{ font-size:16px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,.3); }
   .date-day:hover{ border-color:var(--primary); transform:scale(1.08) translateY(-3px); box-shadow:0 8px 25px rgba(255,107,53,.4); }
   .date-day.selected{
     background:linear-gradient(135deg,var(--primary),var(--accent),var(--secondary));
-    background-size:200% 200%;
-    animation: gradientShift 4s ease infinite;
-    border-color:transparent;
-    transform:scale(1.05);
+    background-size:200% 200%;animation: gradientShift 4s ease infinite;border-color:transparent;transform:scale(1.05);
     box-shadow:0 8px 30px rgba(255,107,53,.6), 0 0 20px rgba(251,191,36,.3);
   }
   .date-day.today{ border-color:var(--success); box-shadow:0 0 20px rgba(16,185,129,.4); }
-  .date-day.weekend:not(.selected), .date-day.holiday:not(.selected)){
-    background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15));
-    border-color:rgba(220, 38, 38, 0.4);
+  .date-day.weekend:not(.selected), .date-day.holiday:not(.selected){
+    background:linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(127, 29, 29, 0.15)); border-color:rgba(220, 38, 38, 0.4);
   }
 
-  /* Triangolo presenza più grande (in alto a destra) */
+  /* Triangolo presenza (più grande) */
   .date-day .corner-flag{
-    position:absolute; top:0; right:0;
-    width:0; height:0;
-    border-left: 18px solid transparent;
-    border-top: 18px solid transparent; /* default invisibile */
-    pointer-events:none;
+    position:absolute; top:0; right:0; width:0; height:0;
+    border-left: 18px solid transparent; border-top: 18px solid transparent; pointer-events:none;
   }
   .date-day.has-pres .corner-flag{ border-top-color: var(--success); }
   .date-day.no-pres  .corner-flag{ border-top-color: var(--danger);  }
 
   .date-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
   .chip{
-    flex:1;
-    background:var(--bg-light);
-    backdrop-filter:blur(20px);
-    border:2px dashed var(--border);
-    border-radius:14px;
-    padding:10px 12px;
-    cursor:pointer;
-    font-size:13px;
-    font-weight:800;
-    color:var(--text-secondary);
-    text-align:center;
-    transition:all .3s ease;
-    position:relative;
-    overflow:hidden;
-    min-width:42%;
+    flex:1;background:var(--bg-light);backdrop-filter:blur(20px);border:2px dashed var(--border);
+    border-radius:14px;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:800;color:var(--text-secondary);
+    text-align:center;transition:all .3s ease;position:relative;overflow:hidden;min-width:42%;
   }
-  .chip::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,107,53,.1), rgba(99,102,241,.1));
-    opacity: 0;
-    transition: opacity .3s ease;
-  }
-  .chip:hover {
-    transform: translateY(-2px);
-    border-color:var(--primary);
-    color:var(--text);
-    box-shadow:0 6px 20px rgba(0,0,0,.3);
-  }
+  .chip::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg, rgba(255,107,53,.1), rgba(99,102,241,.1));opacity:0;transition:opacity .3s ease;}
+  .chip:hover{ transform: translateY(-2px); border-color:var(--primary); color:var(--text); box-shadow:0 6px 20px rgba(0,0,0,.3); }
   .chip:hover::before { opacity: 1; }
-  .chip.active{
-    border-style:solid;
-    border-color:var(--danger);
-    color:#fff;
-    background:linear-gradient(135deg,rgba(239,68,68,.3),rgba(127,29,29,.3));
-    box-shadow:0 4px 20px rgba(239,68,68,.4);
-  }
+  .chip.active{ border-style:solid;border-color:var(--danger);color:#fff;background:linear-gradient(135deg,rgba(239,68,68,.3),rgba(127,29,29,.3));box-shadow:0 4px 20px rgba(239,68,68,.4); }
 
-  /* Time slots – leggermente più piccoli e bianchi */
+  /* Time slots – più piccoli & testo bianco */
   .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
   .time-slot{ position:relative; overflow:hidden; border-radius:16px; border:2px solid var(--border); min-height:180px; padding:16px 12px; background:var(--bg-light); transition:all .3s ease; box-shadow:0 4px 20px rgba(0,0,0,.2); display:flex; flex-direction:column;}
   .time-slot:hover { transform: translateY(-4px); box-shadow:0 8px 30px rgba(0,0,0,.3); border-color:rgba(255,255,255,.3);}
@@ -285,32 +199,16 @@
 
   .input-group{position:relative;margin-top:12px}
   .input-group input,.input-group textarea,.input-group select{
-    width:100%;
-    background:var(--bg-light);
-    border:2px solid var(--border);
-    border-radius:14px;
-    padding:14px 14px 14px 48px;
-    font-size:14px;
-    font-weight:600;
-    color:var(--text);
-    transition:all .3s ease;
-    box-shadow:0 2px 10px rgba(0,0,0,.2);
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+    width:100%;background:var(--bg-light);border:2px solid var(--border);border-radius:14px;padding:14px 14px 14px 48px;font-size:14px;font-weight:600;color:var(--text);transition:all .3s ease;box-shadow:0 2px 10px rgba(0,0,0,.2);
+    -webkit-appearance: none;-moz-appearance: none;appearance: none;
   }
   .input-group select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 40px;
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
   }
   .input-group select option { background:var(--bg-light); color:var(--text); padding:10px; }
   .input-group input:focus,.input-group textarea:focus,.input-group select:focus{
-    outline:none;
-    border-color:var(--primary);
-    box-shadow:0 0 20px rgba(255,107,53,.3), 0 4px 15px rgba(0,0,0,.3);
-    transform: translateY(-2px);
+    outline:none;border-color:var(--primary);box-shadow:0 0 20px rgba(255,107,53,.3), 0 4px 15px rgba(0,0,0,.3);transform: translateY(-2px);
   }
   .input-group input:hover,.input-group textarea:hover,.input-group select:hover{ border-color:rgba(255,255,255,.3); }
   .input-group .input-icon{
@@ -324,11 +222,9 @@
 
   .btn-group{display:flex;gap:10px;margin-top:14px}
   .btn{
-    flex:1; background:linear-gradient(135deg,var(--primary),#ec4899,var(--secondary));
-    background-size:200% 200%; animation: gradientShift 5s ease infinite;
-    border:none; border-radius:14px; padding:14px; font-size:15px; font-weight:900; color:#fff; cursor:pointer;
-    transition:all .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow:0 4px 20px rgba(255,107,53,.4);
-    position:relative; overflow:hidden; letter-spacing:.5px; text-shadow:0 2px 4px rgba(0,0,0,.3);
+    flex:1;background:linear-gradient(135deg,var(--primary),#ec4899,var(--secondary));
+    background-size:200% 200%;animation: gradientShift 5s ease infinite;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:900;color:#fff;cursor:pointer;
+    transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 4px 20px rgba(255,107,53,.4);position:relative;overflow:hidden;letter-spacing:.5px;text-shadow:0 2px 4px rgba(0,0,0,.3);
   }
   .btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.2), transparent); opacity: 0; transition: opacity .3s ease; }
   .btn:hover { transform: translateY(-3px); box-shadow:0 8px 30px rgba(255,107,53,.6); }
@@ -608,6 +504,7 @@
     return new Date(s);
   }
   function isAdmin(){ return String(AUTH.ruolo||'').trim().toLowerCase()==='amministratore'; }
+  function isToday(d){ const t=new Date(); t.setHours(0,0,0,0); return sameYMD(d,t); }
 
   /* ====== GENERA OPZIONI ORARI ====== */
   function generateTimeOptions(minHour, maxHour) {
@@ -659,15 +556,14 @@
 
     try{
       const ctrl = new AbortController();
-      const timer = setTimeout(()=>ctrl.abort(), 9000); // leggermente più lungo
+      const timer = setTimeout(()=>ctrl.abort(), 9000);
       const res = await fetch(OS_BASE+'Credenziali', {signal: ctrl.signal, cache:'no-store'});
       clearTimeout(timer);
       if(!res.ok) throw new Error('HTTP '+res.status);
       const rows = await res.json();
       ALL_CRED_ROWS = rows || [];
 
-      // pausa di "qualche millisecondo" per dare respiro al caricamento
-      await sleep(350);
+      await sleep(350); // respiro
 
       const rec = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
       if(!rec){ errBox.textContent='Credenziali errate'; errBox.style.display='block'; return; }
@@ -720,22 +616,14 @@
         if(isItalianHoliday(d)) div.classList.add('holiday');
         if(sameYMD(d,today)){ div.classList.add('today','selected'); selectedDate=today; }
         div.innerHTML=`<div class="day-name">${dayLabel[i]}</div><div class="day-num">${d.getDate()}</div>`;
-
-        /* triangolino presenza */
-        const flag = document.createElement('span');
-        flag.className = 'corner-flag';
-        div.appendChild(flag);
-
+        const flag = document.createElement('span'); flag.className = 'corner-flag'; div.appendChild(flag);
         div.onclick=()=> selectDate(div,d);
         cont.appendChild(div);
       }
     }
   }
 
-  /* Triangolo verde/rosso in base alla presenza del giorno */
-  function hasPresenceOnDate(d){
-    return LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, d));
-  }
+  function hasPresenceOnDate(d){ return LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, d)); }
   function updateDateIndicators(){
     const today = new Date(); today.setHours(0,0,0,0);
     document.querySelectorAll('.date-day').forEach(el=>{
@@ -758,7 +646,23 @@
   /* ====== ASSENTE ====== */
   function toggleAssente(){ ABSENT_MODE=!ABSENT_MODE; updateAssenteChip(); }
   function updateAssenteChip(){ document.getElementById('assenteChip').classList.toggle('active', ABSENT_MODE); }
-  function goFromPage1(){ ABSENT_MODE ? (updateSummary(), nextPage(4)) : nextPage(2); }
+
+  /* ====== BLOCCO IMMEDIATO IN PAG.1 ====== */
+  function goFromPage1(){
+    // Se sto compilando OGGI, prima devo aver chiuso tutti i lavorativi precedenti (anche come Assente)
+    if (isToday(selectedDate)) {
+      const missingDays = checkMissingWorkdays();
+      if (missingDays.length > 0) {
+        const dateList = missingDays
+          .map(d => d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }))
+          .join('\n• ');
+        alert(`⚠️ ATTENZIONE!\n\nDevi prima compilare le presenze per questi giorni:\n\n• ${dateList}\n\nCompila i giorni mancanti (anche come "Assente") prima di proseguire.`);
+        return;
+      }
+    }
+    // Se tutto ok, procedo
+    ABSENT_MODE ? (updateSummary(), nextPage(4)) : nextPage(2);
+  }
 
   /* ====== ORARI ====== */
   function updateTimes(){
@@ -973,10 +877,7 @@
   /* ====== ADMIN: UI ====== */
   function showAdminUI(){
     if(!isAdmin()) return;
-    document.querySelectorAll('.admin-only').forEach(el=> {
-      el.style.display = '';
-      el.style.removeProperty('display');
-    });
+    document.querySelectorAll('.admin-only').forEach(el=> { el.style.display = ''; el.style.removeProperty('display'); });
   }
   function openGestioneCantieri(){ window.location.href = "https://ferra2391.github.io/presenze-cantieri/gestione.html"; }
   function openSelectOperaio(){
@@ -1075,21 +976,24 @@
     return missing;
   }
 
-  /* ====== SUBMIT: overlay immediato + POST in parallelo ====== */
+  /* ====== SUBMIT: overlay immediato + rete di sicurezza ====== */
   async function submitPresence(){
     const overlay = document.getElementById('successOverlay');
     const notes = (document.getElementById('notesInput').value||'').trim();
 
-    if(!ABSENT_MODE){
+    // Rete di sicurezza: blocco anche qui se sto inviando "oggi"
+    if (isToday(selectedDate)) {
       const missingDays = checkMissingWorkdays();
-      if(missingDays.length > 0){
-        const dateList = missingDays.map(d => d.toLocaleDateString('it-IT', {weekday: 'long', day: 'numeric', month: 'long'})).join('\n• ');
+      if (missingDays.length > 0) {
+        const dateList = missingDays
+          .map(d => d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }))
+          .join('\n• ');
         alert(`⚠️ ATTENZIONE!\n\nDevi prima compilare le presenze per questi giorni:\n\n• ${dateList}\n\nCompila i giorni mancanti (anche come "Assente") prima di proseguire.`);
         return;
       }
     }
 
-    // Mostra subito l'overlay per eliminare il "lag" percepito
+    // Feedback immediato
     overlay.classList.add('show');
 
     // Identità
@@ -1099,7 +1003,6 @@
     const isSub = SELECTED_RUOLO === 'sub';
     const numRighe = isSub ? NUM_LAVORATORI : 1;
 
-    // Costruisci i payload
     const payloads = [];
     if(ABSENT_MODE){
       for(let i=0;i<numRighe;i++){
@@ -1128,7 +1031,7 @@
       }
     }
 
-    // Invio in parallelo con piccola "throttle" (chunk di 10)
+    // Invio in parallelo con throttle
     const chunkSize = 10;
     for(let i=0;i<payloads.length;i+=chunkSize){
       const chunk = payloads.slice(i,i+chunkSize).map(body =>
@@ -1136,15 +1039,13 @@
         .catch(()=>null)
       );
       await Promise.allSettled(chunk);
-      await sleep(40); // micro pausa
+      await sleep(40);
     }
 
-    // refresh dati + chiudi overlay dopo breve feedback
     await loadPresenze();
     await renderMonthList();
     updateDateIndicators();
 
-    // Tiene a schermo l'overlay un attimo per il feedback, poi chiude e torna a pagina 1
     await sleep(600);
     overlay.classList.remove('show');
     nextPage(1);
