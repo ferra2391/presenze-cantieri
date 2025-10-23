@@ -689,6 +689,13 @@
 
   /* ====== BLOCCO IMMEDIATO IN PAG.1 ====== */
   function goFromPage1(){
+    // >>> Avviso se sulla data selezionata esiste già almeno una presenza
+    const now = new Date(); now.setHours(0,0,0,0);
+    if (selectedDate <= now && hasPresenceOnDate(selectedDate)) {
+      const cont = confirm('⚠️ Per questo giorno risulta già una registrazione.\nVuoi continuare comunque e inserirne un\'altra?');
+      if (!cont) return;
+    }
+
     // >>> blocco sul precedente giorno lavorativo se sto compilando OGGI
     if (isToday(selectedDate) && mustBlockForYesterday()){
       alert('⚠️ Devi prima compilare il precedente giorno lavorativo (anche come ASSENTE).');
