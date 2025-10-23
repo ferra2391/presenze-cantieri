@@ -209,6 +209,21 @@
     border-color:rgba(220, 38, 38, 0.4);
   }
 
+  /* Flag triangolino in alto a destra per stato presenza */
+  .date-day .corner-flag{
+    position:absolute; top:0; right:0;
+    width:0; height:0;
+    border-left: 12px solid transparent;
+    border-top: 12px solid transparent; /* default invisibile */
+    pointer-events:none;
+  }
+  .date-day.has-pres .corner-flag{
+    border-top-color: var(--success); /* verde */
+  }
+  .date-day.no-pres .corner-flag{
+    border-top-color: var(--danger);  /* rosso */
+  }
+
   .date-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
   .chip{
     flex:1;
@@ -707,14 +722,40 @@
         if(isItalianHoliday(d)) div.classList.add('holiday');
         if(sameYMD(d,today)){ div.classList.add('today','selected'); selectedDate=today; }
         div.innerHTML=`<div class="day-name">${dayLabel[i]}</div><div class="day-num">${d.getDate()}</div>`;
+
+        /* triangolino presenza */
+        const flag = document.createElement('span');
+        flag.className = 'corner-flag';
+        div.appendChild(flag);
+
         div.onclick=()=> selectDate(div,d);
         cont.appendChild(div);
       }
     }
   }
+
+  /* Triangolino verde/rosso in base alla presenza del giorno */
+  function hasPresenceOnDate(d){
+    return LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, d));
+  }
+  function updateDateIndicators(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    document.querySelectorAll('.date-day').forEach(el=>{
+      const iso = el.dataset.date;
+      const d   = new Date(iso);
+      el.classList.remove('has-pres','no-pres');
+      if(d <= today){
+        if(hasPresenceOnDate(d)) el.classList.add('has-pres');
+        else                     el.classList.add('no-pres');
+      }
+    });
+  }
+
   function selectDate(el,d){
     document.querySelectorAll('.date-day').forEach(x=>x.classList.remove('selected'));
     el.classList.add('selected'); selectedDate=d; ABSENT_MODE=false; updateAssenteChip(); renderMonthList();
+    /* opzionale: refresh flag (non necessario ma innocuo) */
+    updateDateIndicators();
   }
 
   /* ====== ASSENTE ====== */
@@ -1036,6 +1077,7 @@
       closeSelectOperaio();
       await loadPresenze();
       await renderMonthList();
+      updateDateIndicators();
       
       alert(`Selezionato: ${nome} (${data.ruolo})${ruolo === 'sub' ? ` - ${NUM_LAVORATORI} lavoratori` : ''}`);
     }catch(e){
@@ -1052,6 +1094,7 @@
     document.getElementById('compilingForBadge').style.display = 'none';
     await loadPresenze();
     await renderMonthList();
+    updateDateIndicators();
     alert('Selezione operaio annullata.');
   }
 
@@ -1137,6 +1180,7 @@
       document.getElementById('successOverlay').classList.remove('show');
       await loadPresenze();
       await renderMonthList();
+      updateDateIndicators();
       nextPage(1);
     }, 750);
   }
@@ -1156,6 +1200,7 @@
     await loadCantieri();
     await loadPresenze();
     await renderMonthList();
+    updateDateIndicators(); // <-- aggiorna triangolini all'avvio
     showAdminUI(); // mostra pulsanti aggiuntivi solo all'amministratore
     if (!workState.length) workState=[newWorkItem()];
     renderWorkItems();
