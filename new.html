@@ -525,13 +525,16 @@
     }
     return null;
   }
-  // nuovo: blocco sempre in base alla DATA SELEZIONATA
   function mustBlockForPreviousWorkingDay(baseDate){
-    const d = new Date(baseDate); d.setHours(0,0,0,0);
-    const prev = previousWorkingDay(d);
-    if (!prev) return false;
-    return !hasPresenceOnDate(prev);
-  }
+  // ADMIN: niente blocco
+  if (isAdmin()) return false;
+
+  const d = new Date(baseDate); d.setHours(0,0,0,0);
+  const prev = previousWorkingDay(d);
+  if (!prev) return false;
+  return !hasPresenceOnDate(prev);
+}
+
 
   /* ====== BLOCCO altri giorni (Ripeti ieri) ====== */
   function lockOtherDaysExceptToday(lock = true){
