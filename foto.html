@@ -354,19 +354,22 @@
                     // Converti file in base64
                     const base64Data = await fileToBase64(file);
                     
-                    // Prepara i dati da inviare
-                    const formData = new FormData();
-                    formData.append('yard', cantiere);
-                    formData.append('username', USERNAME);
-                    formData.append('note', note || '');
-                    formData.append('fileData', base64Data);
-                    formData.append('fileName', file.name);
-                    formData.append('mimeType', file.type);
+                    // Prepara i dati come URL-encoded (non FormData!)
+                    const params = new URLSearchParams();
+                    params.append('yard', cantiere);
+                    params.append('username', USERNAME);
+                    params.append('note', note || '');
+                    params.append('fileData', base64Data);
+                    params.append('fileName', file.name);
+                    params.append('mimeType', file.type || 'image/jpeg');
                     
-                    // Invia la richiesta
+                    // Invia la richiesta con application/x-www-form-urlencoded
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        body: formData,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: params.toString(),
                         redirect: 'follow'
                     });
                     
