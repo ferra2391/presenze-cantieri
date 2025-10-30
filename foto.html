@@ -1,12 +1,14 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Upload Foto Cantieri</title>
+<title>Upload Foto Cantieri (TEST)</title>
 
-<iframe name="upload_sink" style="display:none;"></iframe>
+<!-- iFrame nascosto per non uscire dalla pagina -->
+<iframe name="sink" style="display:none;"></iframe>
 
 <form id="f" method="POST" enctype="multipart/form-data"
       action="https://script.google.com/macros/s/AKfycbx3tdWN9aipeZ3Dii74QQOP86i6pQWhU6SSS3uP7QRW-Gc59-vDfBjrDW9U_UF_bD16zw/exec"
-      target="upload_sink">
+      target="sink">
+
   <label>Cantiere:</label>
   <select name="yard" required>
     <option value="Loreto">Loreto</option>
@@ -17,7 +19,7 @@
 
   <div>
     <label>Foto:</label>
-    <input type="file" name="file" accept="image/*" capture="environment" required>
+    <input type="file" name="file" accept="image/*" capture="environment" multiple required>
   </div>
 
   <div>
@@ -35,7 +37,7 @@ const out = document.getElementById('out');
 const btn = document.getElementById('send');
 document.getElementById('f').addEventListener('submit', () => {
   btn.disabled = true;
-  out.textContent = "Invio in corso...";
-  setTimeout(() => { btn.disabled = false; out.textContent += "\nOK (controlla su Drive)."; }, 2000);
+  out.textContent = "Invio in corso...\n";
+  setTimeout(() => { btn.disabled = false; out.textContent += "OK. Controlla su Drive nella cartella del giorno."; }, 2500);
 });
 </script>
