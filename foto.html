@@ -2,8 +2,11 @@
 <meta charset="utf-8">
 <title>Upload Foto Cantieri</title>
 
+<iframe name="upload_sink" style="display:none;"></iframe>
+
 <form id="f" method="POST" enctype="multipart/form-data"
-      action="https://script.google.com/macros/s/AKfycbx3tdWN9aipeZ3Dii74QQOP86i6pQWhU6SSS3uP7QRW-Gc59-vDfBjrDW9U_UF_bD16zw/exec">
+      action="https://script.google.com/macros/s/AKfycbx3tdWN9aipeZ3Dii74QQOP86i6pQWhU6SSS3uP7QRW-Gc59-vDfBjrDW9U_UF_bD16zw/exec"
+      target="upload_sink">
   <label>Cantiere:</label>
   <select name="yard" required>
     <option value="Loreto">Loreto</option>
@@ -23,11 +26,16 @@
   </div>
 
   <input type="hidden" name="username" value="davide">
-  <button type="submit">Invia</button>
+  <button id="send" type="submit">Invia</button>
 </form>
+
 <pre id="out"></pre>
 <script>
+const out = document.getElementById('out');
+const btn = document.getElementById('send');
 document.getElementById('f').addEventListener('submit', () => {
-  document.getElementById('out').textContent = "Invio...";
+  btn.disabled = true;
+  out.textContent = "Invio in corso...";
+  setTimeout(() => { btn.disabled = false; out.textContent += "\nOK (controlla su Drive)."; }, 2000);
 });
 </script>
