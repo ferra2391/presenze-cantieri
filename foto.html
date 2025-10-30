@@ -1,1 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Upload Foto Cantieri</title>
 
+<form id="f" method="POST" enctype="multipart/form-data"
+      action="https://script.google.com/macros/s/AKfycbx3tdWN9aipeZ3Dii74QQOP86i6pQWhU6SSS3uP7QRW-Gc59-vDfBjrDW9U_UF_bD16zw/exec">
+  <label>Cantiere:</label>
+  <select name="yard" required>
+    <option value="Loreto">Loreto</option>
+    <option value="Visso">Visso</option>
+    <option value="Civitanova">Civitanova</option>
+    <option value="Tolentino">Tolentino</option>
+  </select>
+
+  <div>
+    <label>Foto:</label>
+    <input type="file" name="file" accept="image/*" capture="environment" required>
+  </div>
+
+  <div>
+    <label>Note (opz.):</label>
+    <input type="text" name="note" maxlength="140">
+  </div>
+
+  <input type="hidden" name="username" value="davide">
+  <button type="submit">Invia</button>
+</form>
+<pre id="out"></pre>
+<script>
+document.getElementById('f').addEventListener('submit', () => {
+  document.getElementById('out').textContent = "Invio...";
+});
+</script>
