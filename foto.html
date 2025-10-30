@@ -1,43 +1,455 @@
-<!doctype html>
-<meta charset="utf-8">
-<title>Upload Foto Cantieri (TEST)</title>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📸 Caricamento Foto Cantieri</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<!-- iFrame nascosto per non uscire dalla pagina -->
-<iframe name="sink" style="display:none;"></iframe>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-<form id="f" method="POST" enctype="multipart/form-data"
-      action="https://script.google.com/macros/s/AKfycbx3tdWN9aipeZ3Dii74QQOP86i6pQWhU6SSS3uP7QRW-Gc59-vDfBjrDW9U_UF_bD16zw/exec"
-      target="sink">
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
 
-  <label>Cantiere:</label>
-  <select name="yard" required>
-    <option value="Loreto">Loreto</option>
-    <option value="Visso">Visso</option>
-    <option value="Civitanova">Civitanova</option>
-    <option value="Tolentino">Tolentino</option>
-  </select>
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
 
-  <div>
-    <label>Foto:</label>
-    <input type="file" name="file" accept="image/*" capture="environment" multiple required>
-  </div>
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
 
-  <div>
-    <label>Note (opz.):</label>
-    <input type="text" name="note" maxlength="140">
-  </div>
+        .form-group {
+            margin-bottom: 25px;
+        }
 
-  <input type="hidden" name="username" value="davide">
-  <button id="send" type="submit">Invia</button>
-</form>
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
 
-<pre id="out"></pre>
-<script>
-const out = document.getElementById('out');
-const btn = document.getElementById('send');
-document.getElementById('f').addEventListener('submit', () => {
-  btn.disabled = true;
-  out.textContent = "Invio in corso...\n";
-  setTimeout(() => { btn.disabled = false; out.textContent += "OK. Controlla su Drive nella cartella del giorno."; }, 2500);
-});
-</script>
+        select, input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        select:focus, input[type="text"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            cursor: pointer;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #666;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .photo-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+        }
+
+        #status.show {
+            display: block;
+        }
+
+        #status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        #status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        #status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .progress-bar.show {
+            display: block;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .note {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #1565c0;
+            border-left: 4px solid #2196f3;
+        }
+
+        small {
+            display: block;
+            color: #999;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Caricamento Foto Cantieri</h1>
+        <p class="subtitle">Seleziona il cantiere e carica le foto</p>
+
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="cantiere">🏗️ Seleziona Cantiere *</label>
+                <select id="cantiere" required>
+                    <option value="">-- Scegli un cantiere --</option>
+                    <option value="Loreto">Loreto</option>
+                    <option value="Visso">Visso</option>
+                    <option value="Civitanova">Civitanova</option>
+                    <option value="Tolentino">Tolentino</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="photos">📷 Seleziona Foto *</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="photos" accept="image/*" multiple required>
+                </div>
+                <small>Puoi selezionare più foto contemporaneamente (max 20)</small>
+                <div class="file-info" id="fileInfo">
+                    <strong>Nessun file selezionato</strong>
+                </div>
+                <div class="photo-preview" id="photoPreview"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="note">📝 Note (opzionale)</label>
+                <input type="text" id="note" placeholder="Es: Lavori al piano terra" maxlength="140">
+                <small>Massimo 140 caratteri</small>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                📤 Carica su Google Drive
+            </button>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+
+            <div id="status"></div>
+
+            <div class="note">
+                💡 <strong>Info:</strong> Le foto verranno caricate su Google Drive nella cartella del cantiere selezionato, organizzate per data. Verranno poi sincronizzate automaticamente sul NAS ogni 10 minuti.
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // === CONFIGURAZIONE ===
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3tdWN9aipeZ3Dii74QQOP86i6pQWhU6SSS3uP7QRW-Gc59-vDfBjrDW9U_UF_bD16zw/exec';
+        const USERNAME = 'davide';  // Modifica se necessario
+        const MAX_PHOTOS = 20;
+
+        // === ELEMENTI DOM ===
+        const uploadForm = document.getElementById('uploadForm');
+        const photosInput = document.getElementById('photos');
+        const fileInfo = document.getElementById('fileInfo');
+        const photoPreview = document.getElementById('photoPreview');
+        const status = document.getElementById('status');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressBarFill = document.getElementById('progressBarFill');
+
+        // === ANTEPRIMA FOTO SELEZIONATE ===
+        photosInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            
+            if (files.length > MAX_PHOTOS) {
+                showStatus('error', `❌ Puoi caricare massimo ${MAX_PHOTOS} foto per volta`);
+                photosInput.value = '';
+                return;
+            }
+            
+            if (files.length > 0) {
+                fileInfo.classList.add('show');
+                fileInfo.innerHTML = `<strong>${files.length} foto selezionate</strong> (${formatBytes(getTotalSize(files))})`;
+                
+                // Mostra anteprima
+                photoPreview.innerHTML = '';
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.title = file.name;
+                            photoPreview.appendChild(img);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            } else {
+                fileInfo.classList.remove('show');
+                photoPreview.innerHTML = '';
+            }
+        });
+
+        // === GESTIONE SUBMIT FORM ===
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const cantiere = document.getElementById('cantiere').value;
+            const note = document.getElementById('note').value;
+            const files = photosInput.files;
+
+            if (!cantiere || files.length === 0) {
+                showStatus('error', '❌ Seleziona un cantiere e almeno una foto');
+                return;
+            }
+
+            if (files.length > MAX_PHOTOS) {
+                showStatus('error', `❌ Massimo ${MAX_PHOTOS} foto per volta`);
+                return;
+            }
+
+            await uploadPhotos(files, cantiere, note);
+        });
+
+        // === FUNZIONE UPLOAD ===
+        async function uploadPhotos(files, cantiere, note) {
+            submitBtn.disabled = true;
+            progressBar.classList.add('show');
+            showStatus('loading', `⏳ Preparazione caricamento di ${files.length} foto...`);
+
+            let uploaded = 0;
+            let errors = 0;
+            const total = files.length;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                try {
+                    showStatus('loading', `⏳ Caricamento foto ${i + 1}/${total}: ${file.name}...`);
+                    
+                    // Converti file in base64
+                    const base64Data = await fileToBase64(file);
+                    
+                    // Prepara i dati da inviare
+                    const formData = new FormData();
+                    formData.append('yard', cantiere);
+                    formData.append('username', USERNAME);
+                    formData.append('note', note || '');
+                    formData.append('fileData', base64Data);
+                    formData.append('fileName', file.name);
+                    formData.append('mimeType', file.type);
+                    
+                    // Invia la richiesta
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: formData,
+                        redirect: 'follow'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.ok) {
+                        uploaded++;
+                        console.log(`✅ Foto ${i + 1} caricata: ${result.path}`);
+                    } else {
+                        errors++;
+                        console.error(`❌ Errore foto ${i + 1}: ${result.error}`);
+                    }
+                    
+                } catch (error) {
+                    errors++;
+                    console.error(`❌ Errore caricamento foto ${i + 1}:`, error);
+                }
+                
+                // Aggiorna progress bar
+                const progress = Math.round(((i + 1) / total) * 100);
+                progressBarFill.style.width = progress + '%';
+            }
+
+            // Completato
+            submitBtn.disabled = false;
+            progressBar.classList.remove('show');
+            progressBarFill.style.width = '0%';
+            
+            if (errors === 0) {
+                showStatus('success', `✅ ${uploaded} foto caricate con successo in "${cantiere}"!`);
+                
+                // Reset form dopo 2 secondi
+                setTimeout(() => {
+                    uploadForm.reset();
+                    fileInfo.classList.remove('show');
+                    photoPreview.innerHTML = '';
+                    status.classList.remove('show');
+                }, 3000);
+            } else {
+                showStatus('error', `⚠️ Caricamento completato con errori: ${uploaded} riuscite, ${errors} fallite`);
+            }
+        }
+
+        // === CONVERTI FILE IN BASE64 ===
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Rimuovi il prefisso "data:image/jpeg;base64," o simile
+                    const base64 = e.target.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // === FUNZIONI UTILITY ===
+        function showStatus(type, message) {
+            status.className = `show ${type}`;
+            status.textContent = message;
+        }
+
+        function getTotalSize(files) {
+            let total = 0;
+            for (let file of files) {
+                total += file.size;
+            }
+            return total;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // === INIZIALIZZAZIONE ===
+        console.log('📸 Form caricamento foto inizializzato');
+        console.log('🔗 Script URL:', SCRIPT_URL);
+        console.log('👤 Username:', USERNAME);
+    </script>
+</body>
+</html>
