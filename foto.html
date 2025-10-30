@@ -231,21 +231,21 @@
             </div>
 
             <div class="form-group">
+                <label for="lavorazione">🔨 Tipo Lavorazione *</label>
+                <input type="text" id="lavorazione" placeholder="Es: INTONACO, MURATURA, IMPIANTI..." maxlength="50" required>
+                <small>Campo obbligatorio - Max 50 caratteri</small>
+            </div>
+
+            <div class="form-group">
                 <label for="photos">📷 Seleziona Foto *</label>
                 <div class="file-input-wrapper">
                     <input type="file" id="photos" accept="image/*" multiple required>
                 </div>
-                <small>Puoi selezionare più foto contemporaneamente (max 20)</small>
+                <small>Puoi selezionare più foto contemporaneamente (max 20) - Tutti i formati supportati (JPG, PNG, HEIC, ecc.)</small>
                 <div class="file-info" id="fileInfo">
                     <strong>Nessun file selezionato</strong>
                 </div>
                 <div class="photo-preview" id="photoPreview"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="note">📝 Note (opzionale)</label>
-                <input type="text" id="note" placeholder="Es: Lavori al piano terra" maxlength="140">
-                <small>Massimo 140 caratteri</small>
             </div>
 
             <button type="submit" id="submitBtn">
@@ -259,7 +259,7 @@
             <div id="status"></div>
 
             <div class="note">
-                💡 <strong>Info:</strong> Le foto verranno caricate su Google Drive nella cartella del cantiere selezionato, organizzate per data. Verranno poi sincronizzate automaticamente sul NAS ogni 10 minuti.
+                💡 <strong>Info:</strong> Le foto verranno caricate su Google Drive nella cartella del cantiere selezionato, organizzate per data e tipo di lavorazione (formato: YYYYMMDD LAVORAZIONE). I nomi originali dei file vengono mantenuti. Le foto verranno poi sincronizzate automaticamente sul NAS ogni 10 minuti.
             </div>
         </form>
     </div>
@@ -319,11 +319,16 @@
             e.preventDefault();
             
             const cantiere = document.getElementById('cantiere').value;
-            const note = document.getElementById('note').value;
+            const lavorazione = document.getElementById('lavorazione').value.trim();
             const files = photosInput.files;
 
             if (!cantiere || files.length === 0) {
                 showStatus('error', '❌ Seleziona un cantiere e almeno una foto');
+                return;
+            }
+
+            if (!lavorazione) {
+                showStatus('error', '❌ Il campo Lavorazione è obbligatorio');
                 return;
             }
 
@@ -332,11 +337,11 @@
                 return;
             }
 
-            await uploadPhotos(files, cantiere, note);
+            await uploadPhotos(files, cantiere, lavorazione);
         });
 
         // === FUNZIONE UPLOAD ===
-        async function uploadPhotos(files, cantiere, note) {
+        async function uploadPhotos(files, cantiere, lavorazione) {
             submitBtn.disabled = true;
             progressBar.classList.add('show');
             showStatus('loading', `⏳ Preparazione caricamento di ${files.length} foto...`);
@@ -358,7 +363,7 @@
                     const params = new URLSearchParams();
                     params.append('yard', cantiere);
                     params.append('username', USERNAME);
-                    params.append('note', note || '');
+                    params.append('lavorazione', lavorazione);
                     params.append('fileData', base64Data);
                     params.append('fileName', file.name);
                     params.append('mimeType', file.type || 'image/jpeg');
