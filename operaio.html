@@ -64,13 +64,13 @@
   .detail td, .detail th { vertical-align: top; }
   .detail tfoot td{font-weight:800; border-top:2px solid var(--border)}
 
-  /* Weekend arancione (prioritario) */
+  /* Weekend arancione */
   .detail tr.off td { background: var(--orange-weak) !important; }
 
-  /* Alternanza sfondo per i giorni non-off */
+  /* Alternanza sfondo */
   .detail tr.alt td { background: #f7f7f7; }
 
-  /* Gabbia perimetro del giorno (un solo riquadro grande) */
+  /* Gabbia perimetro del giorno */
   .detail tr.gstart td { border-top:1px solid var(--border); }
   .detail tr.gend   td { border-bottom:1px solid var(--border); }
 
@@ -82,13 +82,13 @@
   .detail tr.gmid   td:last-child,
   .detail tr.gend   td:last-child { border-right:1px solid var(--border); }
 
-  /* Arrotondamenti agli angoli del perimetro */
+  /* Arrotondamenti */
   .detail tr.gstart td.daycell { border-top-left-radius:10px; }
   .detail tr.gstart td:last-child { border-top-right-radius:10px; }
   .detail tr.gend  td.daycell { border-bottom-left-radius:10px; }
   .detail tr.gend  td:last-child { border-bottom-right-radius:10px; }
 
-  /* Tot giorno (righe di chiusura) */
+  /* Tot giorno */
   .detail tr.daytot td { font-weight:800; }
 </style>
 </head>
@@ -170,7 +170,9 @@
 
 <script>
 /* ====== CONFIG ====== */
-const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
+/* Nuovo Spreadsheet ID + fallback sul nome del tab */
+const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
+const TAB_CANDIDATES = ["Foglio1","Presenze","Sheet1","Foglio 1"];
 
 /* ====== UTIL ====== */
 const pad = n => String(n).padStart(2,"0");
@@ -199,9 +201,7 @@ function parseDateAny(v){
 }
 
 function getFieldSmart(row, candidates){
-  // 1) match esatto
   for(const k of candidates){ if(row.hasOwnProperty(k) && row[k] != null && row[k] !== "") return row[k]; }
-  // 2) match normalizzato su chiavi
   const keys = Object.keys(row);
   const normMap = new Map(keys.map(k => [normalize(k), k]));
   for(const cand of candidates){
@@ -211,7 +211,6 @@ function getFieldSmart(row, candidates){
       if(row[realKey] != null && row[realKey] !== "") return row[realKey];
     }
   }
-  // 3) include
   const targets = candidates.map(normalize);
   for(const k of keys){
     const nk = normalize(k);
@@ -219,7 +218,6 @@ function getFieldSmart(row, candidates){
       if(row[k] != null && row[k] !== "") return row[k];
     }
   }
-  // 4) fallback rozzo
   for(const k of candidates){ if(row[k] != null && row[k] !== "") return row[k]; }
   return "";
 }
@@ -266,6 +264,24 @@ function shiftMonth(delta){
 function setLoading(on){
   spin.classList.toggle('show', !!on);
   btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
+}
+
+/* ====== FETCH OPENSHEET con fallback tab ====== */
+async function fetchRowsFromOpenSheet(sheetId){
+  for(const tab of TAB_CANDIDATES){
+    try{
+      const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
+      const res = await fetch(url, { cache: "no-store" });
+      if(res.ok){
+        const rows = await res.json();
+        if(Array.isArray(rows)){ 
+          statusEl.innerHTML = `<span class="ok">Analisi aggiornata (tab: ${tab})</span>`;
+          return rows;
+        }
+      }
+    }catch(_e){}
+  }
+  throw new Error("Impossibile leggere il foglio: controlla il nome della tab.");
 }
 
 /* Merge per cantiere+lavorazione+note; accumula orari distinti e somma ore */
@@ -378,7 +394,6 @@ function showDetail(op){
 
       const tdLav = document.createElement('td');
       const lavHtml  = en.lav  ? `<div class="lav">${en.lav.replace(/\n/g,'<br>')}</div>` : '';
-      // NOTE: se le note non ci sono NON scrivere nulla (nessun "+", nessun placeholder)
       const noteHtml = en.note ? `<div class="note">${en.note.replace(/\n/g,'<br>')}</div>` : '';
       tdLav.innerHTML = lavHtml + noteHtml;
 
@@ -421,13 +436,12 @@ async function carica(){
     const [Y,M]=getYM();
     state.Y=Y; state.M=M; state.holidays = italianHolidays(Y);
 
-    const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`);
-    const rows = await res.json();
+    const rows = await fetchRowsFromOpenSheet(SHEET_ID);
 
     state.byOpDay = {};
     rows.forEach((r)=>{
-      // NUOVE INTESTAZIONI: "Data Presenza", "Orari", "Nome Operaio", "Cantiere", "Lavorazione", "Ore", "Note"
-      // Mantengo compatibilità con le VECCHIE per sicurezza.
+      // NUOVE INTESTAZIONI
+      // "Data Presenza", "Orari", "Nome Operaio", "Cantiere", "Lavorazione", "Ore", "Note"
       const dataVal = getFieldSmart(r, ["Data Presenza","Data","A","DATA","data"]);
       const dt = parseDateAny(dataVal);
       if(!dt) return;
@@ -438,7 +452,7 @@ async function carica(){
       if(!op) return;
 
       const cant = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"])).trim();
-      const orariStr = String(getFieldSmart(r, ["Orari","ORARI","B","D","orari"])||"").trim(); // nuova colonna
+      const orariStr = String(getFieldSmart(r, ["Orari","ORARI","B","D","orari"])||"").trim();
       const oreV = getFieldSmart(r, ["Ore","ORE","H","ore"]);
       const ore  = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
       const lav  = stripIntervals(String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"])||""));
@@ -484,10 +498,9 @@ async function carica(){
     }).sort((a,b)=> b.tot - a.tot || a.op.localeCompare(b.op,'it'));
 
     renderSummary(state.summary);
-    statusEl.innerHTML = `<span class="ok">Analisi aggiornata</span>`;
   }catch(e){
     console.error(e);
-    statusEl.innerHTML = `<span class="error">Errore nel caricamento dati.</span>`;
+    statusEl.innerHTML = `<span class="error">${e.message || "Errore nel caricamento dati."}</span>`;
   }finally{
     setLoading(false);
   }
@@ -501,7 +514,6 @@ async function exportDetailPDF(){
   }
   const { jsPDF } = window.jspdf;
 
-  // Clona la card per catturarla intera
   const clone = detailCard.cloneNode(true);
   const holder = document.createElement('div');
   holder.style.position = 'absolute';
