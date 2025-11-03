@@ -957,9 +957,9 @@ async function exportDetailPDF(){
   pdfContainer.style.display = 'block';
   pdfContainer.style.position = 'absolute';
   pdfContainer.style.left = '-10000px';
-  pdfContainer.style.width = '2800px';
+  pdfContainer.style.width = '3200px';
   pdfContainer.style.background = '#fff';
-  pdfContainer.style.padding = '25px';
+  pdfContainer.style.padding = '20px';
   
   // Header con nome operaio e totale
   const header = document.createElement('div');
@@ -1037,7 +1037,7 @@ async function exportDetailPDF(){
   
   // Cattura con html2canvas - scale ridotto per evitare errori di memoria
   const canvas = await html2canvas(pdfContainer, {
-    scale: 1.8,
+    scale: 1.6,
     backgroundColor: '#ffffff',
     useCORS: true,
     logging: false
@@ -1055,12 +1055,13 @@ async function exportDetailPDF(){
   
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 8; // Margini ottimizzati per riempire bene
+  const margin = 5; // Margini minimi per riempire tutta la pagina
   
   const availW = pageW - 2 * margin;
   const availH = pageH - 2 * margin;
   
-  const scale = Math.min(availW / canvas.width, availH / canvas.height);
+  // USA SOLO LA LARGHEZZA per lo scale - riempie tutta la pagina in larghezza
+  const scale = availW / canvas.width;
   const w = canvas.width * scale;
   const h = canvas.height * scale;
   const x = margin;
