@@ -381,9 +381,9 @@
     font-size: 16px;
   }
 
-  /* PDF LAYOUT per 2 colonne */
+  /* PDF LAYOUT container */
   .pdf-container {
-    display: none; /* nascosto normalmente, usato solo per l'export */
+    display: none;
   }
 
   @media print {
@@ -464,7 +464,7 @@
   </div>
 </div>
 
-<!-- Container nascosto per il PDF a 2 colonne -->
+<!-- Container nascosto per il PDF -->
 <div id="pdfContainer" class="pdf-container"></div>
 
 <!-- Librerie -->
@@ -799,7 +799,7 @@ async function carica(){
   }
 }
 
-/* ====== EXPORT PDF A4 — DUE COLONNE AFFIANCATE FULL-WIDTH + STATISTICHE SOTTO, UNA SOLA PAGINA ====== */
+/* ====== EXPORT PDF A4 — due colonne affiancate full-width + statistiche sotto ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -811,7 +811,7 @@ async function exportDetailPDF(){
   const op = state.currentOp;
   const daysInMonth = new Date(Y, M, 0).getDate();
 
-  // --- Statistiche cantieri (invariate) ---
+  // Statistiche cantieri
   const cantieriStats = {};
   const days = state.byOpDay[op] || {};
   Object.keys(days).forEach(d => {
@@ -830,6 +830,9 @@ async function exportDetailPDF(){
   function createTableForRange(startDay, endDay, title){
     const table = document.createElement('table');
     table.className = 'detail';
+    // Anti-overflow per colonne PDF
+    table.style.tableLayout = 'fixed';
+    table.style.wordBreak = 'break-word';
     table.style.width = '100%';
     table.style.fontSize = '55px';
     table.style.borderCollapse = 'separate';
@@ -935,12 +938,9 @@ async function exportDetailPDF(){
     return { table, total: totRange };
   }
 
-  /* === SOLO PDF ===
-     Canvas largo fisso, colonne affiancate (50/50), statistiche sotto centrate.
-     Poi scala l’immagine per farla stare in UNA pagina A4 (portrait). */
-  const CAPTURE_W = 2400;              // larghezza virtuale del canvas
-  const GAP = 40;                       // gap tra le due colonne
-  const COL_W = Math.floor((CAPTURE_W - GAP) / 2);
+  // Canvas virtuale largo: due colonne affiancate + statistiche sotto
+  const CAPTURE_W = 2400;     // larghezza fissa del canvas virtuale
+  const GAP = 40;             // spazio tra le due colonne
 
   const pdfContainer = document.getElementById('pdfContainer');
   pdfContainer.innerHTML = '';
@@ -951,6 +951,7 @@ async function exportDetailPDF(){
   pdfContainer.style.width = CAPTURE_W + 'px';
   pdfContainer.style.background = '#fff';
   pdfContainer.style.padding = '20px';
+  pdfContainer.style.boxSizing = 'border-box';
 
   // Header
   const header = document.createElement('div');
@@ -970,25 +971,32 @@ async function exportDetailPDF(){
     </div>`;
   pdfContainer.appendChild(header);
 
-  // COLONNE AFFIANCATE (50/50, no wrap)
+  // COLONNE AFFIANCATE con CSS GRID (1fr / 1fr)
   const columnsDiv = document.createElement('div');
-  columnsDiv.style.cssText = `display:flex; flex-wrap:nowrap; gap:${GAP}px; width:${CAPTURE_W}px; align-items:flex-start;`;
+  columnsDiv.style.cssText =
+    `display:grid;
+     grid-template-columns: 1fr 1fr;
+     column-gap:${GAP}px;
+     width:${CAPTURE_W}px;
+     align-items:start;`;
+
   const col1 = document.createElement('div');
-  col1.style.cssText = `width:${COL_W}px; min-width:${COL_W}px;`;
+  col1.style.cssText = 'min-width:0; width:100%;';
   const r1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'GG 1-15');
   col1.appendChild(r1.table);
 
   const col2 = document.createElement('div');
-  col2.style.cssText = `width:${COL_W}px; min-width:${COL_W}px;`;
+  col2.style.cssText = 'min-width:0; width:100%;';
   if(daysInMonth > splitDay){
     const r2 = createTableForRange(splitDay + 1, daysInMonth, `GG ${splitDay + 1}-${daysInMonth}`);
     col2.appendChild(r2.table);
   }
+
   columnsDiv.appendChild(col1);
   columnsDiv.appendChild(col2);
   pdfContainer.appendChild(columnsDiv);
 
-  // STATISTICHE sotto, centrate e larghezza massima 90%
+  // STATISTICHE sotto, centrate
   const statsWrapper = document.createElement('div');
   statsWrapper.style.cssText = 'display:flex; justify-content:center; width:100%; margin-top:18px;';
   const statsWidth = Math.floor(CAPTURE_W * 0.9);
@@ -1014,6 +1022,9 @@ async function exportDetailPDF(){
   statsWrapper.appendChild(cantieriBox);
   pdfContainer.appendChild(statsWrapper);
 
+  // Forza box-sizing su tutto il contenuto del PDF (evita overflow strani)
+  pdfContainer.querySelectorAll('*').forEach(el => { el.style.boxSizing = 'border-box'; });
+
   // Render e fit su UNA pagina
   await new Promise(r => requestAnimationFrame(r));
   await new Promise(r => setTimeout(r, 100));
@@ -1025,7 +1036,6 @@ async function exportDetailPDF(){
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
 
-  // Scala per stare in UNA pagina (controllo sia su larghezza che su altezza)
   let scale = Math.min(pageW / canvas.width, pageH / canvas.height);
   const imgW = canvas.width * scale;
   const imgH = canvas.height * scale;
@@ -1035,11 +1045,6 @@ async function exportDetailPDF(){
   pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgW, imgH, undefined, 'FAST');
   pdf.save(`Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g,'_'));
 }
-
-
-
-
-
 
 /* ====== INIT ====== */
 (function init(){
