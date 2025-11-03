@@ -31,8 +31,10 @@
     font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
   
+  /* ⬇️ LARGHEZZA TOTALE */
   .container {
-    max-width: 1600px;
+    max-width: 100%;
+    width: 100%;
     margin: 0 auto;
     padding: 32px 40px;
   }
@@ -191,6 +193,7 @@
     box-shadow: 0 2px 12px rgba(0,0,0,.06);
     overflow: hidden;
     margin-bottom: 28px;
+    width: 100%;
   }
   
   .table-title {
@@ -204,6 +207,7 @@
   
   .table-wrap {
     overflow-x: auto;
+    width: 100%;
   }
 
   table {
@@ -233,13 +237,8 @@
     font-size: 15px;
   }
   
-  tbody tr {
-    transition: background-color 0.15s;
-  }
-  
-  tbody tr:hover {
-    background: var(--hover-bg);
-  }
+  tbody tr { transition: background-color 0.15s; }
+  tbody tr:hover { background: var(--hover-bg); }
   
   td.num {
     text-align: right;
@@ -255,17 +254,10 @@
     cursor: pointer;
     transition: color 0.2s;
   }
-  
-  .op-link:hover {
-    color: var(--primary-dark);
-    text-decoration: underline;
-  }
+  .op-link:hover { color: var(--primary-dark); text-decoration: underline; }
 
   /* DETAIL TABLE */
-  .detail {
-    font-size: 14px;
-  }
-  
+  .detail { font-size: 14px; }
   .detail .daycell {
     white-space: nowrap;
     font-weight: 700;
@@ -273,7 +265,6 @@
     color: var(--text);
     min-width: 120px;
   }
-  
   .detail .cant {
     font-weight: 800;
     color: #c00000;
@@ -281,26 +272,9 @@
     letter-spacing: 0.03em;
     font-size: 13px;
   }
-  
-  .detail .lav {
-    color: var(--text);
-    margin-top: 6px;
-    line-height: 1.5;
-  }
-  
-  .detail .note {
-    color: var(--muted);
-    font-style: italic;
-    margin-top: 4px;
-    font-size: 13px;
-  }
-  
-  .detail td,
-  .detail th {
-    vertical-align: top;
-    padding: 14px 16px;
-  }
-  
+  .detail .lav { color: var(--text); margin-top: 6px; line-height: 1.5; }
+  .detail .note { color: var(--muted); font-style: italic; margin-top: 4px; font-size: 13px; }
+  .detail td, .detail th { vertical-align: top; padding: 14px 16px; }
   .detail tfoot td {
     font-weight: 800;
     border-top: 3px solid var(--border-strong);
@@ -309,61 +283,27 @@
     background: var(--hover-bg);
   }
 
-  /* Weekend/Festivi highlight */
-  .detail tr.off td {
-    background: var(--orange-weak) !important;
-  }
+  .detail tr.off td { background: var(--orange-weak) !important; }
+  .detail tr.alt td { background: #fafafa; }
 
-  /* Alternanza righe normali */
-  .detail tr.alt td {
-    background: #fafafa;
-  }
-
-  /* Gabbia perimetro giorno */
-  .detail tr.gstart td {
-    border-top: 2px solid var(--border-strong);
-  }
-  
-  .detail tr.gend td {
-    border-bottom: 2px solid var(--border-strong);
-  }
+  .detail tr.gstart td { border-top: 2px solid var(--border-strong); }
+  .detail tr.gend td { border-bottom: 2px solid var(--border-strong); }
 
   .detail tr.gstart td.daycell,
   .detail tr.gmid td.daycell,
-  .detail tr.gend td.daycell {
-    border-left: 2px solid var(--border-strong);
-  }
+  .detail tr.gend td.daycell { border-left: 2px solid var(--border-strong); }
 
   .detail tr.gstart td:last-child,
   .detail tr.gmid td:last-child,
-  .detail tr.gend td:last-child {
-    border-right: 2px solid var(--border-strong);
-  }
+  .detail tr.gend td:last-child { border-right: 2px solid var(--border-strong); }
 
-  /* Arrotondamenti */
-  .detail tr.gstart td.daycell {
-    border-top-left-radius: 10px;
-  }
-  
-  .detail tr.gstart td:last-child {
-    border-top-right-radius: 10px;
-  }
-  
-  .detail tr.gend td.daycell {
-    border-bottom-left-radius: 10px;
-  }
-  
-  .detail tr.gend td:last-child {
-    border-bottom-right-radius: 10px;
-  }
+  .detail tr.gstart td.daycell { border-top-left-radius: 10px; }
+  .detail tr.gstart td:last-child { border-top-right-radius: 10px; }
+  .detail tr.gend td.daycell { border-bottom-left-radius: 10px; }
+  .detail tr.gend td:last-child { border-bottom-right-radius: 10px; }
 
-  /* Tot giorno */
-  .detail tr.daytot td {
-    font-weight: 800;
-    background: var(--hover-bg);
-  }
+  .detail tr.daytot td { font-weight: 800; background: var(--hover-bg); }
   
-  /* Footer azioni */
   .detail-footer {
     padding: 20px 24px;
     border-top: 2px solid var(--border);
@@ -373,7 +313,6 @@
     background: var(--hover-bg);
   }
   
-  /* Empty state */
   .empty-state {
     padding: 60px 24px;
     text-align: center;
@@ -799,7 +738,7 @@ async function carica(){
   }
 }
 
-/* ====== EXPORT PDF A4 PORTRAIT — TESTI GRANDI ====== */
+/* ====== EXPORT PDF A4 PORTRAIT — FULL WIDTH ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -811,7 +750,7 @@ async function exportDetailPDF(){
   const op = state.currentOp;
   const daysInMonth = new Date(Y, M, 0).getDate();
   
-  // Calcola statistiche cantieri
+  // Calcola statistiche cantieri (invariate)
   const cantieriStats = {};
   const days = state.byOpDay[op] || {};
   Object.keys(days).forEach(d => {
@@ -832,10 +771,8 @@ async function exportDetailPDF(){
       percentuale: totMese > 0 ? +((ore / totMese) * 100).toFixed(1) : 0
     }));
   
-  // Dividi i giorni: 1-15 e 16-fine mese
   const splitDay = 15;
   
-  // Crea due tabelle separate
   function createTableForRange(startDay, endDay, title) {
     const table = document.createElement('table');
     table.className = 'detail';
@@ -923,7 +860,6 @@ async function exportDetailPDF(){
         tbody.appendChild(tr);
       });
       
-      // Se ci sono più righe per lo stesso giorno, aggiungi riga subtotale
       if(list.length > 1) {
         const trSub = document.createElement('tr');
         trSub.style.background = isOff ? '#ffd699' : '#e8e8e8';
@@ -951,17 +887,17 @@ async function exportDetailPDF(){
     return { table, total: totRange };
   }
   
-  // Crea container temporaneo
+  // ⬇️ CONTAINER PIÙ LARGO PER “RIEMPIRE” LA PAGINA
   const pdfContainer = document.getElementById('pdfContainer');
   pdfContainer.innerHTML = '';
   pdfContainer.style.display = 'block';
   pdfContainer.style.position = 'absolute';
   pdfContainer.style.left = '-10000px';
-  pdfContainer.style.width = '4000px';
+  pdfContainer.style.width = '5000px';           /* ⬅️ più larghezza */
   pdfContainer.style.background = '#fff';
   pdfContainer.style.padding = '15px';
   
-  // Header con nome operaio e totale
+  // Header
   const header = document.createElement('div');
   header.style.cssText = 'margin-bottom:30px; padding:48px; background:#f0f0f0; border:6px solid #333; border-radius:12px; text-align:center;';
   header.innerHTML = `
@@ -979,17 +915,15 @@ async function exportDetailPDF(){
     </div>`;
   pdfContainer.appendChild(header);
   
-  // Container per le 2 colonne - USA TUTTA LA LARGHEZZA
+  // Due colonne
   const columnsDiv = document.createElement('div');
   columnsDiv.style.cssText = 'display:flex; gap:18px; margin-bottom:30px;';
   
-  // Colonna 1: giorni 1-15
   const col1 = document.createElement('div');
   col1.style.cssText = 'flex:1; min-width:0;';
   const result1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'GG 1-15');
   col1.appendChild(result1.table);
   
-  // Colonna 2: giorni 16-fine
   const col2 = document.createElement('div');
   col2.style.cssText = 'flex:1; min-width:0;';
   if(daysInMonth > splitDay) {
@@ -1001,7 +935,7 @@ async function exportDetailPDF(){
   columnsDiv.appendChild(col2);
   pdfContainer.appendChild(columnsDiv);
   
-  // Statistiche cantieri IN FONDO - CENTRATE
+  // Statistiche cantieri — CENTRATE (invariato)
   const statsWrapper = document.createElement('div');
   statsWrapper.style.cssText = 'display:flex; justify-content:center; width:100%;';
   
@@ -1012,7 +946,6 @@ async function exportDetailPDF(){
   
   cantieriArray.forEach((c, idx) => {
     const bgColor = idx === 0 ? '#27ae60' : (idx === 1 ? '#3498db' : (idx === 2 ? '#e67e22' : '#95a5a6'));
-    
     cantieriHTML += `
       <div style="margin-bottom:32px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
@@ -1031,11 +964,10 @@ async function exportDetailPDF(){
   statsWrapper.appendChild(cantieriBox);
   pdfContainer.appendChild(statsWrapper);
   
-  // Attendi rendering
+  // Render
   await new Promise(r => requestAnimationFrame(r));
   await new Promise(r => setTimeout(r, 250));
   
-  // Cattura con html2canvas - scale ridotto per evitare errori di memoria
   const canvas = await html2canvas(pdfContainer, {
     scale: 1.4,
     backgroundColor: '#ffffff',
@@ -1043,10 +975,8 @@ async function exportDetailPDF(){
     logging: false
   });
   
-  // Nascondi container
   pdfContainer.style.display = 'none';
   
-  // Crea PDF A4 PORTRAIT
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'pt',
@@ -1055,18 +985,16 @@ async function exportDetailPDF(){
   
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 5; // Margini minimi per riempire tutta la pagina
-  
+
+  /* ⬇️ MARGINI ZERO E SCALA SU LARGHEZZA */
+  const margin = 0;
   const availW = pageW - 2 * margin;
-  const availH = pageH - 2 * margin;
-  
-  // USA entrambe le dimensioni per far entrare tutto, ma il container è ora molto più largo
-  const scale = Math.min(availW / canvas.width, availH / canvas.height);
+  const scale = availW / canvas.width;              // riempi larghezza
   const w = canvas.width * scale;
   const h = canvas.height * scale;
   const x = margin;
   const y = margin;
-  
+
   pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
   
   const fname = `Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g, '_');
