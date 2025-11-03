@@ -2,131 +2,431 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<title>Analisi per operaio</title>
+<title>Analisi per Operaio - Dashboard Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
-    --primary: hsl(210,100%,40%);
-    --text: hsl(210,10%,20%);
-    --muted: hsl(210,6%,45%);
-    --bg: hsl(210,20%,98%);
-    --card: #fff;
-    --border: hsl(210,15%,85%);
-    --orange-weak: hsla(30,100%,50%,0.10);
-    --orange-weak-border: hsla(30,100%,50%,0.25);
+    --primary: hsl(210,100%,45%);
+    --primary-dark: hsl(210,100%,35%);
+    --text: hsl(210,15%,15%);
+    --text-light: hsl(210,10%,40%);
+    --muted: hsl(210,8%,50%);
+    --bg: hsl(210,25%,96%);
+    --card: #ffffff;
+    --border: hsl(210,20%,88%);
+    --border-strong: hsl(210,20%,75%);
+    --orange-weak: hsla(30,100%,50%,0.12);
+    --orange-border: hsla(30,100%,50%,0.3);
+    --success: hsl(140,70%,40%);
+    --error: hsl(0,70%,50%);
+    --hover-bg: hsl(210,30%,98%);
   }
-  *{box-sizing:border-box}
-  body{margin:0; background:var(--bg); color:var(--text);
-       font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-  .container{width:100%; max-width:1200px; margin:0 auto; padding:18px}
-  h1{margin:0 0 12px; font-size:20px}
-
-  .panel{
-    background:var(--card); border:1px solid var(--border); border-radius:12px;
-    padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); margin-bottom:16px;
+  
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
-  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-  .nav a{
-    padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff;
-    text-decoration:none; font-weight:700; color:var(--text)
+  
+  .container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 32px 40px;
   }
-  .nav a.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
-  input[type="month"]{padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff}
-  button{padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer}
-  button.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
-  .spinner{display:none}
-  .spinner.show{display:inline-block; width:16px; height:16px; border:2px solid #ddd;
-    border-top-color:var(--primary); border-radius:50%; animation:spin .9s linear infinite; vertical-align:-3px}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .ok{color:#0b7a0b; font-weight:700}
-  .error{color:#b00020; font-weight:700}
-
-  .table-card{
-    background:var(--card); border:1px solid var(--border); border-radius:12px;
-    box-shadow:0 2px 8px rgba(0,0,0,.04); overflow:auto;
+  
+  h1 {
+    margin: 0 0 24px;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
   }
-  .table-title{padding:10px 12px; border-bottom:1px solid var(--border); font-weight:700}
-  .table-wrap{width:100%; overflow:auto}
 
-  table{border-collapse:separate; border-spacing:0; width:100%; font-size:13px}
-  thead th{background:#fff; border-bottom:1px solid var(--border); padding:8px 10px; text-align:left; white-space:nowrap}
-  tbody td, tbody th{border-top:1px solid var(--border); padding:8px 10px}
-  td.num{text-align:right}
+  /* CONTROL PANEL */
+  .control-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    margin-bottom: 28px;
+  }
+  
+  .control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .control-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .nav {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .nav a {
+    padding: 10px 18px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  
+  .nav a:hover {
+    border-color: var(--primary);
+    background: var(--hover-bg);
+  }
+  
+  .nav a.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  
+  .nav a.primary:hover {
+    background: var(--primary-dark);
+  }
+  
+  input[type="month"] {
+    padding: 10px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    font-size: 15px;
+    font-weight: 500;
+    min-width: 160px;
+    transition: border-color 0.2s;
+  }
+  
+  input[type="month"]:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+  button {
+    padding: 10px 18px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+  
+  button:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--hover-bg);
+  }
+  
+  button.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  
+  button.primary:hover:not(:disabled) {
+    background: var(--primary-dark);
+  }
+  
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .spinner {
+    display: none;
+  }
+  
+  .spinner.show {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #ddd;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -4px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  #status {
+    margin-top: 12px;
+    font-size: 15px;
+  }
+  
+  .ok {
+    color: var(--success);
+    font-weight: 600;
+  }
+  
+  .error {
+    color: var(--error);
+    font-weight: 600;
+  }
 
-  .op-link{color:var(--primary); font-weight:700; text-decoration:none; cursor:pointer}
-  .op-link:hover{text-decoration:underline}
+  /* TABLE CARDS */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  
+  .table-title {
+    padding: 20px 24px;
+    border-bottom: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text);
+    background: linear-gradient(to bottom, var(--card), var(--hover-bg));
+  }
+  
+  .table-wrap {
+    overflow-x: auto;
+  }
 
-  /* Dettaglio */
-  .detail .daycell{white-space:nowrap; font-weight:700}
-  .detail .cant{font-weight:800; color:#c00000; text-transform:uppercase; letter-spacing:.02em}
-  .detail .lav{color:#444; margin-top:2px}
-  .detail .note{color:var(--muted); font-style:italic}
-  .detail td, .detail th { vertical-align: top; }
-  .detail tfoot td{font-weight:800; border-top:2px solid var(--border)}
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 15px;
+  }
+  
+  thead th {
+    background: var(--hover-bg);
+    border-bottom: 2px solid var(--border-strong);
+    padding: 16px 18px;
+    text-align: left;
+    white-space: nowrap;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-light);
+  }
+  
+  tbody td,
+  tbody th {
+    border-top: 1px solid var(--border);
+    padding: 16px 18px;
+    font-size: 15px;
+  }
+  
+  tbody tr {
+    transition: background-color 0.15s;
+  }
+  
+  tbody tr:hover {
+    background: var(--hover-bg);
+  }
+  
+  td.num {
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
 
-  /* Weekend arancione (prioritario) */
-  .detail tr.off td { background: var(--orange-weak) !important; }
+  .op-link {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .op-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
 
-  /* Alternanza sfondo per i giorni non-off */
-  .detail tr.alt td { background: #f7f7f7; }
+  /* DETAIL TABLE */
+  .detail {
+    font-size: 14px;
+  }
+  
+  .detail .daycell {
+    white-space: nowrap;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    min-width: 120px;
+  }
+  
+  .detail .cant {
+    font-weight: 800;
+    color: #c00000;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 13px;
+  }
+  
+  .detail .lav {
+    color: var(--text);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  
+  .detail .note {
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 4px;
+    font-size: 13px;
+  }
+  
+  .detail td,
+  .detail th {
+    vertical-align: top;
+    padding: 14px 16px;
+  }
+  
+  .detail tfoot td {
+    font-weight: 800;
+    border-top: 3px solid var(--border-strong);
+    padding: 18px 16px;
+    font-size: 16px;
+    background: var(--hover-bg);
+  }
 
-  /* Gabbia perimetro del giorno (un solo riquadro grande) */
-  .detail tr.gstart td { border-top:1px solid var(--border); }
-  .detail tr.gend   td { border-bottom:1px solid var(--border); }
+  /* Weekend/Festivi highlight */
+  .detail tr.off td {
+    background: var(--orange-weak) !important;
+  }
+
+  /* Alternanza righe normali */
+  .detail tr.alt td {
+    background: #fafafa;
+  }
+
+  /* Gabbia perimetro giorno */
+  .detail tr.gstart td {
+    border-top: 2px solid var(--border-strong);
+  }
+  
+  .detail tr.gend td {
+    border-bottom: 2px solid var(--border-strong);
+  }
 
   .detail tr.gstart td.daycell,
-  .detail tr.gmid   td.daycell,
-  .detail tr.gend   td.daycell { border-left:1px solid var(--border); }
+  .detail tr.gmid td.daycell,
+  .detail tr.gend td.daycell {
+    border-left: 2px solid var(--border-strong);
+  }
 
   .detail tr.gstart td:last-child,
-  .detail tr.gmid   td:last-child,
-  .detail tr.gend   td:last-child { border-right:1px solid var(--border); }
+  .detail tr.gmid td:last-child,
+  .detail tr.gend td:last-child {
+    border-right: 2px solid var(--border-strong);
+  }
 
-  /* Arrotondamenti agli angoli del perimetro */
-  .detail tr.gstart td.daycell { border-top-left-radius:10px; }
-  .detail tr.gstart td:last-child { border-top-right-radius:10px; }
-  .detail tr.gend  td.daycell { border-bottom-left-radius:10px; }
-  .detail tr.gend  td:last-child { border-bottom-right-radius:10px; }
+  /* Arrotondamenti */
+  .detail tr.gstart td.daycell {
+    border-top-left-radius: 10px;
+  }
+  
+  .detail tr.gstart td:last-child {
+    border-top-right-radius: 10px;
+  }
+  
+  .detail tr.gend td.daycell {
+    border-bottom-left-radius: 10px;
+  }
+  
+  .detail tr.gend td:last-child {
+    border-bottom-right-radius: 10px;
+  }
 
-  /* Tot giorno (righe di chiusura) */
-  .detail tr.daytot td { font-weight:800; }
+  /* Tot giorno */
+  .detail tr.daytot td {
+    font-weight: 800;
+    background: var(--hover-bg);
+  }
+  
+  /* Footer azioni */
+  .detail-footer {
+    padding: 20px 24px;
+    border-top: 2px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: var(--hover-bg);
+  }
+  
+  /* Empty state */
+  .empty-state {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  /* PDF LAYOUT per 2 colonne */
+  .pdf-container {
+    display: none; /* nascosto normalmente, usato solo per l'export */
+  }
+
+  @media print {
+    body { background: white; }
+    .container { padding: 20px; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Analisi per operaio</h1>
+  <h1>📊 Analisi per Operaio</h1>
 
-  <div class="panel">
-    <div class="row" style="justify-content:space-between">
-      <div class="row">
+  <div class="control-panel">
+    <div class="control-row">
+      <div class="control-left">
         <button id="prevMonth" title="Mese precedente">◀</button>
-        <input type="month" id="mese">
+        <input type="month" id="mese" />
         <button id="nextMonth" title="Mese successivo">▶</button>
-        <button id="btnCarica" class="primary">Carica</button>
+        <button id="btnCarica" class="primary">Carica Dati</button>
         <span id="spin" class="spinner"></span>
       </div>
-      <div class="row nav">
+      <div class="nav">
         <a href="gestione.html">Presenze</a>
-        <a class="primary" href="analisi-operaio.html">Analisi per operaio</a>
-        <a href="analisi-cantiere.html">Analisi per cantiere</a>
+        <a class="primary" href="analisi-operaio.html">Analisi per Operaio</a>
+        <a href="analisi-cantiere.html">Analisi per Cantiere</a>
       </div>
     </div>
-    <div id="status" style="margin-top:6px"></div>
+    <div id="status"></div>
   </div>
 
   <!-- RIEPILOGO -->
   <div class="table-card">
-    <div class="table-title">Riepilogo mese corrente</div>
+    <div class="table-title">📈 Riepilogo Mensile</div>
     <div class="table-wrap">
       <table id="tbl">
         <thead>
           <tr>
             <th>Operaio</th>
-            <th class="num">Ore totali</th>
-            <th class="num">Giorni</th>
-            <th class="num">Media / giorno</th>
-            <th class="num">Ore weekend/festivi</th>
-            <th class="num">GG “NO DATI” (feriali)</th>
+            <th class="num">Ore Totali</th>
+            <th class="num">Giorni Lavorati</th>
+            <th class="num">Media / Giorno</th>
+            <th class="num">Ore Weekend/Festivi</th>
+            <th class="num">GG "NO DATI" (feriali)</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -135,34 +435,37 @@
   </div>
 
   <!-- DETTAGLIO -->
-  <div class="table-card" id="detailCard" style="margin-top:16px; display:none">
-    <div class="table-title" id="detailTitle">Dettaglio operaio</div>
+  <div class="table-card" id="detailCard" style="display:none">
+    <div class="table-title" id="detailTitle">👤 Dettaglio Operaio</div>
     <div class="table-wrap">
       <table id="detailTable" class="detail">
         <thead>
           <tr>
             <th>Giorno</th>
             <th>Cantiere</th>
-            <th class="num">Orario</th>
+            <th class="num">Orario / Ore</th>
             <th>Lavorazioni / Note</th>
           </tr>
         </thead>
         <tbody id="detailBody"></tbody>
         <tfoot>
           <tr>
-            <td colspan="2">Totale mese</td>
+            <td colspan="2"><strong>Totale Mese</strong></td>
             <td class="num" id="detailTotOre">0</td>
             <td></td>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div style="padding:10px 12px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px">
-      <button id="btnDetailPDF">Esporta PDF</button>
-      <button id="btnCloseDetail">Chiudi dettaglio</button>
+    <div class="detail-footer">
+      <button id="btnDetailPDF">📄 Esporta PDF (2 colonne)</button>
+      <button id="btnCloseDetail">✕ Chiudi Dettaglio</button>
     </div>
   </div>
 </div>
+
+<!-- Container nascosto per il PDF a 2 colonne -->
+<div id="pdfContainer" class="pdf-container"></div>
 
 <!-- Librerie -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -182,6 +485,7 @@ function calcEaster(Y){
         m=Math.floor((a+11*h+22*L)/451),month=Math.floor((h+L-7*m+114)/31),day=((h+L-7*m+114)%31)+1;
   return new Date(Y,month-1,day);
 }
+
 function italianHolidays(year){
   const set=new Set(),add=(m,d)=>set.add(`${year}-${pad(m)}-${pad(d)}`);
   add(1,1); add(1,6); add(4,25); add(5,1); add(6,2); add(8,15); add(11,1); add(12,8); add(12,25); add(12,26);
@@ -192,7 +496,6 @@ function italianHolidays(year){
 
 const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
 
-/* parsing date flessibile */
 function parseDateAny(v){
   if(!v) return null;
   if(v instanceof Date) return v;
@@ -202,7 +505,6 @@ function parseDateAny(v){
   const t = new Date(s); return isNaN(t) ? null : t;
 }
 
-/* pick rigoroso: usa solo i nomi delle intestazioni, niente lettere di colonna */
 function pick(row, ...names){
   if(!row) return "";
   const map = new Map(Object.keys(row).map(k => [normalize(k), k]));
@@ -222,7 +524,6 @@ function isBlankCantiere(value){
   return false;
 }
 
-/* rimuove eventuali intervalli orari dal testo lavorazione/note */
 const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
 const stripIntervals = s => s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : "";
 
@@ -244,22 +545,25 @@ const btnCloseDetail = document.getElementById('btnCloseDetail');
 const state = { Y:null, M:null, holidays:new Set(), byOpDay:{}, operai:[], summary:[], currentOp:null };
 
 function setYM(Y,M){ meseInput.value = `${Y}-${pad(M)}`; }
+
 function getYM(){
   const v = meseInput.value;
   if(/^\d{4}-\d{2}$/.test(v)){ const [Y,M]=v.split('-').map(Number); return [Y,M]; }
   const d=new Date(); return [d.getFullYear(), d.getMonth()+1];
 }
+
 function shiftMonth(delta){
   let [Y,M]=getYM(); M+=delta;
   if(M<1){M=12;Y--} if(M>12){M=1;Y++}
   setYM(Y,M); carica();
 }
+
 function setLoading(on){
   spin.classList.toggle('show', !!on);
   btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
 }
 
-/* ====== FETCH OPENSHEET con fallback tab ====== */
+/* ====== FETCH ====== */
 async function fetchRowsFromOpenSheet(sheetId){
   for(const tab of TAB_CANDIDATES){
     try{
@@ -268,7 +572,7 @@ async function fetchRowsFromOpenSheet(sheetId){
       if(res.ok){
         const rows = await res.json();
         if(Array.isArray(rows)){
-          statusEl.innerHTML = `<span class="ok">Analisi aggiornata (tab: ${tab})</span>`;
+          statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (tab: ${tab})</span>`;
           return rows;
         }
       }
@@ -277,7 +581,6 @@ async function fetchRowsFromOpenSheet(sheetId){
   throw new Error("Impossibile leggere il foglio: controlla il nome della tab.");
 }
 
-/* Merge per cantiere+lavorazione+note; accumula orari distinti e somma ore */
 function groupDayEntries(entries){
   const map = new Map();
   entries.forEach(e=>{
@@ -304,17 +607,17 @@ function groupDayEntries(entries){
 function renderSummary(list){
   tbody.innerHTML = '';
   if(list.length===0){
-    tbody.innerHTML = `<tr><td colspan="6" style="padding:16px; color:#999; text-align:center">Nessun operaio con ore nel mese.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nessun operaio con ore registrate in questo mese.</td></tr>`;
     return;
   }
   list.forEach(r=>{
     const tr=document.createElement('tr');
     tr.innerHTML = `
       <td><a class="op-link" data-op="${r.op}">${r.op}</a></td>
-      <td class="num">${r.tot}</td>
+      <td class="num">${r.tot} h</td>
       <td class="num">${r.days}</td>
-      <td class="num">${r.media}</td>
-      <td class="num">${r.weekend}</td>
+      <td class="num">${r.media} h</td>
+      <td class="num">${r.weekend} h</td>
       <td class="num">${r.nodati}</td>`;
     tbody.appendChild(tr);
   });
@@ -326,7 +629,6 @@ function showDetail(op){
   const daysInMonth = new Date(Y, M, 0).getDate();
   detailBody.innerHTML = '';
   let totMese = 0;
-
   let altFlag = false;
 
   for(let d=1; d<=daysInMonth; d++){
@@ -381,7 +683,7 @@ function showDetail(op){
       const tdOrario = document.createElement('td');
       tdOrario.className = 'num';
       const firstLine = en.orari ? en.orari : '';
-      const secondLine = en.ore ? `<br><small>${en.ore} h</small>` : '';
+      const secondLine = en.ore ? `<br><strong>${en.ore} h</strong>` : '';
       tdOrario.innerHTML = firstLine + secondLine;
 
       const tdLav = document.createElement('td');
@@ -406,7 +708,7 @@ function showDetail(op){
       trSub.innerHTML = `
         <td class="daycell"></td>
         <td style="text-align:right;">Tot giorno:</td>
-        <td class="num">${(+dayTot.toFixed(2))} h</td>
+        <td class="num"><strong>${(+dayTot.toFixed(2))} h</strong></td>
         <td></td>`;
       detailBody.appendChild(trSub);
     }
@@ -415,9 +717,10 @@ function showDetail(op){
     if(!isOff) altFlag = !altFlag;
   }
 
-  detailTotOre.textContent = (+totMese.toFixed(2));
-  detailTitle.textContent = `Dettaglio operaio — ${op} (${pad(M)}/${Y})`;
+  detailTotOre.textContent = `${(+totMese.toFixed(2))} h`;
+  detailTitle.textContent = `👤 Dettaglio Operaio — ${op} (${pad(M)}/${Y})`;
   detailCard.style.display = 'block';
+  detailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* ====== DATA LOAD ====== */
@@ -432,23 +735,21 @@ async function carica(){
 
     state.byOpDay = {};
     rows.forEach((r)=>{
-      // NUOVE INTESTAZIONI ufficiali:
-      // ID, Data inserimento, Data Presenza, Orari, Nome Operaio, UserID, Cantiere, Lavorazione, Ore, Note
-      const dataVal = pick(r, "Data Presenza", "Data"); // tollero "Data" vecchia
+      const dataVal = pick(r, "Data Presenza", "Data");
       const dt = parseDateAny(dataVal);
       if(!dt) return;
       const y=dt.getFullYear(), m=dt.getMonth()+1, d=dt.getDate();
       if(y!==Y || m!==M) return;
 
-      const op   = String(pick(r, "Nome Operaio", "Operaio")).trim();
+      const op = String(pick(r, "Nome Operaio", "Operaio")).trim();
       if(!op) return;
 
-      const cant    = String(pick(r, "Cantiere")).trim();
-      const orariStr= String(pick(r, "Orari") || "").trim();
-      const oreV    = pick(r, "Ore");
-      const ore     = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
-      const lav     = stripIntervals(String(pick(r, "Lavorazione") || ""));
-      const note    = stripIntervals(String(pick(r, "Note") || ""));
+      const cant     = String(pick(r, "Cantiere")).trim();
+      const orariStr = String(pick(r, "Orari") || "").trim();
+      const oreV     = pick(r, "Ore");
+      const ore      = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
+      const lav      = stripIntervals(String(pick(r, "Lavorazione") || ""));
+      const note     = stripIntervals(String(pick(r, "Note") || ""));
 
       (state.byOpDay[op] ||= {});
       (state.byOpDay[op][d] ||= []);
@@ -492,72 +793,230 @@ async function carica(){
     renderSummary(state.summary);
   }catch(e){
     console.error(e);
-    statusEl.innerHTML = `<span class="error">${e.message || "Errore nel caricamento dati."}</span>`;
+    statusEl.innerHTML = `<span class="error">✗ ${e.message || "Errore nel caricamento dati."}</span>`;
   }finally{
     setLoading(false);
   }
 }
 
-/* ====== EXPORT PDF A4 — pagina unica ====== */
+/* ====== EXPORT PDF A4 — 2 COLONNE ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
     return;
   }
+
   const { jsPDF } = window.jspdf;
-
-  const clone = detailCard.cloneNode(true);
-  const holder = document.createElement('div');
-  holder.style.position = 'absolute';
-  holder.style.left = '-10000px';
-  holder.style.top = '0';
-  holder.style.background = '#ffffff';
-  holder.appendChild(clone);
-  document.body.appendChild(holder);
-  await new Promise(r=>requestAnimationFrame(r));
-
-  const canvas = await html2canvas(clone, {
+  const [Y, M] = [state.Y, state.M];
+  const op = state.currentOp;
+  const daysInMonth = new Date(Y, M, 0).getDate();
+  
+  // Dividi i giorni: 1-15 e 16-fine mese
+  const splitDay = 15;
+  
+  // Crea due tabelle separate
+  function createTableForRange(startDay, endDay, title) {
+    const table = document.createElement('table');
+    table.className = 'detail';
+    table.style.width = '100%';
+    table.style.fontSize = '11px';
+    table.style.borderCollapse = 'separate';
+    table.style.borderSpacing = '0';
+    
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr style="background: #f0f0f0;">
+        <th style="padding:8px; text-align:left; border:1px solid #ccc; font-weight:700; font-size:10px;">${title}</th>
+        <th style="padding:8px; text-align:left; border:1px solid #ccc; font-weight:700; font-size:10px;">Cantiere</th>
+        <th style="padding:8px; text-align:right; border:1px solid #ccc; font-weight:700; font-size:10px;">Ore</th>
+      </tr>`;
+    table.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    let totRange = 0;
+    let altFlag = false;
+    
+    for(let d = startDay; d <= endDay; d++) {
+      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
+      const date = new Date(Y, M-1, d);
+      const dow = (date.getDay()+6)%7;
+      const iso = `${Y}-${pad(M)}-${pad(d)}`;
+      const isOff = (dow===5||dow===6) || state.holidays.has(iso);
+      
+      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
+      const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
+      
+      const bgColor = isOff ? 'hsla(30,100%,50%,0.15)' : (altFlag ? '#fafafa' : '#fff');
+      
+      if(!list0.length) {
+        const tr = document.createElement('tr');
+        tr.style.background = bgColor;
+        tr.innerHTML = `
+          <td style="padding:8px; border:1px solid #ddd; font-weight:700;">${dayLabel}</td>
+          <td style="padding:8px; border:1px solid #ddd;">—</td>
+          <td style="padding:8px; border:1px solid #ddd; text-align:right;"></td>`;
+        tbody.appendChild(tr);
+        if(!isOff) altFlag = !altFlag;
+        continue;
+      }
+      
+      const list = groupDayEntries(list0);
+      let dayTot = 0;
+      
+      list.forEach((en, idx) => {
+        const tr = document.createElement('tr');
+        tr.style.background = bgColor;
+        
+        if(idx === 0) {
+          const tdDay = document.createElement('td');
+          tdDay.rowSpan = list.length;
+          tdDay.style.cssText = 'padding:8px; border:1px solid #ddd; font-weight:700; vertical-align:top;';
+          tdDay.textContent = dayLabel;
+          tr.appendChild(tdDay);
+        }
+        
+        const tdCant = document.createElement('td');
+        tdCant.style.cssText = 'padding:8px; border:1px solid #ddd; vertical-align:top;';
+        tdCant.innerHTML = `<strong style="color:#c00; font-size:10px;">${en.cant}</strong>`;
+        if(en.lav) tdCant.innerHTML += `<br><span style="font-size:10px;">${en.lav}</span>`;
+        if(en.note) tdCant.innerHTML += `<br><em style="font-size:9px; color:#666;">${en.note}</em>`;
+        
+        const tdOre = document.createElement('td');
+        tdOre.style.cssText = 'padding:8px; border:1px solid #ddd; text-align:right; font-weight:700; vertical-align:top;';
+        tdOre.textContent = en.ore ? `${en.ore} h` : '';
+        
+        dayTot += (en.ore || 0);
+        
+        tr.appendChild(tdCant);
+        tr.appendChild(tdOre);
+        tbody.appendChild(tr);
+      });
+      
+      totRange += dayTot;
+      if(!isOff) altFlag = !altFlag;
+    }
+    
+    const tfoot = document.createElement('tfoot');
+    tfoot.innerHTML = `
+      <tr style="background:#f5f5f5;">
+        <td colspan="2" style="padding:10px; border:2px solid #999; font-weight:800;">Totale periodo:</td>
+        <td style="padding:10px; border:2px solid #999; text-align:right; font-weight:800;">${(+totRange.toFixed(2))} h</td>
+      </tr>`;
+    table.appendChild(tbody);
+    table.appendChild(tfoot);
+    
+    return { table, total: totRange };
+  }
+  
+  // Crea container temporaneo
+  const pdfContainer = document.getElementById('pdfContainer');
+  pdfContainer.innerHTML = '';
+  pdfContainer.style.display = 'block';
+  pdfContainer.style.position = 'absolute';
+  pdfContainer.style.left = '-10000px';
+  pdfContainer.style.width = '1400px';
+  pdfContainer.style.background = '#fff';
+  pdfContainer.style.padding = '30px';
+  
+  // Header
+  const header = document.createElement('div');
+  header.style.cssText = 'margin-bottom:20px; padding-bottom:15px; border-bottom:3px solid #333;';
+  header.innerHTML = `
+    <h2 style="margin:0 0 8px; font-size:24px; color:#333;">Dettaglio Operaio: ${op}</h2>
+    <p style="margin:0; font-size:16px; color:#666;">Mese: ${pad(M)}/${Y}</p>`;
+  pdfContainer.appendChild(header);
+  
+  // Container per le 2 colonne
+  const columnsDiv = document.createElement('div');
+  columnsDiv.style.cssText = 'display:flex; gap:30px; justify-content:space-between;';
+  
+  // Colonna 1: giorni 1-15
+  const col1 = document.createElement('div');
+  col1.style.cssText = 'flex:1; min-width:0;';
+  const result1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'Giorni 1-15');
+  col1.appendChild(result1.table);
+  
+  // Colonna 2: giorni 16-fine
+  const col2 = document.createElement('div');
+  col2.style.cssText = 'flex:1; min-width:0;';
+  if(daysInMonth > splitDay) {
+    const result2 = createTableForRange(splitDay + 1, daysInMonth, `Giorni ${splitDay + 1}-${daysInMonth}`);
+    col2.appendChild(result2.table);
+  }
+  
+  columnsDiv.appendChild(col1);
+  columnsDiv.appendChild(col2);
+  pdfContainer.appendChild(columnsDiv);
+  
+  // Footer con totale
+  const totMese = state.summary.find(s => s.op === op)?.tot || 0;
+  const footer = document.createElement('div');
+  footer.style.cssText = 'margin-top:25px; padding-top:15px; border-top:3px solid #333; text-align:right;';
+  footer.innerHTML = `<strong style="font-size:18px; color:#333;">TOTALE MESE: ${totMese} h</strong>`;
+  pdfContainer.appendChild(footer);
+  
+  // Attendi rendering
+  await new Promise(r => requestAnimationFrame(r));
+  await new Promise(r => setTimeout(r, 100));
+  
+  // Cattura con html2canvas
+  const canvas = await html2canvas(pdfContainer, {
     scale: 2,
     backgroundColor: '#ffffff',
-    useCORS: true
+    useCORS: true,
+    logging: false
   });
-
-  document.body.removeChild(holder);
-
-  const pdf = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'});
+  
+  // Nascondi container
+  pdfContainer.style.display = 'none';
+  
+  // Crea PDF A4 landscape
+  const pdf = new jsPDF({
+    orientation: 'landscape',
+    unit: 'pt',
+    format: 'a4'
+  });
+  
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const M = 24;
-
-  const availW = pageW - 2*M;
-  const availH = pageH - 2*M;
+  const margin = 30;
+  
+  const availW = pageW - 2 * margin;
+  const availH = pageH - 2 * margin;
+  
   const scale = Math.min(availW / canvas.width, availH / canvas.height);
   const w = canvas.width * scale;
   const h = canvas.height * scale;
-  const x = M + (availW - w)/2;
-  const y = M + (availH - h)/2;
-
+  const x = margin + (availW - w) / 2;
+  const y = margin + (availH - h) / 2;
+  
   pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
-  const fname = detailTitle.textContent.replace(/\s+/g,'_').replace(/[^\w\-()]/g,'') + '.pdf';
+  
+  const fname = `Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g, '_');
   pdf.save(fname);
 }
 
 /* ====== INIT ====== */
 (function init(){
-  const now=new Date(); setYM(now.getFullYear(), now.getMonth()+1);
+  const now = new Date();
+  setYM(now.getFullYear(), now.getMonth() + 1);
 
-  document.getElementById('btnCarica').addEventListener('click', carica);
-  prevBtn.addEventListener('click', ()=>shiftMonth(-1));
-  nextBtn.addEventListener('click', ()=>shiftMonth(+1));
+  btnCarica.addEventListener('click', carica);
+  prevBtn.addEventListener('click', () => shiftMonth(-1));
+  nextBtn.addEventListener('click', () => shiftMonth(+1));
   meseInput.addEventListener('change', carica);
 
-  tbody.addEventListener('click', (e)=>{
+  tbody.addEventListener('click', (e) => {
     const a = e.target.closest('.op-link');
-    if(a && a.dataset.op){ showDetail(a.dataset.op); }
+    if(a && a.dataset.op) {
+      showDetail(a.dataset.op);
+    }
   });
 
   document.getElementById('btnDetailPDF').addEventListener('click', exportDetailPDF);
-  btnCloseDetail.addEventListener('click', ()=>{ detailCard.style.display='none'; });
+  btnCloseDetail.addEventListener('click', () => {
+    detailCard.style.display = 'none';
+  });
 
   carica();
 })();
