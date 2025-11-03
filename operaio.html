@@ -16,380 +16,67 @@
     --border: hsl(210,20%,88%);
     --border-strong: hsl(210,20%,75%);
     --orange-weak: hsla(30,100%,50%,0.12);
-    --orange-border: hsla(30,100%,50%,0.3);
     --success: hsl(140,70%,40%);
     --error: hsl(0,70%,50%);
     --hover-bg: hsl(210,30%,98%);
   }
-  
-  * { box-sizing: border-box; }
-  
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  }
-  
-  .container {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 32px 40px;
-  }
-  
-  h1 {
-    margin: 0 0 24px;
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.5px;
-  }
-
-  /* CONTROL PANEL */
-  .control-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    margin-bottom: 28px;
-  }
-  
-  .control-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  
-  .control-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .nav {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .nav a {
-    padding: 10px 18px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--text);
-    transition: all 0.2s;
-  }
-  
-  .nav a:hover {
-    border-color: var(--primary);
-    background: var(--hover-bg);
-  }
-  
-  .nav a.primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-  }
-  
-  .nav a.primary:hover {
-    background: var(--primary-dark);
-  }
-  
-  input[type="month"] {
-    padding: 10px 16px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    font-size: 15px;
-    font-weight: 500;
-    min-width: 160px;
-    transition: border-color 0.2s;
-  }
-  
-  input[type="month"]:focus {
-    outline: none;
-    border-color: var(--primary);
-  }
-  
-  button {
-    padding: 10px 18px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.2s;
-    color: var(--text);
-  }
-  
-  button:hover:not(:disabled) {
-    border-color: var(--primary);
-    background: var(--hover-bg);
-  }
-  
-  button.primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-  }
-  
-  button.primary:hover:not(:disabled) {
-    background: var(--primary-dark);
-  }
-  
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .spinner {
-    display: none;
-  }
-  
-  .spinner.show {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #ddd;
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    vertical-align: -4px;
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  #status {
-    margin-top: 12px;
-    font-size: 15px;
-  }
-  
-  .ok {
-    color: var(--success);
-    font-weight: 600;
-  }
-  
-  .error {
-    color: var(--error);
-    font-weight: 600;
-  }
-
-  /* TABLE CARDS */
-  .table-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    overflow: hidden;
-    margin-bottom: 28px;
-  }
-  
-  .table-title {
-    padding: 20px 24px;
-    border-bottom: 2px solid var(--border);
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--text);
-    background: linear-gradient(to bottom, var(--card), var(--hover-bg));
-  }
-  
-  .table-wrap {
-    overflow-x: auto;
-  }
-
-  table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    font-size: 15px;
-  }
-  
-  thead th {
-    background: var(--hover-bg);
-    border-bottom: 2px solid var(--border-strong);
-    padding: 16px 18px;
-    text-align: left;
-    white-space: nowrap;
-    font-weight: 700;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-light);
-  }
-  
-  tbody td,
-  tbody th {
-    border-top: 1px solid var(--border);
-    padding: 16px 18px;
-    font-size: 15px;
-  }
-  
-  tbody tr {
-    transition: background-color 0.15s;
-  }
-  
-  tbody tr:hover {
-    background: var(--hover-bg);
-  }
-  
-  td.num {
-    text-align: right;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .op-link {
-    color: var(--primary);
-    font-weight: 700;
-    font-size: 16px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-  
-  .op-link:hover {
-    color: var(--primary-dark);
-    text-decoration: underline;
-  }
-
-  /* DETAIL TABLE */
-  .detail {
-    font-size: 14px;
-  }
-  
-  .detail .daycell {
-    white-space: nowrap;
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--text);
-    min-width: 120px;
-  }
-  
-  .detail .cant {
-    font-weight: 800;
-    color: #c00000;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    font-size: 13px;
-  }
-  
-  .detail .lav {
-    color: var(--text);
-    margin-top: 6px;
-    line-height: 1.5;
-  }
-  
-  .detail .note {
-    color: var(--muted);
-    font-style: italic;
-    margin-top: 4px;
-    font-size: 13px;
-  }
-  
-  .detail td,
-  .detail th {
-    vertical-align: top;
-    padding: 14px 16px;
-  }
-  
-  .detail tfoot td {
-    font-weight: 800;
-    border-top: 3px solid var(--border-strong);
-    padding: 18px 16px;
-    font-size: 16px;
-    background: var(--hover-bg);
-  }
-
-  /* Weekend/Festivi highlight */
-  .detail tr.off td {
-    background: var(--orange-weak) !important;
-  }
-
-  /* Alternanza righe normali */
-  .detail tr.alt td {
-    background: #fafafa;
-  }
-
-  /* Gabbia perimetro giorno */
-  .detail tr.gstart td {
-    border-top: 2px solid var(--border-strong);
-  }
-  
-  .detail tr.gend td {
-    border-bottom: 2px solid var(--border-strong);
-  }
-
-  .detail tr.gstart td.daycell,
-  .detail tr.gmid td.daycell,
-  .detail tr.gend td.daycell {
-    border-left: 2px solid var(--border-strong);
-  }
-
-  .detail tr.gstart td:last-child,
-  .detail tr.gmid td:last-child,
-  .detail tr.gend td:last-child {
-    border-right: 2px solid var(--border-strong);
-  }
-
-  /* Arrotondamenti */
-  .detail tr.gstart td.daycell {
-    border-top-left-radius: 10px;
-  }
-  
-  .detail tr.gstart td:last-child {
-    border-top-right-radius: 10px;
-  }
-  
-  .detail tr.gend td.daycell {
-    border-bottom-left-radius: 10px;
-  }
-  
-  .detail tr.gend td:last-child {
-    border-bottom-right-radius: 10px;
-  }
-
-  /* Tot giorno */
-  .detail tr.daytot td {
-    font-weight: 800;
-    background: var(--hover-bg);
-  }
-  
-  /* Footer azioni */
-  .detail-footer {
-    padding: 20px 24px;
-    border-top: 2px solid var(--border);
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    background: var(--hover-bg);
-  }
-  
-  /* Empty state */
-  .empty-state {
-    padding: 60px 24px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 16px;
-  }
-
-  /* PDF LAYOUT per 2 colonne */
-  .pdf-container {
-    display: none; /* nascosto normalmente, usato solo per l'export */
-  }
-
-  @media print {
-    body { background: white; }
-    .container { padding: 20px; }
-  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+  .container{max-width:1600px;margin:0 auto;padding:32px 40px}
+  h1{margin:0 0 24px;font-size:32px;font-weight:700;letter-spacing:-.5px}
+  .control-panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:28px}
+  .control-row{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .control-left{display:flex;align-items:center;gap:12px}
+  .nav{display:flex;gap:10px}
+  .nav a{padding:10px 18px;border:2px solid var(--border);border-radius:10px;background:var(--card);text-decoration:none;font-weight:600;font-size:15px;color:var(--text);transition:.2s}
+  .nav a:hover{border-color:var(--primary);background:var(--hover-bg)}
+  .nav a.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .nav a.primary:hover{background:var(--primary-dark)}
+  input[type="month"]{padding:10px 16px;border:2px solid var(--border);border-radius:10px;background:var(--card);font-size:15px;font-weight:500;min-width:160px;transition:border-color .2s}
+  input[type="month"]:focus{outline:none;border-color:var(--primary)}
+  button{padding:10px 18px;border:2px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer;font-size:15px;font-weight:600;transition:.2s;color:var(--text)}
+  button:hover:not(:disabled){border-color:var(--primary);background:var(--hover-bg)}
+  button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  button.primary:hover:not(:disabled){background:var(--primary-dark)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .spinner{display:none}
+  .spinner.show{display:inline-block;width:20px;height:20px;border:3px solid #ddd;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-4px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #status{margin-top:12px;font-size:15px}
+  .ok{color:var(--success);font-weight:600}
+  .error{color:var(--error);font-weight:600}
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);overflow:hidden;margin-bottom:28px}
+  .table-title{padding:20px 24px;border-bottom:2px solid var(--border);font-weight:700;font-size:20px;background:linear-gradient(to bottom,var(--card),var(--hover-bg))}
+  .table-wrap{overflow-x:auto}
+  table{border-collapse:separate;border-spacing:0;width:100%;font-size:15px}
+  thead th{background:var(--hover-bg);border-bottom:2px solid var(--border-strong);padding:16px 18px;text-align:left;white-space:nowrap;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-light)}
+  tbody td,tbody th{border-top:1px solid var(--border);padding:16px 18px;font-size:15px}
+  tbody tr{transition:background-color .15s}
+  tbody tr:hover{background:var(--hover-bg)}
+  td.num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+  .op-link{color:var(--primary);font-weight:700;font-size:16px;text-decoration:none;cursor:pointer;transition:color .2s}
+  .op-link:hover{color:var(--primary-dark);text-decoration:underline}
+  .detail{font-size:14px}
+  .detail .daycell{white-space:nowrap;font-weight:700;font-size:15px;min-width:120px}
+  .detail .cant{font-weight:800;color:#c00000;text-transform:uppercase;letter-spacing:.03em;font-size:13px}
+  .detail .lav{color:var(--text);margin-top:6px;line-height:1.5}
+  .detail .note{color:var(--muted);font-style:italic;margin-top:4px;font-size:13px}
+  .detail td,.detail th{vertical-align:top;padding:14px 16px}
+  .detail tfoot td{font-weight:800;border-top:3px solid var(--border-strong);padding:18px 16px;font-size:16px;background:var(--hover-bg)}
+  .detail tr.off td{background:var(--orange-weak)!important}
+  .detail tr.alt td{background:#fafafa}
+  .detail tr.gstart td{border-top:2px solid var(--border-strong)}
+  .detail tr.gend td{border-bottom:2px solid var(--border-strong)}
+  .detail tr.gstart td.daycell,.detail tr.gmid td.daycell,.detail tr.gend td.daycell{border-left:2px solid var(--border-strong)}
+  .detail tr.gstart td:last-child,.detail tr.gmid td:last-child,.detail tr.gend td:last-child{border-right:2px solid var(--border-strong)}
+  .detail tr.gstart td.daycell{border-top-left-radius:10px}
+  .detail tr.gstart td:last-child{border-top-right-radius:10px}
+  .detail tr.gend td.daycell{border-bottom-left-radius:10px}
+  .detail tr.gend td:last-child{border-bottom-right-radius:10px}
+  .detail tr.daytot td{font-weight:800;background:var(--hover-bg)}
+  .detail-footer{padding:20px 24px;border-top:2px solid var(--border);display:flex;justify-content:flex-end;gap:12px;background:var(--hover-bg)}
+  .empty-state{padding:60px 24px;text-align:center;color:var(--muted);font-size:16px}
+  .pdf-container{display:none}
 </style>
 </head>
 <body>
@@ -458,16 +145,14 @@
       </table>
     </div>
     <div class="detail-footer">
-      <button id="btnDetailPDF">📄 Esporta PDF (2 colonne)</button>
+      <button id="btnDetailPDF">📄 Esporta PDF</button>
       <button id="btnCloseDetail">✕ Chiudi Dettaglio</button>
     </div>
   </div>
 </div>
 
-<!-- Container nascosto per il PDF a 2 colonne -->
 <div id="pdfContainer" class="pdf-container"></div>
 
-<!-- Librerie -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
@@ -477,7 +162,7 @@ const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
 const TAB_CANDIDATES = ["Foglio1","Presenze","Sheet1","Foglio 1"];
 
 /* ====== UTIL ====== */
-const pad = n => String(n).padStart(2,"0");
+const pad = n => String(n).padStart(2,'0');
 
 function calcEaster(Y){
   const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
@@ -485,7 +170,6 @@ function calcEaster(Y){
         m=Math.floor((a+11*h+22*L)/451),month=Math.floor((h+L-7*m+114)/31),day=((h+L-7*m+114)%31)+1;
   return new Date(Y,month-1,day);
 }
-
 function italianHolidays(year){
   const set=new Set(),add=(m,d)=>set.add(`${year}-${pad(m)}-${pad(d)}`);
   add(1,1); add(1,6); add(4,25); add(5,1); add(6,2); add(8,15); add(11,1); add(12,8); add(12,25); add(12,26);
@@ -493,16 +177,32 @@ function italianHolidays(year){
   add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
   return set;
 }
-
 const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
 
+/* Parser date robusto: ISO, dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy, con orario, e seriale Sheets */
 function parseDateAny(v){
-  if(!v) return null;
-  if(v instanceof Date) return v;
-  const s = String(v).trim();
-  if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const [Y,M,D]=s.split("T")[0].split("-").map(Number); return new Date(Y,M-1,D); }
-  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
-  const t = new Date(s); return isNaN(t) ? null : t;
+  if(v==null || v==="") return null;
+
+  if(typeof v === "number" && !isNaN(v)){ // seriale Google Sheets
+    const base = Date.UTC(1899,11,30); // 1899-12-30
+    const ms = Math.round(v * 86400000);
+    return new Date(base + ms);
+  }
+
+  let s = String(v).trim();
+  s = s.replace(/\s+\d{1,2}:\d{2}(:\d{2})?(\.\d+)?$/, ""); // togli orario a fine stringa
+
+  let m;
+  if((m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/))){ // yyyy-mm-dd
+    return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+  }
+  if((m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/))){ // dd-mm-yyyy / dd.mm.yyyy / dd/mm/yyyy
+    let y = Number(m[3]); if(y < 100) y += 2000;
+    return new Date(y, Number(m[2])-1, Number(m[1]));
+  }
+
+  const t = new Date(s);
+  return isNaN(t) ? null : t;
 }
 
 function pick(row, ...names){
@@ -518,9 +218,9 @@ function pick(row, ...names){
 function isBlankCantiere(value){
   const s = String(value||"").trim();
   if(!s) return true;
-  if (/^[-–—]+$/.test(s)) return true;
-  if (/^(nd|n\.d\.|n\/d|na|n\.a\.|n\/a|non\s+specificato|sconosciuto|nessuno|undefined|null)$/i.test(s)) return true;
-  if (/^\(s.*cantiere\)$/i.test(s)) return true;
+  if(/^[-–—]+$/.test(s)) return true;
+  if(/^(nd|n\.d\.|n\/d|na|n\.a\.|n\/a|non\s+specificato|sconosciuto|nessuno|undefined|null)$/i.test(s)) return true;
+  if(/^\(s.*cantiere\)$/i.test(s)) return true;
   return false;
 }
 
@@ -545,19 +245,16 @@ const btnCloseDetail = document.getElementById('btnCloseDetail');
 const state = { Y:null, M:null, holidays:new Set(), byOpDay:{}, operai:[], summary:[], currentOp:null };
 
 function setYM(Y,M){ meseInput.value = `${Y}-${pad(M)}`; }
-
 function getYM(){
   const v = meseInput.value;
   if(/^\d{4}-\d{2}$/.test(v)){ const [Y,M]=v.split('-').map(Number); return [Y,M]; }
-  const d=new Date(); return [d.getFullYear(), d.getMonth()+1];
+  const d = new Date(); return [d.getFullYear(), d.getMonth()+1];
 }
-
 function shiftMonth(delta){
   let [Y,M]=getYM(); M+=delta;
   if(M<1){M=12;Y--} if(M>12){M=1;Y++}
   setYM(Y,M); carica();
 }
-
 function setLoading(on){
   spin.classList.toggle('show', !!on);
   btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
@@ -572,7 +269,6 @@ async function fetchRowsFromOpenSheet(sheetId){
       if(res.ok){
         const rows = await res.json();
         if(Array.isArray(rows)){
-          statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (tab: ${tab})</span>`;
           return rows;
         }
       }
@@ -640,7 +336,6 @@ function showDetail(op){
 
     const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
     const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
-
     const altClass = (!isOff && altFlag) ? 'alt' : '';
 
     if(!list0.length){
@@ -704,7 +399,6 @@ function showDetail(op){
       if(isOff) trSub.classList.add('off');
       if(altClass) trSub.classList.add('alt');
       trSub.classList.add('daytot','gend');
-
       trSub.innerHTML = `
         <td class="daycell"></td>
         <td style="text-align:right;">Tot giorno:</td>
@@ -734,6 +428,8 @@ async function carica(){
     const rows = await fetchRowsFromOpenSheet(SHEET_ID);
 
     state.byOpDay = {};
+    let rowsInMonth = 0;
+
     rows.forEach((r)=>{
       const dataVal = pick(r, "Data Presenza", "Data");
       const dt = parseDateAny(dataVal);
@@ -741,13 +437,15 @@ async function carica(){
       const y=dt.getFullYear(), m=dt.getMonth()+1, d=dt.getDate();
       if(y!==Y || m!==M) return;
 
+      rowsInMonth++;
+
       const op = String(pick(r, "Nome Operaio", "Operaio")).trim();
       if(!op) return;
 
       const cant     = String(pick(r, "Cantiere")).trim();
       const orariStr = String(pick(r, "Orari") || "").trim();
       const oreV     = pick(r, "Ore");
-      const ore      = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
+      const ore      = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",", ".")) : 0;
       const lav      = stripIntervals(String(pick(r, "Lavorazione") || ""));
       const note     = stripIntervals(String(pick(r, "Note") || ""));
 
@@ -791,6 +489,8 @@ async function carica(){
     }).sort((a,b)=> b.tot - a.tot || a.op.localeCompare(b.op,'it'));
 
     renderSummary(state.summary);
+
+    statusEl.innerHTML = `<span class="ok">✓ ${rowsInMonth} righe lette per ${pad(M)}/${Y}</span>`;
   }catch(e){
     console.error(e);
     statusEl.innerHTML = `<span class="error">✗ ${e.message || "Errore nel caricamento dati."}</span>`;
@@ -799,337 +499,65 @@ async function carica(){
   }
 }
 
-/* ====== EXPORT PDF A4 PORTRAIT — TESTI GRANDI ====== */
+/* ====== EXPORT PDF ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
     return;
   }
-
   const { jsPDF } = window.jspdf;
-  const [Y, M] = [state.Y, state.M];
-  const op = state.currentOp;
-  const daysInMonth = new Date(Y, M, 0).getDate();
-  
-  // Calcola statistiche cantieri
-  const cantieriStats = {};
-  const days = state.byOpDay[op] || {};
-  Object.keys(days).forEach(d => {
-    const list = days[d] || [];
-    list.forEach(en => {
-      const cant = isBlankCantiere(en.cantiere) ? 'NO DATI' : String(en.cantiere).trim().toUpperCase();
-      cantieriStats[cant] = (cantieriStats[cant] || 0) + (en.ore || 0);
-    });
-  });
-  
-  const totMese = state.summary.find(s => s.op === op)?.tot || 0;
-  
-  const cantieriArray = Object.entries(cantieriStats)
-    .sort((a,b) => b[1] - a[1])
-    .map(([nome, ore]) => ({ 
-      nome, 
-      ore: +ore.toFixed(2),
-      percentuale: totMese > 0 ? +((ore / totMese) * 100).toFixed(1) : 0
-    }));
-  
-  // Dividi i giorni: 1-15 e 16-fine mese
-  const splitDay = 15;
-  
-  // Crea due tabelle separate
-  function createTableForRange(startDay, endDay, title) {
-    const table = document.createElement('table');
-    table.className = 'detail';
-    table.style.width = '100%';
-    table.style.fontSize = '28px';
-    table.style.borderCollapse = 'separate';
-    table.style.borderSpacing = '0';
-    
-    const thead = document.createElement('thead');
-    thead.innerHTML = `
-      <tr style="background: #34495e;">
-        <th style="padding:28px 20px; text-align:left; border:4px solid #2c3e50; font-weight:900; font-size:30px; color:#fff; width:180px;">${title}</th>
-        <th style="padding:28px 20px; text-align:left; border:4px solid #2c3e50; font-weight:900; font-size:30px; color:#fff;">Cantiere</th>
-        <th style="padding:28px 20px; text-align:center; border:4px solid #2c3e50; font-weight:900; font-size:30px; color:#fff; width:240px;">Orario</th>
-        <th style="padding:28px 20px; text-align:right; border:4px solid #2c3e50; font-weight:900; font-size:30px; color:#fff; width:130px;">Ore</th>
-      </tr>`;
-    table.appendChild(thead);
-    
-    const tbody = document.createElement('tbody');
-    let totRange = 0;
-    let altFlag = false;
-    
-    for(let d = startDay; d <= endDay; d++) {
-      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
-      const date = new Date(Y, M-1, d);
-      const dow = (date.getDay()+6)%7;
-      const iso = `${Y}-${pad(M)}-${pad(d)}`;
-      const isOff = (dow===5||dow===6) || state.holidays.has(iso);
-      
-      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
-      const dayLabel = `<div style="font-size:32px; font-weight:900; line-height:1.3; margin-bottom:6px;">${pad(d)}/${pad(M)}</div><div style="font-size:24px; font-weight:700; color:#555;">${nomeG}</div>`;
-      
-      const bgColor = isOff ? '#ffe8cc' : (altFlag ? '#f9f9f9' : '#fff');
-      const borderColor = isOff ? '#d68910' : '#bbb';
-      
-      if(!list0.length) {
-        const tr = document.createElement('tr');
-        tr.style.background = bgColor;
-        tr.innerHTML = `
-          <td style="padding:26px 20px; border:3px solid ${borderColor}; font-weight:800; font-size:28px; line-height:1.4;">${dayLabel}</td>
-          <td style="padding:26px 20px; border:3px solid ${borderColor}; text-align:center; color:#999; font-size:32px;">—</td>
-          <td style="padding:26px 20px; border:3px solid ${borderColor};"></td>
-          <td style="padding:26px 20px; border:3px solid ${borderColor};"></td>`;
-        tbody.appendChild(tr);
-        if(!isOff) altFlag = !altFlag;
-        continue;
-      }
-      
-      const list = groupDayEntries(list0);
-      let dayTot = 0;
-      
-      list.forEach((en, idx) => {
-        const tr = document.createElement('tr');
-        tr.style.background = bgColor;
-        
-        if(idx === 0) {
-          const tdDay = document.createElement('td');
-          tdDay.rowSpan = list.length;
-          tdDay.style.cssText = `padding:26px 20px; border:3px solid ${borderColor}; font-weight:800; vertical-align:top; font-size:28px; line-height:1.4;`;
-          tdDay.innerHTML = dayLabel;
-          tr.appendChild(tdDay);
-        }
-        
-        const tdCant = document.createElement('td');
-        tdCant.style.cssText = `padding:26px 20px; border:3px solid ${borderColor}; vertical-align:top; line-height:1.5;`;
-        tdCant.innerHTML = `<div style="margin-bottom:14px;">
-          <strong style="color:#c00; font-size:30px; font-weight:900; text-transform:uppercase; letter-spacing:0.8px;">${en.cant}</strong>
-        </div>`;
-        if(en.lav) tdCant.innerHTML += `<div style="margin-top:14px; font-size:26px; color:#222; line-height:1.4;">${en.lav}</div>`;
-        if(en.note) tdCant.innerHTML += `<div style="margin-top:10px; font-size:24px; color:#666; font-style:italic; line-height:1.3;">${en.note}</div>`;
-        
-        const tdOrario = document.createElement('td');
-        tdOrario.style.cssText = `padding:26px 20px; border:3px solid ${borderColor}; text-align:center; vertical-align:top; white-space:nowrap;`;
-        tdOrario.innerHTML = en.orari ? `<span style="font-size:26px; font-weight:800; color:#fff; background:#3498db; padding:14px 20px; border-radius:8px; display:inline-block; border:3px solid #2980b9;">${en.orari}</span>` : '';
-        
-        const tdOre = document.createElement('td');
-        tdOre.style.cssText = `padding:26px 20px; border:3px solid ${borderColor}; text-align:right; font-weight:900; vertical-align:top; font-size:32px; color:#000;`;
-        tdOre.textContent = en.ore ? `${en.ore} h` : '';
-        
-        dayTot += (en.ore || 0);
-        
-        tr.appendChild(tdCant);
-        tr.appendChild(tdOrario);
-        tr.appendChild(tdOre);
-        tbody.appendChild(tr);
-      });
-      
-      // Se ci sono più righe per lo stesso giorno, aggiungi riga subtotale
-      if(list.length > 1) {
-        const trSub = document.createElement('tr');
-        trSub.style.background = isOff ? '#ffd699' : '#e8e8e8';
-        trSub.innerHTML = `
-          <td style="padding:22px; border:3px solid ${borderColor};"></td>
-          <td style="padding:22px; border:3px solid ${borderColor}; text-align:right; font-weight:900; font-size:28px; color:#000;">TOT GIORNO:</td>
-          <td style="padding:22px; border:3px solid ${borderColor};"></td>
-          <td style="padding:22px; border:3px solid ${borderColor}; text-align:right; font-weight:900; font-size:30px; color:#000; background:#fff3cd;">${(+dayTot.toFixed(2))} h</td>`;
-        tbody.appendChild(trSub);
-      }
-      
-      totRange += dayTot;
-      if(!isOff) altFlag = !altFlag;
-    }
-    
-    const tfoot = document.createElement('tfoot');
-    tfoot.innerHTML = `
-      <tr style="background:#2c3e50;">
-        <td colspan="3" style="padding:28px 20px; border:5px solid #000; font-weight:900; font-size:30px; color:#fff;">TOTALE PERIODO:</td>
-        <td style="padding:28px 20px; border:5px solid #000; text-align:right; font-weight:900; font-size:34px; color:#000; background:#f39c12;">${(+totRange.toFixed(2))} h</td>
-      </tr>`;
-    table.appendChild(tbody);
-    table.appendChild(tfoot);
-    
-    return { table, total: totRange };
-  }
-  
-  // Crea container temporaneo
   const pdfContainer = document.getElementById('pdfContainer');
   pdfContainer.innerHTML = '';
   pdfContainer.style.display = 'block';
   pdfContainer.style.position = 'absolute';
   pdfContainer.style.left = '-10000px';
-  pdfContainer.style.width = '2000px';
+  pdfContainer.style.width = '1400px';
   pdfContainer.style.background = '#fff';
-  pdfContainer.style.padding = '40px';
-  
-  // Header con nome operaio e totale
-  const header = document.createElement('div');
-  header.style.cssText = 'margin-bottom:35px; padding:40px; background:linear-gradient(135deg, #2c3e50, #34495e); border:6px solid #1a252f; border-radius:15px; text-align:center;';
-  header.innerHTML = `
-    <h1 style="margin:0 0 20px; font-size:58px; color:#fff; font-weight:900; letter-spacing:1px; text-transform:uppercase;">${op}</h1>
-    <div style="display:flex; justify-content:space-around; align-items:center; margin-top:25px;">
-      <div style="text-align:center;">
-        <div style="font-size:28px; color:#ecf0f1; margin-bottom:10px; font-weight:700;">MESE</div>
-        <div style="font-size:48px; color:#fff; font-weight:900;">${pad(M)}/${Y}</div>
-      </div>
-      <div style="width:3px; height:100px; background:#fff;"></div>
-      <div style="text-align:center;">
-        <div style="font-size:28px; color:#ecf0f1; margin-bottom:10px; font-weight:700;">TOTALE ORE</div>
-        <div style="font-size:72px; color:#f39c12; font-weight:900; text-shadow:2px 2px 4px rgba(0,0,0,0.3);">${totMese}</div>
-      </div>
-    </div>`;
-  pdfContainer.appendChild(header);
-  
-  // Container per le 2 colonne
-  const columnsDiv = document.createElement('div');
-  columnsDiv.style.cssText = 'display:flex; gap:40px; margin-bottom:35px;';
-  
-  // Colonna 1: giorni 1-15
-  const col1 = document.createElement('div');
-  col1.style.cssText = 'flex:1; min-width:0;';
-  const result1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'GG 1-15');
-  col1.appendChild(result1.table);
-  
-  // Colonna 2: giorni 16-fine
-  const col2 = document.createElement('div');
-  col2.style.cssText = 'flex:1; min-width:0;';
-  if(daysInMonth > splitDay) {
-    const result2 = createTableForRange(splitDay + 1, daysInMonth, `GG ${splitDay + 1}-${daysInMonth}`);
-    col2.appendChild(result2.table);
-  }
-  
-  columnsDiv.appendChild(col1);
-  columnsDiv.appendChild(col2);
-  pdfContainer.appendChild(columnsDiv);
-  
-  // Statistiche cantieri
-  const cantieriBox = document.createElement('div');
-  cantieriBox.style.cssText = 'padding:40px; background:#fff; border:6px solid #2c3e50; border-radius:15px;';
-  
-  let cantieriHTML = '<div style="font-size:40px; font-weight:900; margin-bottom:30px; color:#2c3e50; text-align:center; border-bottom:5px solid #2c3e50; padding-bottom:20px;">📊 CANTIERI LAVORATI</div>';
-  
-  cantieriArray.forEach((c, idx) => {
-    const bgColor = idx === 0 ? '#27ae60' : (idx === 1 ? '#3498db' : (idx === 2 ? '#e67e22' : '#95a5a6'));
-    
-    cantieriHTML += `
-      <div style="margin-bottom:28px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <div style="font-size:26px; font-weight:900; color:#2c3e50; max-width:60%;">${c.nome}</div>
-          <div style="font-size:32px; font-weight:900; color:#000;">${c.ore} h <span style="color:#666; font-size:28px;">(${c.percentuale}%)</span></div>
-        </div>
-        <div style="background:#ddd; height:48px; border-radius:10px; overflow:hidden; border:4px solid #999;">
-          <div style="background:${bgColor}; width:${c.percentuale}%; height:100%; border-radius:6px; display:flex; align-items:center; padding-left:20px;">
-            <span style="color:#fff; font-weight:900; font-size:24px; text-shadow:1px 1px 2px rgba(0,0,0,0.5);">${c.percentuale}%</span>
-          </div>
-        </div>
-      </div>`;
-  });
-  
-  cantieriBox.innerHTML = cantieriHTML;
-  pdfContainer.appendChild(cantieriBox);
-  
-  // Attendi rendering
-  await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 250));
-  
-  // Cattura con html2canvas
-  const canvas = await html2canvas(pdfContainer, {
-    scale: 2.5,
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    logging: false
-  });
-  
-  // Nascondi container
-  pdfContainer.style.display = 'none';
-  
-  // Crea PDF A4 PORTRAIT
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'pt',
-    format: 'a4'
-  });
-  
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 10; // Margini minimi
-  
-  const availW = pageW - 2 * margin;
-  const availH = pageH - 2 * margin;
-  
-  const scale = Math.min(availW / canvas.width, availH / canvas.height);
-  const w = canvas.width * scale;
-  const h = canvas.height * scale;
-  const x = margin;
-  const y = margin;
-  
-  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
-  
-  const fname = `Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g, '_');
-  pdf.save(fname);
-}
-  
-  // Attendi rendering
+  pdfContainer.style.padding = '24px';
+
+  const clone = detailCard.cloneNode(true);
+  pdfContainer.appendChild(clone);
+
   await new Promise(r => requestAnimationFrame(r));
   await new Promise(r => setTimeout(r, 200));
-  
-  // Cattura con html2canvas
-  const canvas = await html2canvas(pdfContainer, {
-    scale: 2.2,
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    logging: false
-  });
-  
-  // Nascondi container
+
+  const canvas = await html2canvas(pdfContainer, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
   pdfContainer.style.display = 'none';
-  
-  // Crea PDF A4 landscape
-  const pdf = new jsPDF({
-    orientation: 'landscape',
-    unit: 'pt',
-    format: 'a4'
-  });
-  
+
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 12; // Margini minimi per riempire il foglio
-  
-  const availW = pageW - 2 * margin;
-  const availH = pageH - 2 * margin;
-  
+  const margin = 12;
+  const availW = pageW - 2*margin;
+  const availH = pageH - 2*margin;
   const scale = Math.min(availW / canvas.width, availH / canvas.height);
   const w = canvas.width * scale;
   const h = canvas.height * scale;
-  const x = margin;
-  const y = margin;
-  
-  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
-  
-  const fname = `Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g, '_');
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, margin, w, h);
+
+  const [Y, M] = [state.Y, state.M];
+  const op = state.currentOp;
+  const fname = `Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g,'_');
   pdf.save(fname);
 }
 
 /* ====== INIT ====== */
 (function init(){
   const now = new Date();
-  setYM(now.getFullYear(), now.getMonth() + 1);
+  setYM(now.getFullYear(), now.getMonth()+1);
 
   btnCarica.addEventListener('click', carica);
   prevBtn.addEventListener('click', () => shiftMonth(-1));
   nextBtn.addEventListener('click', () => shiftMonth(+1));
   meseInput.addEventListener('change', carica);
 
-  tbody.addEventListener('click', (e) => {
+  tbody.addEventListener('click', (e)=>{
     const a = e.target.closest('.op-link');
-    if(a && a.dataset.op) {
-      showDetail(a.dataset.op);
-    }
+    if(a && a.dataset.op){ showDetail(a.dataset.op); }
   });
 
   document.getElementById('btnDetailPDF').addEventListener('click', exportDetailPDF);
-  btnCloseDetail.addEventListener('click', () => {
-    detailCard.style.display = 'none';
-  });
+  btnCloseDetail.addEventListener('click', ()=>{ detailCard.style.display='none'; });
 
   carica();
 })();
