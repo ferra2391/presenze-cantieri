@@ -31,10 +31,8 @@
     font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
   
-  /* ⬇️ LARGHEZZA TOTALE */
   .container {
-    max-width: 100%;
-    width: 100%;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 32px 40px;
   }
@@ -193,7 +191,6 @@
     box-shadow: 0 2px 12px rgba(0,0,0,.06);
     overflow: hidden;
     margin-bottom: 28px;
-    width: 100%;
   }
   
   .table-title {
@@ -207,7 +204,6 @@
   
   .table-wrap {
     overflow-x: auto;
-    width: 100%;
   }
 
   table {
@@ -237,8 +233,13 @@
     font-size: 15px;
   }
   
-  tbody tr { transition: background-color 0.15s; }
-  tbody tr:hover { background: var(--hover-bg); }
+  tbody tr {
+    transition: background-color 0.15s;
+  }
+  
+  tbody tr:hover {
+    background: var(--hover-bg);
+  }
   
   td.num {
     text-align: right;
@@ -254,10 +255,17 @@
     cursor: pointer;
     transition: color 0.2s;
   }
-  .op-link:hover { color: var(--primary-dark); text-decoration: underline; }
+  
+  .op-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
 
   /* DETAIL TABLE */
-  .detail { font-size: 14px; }
+  .detail {
+    font-size: 14px;
+  }
+  
   .detail .daycell {
     white-space: nowrap;
     font-weight: 700;
@@ -265,6 +273,7 @@
     color: var(--text);
     min-width: 120px;
   }
+  
   .detail .cant {
     font-weight: 800;
     color: #c00000;
@@ -272,9 +281,26 @@
     letter-spacing: 0.03em;
     font-size: 13px;
   }
-  .detail .lav { color: var(--text); margin-top: 6px; line-height: 1.5; }
-  .detail .note { color: var(--muted); font-style: italic; margin-top: 4px; font-size: 13px; }
-  .detail td, .detail th { vertical-align: top; padding: 14px 16px; }
+  
+  .detail .lav {
+    color: var(--text);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  
+  .detail .note {
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 4px;
+    font-size: 13px;
+  }
+  
+  .detail td,
+  .detail th {
+    vertical-align: top;
+    padding: 14px 16px;
+  }
+  
   .detail tfoot td {
     font-weight: 800;
     border-top: 3px solid var(--border-strong);
@@ -283,27 +309,61 @@
     background: var(--hover-bg);
   }
 
-  .detail tr.off td { background: var(--orange-weak) !important; }
-  .detail tr.alt td { background: #fafafa; }
+  /* Weekend/Festivi highlight */
+  .detail tr.off td {
+    background: var(--orange-weak) !important;
+  }
 
-  .detail tr.gstart td { border-top: 2px solid var(--border-strong); }
-  .detail tr.gend td { border-bottom: 2px solid var(--border-strong); }
+  /* Alternanza righe normali */
+  .detail tr.alt td {
+    background: #fafafa;
+  }
+
+  /* Gabbia perimetro giorno */
+  .detail tr.gstart td {
+    border-top: 2px solid var(--border-strong);
+  }
+  
+  .detail tr.gend td {
+    border-bottom: 2px solid var(--border-strong);
+  }
 
   .detail tr.gstart td.daycell,
   .detail tr.gmid td.daycell,
-  .detail tr.gend td.daycell { border-left: 2px solid var(--border-strong); }
+  .detail tr.gend td.daycell {
+    border-left: 2px solid var(--border-strong);
+  }
 
   .detail tr.gstart td:last-child,
   .detail tr.gmid td:last-child,
-  .detail tr.gend td:last-child { border-right: 2px solid var(--border-strong); }
+  .detail tr.gend td:last-child {
+    border-right: 2px solid var(--border-strong);
+  }
 
-  .detail tr.gstart td.daycell { border-top-left-radius: 10px; }
-  .detail tr.gstart td:last-child { border-top-right-radius: 10px; }
-  .detail tr.gend td.daycell { border-bottom-left-radius: 10px; }
-  .detail tr.gend td:last-child { border-bottom-right-radius: 10px; }
-
-  .detail tr.daytot td { font-weight: 800; background: var(--hover-bg); }
+  /* Arrotondamenti */
+  .detail tr.gstart td.daycell {
+    border-top-left-radius: 10px;
+  }
   
+  .detail tr.gstart td:last-child {
+    border-top-right-radius: 10px;
+  }
+  
+  .detail tr.gend td.daycell {
+    border-bottom-left-radius: 10px;
+  }
+  
+  .detail tr.gend td:last-child {
+    border-bottom-right-radius: 10px;
+  }
+
+  /* Tot giorno */
+  .detail tr.daytot td {
+    font-weight: 800;
+    background: var(--hover-bg);
+  }
+  
+  /* Footer azioni */
   .detail-footer {
     padding: 20px 24px;
     border-top: 2px solid var(--border);
@@ -313,6 +373,7 @@
     background: var(--hover-bg);
   }
   
+  /* Empty state */
   .empty-state {
     padding: 60px 24px;
     text-align: center;
@@ -738,7 +799,7 @@ async function carica(){
   }
 }
 
-/* ====== EXPORT PDF A4 PORTRAIT — FULL WIDTH ====== */
+/* ====== EXPORT PDF A4 PORTRAIT — TESTI GRANDI ====== */
 /* ====== EXPORT PDF A4 PORTRAIT — SOLO PDF LARGO ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
