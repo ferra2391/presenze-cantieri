@@ -799,7 +799,7 @@ async function carica(){
   }
 }
 
-/* ====== EXPORT PDF A4 — SOLO PDF LARGO + PAGINAZIONE SAFE ====== */
+/* ====== EXPORT PDF A4 — SOLO PDF, UNA PAGINA, LARGO POSSIBILE ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -811,7 +811,7 @@ async function exportDetailPDF(){
   const op = state.currentOp;
   const daysInMonth = new Date(Y, M, 0).getDate();
 
-  // === Statistiche cantieri (immutate) ===
+  // --- Statistiche cantieri (invariate) ---
   const cantieriStats = {};
   const days = state.byOpDay[op] || {};
   Object.keys(days).forEach(d => {
@@ -822,7 +822,7 @@ async function exportDetailPDF(){
   });
   const totMese = state.summary.find(s => s.op === op)?.tot || 0;
   const cantieriArray = Object.entries(cantieriStats)
-    .sort((a,b)=> b[1]-a[1])
+    .sort((a,b) => b[1] - a[1])
     .map(([nome, ore]) => ({ nome, ore:+ore.toFixed(2), percentuale: totMese>0 ? +((ore/totMese)*100).toFixed(1) : 0 }));
 
   const splitDay = 15;
@@ -834,7 +834,6 @@ async function exportDetailPDF(){
     table.style.fontSize = '55px';
     table.style.borderCollapse = 'separate';
     table.style.borderSpacing = '0';
-
     const thead = document.createElement('thead');
     thead.innerHTML = `
       <tr style="background:#e8e8e8;">
@@ -846,10 +845,9 @@ async function exportDetailPDF(){
     table.appendChild(thead);
 
     const tbody = document.createElement('tbody');
-    let totRange = 0;
-    let altFlag = false;
+    let totRange = 0, altFlag = false;
 
-    for(let d=startDay; d<=endDay; d++){
+    for(let d = startDay; d <= endDay; d++){
       const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
       const date = new Date(Y, M-1, d);
       const dow  = (date.getDay()+6)%7;
@@ -881,7 +879,7 @@ async function exportDetailPDF(){
         const tr = document.createElement('tr');
         tr.style.background = bgColor;
 
-        if(idx===0){
+        if(idx === 0){
           const tdDay = document.createElement('td');
           tdDay.rowSpan = list.length;
           tdDay.style.cssText = `padding:40px 32px; border:4px solid ${borderColor}; font-weight:800; vertical-align:top; font-size:55px; line-height:1.4;`;
@@ -892,8 +890,8 @@ async function exportDetailPDF(){
         const tdCant = document.createElement('td');
         tdCant.style.cssText = `padding:40px 32px; border:4px solid ${borderColor}; vertical-align:top; line-height:1.5;`;
         tdCant.innerHTML = `<div style="margin-bottom:22px;">
-            <strong style="color:#c00; font-size:57px; font-weight:900; text-transform:uppercase; letter-spacing:0.8px;">${en.cant}</strong>
-          </div>`;
+          <strong style="color:#c00; font-size:57px; font-weight:900; text-transform:uppercase; letter-spacing:0.8px;">${en.cant}</strong>
+        </div>`;
         if(en.lav)  tdCant.innerHTML += `<div style="margin-top:22px; font-size:50px; color:#222; line-height:1.4;">${en.lav}</div>`;
         if(en.note) tdCant.innerHTML += `<div style="margin-top:18px; font-size:48px; color:#666; font-style:italic; line-height:1.3;">${en.note}</div>`;
 
@@ -913,7 +911,7 @@ async function exportDetailPDF(){
         tbody.appendChild(tr);
       });
 
-      if(list.length>1){
+      if(list.length > 1){
         const trSub = document.createElement('tr');
         trSub.style.background = isOff ? '#ffd699' : '#e8e8e8';
         trSub.innerHTML = `
@@ -939,8 +937,8 @@ async function exportDetailPDF(){
     return { table, total: totRange };
   }
 
-  // === SOLO PDF: contenitore largo ma "safe" ===
-  const CAPTURE_WIDTH = 3200; // largo abbastanza, ma senza esplodere memoria
+  // === SOLO PDF: contenitore largo, ma con output forzato in UNA pagina ===
+  const CAPTURE_WIDTH = 3200; // largo per "allargare", ma senza errori memoria
   const pdfContainer = document.getElementById('pdfContainer');
   pdfContainer.innerHTML = '';
   pdfContainer.style.display = 'block';
@@ -969,7 +967,7 @@ async function exportDetailPDF(){
     </div>`;
   pdfContainer.appendChild(header);
 
-  // Due colonne piene
+  // Due colonne
   const columnsDiv = document.createElement('div');
   columnsDiv.style.cssText = 'display:flex; gap:24px; margin-bottom:30px;';
   const col1 = document.createElement('div'); col1.style.cssText = 'flex:1; min-width:0;';
@@ -977,14 +975,14 @@ async function exportDetailPDF(){
   const result1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'GG 1-15');
   col1.appendChild(result1.table);
   if(daysInMonth > splitDay){
-    const result2 = createTableForRange(splitDay+1, daysInMonth, `GG ${splitDay+1}-${daysInMonth}`);
+    const result2 = createTableForRange(splitDay + 1, daysInMonth, `GG ${splitDay + 1}-${daysInMonth}`);
     col2.appendChild(result2.table);
   }
   columnsDiv.appendChild(col1);
   columnsDiv.appendChild(col2);
   pdfContainer.appendChild(columnsDiv);
 
-  // Statistiche — centrate e senza max-width
+  // Statistiche — centrate
   const statsWrapper = document.createElement('div');
   statsWrapper.style.cssText = 'display:flex; justify-content:center; width:100%;';
   const cantieriBox = document.createElement('div');
@@ -1009,61 +1007,45 @@ async function exportDetailPDF(){
   statsWrapper.appendChild(cantieriBox);
   pdfContainer.appendChild(statsWrapper);
 
-  // === Render su canvas "safe" ===
+  // --- Render canvas "safe" ---
   await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 200));
+  await new Promise(r => setTimeout(r, 180));
 
   const canvas = await html2canvas(pdfContainer, {
-    scale: 1,               // niente overscale (evita dataURL enormi)
+    scale: 1,                 // evita dataURL giganteschi
     backgroundColor: '#ffffff',
     useCORS: true,
     logging: false
   });
 
-  // nascondi contenitore PDF
   pdfContainer.style.display = 'none';
 
-  // === Pagina A4 multi-page ===
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+  // === Fit in UNA pagina A4 ===
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
+
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
 
-  const imgW = pageW;                       // riempi larghezza
-  const scale = imgW / canvas.width;        // rapporto px->pt
-  const pageHeightInPx = Math.floor(pageH / scale); // quanto canvas px sta in una pagina
-
-  let remainingHeight = canvas.height;
-  let offsetY = 0;
-  let pageIndex = 0;
-
-  // Slice verticale per non creare una dataURL gigantesca
-  const sliceCanvas = document.createElement('canvas');
-  const sctx = sliceCanvas.getContext('2d');
-
-  while(remainingHeight > 0){
-    const sliceHeight = Math.min(pageHeightInPx, remainingHeight);
-    sliceCanvas.width = canvas.width;
-    sliceCanvas.height = sliceHeight;
-
-    // copia porzione dal canvas principale
-    sctx.clearRect(0,0,sliceCanvas.width,sliceCanvas.height);
-    // drawImage(source, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
-    sctx.drawImage(canvas, 0, offsetY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-
-    const imgData = sliceCanvas.toDataURL('image/png'); // dataURL molto più piccola
-    const sliceHpt = sliceHeight * scale;
-
-    if(pageIndex > 0) pdf.addPage();
-    pdf.addImage(imgData, 'PNG', 0, 0, imgW, sliceHpt);
-
-    offsetY += sliceHeight;
-    remainingHeight -= sliceHeight;
-    pageIndex++;
+  // Prova prima a riempire la larghezza; se l'altezza sfora, scala su altezza
+  const scaleW = pageW / canvas.width;
+  let scale = scaleW;
+  if (canvas.height * scale > pageH) {
+    scale = pageH / canvas.height;
   }
+
+  const imgW = canvas.width * scale;
+  const imgH = canvas.height * scale;
+
+  // Centra su pagina
+  const x = (pageW - imgW) / 2;
+  const y = (pageH - imgH) / 2;
+
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgW, imgH, undefined, 'FAST');
 
   const fname = `Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g, '_');
   pdf.save(fname);
 }
+
 
 
 
