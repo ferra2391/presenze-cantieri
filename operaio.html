@@ -739,6 +739,7 @@ async function carica(){
 }
 
 /* ====== EXPORT PDF A4 PORTRAIT — FULL WIDTH ====== */
+/* ====== EXPORT PDF A4 PORTRAIT — SOLO PDF LARGO ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -749,8 +750,8 @@ async function exportDetailPDF(){
   const [Y, M] = [state.Y, state.M];
   const op = state.currentOp;
   const daysInMonth = new Date(Y, M, 0).getDate();
-  
-  // Calcola statistiche cantieri (invariate)
+
+  // --- Statistiche cantieri (invariate) ---
   const cantieriStats = {};
   const days = state.byOpDay[op] || {};
   Object.keys(days).forEach(d => {
@@ -760,9 +761,8 @@ async function exportDetailPDF(){
       cantieriStats[cant] = (cantieriStats[cant] || 0) + (en.ore || 0);
     });
   });
-  
+
   const totMese = state.summary.find(s => s.op === op)?.tot || 0;
-  
   const cantieriArray = Object.entries(cantieriStats)
     .sort((a,b) => b[1] - a[1])
     .map(([nome, ore]) => ({ 
@@ -770,9 +770,9 @@ async function exportDetailPDF(){
       ore: +ore.toFixed(2),
       percentuale: totMese > 0 ? +((ore / totMese) * 100).toFixed(1) : 0
     }));
-  
+
   const splitDay = 15;
-  
+
   function createTableForRange(startDay, endDay, title) {
     const table = document.createElement('table');
     table.className = 'detail';
@@ -780,34 +780,34 @@ async function exportDetailPDF(){
     table.style.fontSize = '55px';
     table.style.borderCollapse = 'separate';
     table.style.borderSpacing = '0';
-    
+
     const thead = document.createElement('thead');
     thead.innerHTML = `
-      <tr style="background: #e8e8e8;">
+      <tr style="background:#e8e8e8;">
         <th style="padding:42px 32px; text-align:left; border:5px solid #666; font-weight:900; font-size:57px; color:#333; width:250px;">${title}</th>
         <th style="padding:42px 32px; text-align:left; border:5px solid #666; font-weight:900; font-size:57px; color:#333;">Cantiere</th>
         <th style="padding:42px 32px; text-align:center; border:5px solid #666; font-weight:900; font-size:57px; color:#333; width:380px;">Orario</th>
         <th style="padding:42px 32px; text-align:right; border:5px solid #666; font-weight:900; font-size:57px; color:#333; width:210px;">Ore</th>
       </tr>`;
     table.appendChild(thead);
-    
+
     const tbody = document.createElement('tbody');
     let totRange = 0;
     let altFlag = false;
-    
+
     for(let d = startDay; d <= endDay; d++) {
       const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
       const date = new Date(Y, M-1, d);
       const dow = (date.getDay()+6)%7;
       const iso = `${Y}-${pad(M)}-${pad(d)}`;
       const isOff = (dow===5||dow===6) || state.holidays.has(iso);
-      
+
       const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
       const dayLabel = `<div style="font-size:62px; font-weight:900; line-height:1.3; margin-bottom:12px;">${pad(d)}/${pad(M)}</div><div style="font-size:40px; font-weight:700; color:#555;">${nomeG}</div>`;
-      
+
       const bgColor = isOff ? '#ffe8cc' : (altFlag ? '#f9f9f9' : '#fff');
       const borderColor = isOff ? '#d68910' : '#bbb';
-      
+
       if(!list0.length) {
         const tr = document.createElement('tr');
         tr.style.background = bgColor;
@@ -820,14 +820,14 @@ async function exportDetailPDF(){
         if(!isOff) altFlag = !altFlag;
         continue;
       }
-      
+
       const list = groupDayEntries(list0);
       let dayTot = 0;
-      
+
       list.forEach((en, idx) => {
         const tr = document.createElement('tr');
         tr.style.background = bgColor;
-        
+
         if(idx === 0) {
           const tdDay = document.createElement('td');
           tdDay.rowSpan = list.length;
@@ -835,31 +835,31 @@ async function exportDetailPDF(){
           tdDay.innerHTML = dayLabel;
           tr.appendChild(tdDay);
         }
-        
+
         const tdCant = document.createElement('td');
         tdCant.style.cssText = `padding:40px 32px; border:4px solid ${borderColor}; vertical-align:top; line-height:1.5;`;
         tdCant.innerHTML = `<div style="margin-bottom:22px;">
           <strong style="color:#c00; font-size:57px; font-weight:900; text-transform:uppercase; letter-spacing:0.8px;">${en.cant}</strong>
         </div>`;
-        if(en.lav) tdCant.innerHTML += `<div style="margin-top:22px; font-size:50px; color:#222; line-height:1.4;">${en.lav}</div>`;
+        if(en.lav)  tdCant.innerHTML += `<div style="margin-top:22px; font-size:50px; color:#222; line-height:1.4;">${en.lav}</div>`;
         if(en.note) tdCant.innerHTML += `<div style="margin-top:18px; font-size:48px; color:#666; font-style:italic; line-height:1.3;">${en.note}</div>`;
-        
+
         const tdOrario = document.createElement('td');
         tdOrario.style.cssText = `padding:40px 32px; border:4px solid ${borderColor}; text-align:center; vertical-align:top; white-space:nowrap;`;
         tdOrario.innerHTML = en.orari ? `<span style="font-size:50px; font-weight:800; color:#333; background:#f0f0f0; padding:22px 35px; border-radius:10px; display:inline-block; border:4px solid #ccc;">${en.orari}</span>` : '';
-        
+
         const tdOre = document.createElement('td');
         tdOre.style.cssText = `padding:40px 32px; border:4px solid ${borderColor}; text-align:right; font-weight:900; vertical-align:top; font-size:62px; color:#000;`;
         tdOre.textContent = en.ore ? `${en.ore} h` : '';
-        
+
         dayTot += (en.ore || 0);
-        
+
         tr.appendChild(tdCant);
         tr.appendChild(tdOrario);
         tr.appendChild(tdOre);
         tbody.appendChild(tr);
       });
-      
+
       if(list.length > 1) {
         const trSub = document.createElement('tr');
         trSub.style.background = isOff ? '#ffd699' : '#e8e8e8';
@@ -870,11 +870,11 @@ async function exportDetailPDF(){
           <td style="padding:35px; border:4px solid ${borderColor}; text-align:right; font-weight:900; font-size:57px; color:#000; background:#fff3cd;">${(+dayTot.toFixed(2))} h</td>`;
         tbody.appendChild(trSub);
       }
-      
+
       totRange += dayTot;
       if(!isOff) altFlag = !altFlag;
     }
-    
+
     const tfoot = document.createElement('tfoot');
     tfoot.innerHTML = `
       <tr style="background:#d9d9d9;">
@@ -883,20 +883,21 @@ async function exportDetailPDF(){
       </tr>`;
     table.appendChild(tbody);
     table.appendChild(tfoot);
-    
+
     return { table, total: totRange };
   }
-  
-  // ⬇️ CONTAINER PIÙ LARGO PER “RIEMPIRE” LA PAGINA
+
+  // --- SOLO PDF: contenitore larghissimo e senza limiti sulle statistiche ---
   const pdfContainer = document.getElementById('pdfContainer');
   pdfContainer.innerHTML = '';
   pdfContainer.style.display = 'block';
   pdfContainer.style.position = 'absolute';
   pdfContainer.style.left = '-10000px';
-  pdfContainer.style.width = '5000px';           /* ⬅️ più larghezza */
+  pdfContainer.style.top = '0';
+  pdfContainer.style.width = '8000px';     // ⬅️ ancora più largo
   pdfContainer.style.background = '#fff';
-  pdfContainer.style.padding = '15px';
-  
+  pdfContainer.style.padding = '20px';
+
   // Header
   const header = document.createElement('div');
   header.style.cssText = 'margin-bottom:30px; padding:48px; background:#f0f0f0; border:6px solid #333; border-radius:12px; text-align:center;';
@@ -914,42 +915,42 @@ async function exportDetailPDF(){
       </div>
     </div>`;
   pdfContainer.appendChild(header);
-  
-  // Due colonne
+
+  // Due colonne piene
   const columnsDiv = document.createElement('div');
-  columnsDiv.style.cssText = 'display:flex; gap:18px; margin-bottom:30px;';
-  
+  columnsDiv.style.cssText = 'display:flex; gap:24px; margin-bottom:30px;';
+
   const col1 = document.createElement('div');
   col1.style.cssText = 'flex:1; min-width:0;';
   const result1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'GG 1-15');
   col1.appendChild(result1.table);
-  
+
   const col2 = document.createElement('div');
   col2.style.cssText = 'flex:1; min-width:0;';
   if(daysInMonth > splitDay) {
     const result2 = createTableForRange(splitDay + 1, daysInMonth, `GG ${splitDay + 1}-${daysInMonth}`);
     col2.appendChild(result2.table);
   }
-  
+
   columnsDiv.appendChild(col1);
   columnsDiv.appendChild(col2);
   pdfContainer.appendChild(columnsDiv);
-  
-  // Statistiche cantieri — CENTRATE (invariato)
+
+  // Statistiche cantieri — CENTRATE e SENZA max-width
   const statsWrapper = document.createElement('div');
   statsWrapper.style.cssText = 'display:flex; justify-content:center; width:100%;';
-  
+
   const cantieriBox = document.createElement('div');
-  cantieriBox.style.cssText = 'padding:45px 62px; background:#f0f0f0; border:6px solid #333; border-radius:12px; max-width:2300px; width:100%;';
-  
+  cantieriBox.style.cssText = 'padding:45px 62px; background:#f0f0f0; border:6px solid #333; border-radius:12px; width:100%;'; // ⬅️ rimosso max-width
+
   let cantieriHTML = '<div style="font-size:66px; font-weight:900; margin-bottom:35px; color:#000; text-align:center; border-bottom:6px solid #333; padding-bottom:26px;">📊 CANTIERI LAVORATI</div>';
-  
+
   cantieriArray.forEach((c, idx) => {
     const bgColor = idx === 0 ? '#27ae60' : (idx === 1 ? '#3498db' : (idx === 2 ? '#e67e22' : '#95a5a6'));
     cantieriHTML += `
       <div style="margin-bottom:32px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <div style="font-size:46px; font-weight:900; color:#000; max-width:60%;">${c.nome}</div>
+          <div style="font-size:46px; font-weight:900; color:#000; max-width:65%;">${c.nome}</div>
           <div style="font-size:52px; font-weight:900; color:#000;">${c.ore} h <span style="color:#666; font-size:48px;">(${c.percentuale}%)</span></div>
         </div>
         <div style="background:#ddd; height:65px; border-radius:14px; overflow:hidden; border:5px solid #999;">
@@ -959,47 +960,40 @@ async function exportDetailPDF(){
         </div>
       </div>`;
   });
-  
+
   cantieriBox.innerHTML = cantieriHTML;
   statsWrapper.appendChild(cantieriBox);
   pdfContainer.appendChild(statsWrapper);
-  
+
   // Render
   await new Promise(r => requestAnimationFrame(r));
   await new Promise(r => setTimeout(r, 250));
-  
+
   const canvas = await html2canvas(pdfContainer, {
     scale: 1.4,
     backgroundColor: '#ffffff',
     useCORS: true,
     logging: false
   });
-  
-  pdfContainer.style.display = 'none';
-  
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'pt',
-    format: 'a4'
-  });
-  
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
 
-  /* ⬇️ MARGINI ZERO E SCALA SU LARGHEZZA */
+  pdfContainer.style.display = 'none';
+
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+
+  // margini zero e riempimento LARGHEZZA
+  const pageW = pdf.internal.pageSize.getWidth();
   const margin = 0;
   const availW = pageW - 2 * margin;
-  const scale = availW / canvas.width;              // riempi larghezza
+  const scale = availW / canvas.width;
   const w = canvas.width * scale;
   const h = canvas.height * scale;
-  const x = margin;
-  const y = margin;
 
-  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
-  
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, margin, w, h);
+
   const fname = `Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g, '_');
   pdf.save(fname);
 }
+
 
 /* ====== INIT ====== */
 (function init(){
