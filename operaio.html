@@ -799,7 +799,7 @@ async function carica(){
   }
 }
 
-/* ====== EXPORT PDF A4 — 2 COLONNE ====== */
+/* ====== EXPORT PDF A4 — 2 COLONNE MIGLIORATO ====== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -819,16 +819,17 @@ async function exportDetailPDF(){
     const table = document.createElement('table');
     table.className = 'detail';
     table.style.width = '100%';
-    table.style.fontSize = '11px';
+    table.style.fontSize = '13px';
     table.style.borderCollapse = 'separate';
     table.style.borderSpacing = '0';
     
     const thead = document.createElement('thead');
     thead.innerHTML = `
-      <tr style="background: #f0f0f0;">
-        <th style="padding:8px; text-align:left; border:1px solid #ccc; font-weight:700; font-size:10px;">${title}</th>
-        <th style="padding:8px; text-align:left; border:1px solid #ccc; font-weight:700; font-size:10px;">Cantiere</th>
-        <th style="padding:8px; text-align:right; border:1px solid #ccc; font-weight:700; font-size:10px;">Ore</th>
+      <tr style="background: #e8e8e8;">
+        <th style="padding:12px 10px; text-align:left; border:2px solid #666; font-weight:800; font-size:13px; color:#333;">${title}</th>
+        <th style="padding:12px 10px; text-align:left; border:2px solid #666; font-weight:800; font-size:13px; color:#333;">Cantiere / Lavorazioni</th>
+        <th style="padding:12px 10px; text-align:center; border:2px solid #666; font-weight:800; font-size:13px; color:#333;">Orario</th>
+        <th style="padding:12px 10px; text-align:right; border:2px solid #666; font-weight:800; font-size:13px; color:#333;">Ore</th>
       </tr>`;
     table.appendChild(thead);
     
@@ -843,18 +844,20 @@ async function exportDetailPDF(){
       const iso = `${Y}-${pad(M)}-${pad(d)}`;
       const isOff = (dow===5||dow===6) || state.holidays.has(iso);
       
-      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
-      const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
+      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
+      const dayLabel = `${pad(d)}/${pad(M)}<br><span style="font-size:11px; font-weight:600; color:#555;">${nomeG}</span>`;
       
-      const bgColor = isOff ? 'hsla(30,100%,50%,0.15)' : (altFlag ? '#fafafa' : '#fff');
+      const bgColor = isOff ? '#ffe8cc' : (altFlag ? '#f9f9f9' : '#fff');
+      const borderColor = isOff ? '#cc8800' : '#999';
       
       if(!list0.length) {
         const tr = document.createElement('tr');
         tr.style.background = bgColor;
         tr.innerHTML = `
-          <td style="padding:8px; border:1px solid #ddd; font-weight:700;">${dayLabel}</td>
-          <td style="padding:8px; border:1px solid #ddd;">—</td>
-          <td style="padding:8px; border:1px solid #ddd; text-align:right;"></td>`;
+          <td style="padding:12px 10px; border:2px solid ${borderColor}; font-weight:700; font-size:13px; line-height:1.4;">${dayLabel}</td>
+          <td style="padding:12px 10px; border:2px solid ${borderColor}; text-align:center; color:#999; font-size:13px;">—</td>
+          <td style="padding:12px 10px; border:2px solid ${borderColor};"></td>
+          <td style="padding:12px 10px; border:2px solid ${borderColor};"></td>`;
         tbody.appendChild(tr);
         if(!isOff) altFlag = !altFlag;
         continue;
@@ -870,27 +873,46 @@ async function exportDetailPDF(){
         if(idx === 0) {
           const tdDay = document.createElement('td');
           tdDay.rowSpan = list.length;
-          tdDay.style.cssText = 'padding:8px; border:1px solid #ddd; font-weight:700; vertical-align:top;';
-          tdDay.textContent = dayLabel;
+          tdDay.style.cssText = `padding:12px 10px; border:2px solid ${borderColor}; font-weight:800; vertical-align:top; font-size:14px; line-height:1.4;`;
+          tdDay.innerHTML = dayLabel;
           tr.appendChild(tdDay);
         }
         
         const tdCant = document.createElement('td');
-        tdCant.style.cssText = 'padding:8px; border:1px solid #ddd; vertical-align:top;';
-        tdCant.innerHTML = `<strong style="color:#c00; font-size:10px;">${en.cant}</strong>`;
-        if(en.lav) tdCant.innerHTML += `<br><span style="font-size:10px;">${en.lav}</span>`;
-        if(en.note) tdCant.innerHTML += `<br><em style="font-size:9px; color:#666;">${en.note}</em>`;
+        tdCant.style.cssText = `padding:12px 10px; border:2px solid ${borderColor}; vertical-align:top; line-height:1.5;`;
+        tdCant.innerHTML = `<div style="background:#ffcccc; padding:6px 8px; border-radius:4px; border:2px solid #cc0000; margin-bottom:6px;">
+          <strong style="color:#990000; font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:0.3px;">${en.cant}</strong>
+        </div>`;
+        if(en.lav) tdCant.innerHTML += `<div style="margin-top:6px; font-size:12px; color:#222; line-height:1.4;">${en.lav}</div>`;
+        if(en.note) tdCant.innerHTML += `<div style="margin-top:4px; font-size:11px; color:#666; font-style:italic; line-height:1.3;">${en.note}</div>`;
+        
+        const tdOrario = document.createElement('td');
+        tdOrario.style.cssText = `padding:12px 10px; border:2px solid ${borderColor}; text-align:center; vertical-align:top;`;
+        tdOrario.innerHTML = en.orari ? `<span style="font-size:12px; font-weight:700; color:#333; background:#f0f0f0; padding:4px 8px; border-radius:3px; display:inline-block;">${en.orari}</span>` : '';
         
         const tdOre = document.createElement('td');
-        tdOre.style.cssText = 'padding:8px; border:1px solid #ddd; text-align:right; font-weight:700; vertical-align:top;';
+        tdOre.style.cssText = `padding:12px 10px; border:2px solid ${borderColor}; text-align:right; font-weight:800; vertical-align:top; font-size:14px; color:#000;`;
         tdOre.textContent = en.ore ? `${en.ore} h` : '';
         
         dayTot += (en.ore || 0);
         
         tr.appendChild(tdCant);
+        tr.appendChild(tdOrario);
         tr.appendChild(tdOre);
         tbody.appendChild(tr);
       });
+      
+      // Se ci sono più righe per lo stesso giorno, aggiungi riga subtotale
+      if(list.length > 1) {
+        const trSub = document.createElement('tr');
+        trSub.style.background = isOff ? '#ffd699' : '#e8e8e8';
+        trSub.innerHTML = `
+          <td style="padding:10px; border:2px solid ${borderColor};"></td>
+          <td style="padding:10px; border:2px solid ${borderColor}; text-align:right; font-weight:800; font-size:13px; color:#333;">TOTALE GIORNO:</td>
+          <td style="padding:10px; border:2px solid ${borderColor};"></td>
+          <td style="padding:10px; border:2px solid ${borderColor}; text-align:right; font-weight:900; font-size:14px; color:#000; background:#fff3cd;">${(+dayTot.toFixed(2))} h</td>`;
+        tbody.appendChild(trSub);
+      }
       
       totRange += dayTot;
       if(!isOff) altFlag = !altFlag;
@@ -898,9 +920,9 @@ async function exportDetailPDF(){
     
     const tfoot = document.createElement('tfoot');
     tfoot.innerHTML = `
-      <tr style="background:#f5f5f5;">
-        <td colspan="2" style="padding:10px; border:2px solid #999; font-weight:800;">Totale periodo:</td>
-        <td style="padding:10px; border:2px solid #999; text-align:right; font-weight:800;">${(+totRange.toFixed(2))} h</td>
+      <tr style="background:#d9d9d9;">
+        <td colspan="3" style="padding:14px 10px; border:3px solid #333; font-weight:900; font-size:15px; color:#000;">TOTALE PERIODO:</td>
+        <td style="padding:14px 10px; border:3px solid #333; text-align:right; font-weight:900; font-size:16px; color:#000; background:#ffeb99;">${(+totRange.toFixed(2))} h</td>
       </tr>`;
     table.appendChild(tbody);
     table.appendChild(tfoot);
@@ -914,33 +936,33 @@ async function exportDetailPDF(){
   pdfContainer.style.display = 'block';
   pdfContainer.style.position = 'absolute';
   pdfContainer.style.left = '-10000px';
-  pdfContainer.style.width = '1400px';
+  pdfContainer.style.width = '1600px';
   pdfContainer.style.background = '#fff';
-  pdfContainer.style.padding = '30px';
+  pdfContainer.style.padding = '40px';
   
   // Header
   const header = document.createElement('div');
-  header.style.cssText = 'margin-bottom:20px; padding-bottom:15px; border-bottom:3px solid #333;';
+  header.style.cssText = 'margin-bottom:25px; padding:20px; background:#f0f0f0; border:3px solid #333; border-radius:8px;';
   header.innerHTML = `
-    <h2 style="margin:0 0 8px; font-size:24px; color:#333;">Dettaglio Operaio: ${op}</h2>
-    <p style="margin:0; font-size:16px; color:#666;">Mese: ${pad(M)}/${Y}</p>`;
+    <h2 style="margin:0 0 10px; font-size:28px; color:#000; font-weight:900;">DETTAGLIO OPERAIO: ${op.toUpperCase()}</h2>
+    <p style="margin:0; font-size:18px; color:#333; font-weight:700;">Mese: ${pad(M)}/${Y}</p>`;
   pdfContainer.appendChild(header);
   
   // Container per le 2 colonne
   const columnsDiv = document.createElement('div');
-  columnsDiv.style.cssText = 'display:flex; gap:30px; justify-content:space-between;';
+  columnsDiv.style.cssText = 'display:flex; gap:35px; justify-content:space-between;';
   
   // Colonna 1: giorni 1-15
   const col1 = document.createElement('div');
   col1.style.cssText = 'flex:1; min-width:0;';
-  const result1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'Giorni 1-15');
+  const result1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'GIORNI 1-15');
   col1.appendChild(result1.table);
   
   // Colonna 2: giorni 16-fine
   const col2 = document.createElement('div');
   col2.style.cssText = 'flex:1; min-width:0;';
   if(daysInMonth > splitDay) {
-    const result2 = createTableForRange(splitDay + 1, daysInMonth, `Giorni ${splitDay + 1}-${daysInMonth}`);
+    const result2 = createTableForRange(splitDay + 1, daysInMonth, `GIORNI ${splitDay + 1}-${daysInMonth}`);
     col2.appendChild(result2.table);
   }
   
@@ -951,17 +973,17 @@ async function exportDetailPDF(){
   // Footer con totale
   const totMese = state.summary.find(s => s.op === op)?.tot || 0;
   const footer = document.createElement('div');
-  footer.style.cssText = 'margin-top:25px; padding-top:15px; border-top:3px solid #333; text-align:right;';
-  footer.innerHTML = `<strong style="font-size:18px; color:#333;">TOTALE MESE: ${totMese} h</strong>`;
+  footer.style.cssText = 'margin-top:30px; padding:20px; background:#ffeb99; border:4px solid #333; border-radius:8px; text-align:center;';
+  footer.innerHTML = `<strong style="font-size:24px; color:#000; font-weight:900; letter-spacing:0.5px;">🏆 TOTALE MESE: ${totMese} ORE 🏆</strong>`;
   pdfContainer.appendChild(footer);
   
   // Attendi rendering
   await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 100));
+  await new Promise(r => setTimeout(r, 150));
   
   // Cattura con html2canvas
   const canvas = await html2canvas(pdfContainer, {
-    scale: 2,
+    scale: 2.5,
     backgroundColor: '#ffffff',
     useCORS: true,
     logging: false
@@ -979,7 +1001,7 @@ async function exportDetailPDF(){
   
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 30;
+  const margin = 25;
   
   const availW = pageW - 2 * margin;
   const availH = pageH - 2 * margin;
