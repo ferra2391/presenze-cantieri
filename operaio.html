@@ -799,7 +799,7 @@ async function carica(){
   }
 }
   
-/* ==================== EXPORT PDF OTTIMIZZATO ==================== */
+/* ==================== EXPORT PDF OTTIMIZZATO (2 COLONNE) ==================== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -818,29 +818,10 @@ async function exportDetailPDF(){
     return +t.toFixed(2);
   })();
 
-  // Raccogli SOLO i giorni con presenze
-  const workedDays = [];
-  for(let d=1; d<=daysInMonth; d++){
-    const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
-    if(list0.length === 0) continue; // Salta giorni vuoti
-    
-    const date = new Date(Y, M-1, d);
-    const dow  = (date.getDay()+6)%7;
-    const iso  = `${Y}-${pad(M)}-${pad(d)}`;
-    const isOff= (dow===5||dow===6) || state.holidays.has(iso);
-    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
-    
-    const grouped = groupDayEntries(list0);
-    let dayTot = 0;
-    grouped.forEach(en => dayTot += (en.ore || 0));
-    
-    workedDays.push({ d, date, isOff, nomeG, entries: grouped, dayTot });
-  }
-
   // A4 verticale @300dpi
   const A4_W = 2480;
   const A4_H = 3508;
-  const MARGIN = 30;
+  const MARGIN = 25;
 
   const pdfContainer = document.getElementById('pdfContainer');
   pdfContainer.innerHTML = '';
@@ -859,16 +840,16 @@ async function exportDetailPDF(){
   const header = document.createElement('div');
   header.style.cssText = `
     display:flex; justify-content:space-between; align-items:center;
-    padding:20px 30px; background:linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    border-radius:12px; margin-bottom:20px; color:white;
+    padding:16px 24px; background:linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    border-radius:10px; margin-bottom:16px; color:white;
   `;
   
   const leftHead = document.createElement('div');
   const title = document.createElement('div');
-  title.style.cssText = 'font-weight:900; font-size:52px; letter-spacing:-0.5px;';
+  title.style.cssText = 'font-weight:900; font-size:48px; letter-spacing:-0.5px;';
   title.textContent = `${op}`;
   const subtitle = document.createElement('div');
-  subtitle.style.cssText = 'font-size:32px; font-weight:600; margin-top:4px; opacity:0.95;';
+  subtitle.style.cssText = 'font-size:28px; font-weight:600; margin-top:2px; opacity:0.95;';
   subtitle.textContent = `Presenze ${String(M).padStart(2,'0')}/${Y}`;
   leftHead.appendChild(title);
   leftHead.appendChild(subtitle);
@@ -876,10 +857,10 @@ async function exportDetailPDF(){
   const rightHead = document.createElement('div');
   rightHead.style.cssText = 'text-align:right;';
   const sup = document.createElement('div');
-  sup.style.cssText = 'font-size:26px; font-weight:600; opacity:0.9; margin-bottom:4px;';
+  sup.style.cssText = 'font-size:22px; font-weight:600; opacity:0.9; margin-bottom:2px;';
   sup.textContent = 'TOTALE ORE';
   const big = document.createElement('div');
-  big.style.cssText = 'font-weight:900; font-size:62px; line-height:1;';
+  big.style.cssText = 'font-weight:900; font-size:54px; line-height:1;';
   big.textContent = `${(+totMese).toFixed(1)} h`;
   rightHead.appendChild(sup);
   rightHead.appendChild(big);
@@ -888,103 +869,169 @@ async function exportDetailPDF(){
   header.appendChild(rightHead);
   pdfContainer.appendChild(header);
 
-  // ===== GIORNI LAVORATI =====
-  const daysArea = document.createElement('div');
-  daysArea.style.cssText = `display:flex; flex-direction:column; gap:12px;`;
+  // ===== WRAPPER DUE COLONNE =====
+  const cols = document.createElement('div');
+  cols.style.cssText = `display:flex; gap:16px; width:100%;`;
+  pdfContainer.appendChild(cols);
 
-  workedDays.forEach(({ d, date, isOff, nomeG, entries, dayTot }) => {
-    const dayBox = document.createElement('div');
-    dayBox.style.cssText = `
-      border:3px solid ${isOff ? '#f59e0b' : '#3b82f6'}; 
-      border-radius:10px; overflow:hidden;
-      ${isOff ? 'background:#fffbeb;' : 'background:#f8fafc;'}
-    `;
-
-    // Header giorno
-    const dayHead = document.createElement('div');
-    dayHead.style.cssText = `
-      display:flex; justify-content:space-between; align-items:center;
-      padding:14px 20px;
-      background:${isOff ? 'linear-gradient(135deg, #f59e0b 0%, #fb923c 100%)' : 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)'};
-      color:white;
-    `;
-    const dayLabel = document.createElement('div');
-    dayLabel.style.cssText = 'font-weight:900; font-size:36px;';
-    dayLabel.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
-    const dayHours = document.createElement('div');
-    dayHours.style.cssText = 'font-weight:900; font-size:38px;';
-    dayHours.textContent = `${dayTot.toFixed(1)} h`;
-    dayHead.appendChild(dayLabel);
-    dayHead.appendChild(dayHours);
-    dayBox.appendChild(dayHead);
-
-    // Entries
-    const entriesWrap = document.createElement('div');
-    entriesWrap.style.cssText = 'padding:16px 20px; display:flex; flex-direction:column; gap:14px;';
-    
-    entries.forEach(en => {
-      const row = document.createElement('div');
-      row.style.cssText = `
-        display:grid; grid-template-columns:1fr auto; gap:20px; align-items:start;
-        padding:14px; background:white; border-radius:8px;
-        border-left:6px solid #dc2626;
-      `;
-      
-      const leftSide = document.createElement('div');
-      const cantEl = document.createElement('div');
-      cantEl.style.cssText = 'font-size:28px; font-weight:900; color:#dc2626; text-transform:uppercase; margin-bottom:8px;';
-      cantEl.textContent = en.cant;
-      leftSide.appendChild(cantEl);
-      
-      if(en.lav){
-        const lavEl = document.createElement('div');
-        lavEl.style.cssText = 'font-size:24px; color:#1e293b; line-height:1.4; margin-bottom:4px;';
-        lavEl.innerHTML = en.lav.replace(/\n/g,'<br>');
-        leftSide.appendChild(lavEl);
-      }
-      
-      if(en.note){
-        const noteEl = document.createElement('div');
-        noteEl.style.cssText = 'font-size:22px; color:#64748b; font-style:italic; margin-top:6px;';
-        noteEl.innerHTML = en.note.replace(/\n/g,'<br>');
-        leftSide.appendChild(noteEl);
-      }
-      
-      const rightSide = document.createElement('div');
-      rightSide.style.cssText = 'text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;';
-      
-      if(en.orari){
-        const orariBox = document.createElement('div');
-        orariBox.style.cssText = `
-          font-size:22px; font-weight:700; color:#0f172a;
-          background:#e0f2fe; border:2px solid #0284c7;
-          padding:8px 14px; border-radius:6px; display:inline-block;
-        `;
-        orariBox.textContent = en.orari;
-        rightSide.appendChild(orariBox);
-      }
-      
-      const oreBox = document.createElement('div');
-      oreBox.style.cssText = `
-        font-size:32px; font-weight:900; color:#0f172a;
-        background:#dbeafe; padding:8px 16px; border-radius:6px;
-        display:inline-block;
-      `;
-      oreBox.textContent = `${en.ore} h`;
-      rightSide.appendChild(oreBox);
-      
-      row.appendChild(leftSide);
-      row.appendChild(rightSide);
-      entriesWrap.appendChild(row);
+  // Funzione per raggruppare entries
+  function groupDay(entries){
+    const map = new Map();
+    entries.forEach(e=>{
+      const cant = isBlankCantiere(e.cantiere) ? 'NO DATI' : String(e.cantiere).trim().toUpperCase();
+      const lav  = stripIntervals(e.lavorazione||"");
+      const note = stripIntervals(e.note||"");
+      const key = `${cant}|${lav}|${note}`;
+      if(!map.has(key)) map.set(key, {cant, lav, note, orari:new Set(), ore:0, count:0});
+      const rec = map.get(key);
+      if(e.orari){ String(e.orari).split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(x=>rec.orari.add(x)); }
+      rec.ore += (e.ore||0);
+      rec.count++;
     });
-    
-    dayBox.appendChild(entriesWrap);
-    daysArea.appendChild(dayBox);
-  });
+    return Array.from(map.values()).map(v=>({
+      cant: v.count>1 ? `${v.cant} (x${v.count})` : v.cant,
+      lav: v.lav,
+      note: v.note,
+      orari: Array.from(v.orari).join(', '),
+      ore: +(+v.ore).toFixed(2)
+    }));
+  }
 
-  pdfContainer.appendChild(daysArea);
+  // Funzione per costruire una colonna (SOLO giorni con presenze)
+  function buildCalendar(startDay, endDay){
+    const col = document.createElement('div');
+    col.style.cssText = `
+      flex:1; display:flex; flex-direction:column; min-width:0;
+      border:3px solid #1e40af; padding:10px; box-sizing:border-box;
+      border-radius:10px; background:#f8fafc;
+    `;
 
-  // Render
+    const h = document.createElement('div');
+    h.style.cssText = `
+      font-family: Arial, sans-serif; font-weight:900; font-size:32px;
+      text-align:center; padding:8px 4px; border-bottom:3px solid #1e40af;
+      background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border-radius:6px; margin-bottom:10px; color:#1e40af;
+    `;
+    h.textContent = startDay === 1 ? 'GIORNI 1–15' : 'GIORNI 16–31';
+    col.appendChild(h);
+
+    const body = document.createElement('div');
+    body.style.cssText = `flex:1; display:flex; flex-direction:column; gap:8px;`;
+    col.appendChild(body);
+
+    // Raccogli SOLO i giorni con presenze in questo range
+    for(let d=startDay; d<=Math.min(endDay, daysInMonth); d++){
+      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
+      if(list0.length === 0) continue; // SALTA giorni vuoti!
+
+      const date = new Date(Y, M-1, d);
+      const dow  = (date.getDay()+6)%7;
+      const iso  = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isOff= (dow===5||dow===6) || state.holidays.has(iso);
+      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
+
+      const grouped = groupDay(list0);
+      let dayTot = 0;
+      grouped.forEach(en => dayTot += (en.ore || 0));
+
+      // Box giorno
+      const box = document.createElement('div');
+      box.style.cssText = `
+        border:2px solid ${isOff ? '#f59e0b' : '#3b82f6'}; 
+        border-radius:8px; overflow:hidden;
+        ${isOff ? 'background:#fffbeb;' : 'background:white;'}
+      `;
+
+      // Header giorno
+      const head = document.createElement('div');
+      head.style.cssText = `
+        display:flex; justify-content:space-between; align-items:center;
+        padding:8px 12px;
+        background:${isOff ? 'linear-gradient(135deg, #f59e0b 0%, #fb923c 100%)' : 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)'};
+        color:white; font-weight:900; font-size:24px;
+      `;
+      const left = document.createElement('div');
+      left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
+      const right = document.createElement('div');
+      right.style.cssText = 'font-size:26px;';
+      right.textContent = `${dayTot.toFixed(1)} h`;
+      head.appendChild(left);
+      head.appendChild(right);
+      box.appendChild(head);
+
+      // Content entries
+      const content = document.createElement('div');
+      content.style.cssText = 'padding:10px; display:flex; flex-direction:column; gap:8px;';
+      
+      grouped.forEach(en=>{
+        const row = document.createElement('div');
+        row.style.cssText = `
+          display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start;
+          padding:8px; background:${isOff ? '#fef3c7' : '#f1f5f9'}; border-radius:6px;
+          border-left:4px solid #dc2626;
+        `;
+        
+        const l = document.createElement('div');
+        const cantEl = document.createElement('div');
+        cantEl.style.cssText = 'font-size:20px; font-weight:900; color:#dc2626; text-transform:uppercase; margin-bottom:4px;';
+        cantEl.textContent = en.cant;
+        l.appendChild(cantEl);
+        
+        if(en.lav){
+          const lavEl = document.createElement('div');
+          lavEl.style.cssText = 'font-size:18px; color:#1e293b; line-height:1.3;';
+          lavEl.innerHTML = en.lav.replace(/\n/g,'<br>');
+          l.appendChild(lavEl);
+        }
+        
+        if(en.note){
+          const noteEl = document.createElement('div');
+          noteEl.style.cssText = 'font-size:16px; color:#64748b; font-style:italic; margin-top:3px;';
+          noteEl.innerHTML = en.note.replace(/\n/g,'<br>');
+          l.appendChild(noteEl);
+        }
+        
+        const r = document.createElement('div');
+        r.style.cssText = 'text-align:right; display:flex; flex-direction:column; gap:4px; align-items:flex-end;';
+        
+        if(en.orari){
+          const orariBox = document.createElement('div');
+          orariBox.style.cssText = `
+            font-size:16px; font-weight:700; color:#0c4a6e;
+            background:#e0f2fe; border:2px solid #0284c7;
+            padding:4px 8px; border-radius:4px; white-space:nowrap;
+          `;
+          orariBox.textContent = en.orari;
+          r.appendChild(orariBox);
+        }
+        
+        const oreBox = document.createElement('div');
+        oreBox.style.cssText = `
+          font-size:24px; font-weight:900; color:#0f172a;
+          background:#bfdbfe; padding:4px 10px; border-radius:4px;
+        `;
+        oreBox.textContent = `${en.ore} h`;
+        r.appendChild(oreBox);
+        
+        row.appendChild(l);
+        row.appendChild(r);
+        content.appendChild(row);
+      });
+      
+      box.appendChild(content);
+      body.appendChild(box);
+    }
+
+    return col;
+  }
+
+  const leftCol  = buildCalendar(1, 15);
+  const rightCol = buildCalendar(16, 31);
+  cols.appendChild(leftCol);
+  cols.appendChild(rightCol);
+
+  // Render e cattura
   await new Promise(r => requestAnimationFrame(r));
   await new Promise(r => setTimeout(r, 100));
   
@@ -999,7 +1046,7 @@ async function exportDetailPDF(){
   
   pdfContainer.style.display = 'none';
 
-  // PDF
+  // PDF A4
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
