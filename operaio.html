@@ -969,12 +969,13 @@ async function exportDetailPDF(){
         padding:6px 10px;
         background:${isOff ? 'rgba(251, 191, 36, 0.15)' : 'rgba(148, 163, 184, 0.15)'};
         border-bottom:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
-        font-weight:800; font-size:20px; color:#1e293b;
+        color:#1e293b;
       `;
       const left = document.createElement('div');
+      left.style.cssText = 'font-size:32px; font-weight:900;';
       left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
       const right = document.createElement('div');
-      right.style.cssText = 'font-size:24px; font-weight:900;';
+      right.style.cssText = 'font-size:32px; font-weight:900;';
       right.textContent = `${dayTot.toFixed(1)} h`;
       head.appendChild(left);
       head.appendChild(right);
@@ -1028,8 +1029,8 @@ async function exportDetailPDF(){
         
         const oreBox = document.createElement('div');
         oreBox.style.cssText = `
-          font-size:32px; font-weight:900; color:#0f172a;
-          background:rgba(186, 230, 253, 0.5); padding:3px 12px; border-radius:4px;
+          font-size:22px; font-weight:900; color:#0f172a;
+          background:rgba(186, 230, 253, 0.5); padding:3px 10px; border-radius:4px;
           border:1px solid #bae6fd;
         `;
         oreBox.textContent = `${en.ore} h`;
