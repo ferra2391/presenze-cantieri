@@ -405,8 +405,8 @@
       </div>
       <div class="nav">
         <a href="gestione.html">Presenze</a>
-        <a href="operaio.html">Analisi per Operaio</a>
-        <a class="primary" href="cantiere.html">Analisi per Cantiere</a>
+        <a href="analisi-operaio.html">Analisi per Operaio</a>
+        <a class="primary" href="analisi-cantiere.html">Analisi per Cantiere</a>
       </div>
     </div>
     <div id="status"></div>
@@ -479,7 +479,12 @@
 
     <!-- Lavorazioni -->
     <div class="detail-section">
-      <div class="section-header">🔨 Lavorazioni Effettuate</div>
+      <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>🔨 Lavorazioni Effettuate</span>
+        <button id="btnSintetizza" style="font-size:13px; padding:8px 16px;">
+          🤖 Sintetizza con AI
+        </button>
+      </div>
       <div id="detailLavorazioni" class="lav-list"></div>
     </div>
 
@@ -625,6 +630,197 @@ function renderSummary(list){
   });
 }
 
+/* ====== LAVORAZIONI UTILITIES ====== */
+function normalizeText(text){
+  return text.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function calculateSimilarity(str1, str2){
+  const n1 = normalizeText(str1);
+  const n2 = normalizeText(str2);
+  
+  // Exact match
+  if(n1 === n2) return 1.0;
+  
+  // One contains the other
+  if(n1.includes(n2) || n2.includes(n1)){
+    const shorter = Math.min(n1.length, n2.length);
+    const longer = Math.max(n1.length, n2.length);
+    return shorter / longer;
+  }
+  
+  // Word overlap
+  const words1 = new Set(n1.split(/\s+/));
+  const words2 = new Set(n2.split(/\s+/));
+  const intersection = new Set([...words1].filter(w => words2.has(w)));
+  const union = new Set([...words1, ...words2]);
+  
+  if(union.size === 0) return 0;
+  return intersection.size / union.size;
+}
+
+function groupSimilarLavorazioni(lavorazioniMap, threshold = 0.65){
+  const entries = Array.from(lavorazioniMap.entries());
+  const groups = [];
+  const used = new Set();
+  
+  entries.forEach(([lav, data], i) => {
+    if(used.has(i)) return;
+    
+    const group = {
+      main: lav,
+      variants: [lav],
+      totalCount: data.count,
+      operai: new Set(data.operai)
+    };
+    
+    used.add(i);
+    
+    // Find similar entries
+    entries.forEach(([otherLav, otherData], j) => {
+      if(i !== j && !used.has(j)){
+        const similarity = calculateSimilarity(lav, otherLav);
+        if(similarity >= threshold){
+          group.variants.push(otherLav);
+          group.totalCount += otherData.count;
+          otherData.operai.forEach(op => group.operai.add(op));
+          used.add(j);
+        }
+      }
+    });
+    
+    groups.push(group);
+  });
+  
+  return groups.sort((a,b) => b.totalCount - a.totalCount);
+}
+
+function renderLavorazioni(lavorazioniMap, synthesized = false){
+  const detailLavorazioni = document.getElementById('detailLavorazioni');
+  detailLavorazioni.innerHTML = '';
+  
+  const lavList = Array.from(lavorazioniMap.entries())
+    .sort((a,b) => b[1].count - a[1].count);
+  
+  lavList.forEach(([lav, data]) => {
+    const item = document.createElement('div');
+    item.className = 'lav-item';
+    
+    const header = document.createElement('div');
+    header.className = 'lav-item-header';
+    
+    const text = document.createElement('div');
+    text.className = 'lav-item-text';
+    text.textContent = lav;
+    
+    const count = document.createElement('div');
+    count.className = 'lav-item-count';
+    count.textContent = `${data.count} ${data.count === 1 ? 'volta' : 'volte'}`;
+    
+    header.appendChild(text);
+    header.appendChild(count);
+    
+    const operaiText = document.createElement('div');
+    operaiText.className = 'lav-item-operai';
+    operaiText.textContent = `Operai: ${Array.from(data.operai).sort().join(', ')}`;
+    
+    item.appendChild(header);
+    item.appendChild(operaiText);
+    detailLavorazioni.appendChild(item);
+  });
+}
+
+function renderSynthesizedLavorazioni(groups){
+  const detailLavorazioni = document.getElementById('detailLavorazioni');
+  detailLavorazioni.innerHTML = '';
+  
+  // Info header
+  const infoBox = document.createElement('div');
+  infoBox.style.cssText = `
+    background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 16px; font-size: 14px; color: #1e40af;
+  `;
+  infoBox.innerHTML = `
+    <strong>🤖 Sintesi AI attivata:</strong> ${groups.length} categorie di lavorazioni 
+    (da ${groups.reduce((sum, g) => sum + g.variants.length, 0)} voci originali)
+    <button id="btnMostraOriginali" style="margin-left:12px; font-size:12px; padding:4px 10px; background:white; border:1px solid #3b82f6; border-radius:4px; cursor:pointer;">
+      👁️ Mostra originali
+    </button>
+  `;
+  detailLavorazioni.appendChild(infoBox);
+  
+  groups.forEach(group => {
+    const item = document.createElement('div');
+    item.className = 'lav-item';
+    item.style.borderLeft = '4px solid #3b82f6';
+    
+    const header = document.createElement('div');
+    header.className = 'lav-item-header';
+    
+    const text = document.createElement('div');
+    text.className = 'lav-item-text';
+    text.textContent = group.main;
+    
+    const count = document.createElement('div');
+    count.className = 'lav-item-count';
+    count.textContent = `${group.totalCount} ${group.totalCount === 1 ? 'volta' : 'volte'}`;
+    
+    header.appendChild(text);
+    header.appendChild(count);
+    
+    const operaiText = document.createElement('div');
+    operaiText.className = 'lav-item-operai';
+    operaiText.textContent = `Operai: ${Array.from(group.operai).sort().join(', ')}`;
+    
+    item.appendChild(header);
+    item.appendChild(operaiText);
+    
+    // Show variants if more than 1
+    if(group.variants.length > 1){
+      const variantsDiv = document.createElement('div');
+      variantsDiv.style.cssText = `
+        margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1;
+        font-size: 13px; color: #64748b;
+      `;
+      variantsDiv.innerHTML = `<strong>Varianti raggruppate (${group.variants.length}):</strong><br>` +
+        group.variants.map(v => `• ${v}`).join('<br>');
+      item.appendChild(variantsDiv);
+    }
+    
+    detailLavorazioni.appendChild(item);
+  });
+}
+
+function sintetizzaLavorazioni(lavorazioniMap){
+  const btn = document.getElementById('btnSintetizza');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analisi in corso...';
+  
+  setTimeout(() => {
+    const groups = groupSimilarLavorazioni(lavorazioniMap, 0.65);
+    renderSynthesizedLavorazioni(groups);
+    
+    btn.textContent = '✓ Sintetizzato';
+    btn.style.background = '#10b981';
+    btn.style.color = 'white';
+    btn.style.borderColor = '#10b981';
+    
+    // Setup button to show originals
+    document.getElementById('btnMostraOriginali').onclick = () => {
+      renderLavorazioni(lavorazioniMap, false);
+      btn.disabled = false;
+      btn.textContent = '🤖 Sintetizza con AI';
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    };
+  }, 300);
+}
+
 function showDetail(cant){
   state.currentCant = cant;
   const [Y,M] = [state.Y, state.M];
@@ -699,36 +895,11 @@ function showDetail(cant){
   if(lavorazioniMap.size === 0){
     detailLavorazioni.innerHTML = '<div class="empty-state" style="padding:20px">Nessuna lavorazione registrata</div>';
   } else {
-    const lavList = Array.from(lavorazioniMap.entries())
-      .sort((a,b) => b[1].count - a[1].count);
-    
-    lavList.forEach(([lav, data]) => {
-      const item = document.createElement('div');
-      item.className = 'lav-item';
-      
-      const header = document.createElement('div');
-      header.className = 'lav-item-header';
-      
-      const text = document.createElement('div');
-      text.className = 'lav-item-text';
-      text.textContent = lav;
-      
-      const count = document.createElement('div');
-      count.className = 'lav-item-count';
-      count.textContent = `${data.count} ${data.count === 1 ? 'volta' : 'volte'}`;
-      
-      header.appendChild(text);
-      header.appendChild(count);
-      
-      const operaiText = document.createElement('div');
-      operaiText.className = 'lav-item-operai';
-      operaiText.textContent = `Operai: ${Array.from(data.operai).sort().join(', ')}`;
-      
-      item.appendChild(header);
-      item.appendChild(operaiText);
-      detailLavorazioni.appendChild(item);
-    });
+    renderLavorazioni(lavorazioniMap, false);
   }
+
+  // Setup bottone sintetizza
+  document.getElementById('btnSintetizza').onclick = () => sintetizzaLavorazioni(lavorazioniMap);
 
   detailTitle.textContent = `🏗️ Dettaglio Cantiere — ${cant} (${pad(M)}/${Y})`;
   detailCard.style.display = 'block';
