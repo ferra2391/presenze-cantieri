@@ -799,7 +799,7 @@ async function carica(){
   }
 }
 
-<script>
+
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -1015,7 +1015,6 @@ async function exportDetailPDF(){
   pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgW, imgH, undefined, 'FAST');
   pdf.save(`Dettaglio_${op}_${String(M).padStart(2,'0')}_${Y}.pdf`.replace(/\s+/g,'_'));
 }
-}  
 </script>
 
 
