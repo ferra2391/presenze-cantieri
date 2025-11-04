@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestione Presenze - Dashboard Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --primary: hsl(210,100%,45%);
+      --primary-dark: hsl(210,100%,35%);
+      --text: hsl(210,15%,15%);
+      --text-light: hsl(210,10%,40%);
+      --muted: hsl(210,8%,50%);
+      --bg: hsl(210,25%,96%);
+      --card: #ffffff;
+      --border: hsl(210,20%,88%);
+      --border-strong: hsl(210,20%,75%);
+      --orange-weak: hsla(30,100%,50%,0.12);
+      --orange-border: hsla(30,100%,50%,0.3);
+      --success: hsl(140,70%,40%);
+      --error: hsl(0,70%,50%);
+      --hover-bg: hsl(210,30%,98%);
+      --danger: #c00000;
+      --overlay: rgba(0,0,0,.5);
+
+      /* tabella */
+      --col-w: 270px;
+      --col-op: 210px;
+      --day-h: 120px;
+
+      --fs-day: 22px;
+      --fs-cantiere: 24px;
+      --fs-ore: 23px;
+      --fs-tot: 22px;
+      --fs-note: 18px;
+      --fs-lav: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    
+    html, body { height: 100%; }
+    
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 32px 40px;
+    }
+    
+    h1 {
+      margin: 0 0 24px;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    /* CONTROL PANEL */
+    .control-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      margin-bottom: 28px;
+    }
+    
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .control-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .nav {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .nav a {
+      padding: 10px 18px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+    
+    .nav a:hover {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+    
+    .nav a.primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .nav a.primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    input[type="month"] {
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      font-size: 15px;
+      font-weight: 500;
+      min-width: 160px;
+      transition: border-color 0.2s;
+    }
+    
+    input[type="month"]:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    select {
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      font-size: 15px;
+      font-weight: 500;
+      transition: border-color 0.2s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    button {
+      padding: 10px 18px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+    
+    button:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+    
+    button.primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    button.primary:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .month-btn {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .spinner {
+      display: none;
+    }
+    
+    .spinner.show {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #ddd;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: -4px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    #status {
+      margin-top: 12px;
+      font-size: 15px;
+    }
+    
+    .ok {
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    .error {
+      color: var(--error);
+      font-weight: 600;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-light);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .pill {
+      display: inline-block;
+      height: 14px;
+      width: 24px;
+      border-radius: 4px;
+      background: var(--orange-weak);
+      border: 1px solid var(--orange-border);
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .hidden { display: none !important; }
+
+    /* TABLE CARDS */
+    .matrix-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .table-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+    
+    .table-title {
+      padding: 20px 24px;
+      border-bottom: 2px solid var(--border);
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text);
+      background: linear-gradient(to bottom, var(--card), var(--hover-bg));
+    }
+    
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 100%;
+      font-size: 14px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--hover-bg);
+      border-bottom: 2px solid var(--border-strong);
+      padding: 12px 8px;
+      text-align: center;
+      white-space: nowrap;
+      font-size: var(--fs-day);
+      font-weight: 700;
+    }
+
+    thead th.day-void {
+      color: #aaa;
+      background: #fafafa;
+    }
+
+    thead th.weekend,
+    thead th.festivo {
+      background: var(--orange-weak);
+      border-bottom-color: var(--orange-border);
+    }
+
+    thead th:first-child,
+    tbody th {
+      width: var(--col-op);
+      min-width: var(--col-op);
+      max-width: var(--col-op);
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    tbody th {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: #fff;
+      border-right: 2px solid var(--border-strong);
+      text-align: left;
+      padding: 12px 14px;
+      font-size: 18px;
+      line-height: 1.3;
+      vertical-align: top;
+    }
+
+    .op-name {
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .op-total {
+      color: #d946ef;
+      font-weight: 800;
+      font-size: 16px;
+      background: rgba(217, 70, 239, 0.08);
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    thead th:not(:first-child),
+    tbody td {
+      width: var(--col-w);
+      min-width: var(--col-w);
+      max-width: var(--col-w);
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    tbody td {
+      border-left: 1px solid var(--border);
+      border-top: 1px solid var(--border);
+      padding: 8px;
+      height: var(--day-h);
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    tr:last-child td {
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody td.weekend,
+    tbody td.festivo {
+      background: var(--orange-weak);
+    }
+
+    .cell {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 4px;
+    }
+
+    .entry {
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      padding: 4px 6px;
+      border-radius: 6px;
+    }
+
+    .entry:hover {
+      background: rgba(0, 0, 0, 0.03);
+      transform: scale(1.02);
+    }
+
+    .entry.assente {
+      background: hsla(140, 60%, 80%, 0.25);
+      border: 1px solid hsla(140, 50%, 55%, 0.40);
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .entry.assente .cant {
+      color: hsl(210, 80%, 28%);
+    }
+
+    .cant {
+      color: var(--danger);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      font-size: var(--fs-cantiere);
+      line-height: 1.2;
+    }
+
+    .ore {
+      color: #111;
+      font-weight: 700;
+      font-size: var(--fs-ore);
+      margin-top: 2px;
+    }
+
+    .lav {
+      color: #000;
+      font-size: var(--fs-lav);
+      margin-top: 4px;
+      white-space: pre-wrap;
+      line-height: 1.3;
+    }
+
+    .note {
+      color: var(--muted);
+      font-style: normal;
+      font-size: var(--fs-note);
+      white-space: pre-wrap;
+      font-variant-numeric: tabular-nums;
+      margin-top: 4px;
+    }
+
+    .tot {
+      margin-top: 8px;
+      font-weight: 800;
+      font-size: var(--fs-tot);
+      color: var(--primary);
+      padding: 4px 8px;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 6px;
+    }
+
+    .center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      color: #bbb;
+      font-size: 18px;
+    }
+
+    /* MODALE */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      display: none;
+      z-index: 999;
+      backdrop-filter: blur(2px);
+    }
+
+    #modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 92%;
+      max-width: 600px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: none;
+      z-index: 1000;
+    }
+
+    #modalTitle {
+      margin: 0 0 20px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .modal-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .modal-field label {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-field input,
+    .modal-field textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .modal-field input:focus,
+    .modal-field textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .modal-field textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 2px solid var(--border);
+    }
+
+    @media print {
+      body { background: white; }
+      .container { padding: 20px; }
+      .control-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📅 Gestione Presenze Mensili</h1>
+
+    <div class="control-panel">
+      <div class="control-row">
+        <div class="control-left">
+          <button id="prevMonth" class="month-btn" title="Mese precedente">◀</button>
+          <input type="month" id="mese">
+          <span id="meseFallback" class="hidden">
+            <select id="meseSel" aria-label="Mese">
+              <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+              <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+              <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+            </select>
+            <select id="annoSel" aria-label="Anno"></select>
+          </span>
+          <button id="nextMonth" class="month-btn" title="Mese successivo">▶</button>
+          <button id="btnCarica" class="primary">Carica Dati</button>
+          <span class="spinner" id="spin"></span>
+        </div>
+
+        <div class="control-left">
+          <nav class="nav">
+            <a class="primary" href="gestione.html" aria-current="page">Presenze</a>
+            <a href="analisi-operaio.html">Analisi per Operaio</a>
+            <a href="analisi-cantiere.html">Analisi per Cantiere</a>
+          </nav>
+          <label class="checkbox-label">
+            <input type="checkbox" id="toggleLav" checked>
+            <span>Mostra lavorazioni</span>
+          </label>
+          <button id="btnPDF" title="Esporta PDF A3 (2 pagine)">📄 PDF A3</button>
+          <button id="btnXLS" title="Esporta Excel">📊 Excel</button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span class="pill"></span>
+        <span>Sabato / Domenica / Festivi italiani</span>
+      </div>
+
+      <div id="status"></div>
+    </div>
+
+    <div class="matrix-stack" id="printArea">
+      <div class="table-card" id="cardA">
+        <div class="table-title" id="titleA">📆 Giorni 1–15</div>
+        <div class="table-wrap">
+          <table id="matrixA">
+            <thead id="theadA"></thead>
+            <tbody id="tbodyA"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-card" id="cardB">
+        <div class="table-title" id="titleB">📆 Giorni 16–31</div>
+        <div class="table-wrap">
+          <table id="matrixB">
+            <thead id="theadB"></thead>
+            <tbody id="tbodyB"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale -->
+  <div id="overlay"></div>
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">✏️ Modifica Presenza</h3>
+    <input type="hidden" id="mod_id">
+    
+    <div class="modal-row">
+      <div class="modal-field">
+        <label>Data</label>
+        <input type="date" id="mod_data">
+      </div>
+      <div class="modal-field">
+        <label>Ore</label>
+        <input type="number" id="mod_ore" step="0.25" min="0" placeholder="es. 8">
+      </div>
+    </div>
+
+    <div class="modal-row">
+      <div class="modal-field">
+        <label>Cantiere</label>
+        <input type="text" id="mod_cantiere" placeholder="Nome cantiere">
+      </div>
+      <div class="modal-field">
+        <label>Lavorazione</label>
+        <input type="text" id="mod_lavorazione" placeholder="Descrizione lavorazione">
+      </div>
+    </div>
+
+    <div class="modal-row">
+      <div class="modal-field">
+        <label>Note</label>
+        <textarea id="mod_note" placeholder="Eventuali note"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="btnCancel">Annulla</button>
+      <button id="btnSave" class="primary">💾 Salva Modifiche</button>
+    </div>
+  </div>
+
+  <!-- Librerie -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <script>
+  /* ============ CONFIG & UTIL ============ */
+  const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
+  const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
+
+  const pad = n => String(n).padStart(2,"0");
+
+  function parseDateAny(v){
+    if(!v) return null;
+    if(v instanceof Date) return v;
+    const s = String(v).trim();
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const [Y,M,D]=s.split("T")[0].split("-").map(Number); return new Date(Y,M-1,D); }
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
+    const t = new Date(s); return isNaN(t) ? null : t;
+  }
+
+  function toISODateInput(d){
+    return (d instanceof Date && !isNaN(d)) ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` : "";
+  }
+
+  function calcEaster(Y){
+    const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
+          g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,L=(32+2*e+2*i-h-k)%7,
+          m=Math.floor((a+11*h+22*L)/451),month=Math.floor((h+L-7*m+114)/31),day=((h+L-7*m+114)%31)+1;
+    return new Date(Y,month-1,day);
+  }
+
+  function italianHolidays(year){
+    const set=new Set(),add=(m,d)=>set.add(`${year}-${pad(m)}-${pad(d)}`);
+    add(1,1); add(1,6); add(4,25); add(5,1); add(6,2); add(8,15); add(11,1); add(12,8); add(12,25); add(12,26);
+    const p=calcEaster(year), q=new Date(p); q.setDate(p.getDate()+1);
+    add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
+    return set;
+  }
+
+  function el(tag, cls, text){
+    const n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(text!=null) n.textContent = String(text);
+    return n;
+  }
+
+  /* ============ MESE & RENDER ============ */
+  const meseInput   = document.getElementById("mese");
+  const meseFallback= document.getElementById("meseFallback");
+  const selMese     = document.getElementById("meseSel");
+  const selAnno     = document.getElementById("annoSel");
+  const prevBtn     = document.getElementById("prevMonth");
+  const nextBtn     = document.getElementById("nextMonth");
+  const btnCarica   = document.getElementById("btnCarica");
+  const spin        = document.getElementById("spin");
+  const statusEl    = document.getElementById("status");
+  const titleA      = document.getElementById("titleA");
+  const titleB      = document.getElementById("titleB");
+
+  const supportsMonth = (() => { const i=document.createElement('input'); i.type='month'; return i.type === 'month'; })();
+
+  function populateYearSelect(baseYear){
+    selAnno.innerHTML = "";
+    for(let y=baseYear-4; y<=baseYear+2; y++){
+      const opt=document.createElement('option');
+      opt.value=String(y); opt.textContent=String(y);
+      selAnno.appendChild(opt);
+    }
+  }
+
+  function setYM(Y,M,updateControls=true){
+    const val = `${Y}-${pad(M)}`;
+    if(supportsMonth){ meseInput.value = val; }
+    if(updateControls){ selAnno.value = String(Y); selMese.value = String(M); }
+    const monthName = new Date(Y, M-1, 1).toLocaleString('it-IT',{month:'long', year:'numeric'});
+    titleA.textContent = `📆 Giorni 1–15 — ${monthName}`;
+    titleB.textContent = `📆 Giorni 16–31 — ${monthName}`;
+  }
+
+  function getYM(){
+    if(supportsMonth){
+      const v = meseInput.value;
+      if(v && /^\d{4}-\d{2}$/.test(v)){ const [Y,M] = v.split('-').map(Number); return [Y,M]; }
+    }
+    return [Number(selAnno.value), Number(selMese.value)];
+  }
+
+  function shiftMonth(delta){
+    let [Y,M] = getYM();
+    M += delta;
+    if(M<1){ M=12; Y--; }
+    if(M>12){ M=1; Y++; }
+    setYM(Y,M,true);
+    carica();
+  }
+
+  function renderHeaderHalf(containerTheadId, year, month, startDay, endDay){
+    const thead = document.getElementById(containerTheadId);
+    thead.innerHTML = "";
+    const tr = document.createElement("tr");
+
+    const th0 = document.createElement("th");
+    th0.textContent = "Operaio";
+    th0.style.textAlign = "left";
+    tr.appendChild(th0);
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const holidays = italianHolidays(year);
+
+    for(let d=startDay; d<=endDay; d++){
+      const th = document.createElement("th");
+      th.textContent = d;
+      th.title = `${pad(d)}/${pad(month)}/${year}`;
+      if(d > daysInMonth){
+        th.classList.add("day-void");
+      }else{
+        const dow = (new Date(year, month-1, d).getDay()+6)%7;
+        const iso = `${year}-${pad(month)}-${pad(d)}`;
+        if(dow===5 || dow===6) th.classList.add("weekend");
+        if(holidays.has(iso)) th.classList.add("festivo");
+      }
+      tr.appendChild(th);
+    }
+    thead.appendChild(tr);
+  }
+
+  let SHOW_LAV = true;
+  const toggleLav = document.getElementById('toggleLav');
+  toggleLav.addEventListener('change', ()=>{
+    SHOW_LAV = toggleLav.checked;
+    if(cache.operai.length){
+      renderBodyHalf("tbodyA", cache.Y, cache.M, 1, 15, cache.operai, cache.byOpDay);
+      renderBodyHalf("tbodyB", cache.Y, cache.M, 16, 31, cache.operai, cache.byOpDay);
+    }
+  });
+
+  const cache = { Y:null, M:null, operai:[], byOpDay:{} };
+
+  function renderBodyHalf(containerTbodyId, year, month, startDay, endDay, operai, byOpDay){
+    const tbody = document.getElementById(containerTbodyId);
+    tbody.innerHTML = "";
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const holidays = italianHolidays(year);
+
+    operai.forEach(op=>{
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+
+      // Somma ore mese
+      let monthTotal = 0;
+      const daysMap = byOpDay[op] || {};
+      Object.values(daysMap).forEach(arr=>{
+        arr.forEach(en=>{
+          if(en.ore != null && !isNaN(en.ore)) monthTotal += Number(en.ore);
+        });
+      });
+      const monthTotalTxt = (+monthTotal.toFixed(2)).toString();
+
+      th.innerHTML = `
+        <div class="op-name">${op}</div>
+        <div class="op-total">ORE MESE: ${monthTotalTxt} h</div>
+      `;
+      tr.appendChild(th);
+
+      for(let d=startDay; d<=endDay; d++){
+        const td = document.createElement("td");
+
+        if(d <= daysInMonth){
+          const dow = (new Date(year, month-1, d).getDay()+6)%7;
+          const iso = `${year}-${pad(month)}-${pad(d)}`;
+          if(dow===5 || dow===6) td.classList.add("weekend");
+          if(holidays.has(iso)) td.classList.add("festivo");
+
+          const entries = (byOpDay[op] && byOpDay[op][d]) ? byOpDay[op][d] : [];
+
+          const inner = document.createElement('div');
+          inner.className = 'cell';
+
+          if(entries.length){
+            let total = 0;
+            entries.forEach(en=>{
+              const wrap = document.createElement("div");
+              wrap.className = "entry";
+              wrap.title = "Clicca per modificare";
+              wrap.addEventListener('click', ()=> openEdit(en.id));
+
+              const cantiereRaw = en.cantiere != null ? String(en.cantiere) : "";
+              const cantDisplay  = cantiereRaw.trim().toUpperCase();
+              if (cantDisplay === "ASSENTE") wrap.classList.add("assente");
+
+              const oreTxt = (en.ore!=null && !isNaN(en.ore)) ? `${en.ore} h` : "";
+              const lav    = en.lavorazione || "";
+              const orari  = en.orari || "";
+              const note   = en.note || "";
+
+              // Mostra
+              wrap.appendChild(el('div','cant', cantDisplay || ''));
+              if (oreTxt) wrap.appendChild(el('div','ore',  oreTxt));
+              if (SHOW_LAV && lav) wrap.appendChild(el('div','lav',  lav));
+
+              // Orari (+ note SOLO se diverse dall'orario)
+              if (orari || note){
+                let line = orari;
+                const nt = note.trim();
+                if (nt && nt !== "-" && nt !== "—" && nt !== "." && nt !== "·" && nt !== line.trim()){
+                  line = line ? (line + " — " + nt) : nt;
+                }
+                wrap.appendChild(el('div','note', line));
+              }
+
+              inner.appendChild(wrap);
+              if(en.ore!=null && !isNaN(en.ore)) total += Number(en.ore);
+            });
+            if(entries.length>1){
+              const tot = document.createElement("div");
+              tot.className = "tot";
+              tot.textContent = `Tot: ${(+total.toFixed(2)).toString()} h`;
+              inner.appendChild(tot);
+            }
+          }else{
+            inner.innerHTML = `<div class="center">—</div>`;
+          }
+
+          td.appendChild(inner);
+        }else{
+          td.style.background = "#fafafa";
+        }
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    if(operai.length===0){
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = (endDay-startDay+1) + 1;
+      td.className = "center";
+      td.style.padding = "48px";
+      td.innerHTML = `<span class="error">Nessun operaio trovato per questo mese.</span>`;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+  }
+
+  function setLoading(on){
+    spin.classList.toggle("show", !!on);
+    btnCarica.disabled = !!on;
+    prevBtn.disabled = !!on;
+    nextBtn.disabled = !!on;
+  }
+
+  async function carica(){
+    try{
+      setLoading(true);
+      statusEl.textContent = "";
+
+      const [Y,M] = getYM();
+      if(!Y || !M){
+        statusEl.innerHTML = `<span class="error">⚠️ Seleziona un mese valido</span>`;
+        return;
+      }
+
+      const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`, { cache: "no-store" });
+      const rows = (await res.json()) || [];
+      rows.forEach((r,idx)=>{ r.__row = idx + 2; });
+
+      const byOpDay = {};
+      rows.forEach(r=>{
+        const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
+        const dt = parseDateAny(dataVal);
+        if(!dt) return;
+        const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
+        if(Yf!==Y || Mf!==M) return;
+
+        const op  = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"]) || "").trim();
+        if(!op) return;
+        const d = dt.getDate();
+
+        const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"]) || "").trim();
+        const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
+        const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",", ".")) : null;
+        const lav      = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"]) || "");
+        const orari    = String(getFieldSmart(r, ["Orari","B","ORARI","orari"]) || "");
+        const note     = String(getFieldSmart(r, ["Note","I","NOTE","note"]) || "");
+
+        byOpDay[op] ??= {};
+        byOpDay[op][d] ??= [];
+        byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione: lav, orari, note });
+      });
+
+      let operai = Object.keys(byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
+
+      renderHeaderHalf("theadA", Y, M, 1, 15);
+      renderHeaderHalf("theadB", Y, M, 16, 31);
+
+      cache.Y = Y; cache.M = M; cache.operai = operai; cache.byOpDay = byOpDay;
+
+      renderBodyHalf("tbodyA", Y, M, 1, 15, operai, byOpDay);
+      renderBodyHalf("tbodyB", Y, M, 16, 31, operai, byOpDay);
+
+      statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (${rows.length} righe processate)</span>`;
+    }catch(err){
+      console.error(err);
+      statusEl.innerHTML = `<span class="error">✗ Errore nel caricamento dati</span>`;
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  /* ============ MODALE ============ */
+  const overlay = document.getElementById('overlay');
+  const modal   = document.getElementById('modal');
+  const modId   = document.getElementById('mod_id');
+  const modData = document.getElementById('mod_data');
+  const modOre  = document.getElementById('mod_ore');
+  const modCant = document.getElementById('mod_cantiere');
+  const modLav  = document.getElementById('mod_lavorazione');
+  const modNote = document.getElementById('mod_note');
+
+  function openEdit(id){
+    fetch(`${GAS_URL}?getPresenza=1&id=${encodeURIComponent(id)}`)
+      .then(res => res.json())
+      .then(obj=>{
+        modId.value = obj.id || id;
+        const d = parseDateAny(obj.data);
+        modData.value = toISODateInput(d);
+        modOre.value  = (obj.ore!=null && !isNaN(obj.ore)) ? obj.ore : "";
+        modCant.value = obj.cantiere || "";
+        modLav.value  = obj.lavorazione || "";
+        modNote.value = obj.note || "";
+        overlay.style.display='block';
+        modal.style.display='block';
+      })
+      .catch(_=>{
+        modId.value = id;
+        overlay.style.display='block';
+        modal.style.display='block';
+      });
+  }
+
+  function closeEdit(){
+    modal.style.display='none';
+    overlay.style.display='none';
+  }
+
+  document.getElementById('btnCancel').addEventListener('click', closeEdit);
+  overlay.addEventListener('click', closeEdit);
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEdit(); });
+
+  document.getElementById('btnSave').addEventListener('click', ()=>{
+    const payload = {
+      modifica: 1,
+      id: String(modId.value || "").trim(),
+      data: modData.value || "",
+      orari: "",
+      cantiere: modCant.value || "",
+      lavorazione: modLav.value || "",
+      ore: modOre.value || "",
+      note: modNote.value || ""
+    };
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(payload)
+    })
+    .then(() => {
+      closeEdit();
+      statusEl.innerHTML = '<span class="ok">✓ Modifiche salvate! Ricarico...</span>';
+      setTimeout(carica, 900);
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Errore durante il salvataggio.");
+    });
+  });
+
+  /* ============ EXPORT PDF ============ */
+  async function ensurePdfLibs(){
+    if(typeof window.html2canvas === 'undefined'){
+      await new Promise((resolve,reject)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
+      });
+    }
+    if(!(window.jspdf && window.jspdf.jsPDF)){
+      await new Promise((resolve,reject)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
+      });
+    }
+  }
+
+  async function captureCardFull(cardId){
+    const src = document.getElementById(cardId);
+    if(!src) throw new Error('card non trovata: '+cardId);
+
+    const wrap = src.querySelector('.table-wrap');
+    const fullWidth = wrap ? wrap.scrollWidth : src.scrollWidth;
+
+    const clone = src.cloneNode(true);
+    const cloneWrap = clone.querySelector('.table-wrap');
+    if(cloneWrap){
+      cloneWrap.style.overflow = 'visible';
+      cloneWrap.style.width = (fullWidth + 2) + 'px';
+      cloneWrap.style.maxWidth = 'none';
+    }
+    clone.querySelectorAll('thead th, tbody th').forEach(el=>{ el.style.position = 'static'; });
+
+    const holder = document.createElement('div');
+    holder.style.position = 'absolute';
+    holder.style.left = '-10000px';
+    holder.style.top = '0';
+    holder.style.background = '#ffffff';
+    holder.appendChild(clone);
+    document.body.appendChild(holder);
+
+    await new Promise(r=>requestAnimationFrame(r));
+
+    const w = holder.scrollWidth;
+    const h = holder.scrollHeight;
+    const MAX_AREA = 12e6;
+    const baseDpr = Math.min(1.5, window.devicePixelRatio || 1);
+    let scale = baseDpr;
+    if (w * h * scale * scale > MAX_AREA){
+      scale = Math.sqrt(MAX_AREA / (w * h));
+    }
+    scale = Math.max(0.6, Math.min(scale, 1.2));
+
+    const canvas = await html2canvas(clone, {
+      scale,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+      windowWidth: holder.scrollWidth,
+      windowHeight: holder.scrollHeight,
+      willReadFrequently: true
+    });
+
+    document.body.removeChild(holder);
+    return canvas;
+  }
+
+  function downscaleCanvasIfNeeded(canvas, maxArea=8e6, maxDim=4200){
+    const area = canvas.width * canvas.height;
+    if (area <= maxArea && Math.max(canvas.width, canvas.height) <= maxDim) return canvas;
+
+    const factor = Math.min(
+      Math.sqrt(maxArea / area),
+      maxDim / Math.max(canvas.width, canvas.height)
+    );
+
+    const tmp = document.createElement('canvas');
+    tmp.width = Math.max(1, Math.floor(canvas.width * factor));
+    tmp.height = Math.max(1, Math.floor(canvas.height * factor));
+    const ctx = tmp.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(canvas, 0, 0, tmp.width, tmp.height);
+    return tmp;
+  }
+
+  function canvasToDataURLSafe(canvas){
+    const qualities = [0.82, 0.7, 0.6, 0.5];
+    for(const q of qualities){
+      try { return canvas.toDataURL('image/jpeg', q); } catch(e) {}
+    }
+    try { return canvas.toDataURL('image/png'); } catch(e) {}
+    throw new Error('Impossibile codificare immagine (memoria)');
+  }
+
+  async function exportPDF(){
+    try{
+      await ensurePdfLibs();
+      statusEl.innerHTML = '<span class="ok">⏳ Preparazione PDF in corso...</span>';
+
+      let [canvasA, canvasB] = await Promise.all([
+        captureCardFull('cardA'),
+        captureCardFull('cardB')
+      ]);
+
+      canvasA = downscaleCanvasIfNeeded(canvasA, 8e6, 4200);
+      canvasB = downscaleCanvasIfNeeded(canvasB, 8e6, 4200);
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
+
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const MARGIN = 10;
+
+      function addCanvasPage(canvas, first){
+        const availW = pageW - 2*MARGIN;
+        const availH = pageH - 2*MARGIN;
+        const s = Math.min(availW / canvas.width, availH / canvas.height);
+        const w = canvas.width * s;
+        const h = canvas.height * s;
+        const x = MARGIN + (availW - w)/2;
+        const y = MARGIN + (availH - h)/2;
+
+        const safeCanvas = downscaleCanvasIfNeeded(canvas, 8e6, 4200);
+        const img = canvasToDataURLSafe(safeCanvas);
+
+        if(!first) doc.addPage();
+        doc.addImage(img, 'JPEG', x, y, w, h);
+      }
+
+      addCanvasPage(canvasA, true);
+      addCanvasPage(canvasB, false);
+
+      const [Y,M] = [cache.Y, cache.M];
+      const fname = `Presenze_${Y}-${pad(M)}.pdf`;
+      doc.save(fname);
+
+      statusEl.innerHTML = '<span class="ok">✓ PDF esportato con successo!</span>';
+      setTimeout(() => statusEl.textContent = '', 3000);
+    }catch(e){
+      console.error(e);
+      alert('Export PDF fallito: ' + (e && e.message ? e.message : e));
+      statusEl.innerHTML = '<span class="error">✗ Errore durante l\'export PDF</span>';
+    }
+  }
+
+  /* ============ EXCEL EXPORT ============ */
+  function xmlEscape(s){
+    return String(s)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&apos;");
+  }
+
+  function buildMatrix(startDay, endDay){
+    const Y = cache.Y, M = cache.M;
+    const daysInMonth = new Date(Y, M, 0).getDate();
+    const holidays = italianHolidays(Y);
+    const header = ["Operaio"];
+    for(let d=startDay; d<=endDay; d++){
+      header.push(d <= daysInMonth ? String(d) : "");
+    }
+    const rows = [header];
+
+    cache.operai.forEach(op=>{
+      const line = [op];
+      for(let d=startDay; d<=endDay; d++){
+        if(d>daysInMonth){ line.push(""); continue; }
+        const entries = (cache.byOpDay[op] && cache.byOpDay[op][d]) ? cache.byOpDay[op][d] : [];
+        if(!entries.length){ line.push("—"); continue; }
+
+        let total=0;
+        const parts=[];
+        entries.forEach(en=>{
+          const chunks=[];
+          const cantDisp = (en.cantiere||"").toString().toUpperCase();
+          if(cantDisp) chunks.push(cantDisp);
+          if(en.ore!=null && !isNaN(en.ore)){ chunks.push(`${en.ore} h`); total+=Number(en.ore); }
+          if(SHOW_LAV && en.lavorazione){ chunks.push(en.lavorazione); }
+
+          let line = en.orari || "";
+          const nt = (en.note||"").trim();
+          if (nt && nt !== "-" && nt !== "—" && nt !== "." && nt !== "·" && nt !== line.trim()){
+            line = line ? (line + " — " + nt) : nt;
+          }
+          if(line) chunks.push(line);
+
+          parts.push(chunks.join("\n"));
+        });
+        if(entries.length>1){ parts.push(`Tot: ${(+total.toFixed(2)).toString()} h`); }
+        line.push(parts.join("\n\n"));
+      }
+      rows.push(line);
+    });
+    return rows;
+  }
+
+  function sheetXML(name, rows){
+    const colCount = rows[0]?.length || 1;
+    let cols = "";
+    for(let i=0;i<colCount;i++){
+      const w = i===0 ? 160 : 80;
+      cols += `<Column ss:Width="${w}"/>`;
+    }
+    const lines = rows.map((r,ri)=>{
+      const cells = r.map((c)=>{
+        const text = xmlEscape(c==null?"":String(c));
+        return `<Cell${ri===0?` ss:StyleID="hdr"`:""}><Data ss:Type="String">${text}</Data></Cell>`;
+      }).join("");
+      return `<Row>${cells}</Row>`;
+    }).join("");
+    return `<Worksheet ss:Name="${xmlEscape(name)}"><Table>${cols}${lines}</Table></Worksheet>`;
+  }
+
+  function exportExcel(){
+    if(!cache.Y || !cache.M){
+      alert("Carica prima un mese.");
+      return;
+    }
+
+    statusEl.innerHTML = '<span class="ok">⏳ Generazione Excel...</span>';
+
+    const dataA = buildMatrix(1,15);
+    const dataB = buildMatrix(16,31);
+
+    const now = new Date().toISOString();
+    const xml =
+`<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>Presenze Cantiere</Author>
+  <Created>${now}</Created>
+ </DocumentProperties>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
+    <Borders/>
+    <Font ss:FontName="Calibri" ss:Size="11"/>
+    <Interior/>
+    <NumberFormat/>
+    <Protection/>
+  </Style>
+  <Style ss:ID="hdr">
+    <Font ss:Bold="1"/>
+    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+    <Interior ss:Color="#EEEEEE" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ ${sheetXML("Giorni 1–15", dataA)}
+ ${sheetXML("Giorni 16–31", dataB)}
+</Workbook>`;
+
+    const blob = new Blob([xml], {type: "application/vnd.ms-excel"});
+    const [Y,M] = [cache.Y, cache.M];
+    const fname = `Presenze_${Y}-${pad(M)}.xls`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+
+    statusEl.innerHTML = '<span class="ok">✓ Excel esportato con successo!</span>';
+    setTimeout(() => statusEl.textContent = '', 3000);
+  }
+
+  /* ============ INIT ============ */
+  (function init(){
+    if(!supportsMonth){
+      document.getElementById("mese").classList.add('hidden');
+      document.getElementById("meseFallback").classList.remove('hidden');
+    }
+    const now = new Date();
+    populateYearSelect(now.getFullYear());
+    const Y = now.getFullYear();
+    const M = now.getMonth()+1;
+    setYM(Y,M,true);
+
+    document.getElementById("btnCarica").addEventListener("click", carica);
+    document.getElementById("prevMonth").addEventListener("click", ()=>shiftMonth(-1));
+    document.getElementById("nextMonth").addEventListener("click", ()=>shiftMonth(+1));
+    document.getElementById("btnPDF").addEventListener("click", exportPDF);
+    document.getElementById("btnXLS").addEventListener("click", exportExcel);
+
+    const meseInputEl = document.getElementById("mese");
+    meseInputEl.addEventListener("change", ()=>{
+      const v = meseInputEl.value;
+      if(v && /^\d{4}-\d{2}$/.test(v)){
+        const [y,m] = v.split('-').map(Number);
+        setYM(y,m,true);
+      }
+    });
+    selMese.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
+    selAnno.addEventListener("change", ()=>setYM(Number(selAnno.value), Number(selMese.value), false));
+
+    carica();
+  })();
+
+  /* ====== getFieldSmart ====== */
+  function getFieldSmart(row, candidates){
+    // 1) match esatto
+    for(const k of candidates){ if(Object.prototype.hasOwnProperty.call(row,k)) return row[k]; }
+    // 2) case-insensitive
+    const mapLower = {};
+    Object.keys(row).forEach(k=> mapLower[k.toLowerCase()] = k);
+    for(const c of candidates){
+      const key = mapLower[String(c).toLowerCase()];
+      if(key) return row[key];
+    }
+    // 3) contiene (case-insensitive)
+    const keys = Object.keys(row);
+    for(const c of candidates){
+      const t = String(c).toLowerCase();
+      const found = keys.find(k=>k.toLowerCase().includes(t));
+      if(found) return row[found];
+    }
+    return "";
+  }
+  </script>
+</body>
+</html>
