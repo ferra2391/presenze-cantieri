@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<title>Analisi per Operaio - Dashboard Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --primary: hsl(210,100%,45%);
+    --primary-dark: hsl(210,100%,35%);
+    --text: hsl(210,15%,15%);
+    --text-light: hsl(210,10%,40%);
+    --muted: hsl(210,8%,50%);
+    --bg: hsl(210,25%,96%);
+    --card: #ffffff;
+    --border: hsl(210,20%,88%);
+    --border-strong: hsl(210,20%,75%);
+    --orange-weak: hsla(30,100%,50%,0.12);
+    --orange-border: hsla(30,100%,50%,0.3);
+    --success: hsl(140,70%,40%);
+    --error: hsl(0,70%,50%);
+    --hover-bg: hsl(210,30%,98%);
+  }
+  
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  .container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 32px 40px;
+  }
+  
+  h1 {
+    margin: 0 0 24px;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  /* CONTROL PANEL */
+  .control-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    margin-bottom: 28px;
+  }
+  
+  .control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .control-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .nav {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .nav a {
+    padding: 10px 18px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  
+  .nav a:hover {
+    border-color: var(--primary);
+    background: var(--hover-bg);
+  }
+  
+  .nav a.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  
+  .nav a.primary:hover {
+    background: var(--primary-dark);
+  }
+  
+  input[type="month"] {
+    padding: 10px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    font-size: 15px;
+    font-weight: 500;
+    min-width: 160px;
+    transition: border-color 0.2s;
+  }
+  
+  input[type="month"]:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+  button {
+    padding: 10px 18px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+  
+  button:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--hover-bg);
+  }
+  
+  button.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  
+  button.primary:hover:not(:disabled) {
+    background: var(--primary-dark);
+  }
+  
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .spinner {
+    display: none;
+  }
+  
+  .spinner.show {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #ddd;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -4px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  #status {
+    margin-top: 12px;
+    font-size: 15px;
+  }
+  
+  .ok {
+    color: var(--success);
+    font-weight: 600;
+  }
+  
+  .error {
+    color: var(--error);
+    font-weight: 600;
+  }
+
+  /* TABLE CARDS */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  
+  .table-title {
+    padding: 20px 24px;
+    border-bottom: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text);
+    background: linear-gradient(to bottom, var(--card), var(--hover-bg));
+  }
+  
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 15px;
+  }
+  
+  thead th {
+    background: var(--hover-bg);
+    border-bottom: 2px solid var(--border-strong);
+    padding: 16px 18px;
+    text-align: left;
+    white-space: nowrap;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-light);
+  }
+  
+  tbody td,
+  tbody th {
+    border-top: 1px solid var(--border);
+    padding: 16px 18px;
+    font-size: 15px;
+  }
+  
+  tbody tr {
+    transition: background-color 0.15s;
+  }
+  
+  tbody tr:hover {
+    background: var(--hover-bg);
+  }
+  
+  td.num {
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .op-link {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .op-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+
+  /* DETAIL TABLE */
+  .detail {
+    font-size: 14px;
+  }
+  
+  .detail .daycell {
+    white-space: nowrap;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    min-width: 120px;
+  }
+  
+  .detail .cant {
+    font-weight: 800;
+    color: #c00000;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 13px;
+  }
+  
+  .detail .lav {
+    color: var(--text);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  
+  .detail .note {
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 4px;
+    font-size: 13px;
+  }
+  
+  .detail td,
+  .detail th {
+    vertical-align: top;
+    padding: 14px 16px;
+  }
+  
+  .detail tfoot td {
+    font-weight: 800;
+    border-top: 3px solid var(--border-strong);
+    padding: 18px 16px;
+    font-size: 16px;
+    background: var(--hover-bg);
+  }
+
+  /* Weekend/Festivi highlight */
+  .detail tr.off td {
+    background: var(--orange-weak) !important;
+  }
+
+  /* Alternanza righe normali */
+  .detail tr.alt td {
+    background: #fafafa;
+  }
+
+  /* Gabbia perimetro giorno */
+  .detail tr.gstart td {
+    border-top: 2px solid var(--border-strong);
+  }
+  
+  .detail tr.gend td {
+    border-bottom: 2px solid var(--border-strong);
+  }
+
+  .detail tr.gstart td.daycell,
+  .detail tr.gmid td.daycell,
+  .detail tr.gend td.daycell {
+    border-left: 2px solid var(--border-strong);
+  }
+
+  .detail tr.gstart td:last-child,
+  .detail tr.gmid td:last-child,
+  .detail tr.gend td:last-child {
+    border-right: 2px solid var(--border-strong);
+  }
+
+  /* Arrotondamenti */
+  .detail tr.gstart td.daycell {
+    border-top-left-radius: 10px;
+  }
+  
+  .detail tr.gstart td:last-child {
+    border-top-right-radius: 10px;
+  }
+  
+  .detail tr.gend td.daycell {
+    border-bottom-left-radius: 10px;
+  }
+  
+  .detail tr.gend td:last-child {
+    border-bottom-right-radius: 10px;
+  }
+
+  /* Tot giorno */
+  .detail tr.daytot td {
+    font-weight: 800;
+    background: var(--hover-bg);
+  }
+  
+  /* Footer azioni */
+  .detail-footer {
+    padding: 20px 24px;
+    border-top: 2px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: var(--hover-bg);
+  }
+  
+  /* Empty state */
+  .empty-state {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  /* PDF LAYOUT container */
+  .pdf-container {
+    display: none;
+  }
+
+  @media print {
+    body { background: white; }
+    .container { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📊 Analisi per Operaio</h1>
+
+  <div class="control-panel">
+    <div class="control-row">
+      <div class="control-left">
+        <button id="prevMonth" title="Mese precedente">◀</button>
+        <input type="month" id="mese" />
+        <button id="nextMonth" title="Mese successivo">▶</button>
+        <button id="btnCarica" class="primary">Carica Dati</button>
+        <span id="spin" class="spinner"></span>
+      </div>
+      <div class="nav">
+        <a href="gestione.html">Presenze</a>
+        <a class="primary" href="operaio.html">Analisi per Operaio</a>
+        <a href="cantiere.html">Analisi per Cantiere</a>
+      </div>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <!-- RIEPILOGO -->
+  <div class="table-card">
+    <div class="table-title">📈 Riepilogo Mensile</div>
+    <div class="table-wrap">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Operaio</th>
+            <th class="num">Ore Totali</th>
+            <th class="num">Giorni Lavorati</th>
+            <th class="num">Media / Giorno</th>
+            <th class="num">Ore Weekend/Festivi</th>
+            <th class="num">GG "NO DATI" (feriali)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DETTAGLIO -->
+  <div class="table-card" id="detailCard" style="display:none">
+    <div class="table-title" id="detailTitle">👤 Dettaglio Operaio</div>
+    <div class="table-wrap">
+      <table id="detailTable" class="detail">
+        <thead>
+          <tr>
+            <th>Giorno</th>
+            <th>Cantiere</th>
+            <th class="num">Orario / Ore</th>
+            <th>Lavorazioni / Note</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2"><strong>Totale Mese</strong></td>
+            <td class="num" id="detailTotOre">0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="detail-footer">
+      <button id="btnDetailPDF">📄 Esporta PDF</button>
+      <button id="btnCloseDetail">✕ Chiudi Dettaglio</button>
+    </div>
+  </div>
+</div>
+
+<!-- Container nascosto per il PDF -->
+<div id="pdfContainer" class="pdf-container"></div>
+
+<!-- Librerie -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<script>
+/* ====== CONFIG ====== */
+const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
+const TAB_CANDIDATES = ["Foglio1","Presenze","Sheet1","Foglio 1"];
+
+/* ====== UTIL ====== */
+const pad = n => String(n).padStart(2,"0");
+
+function calcEaster(Y){
+  const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
+        g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,L=(32+2*e+2*i-h-k)%7,
+        m=Math.floor((a+11*h+22*L)/451),month=Math.floor((h+L-7*m+114)/31),day=((h+L-7*m+114)%31)+1;
+  return new Date(Y,month-1,day);
+}
+
+function italianHolidays(year){
+  const set=new Set(),add=(m,d)=>set.add(`${year}-${pad(m)}-${pad(d)}`);
+  add(1,1); add(1,6); add(4,25); add(5,1); add(6,2); add(8,15); add(11,1); add(12,8); add(12,25); add(12,26);
+  const p=calcEaster(year), q=new Date(p); q.setDate(p.getDate()+1);
+  add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
+  return set;
+}
+
+const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
+
+function parseDateAny(v){
+  if(!v) return null;
+  if(v instanceof Date) return v;
+  const s = String(v).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const [Y,M,D]=s.split("T")[0].split("-").map(Number); return new Date(Y,M-1,D); }
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
+  const t = new Date(s); return isNaN(t) ? null : t;
+}
+
+function pick(row, ...names){
+  if(!row) return "";
+  const map = new Map(Object.keys(row).map(k => [normalize(k), k]));
+  for(const name of names){
+    const key = map.get(normalize(name));
+    if(key && row[key] != null && row[key] !== "") return row[key];
+  }
+  return "";
+}
+
+function isBlankCantiere(value){
+  const s = String(value||"").trim();
+  if(!s) return true;
+  if (/^[-–—]+$/.test(s)) return true;
+  if (/^(nd|n\.d\.|n\/d|na|n\.a\.|n\/a|non\s+specificato|sconosciuto|nessuno|undefined|null)$/i.test(s)) return true;
+  if (/^\(s.*cantiere\)$/i.test(s)) return true;
+  return false;
+}
+
+const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
+const stripIntervals = s => s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : "";
+
+/* ====== STATE & UI refs ====== */
+const meseInput = document.getElementById('mese');
+const prevBtn   = document.getElementById('prevMonth');
+const nextBtn   = document.getElementById('nextMonth');
+const btnCarica = document.getElementById('btnCarica');
+const spin      = document.getElementById('spin');
+const statusEl  = document.getElementById('status');
+const tbody     = document.getElementById('tbody');
+
+const detailCard   = document.getElementById('detailCard');
+const detailTitle  = document.getElementById('detailTitle');
+const detailBody   = document.getElementById('detailBody');
+const detailTotOre = document.getElementById('detailTotOre');
+const btnCloseDetail = document.getElementById('btnCloseDetail');
+
+const state = { Y:null, M:null, holidays:new Set(), byOpDay:{}, operai:[], summary:[], currentOp:null };
+
+function setYM(Y,M){ meseInput.value = `${Y}-${pad(M)}`; }
+
+function getYM(){
+  const v = meseInput.value;
+  if(/^\d{4}-\d{2}$/.test(v)){ const [Y,M]=v.split('-').map(Number); return [Y,M]; }
+  const d=new Date(); return [d.getFullYear(), d.getMonth()+1];
+}
+
+function shiftMonth(delta){
+  let [Y,M]=getYM(); M+=delta;
+  if(M<1){M=12;Y--} if(M>12){M=1;Y++}
+  setYM(Y,M); carica();
+}
+
+function setLoading(on){
+  spin.classList.toggle('show', !!on);
+  btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
+}
+
+/* ====== FETCH ====== */
+async function fetchRowsFromOpenSheet(sheetId){
+  for(const tab of TAB_CANDIDATES){
+    try{
+      const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
+      const res = await fetch(url, { cache: "no-store" });
+      if(res.ok){
+        const rows = await res.json();
+        if(Array.isArray(rows)){
+          statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (tab: ${tab})</span>`;
+          return rows;
+        }
+      }
+    }catch(_e){}
+  }
+  throw new Error("Impossibile leggere il foglio: controlla il nome della tab.");
+}
+
+function groupDayEntries(entries){
+  const map = new Map();
+  entries.forEach(e=>{
+    const cant = isBlankCantiere(e.cantiere) ? 'NO DATI' : String(e.cantiere).trim().toUpperCase();
+    const lav  = stripIntervals(e.lavorazione||"");
+    const note = stripIntervals(e.note||"");
+    const key = `${cant}|${lav}|${note}`;
+    if(!map.has(key)) map.set(key, {cant, lav, note, ore:0, orari:new Set(), count:0});
+    const rec = map.get(key);
+    rec.ore += (e.ore||0);
+    if(e.orari){ String(e.orari).split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(x=>rec.orari.add(x)); }
+    rec.count++;
+  });
+  return Array.from(map.values()).map(v=>({
+    cant: v.count>1 ? `${v.cant} (x${v.count})` : v.cant,
+    lav: v.lav,
+    note: v.note,
+    orari: Array.from(v.orari).join(', '),
+    ore: +(+v.ore).toFixed(2)
+  }));
+}
+
+/* ====== RENDER ====== */
+function renderSummary(list){
+  tbody.innerHTML = '';
+  if(list.length===0){
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nessun operaio con ore registrate in questo mese.</td></tr>`;
+    return;
+  }
+  list.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td><a class="op-link" data-op="${r.op}">${r.op}</a></td>
+      <td class="num">${r.tot} h</td>
+      <td class="num">${r.days}</td>
+      <td class="num">${r.media} h</td>
+      <td class="num">${r.weekend} h</td>
+      <td class="num">${r.nodati}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function showDetail(op){
+  state.currentOp = op;
+  const [Y,M] = [state.Y, state.M];
+  const daysInMonth = new Date(Y, M, 0).getDate();
+  detailBody.innerHTML = '';
+  let totMese = 0;
+  let altFlag = false;
+
+  for(let d=1; d<=daysInMonth; d++){
+    const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
+    const date = new Date(Y, M-1, d);
+    const dow  = (date.getDay()+6)%7;
+    const iso  = `${Y}-${pad(M)}-${pad(d)}`;
+    const isOff= (dow===5||dow===6) || state.holidays.has(iso);
+
+    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
+    const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
+
+    const altClass = (!isOff && altFlag) ? 'alt' : '';
+
+    if(!list0.length){
+      const tr = document.createElement('tr');
+      tr.className = `${isOff?'off':''} ${altClass} gstart gend`.trim();
+      tr.innerHTML = `
+        <td class="daycell">${dayLabel}</td>
+        <td>—</td>
+        <td class="num"></td>
+        <td></td>`;
+      detailBody.appendChild(tr);
+      if(!isOff) altFlag = !altFlag;
+      continue;
+    }
+
+    const list = groupDayEntries(list0);
+    const rowspan = list.length;
+    let dayTot = 0;
+
+    list.forEach((en, idx) => {
+      const tr = document.createElement('tr');
+      if(isOff) tr.classList.add('off');
+      if(altClass) tr.classList.add('alt');
+      if(rowspan===1) tr.classList.add('gstart','gend');
+      else if(idx===0) tr.classList.add('gstart');
+      else if(idx===rowspan-1) tr.classList.add('gend');
+      else tr.classList.add('gmid');
+
+      if(idx === 0){
+        const tdDay = document.createElement('td');
+        tdDay.className = 'daycell';
+        tdDay.rowSpan = rowspan;
+        tdDay.textContent = dayLabel;
+        tr.appendChild(tdDay);
+      }
+
+      const tdCant = document.createElement('td');
+      tdCant.innerHTML = `<div class="cant">${en.cant}</div>`;
+
+      const tdOrario = document.createElement('td');
+      tdOrario.className = 'num';
+      const firstLine = en.orari ? en.orari : '';
+      const secondLine = en.ore ? `<br><strong>${en.ore} h</strong>` : '';
+      tdOrario.innerHTML = firstLine + secondLine;
+
+      const tdLav = document.createElement('td');
+      const lavHtml  = en.lav  ? `<div class="lav">${en.lav.replace(/\n/g,'<br>')}</div>` : '';
+      const noteHtml = en.note ? `<div class="note">${en.note.replace(/\n/g,'<br>')}</div>` : '';
+      tdLav.innerHTML = lavHtml + noteHtml;
+
+      dayTot += (en.ore || 0);
+
+      tr.appendChild(tdCant);
+      tr.appendChild(tdOrario);
+      tr.appendChild(tdLav);
+      detailBody.appendChild(tr);
+    });
+
+    if(list.length > 1){
+      const trSub = document.createElement('tr');
+      if(isOff) trSub.classList.add('off');
+      if(altClass) trSub.classList.add('alt');
+      trSub.classList.add('daytot','gend');
+
+      trSub.innerHTML = `
+        <td class="daycell"></td>
+        <td style="text-align:right;">Tot giorno:</td>
+        <td class="num"><strong>${(+dayTot.toFixed(2))} h</strong></td>
+        <td></td>`;
+      detailBody.appendChild(trSub);
+    }
+
+    totMese += dayTot;
+    if(!isOff) altFlag = !altFlag;
+  }
+
+  detailTotOre.textContent = `${(+totMese.toFixed(2))} h`;
+  detailTitle.textContent = `👤 Dettaglio Operaio — ${op} (${pad(M)}/${Y})`;
+  detailCard.style.display = 'block';
+  detailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ====== DATA LOAD ====== */
+async function carica(){
+  try{
+    setLoading(true); statusEl.textContent=""; tbody.innerHTML=''; detailCard.style.display='none';
+
+    const [Y,M]=getYM();
+    state.Y=Y; state.M=M; state.holidays = italianHolidays(Y);
+
+    const rows = await fetchRowsFromOpenSheet(SHEET_ID);
+
+    state.byOpDay = {};
+    rows.forEach((r)=>{
+      const dataVal = pick(r, "Data Presenza", "Data");
+      const dt = parseDateAny(dataVal);
+      if(!dt) return;
+      const y=dt.getFullYear(), m=dt.getMonth()+1, d=dt.getDate();
+      if(y!==Y || m!==M) return;
+
+      const op = String(pick(r, "Nome Operaio", "Operaio")).trim();
+      if(!op) return;
+
+      const cant     = String(pick(r, "Cantiere")).trim();
+      const orariStr = String(pick(r, "Orari") || "").trim();
+      const oreV     = pick(r, "Ore");
+      const ore      = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
+      const lav      = stripIntervals(String(pick(r, "Lavorazione") || ""));
+      const note     = stripIntervals(String(pick(r, "Note") || ""));
+
+      (state.byOpDay[op] ||= {});
+      (state.byOpDay[op][d] ||= []);
+      state.byOpDay[op][d].push({ ore, cantiere:cant, lavorazione:lav, note, orari: orariStr });
+    });
+
+    state.operai = Object.keys(state.byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
+
+    state.summary = state.operai.map(op=>{
+      let tot=0, daysWorked=0, weekendHours=0, noDataDays=0;
+      const days = state.byOpDay[op] || {};
+      Object.keys(days).forEach(sd=>{
+        const d = Number(sd);
+        const list = days[d] || [];
+        if(!list.length) return;
+
+        let dayH=0, hasNoCant=false;
+        const date = new Date(Y, M-1, d);
+        const dow  = (date.getDay()+6)%7;
+        const iso  = `${Y}-${pad(M)}-${pad(d)}`;
+        const isOff= (dow===5||dow===6) || state.holidays.has(iso);
+
+        list.forEach(en=>{
+          const h = (en.ore!=null && !isNaN(en.ore)) ? Number(en.ore) : 0;
+          dayH += h;
+          if(isBlankCantiere(en.cantiere)) hasNoCant = true;
+        });
+
+        if(dayH>0){
+          daysWorked++;
+          tot += dayH;
+          if(isOff) weekendHours += dayH;
+        }
+        if(hasNoCant && !isOff) noDataDays++;
+      });
+
+      const media = daysWorked ? +(tot/daysWorked).toFixed(2) : 0;
+      return { op, tot:+tot.toFixed(2), days:daysWorked, media, weekend:+weekendHours.toFixed(2), nodati:noDataDays };
+    }).sort((a,b)=> b.tot - a.tot || a.op.localeCompare(b.op,'it'));
+
+    renderSummary(state.summary);
+  }catch(e){
+    console.error(e);
+    statusEl.innerHTML = `<span class="error">✗ ${e.message || "Errore nel caricamento dati."}</span>`;
+  }finally{
+    setLoading(false);
+  }
+}
+  
+/* ==================== EXPORT PDF OTTIMIZZATO (2 COLONNE) ==================== */
+async function exportDetailPDF(){
+  if(detailCard.style.display === 'none'){
+    alert('Apri prima un dettaglio operaio.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const [Y, M] = [state.Y, state.M];
+  const op = state.currentOp;
+  const daysInMonth = new Date(Y, M, 0).getDate();
+
+  // Totale mese
+  const totMese = (state.summary.find(s => s.op === op)?.tot) ?? (() => {
+    let t=0; const days = state.byOpDay[op]||{};
+    Object.values(days).forEach(list => list.forEach(e => t += (e.ore||0)));
+    return +t.toFixed(2);
+  })();
+
+  // A4 verticale @300dpi
+  const A4_W = 2480;
+  const A4_H = 3508;
+  const MARGIN = 25;
+
+  const pdfContainer = document.getElementById('pdfContainer');
+  pdfContainer.innerHTML = '';
+  pdfContainer.style.display = 'block';
+  pdfContainer.style.position = 'absolute';
+  pdfContainer.style.left = '-10000px';
+  pdfContainer.style.top = '0';
+  pdfContainer.style.width = A4_W + 'px';
+  pdfContainer.style.height = A4_H + 'px';
+  pdfContainer.style.background = '#ffffff';
+  pdfContainer.style.padding = MARGIN + 'px';
+  pdfContainer.style.boxSizing = 'border-box';
+  pdfContainer.style.fontFamily = 'Arial, sans-serif';
+
+  // ===== HEADER =====
+  const header = document.createElement('div');
+  header.style.cssText = `
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 20px; background:rgba(226, 232, 240, 0.5);
+    border:1px solid #cbd5e1; border-radius:8px; margin-bottom:12px;
+  `;
+  
+  const leftHead = document.createElement('div');
+  const title = document.createElement('div');
+  title.style.cssText = 'font-weight:900; font-size:56px; letter-spacing:-0.5px; color:#1e293b;';
+  title.textContent = `${op}`;
+  const subtitle = document.createElement('div');
+  subtitle.style.cssText = 'font-size:26px; font-weight:600; margin-top:2px; color:#475569;';
+  subtitle.textContent = `Presenze ${String(M).padStart(2,'0')}/${Y}`;
+  leftHead.appendChild(title);
+  leftHead.appendChild(subtitle);
+  
+  const rightHead = document.createElement('div');
+  rightHead.style.cssText = 'text-align:right;';
+  const sup = document.createElement('div');
+  sup.style.cssText = 'font-size:20px; font-weight:600; color:#64748b; margin-bottom:2px;';
+  sup.textContent = 'TOTALE ORE';
+  const big = document.createElement('div');
+  big.style.cssText = 'font-weight:900; font-size:72px; line-height:1; color:#0f172a;';
+  big.textContent = `${(+totMese).toFixed(1)} h`;
+  rightHead.appendChild(sup);
+  rightHead.appendChild(big);
+  
+  header.appendChild(leftHead);
+  header.appendChild(rightHead);
+  pdfContainer.appendChild(header);
+
+  // ===== WRAPPER DUE COLONNE =====
+  const cols = document.createElement('div');
+  cols.style.cssText = `display:flex; gap:16px; width:100%;`;
+  pdfContainer.appendChild(cols);
+
+  // Funzione per raggruppare entries
+  function groupDay(entries){
+    const map = new Map();
+    entries.forEach(e=>{
+      const cant = isBlankCantiere(e.cantiere) ? 'NO DATI' : String(e.cantiere).trim().toUpperCase();
+      const lav  = stripIntervals(e.lavorazione||"");
+      const note = stripIntervals(e.note||"");
+      const key = `${cant}|${lav}|${note}`;
+      if(!map.has(key)) map.set(key, {cant, lav, note, orari:new Set(), ore:0, count:0});
+      const rec = map.get(key);
+      if(e.orari){ String(e.orari).split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(x=>rec.orari.add(x)); }
+      rec.ore += (e.ore||0);
+      rec.count++;
+    });
+    return Array.from(map.values()).map(v=>({
+      cant: v.count>1 ? `${v.cant} (x${v.count})` : v.cant,
+      lav: v.lav,
+      note: v.note,
+      orari: Array.from(v.orari).join(', '),
+      ore: +(+v.ore).toFixed(2)
+    }));
+  }
+
+  // Funzione per costruire una colonna (TUTTI i giorni, vuoti = mini)
+  function buildCalendar(startDay, endDay){
+    const col = document.createElement('div');
+    col.style.cssText = `
+      flex:1; display:flex; flex-direction:column; min-width:0;
+      border:1px solid #94a3b8; padding:8px; box-sizing:border-box;
+      border-radius:8px; background:#fafafa;
+    `;
+
+    const h = document.createElement('div');
+    h.style.cssText = `
+      font-family: Arial, sans-serif; font-weight:900; font-size:28px;
+      text-align:center; padding:6px 4px; border-bottom:1px solid #94a3b8;
+      background:#e2e8f0; border-radius:4px; margin-bottom:8px; color:#334155;
+    `;
+    h.textContent = startDay === 1 ? 'GIORNI 1–15' : 'GIORNI 16–31';
+    col.appendChild(h);
+
+    const body = document.createElement('div');
+    body.style.cssText = `flex:1; display:flex; flex-direction:column; gap:4px;`;
+    col.appendChild(body);
+
+    // TUTTI i giorni del range
+    for(let d=startDay; d<=Math.min(endDay, daysInMonth); d++){
+      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
+      
+      const date = new Date(Y, M-1, d);
+      const dow  = (date.getDay()+6)%7;
+      const iso  = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isOff= (dow===5||dow===6) || state.holidays.has(iso);
+      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
+
+      // GIORNO VUOTO = versione mini
+      if(list0.length === 0){
+        const miniBox = document.createElement('div');
+        miniBox.style.cssText = `
+          border:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
+          border-radius:4px; padding:3px 8px;
+          background:${isOff ? '#fef3c7' : '#f8fafc'};
+          display:flex; justify-content:space-between; align-items:center;
+          font-size:16px; color:#64748b; font-weight:600;
+        `;
+        const label = document.createElement('span');
+        label.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} ${nomeG}`;
+        const dash = document.createElement('span');
+        dash.textContent = '—';
+        dash.style.color = '#94a3b8';
+        miniBox.appendChild(label);
+        miniBox.appendChild(dash);
+        body.appendChild(miniBox);
+        continue;
+      }
+
+      // GIORNO CON PRESENZE = versione completa
+      const grouped = groupDay(list0);
+      let dayTot = 0;
+      grouped.forEach(en => dayTot += (en.ore || 0));
+
+      const box = document.createElement('div');
+      box.style.cssText = `
+        border:1px solid ${isOff ? '#fbbf24' : '#94a3b8'}; 
+        border-radius:6px; overflow:hidden;
+        background:${isOff ? '#fffbeb' : 'white'};
+      `;
+
+      // Header giorno
+      const head = document.createElement('div');
+      head.style.cssText = `
+        display:flex; justify-content:space-between; align-items:center;
+        padding:6px 10px;
+        background:${isOff ? 'rgba(251, 191, 36, 0.15)' : 'rgba(148, 163, 184, 0.15)'};
+        border-bottom:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
+        color:#1e293b;
+      `;
+      const left = document.createElement('div');
+      left.style.cssText = 'font-size:32px; font-weight:900;';
+      left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
+      const right = document.createElement('div');
+      right.style.cssText = 'font-size:32px; font-weight:900;';
+      right.textContent = `${dayTot.toFixed(1)} h`;
+      head.appendChild(left);
+      head.appendChild(right);
+      box.appendChild(head);
+
+      // Content entries
+      const content = document.createElement('div');
+      content.style.cssText = 'padding:8px; display:flex; flex-direction:column; gap:6px;';
+      
+      grouped.forEach(en=>{
+        const row = document.createElement('div');
+        row.style.cssText = `
+          display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start;
+          padding:6px; background:${isOff ? 'rgba(254, 243, 199, 0.5)' : 'rgba(241, 245, 249, 0.6)'};
+          border-radius:4px; border-left:3px solid #b91c1c;
+        `;
+        
+        const l = document.createElement('div');
+        const cantEl = document.createElement('div');
+        cantEl.style.cssText = 'font-size:28px; font-weight:900; color:#b91c1c; text-transform:uppercase; margin-bottom:3px; line-height:1.1;';
+        cantEl.textContent = en.cant;
+        l.appendChild(cantEl);
+        
+        if(en.lav){
+          const lavEl = document.createElement('div');
+          lavEl.style.cssText = 'font-size:25px; color:#1e293b; line-height:1.25;';
+          lavEl.innerHTML = en.lav.replace(/\n/g,'<br>');
+          l.appendChild(lavEl);
+        }
+        
+        if(en.note){
+          const noteEl = document.createElement('div');
+          noteEl.style.cssText = 'font-size:20px; color:#64748b; font-style:italic; margin-top:2px;';
+          noteEl.innerHTML = en.note.replace(/\n/g,'<br>');
+          l.appendChild(noteEl);
+        }
+        
+        const r = document.createElement('div');
+        r.style.cssText = 'text-align:right; display:flex; flex-direction:column; gap:3px; align-items:flex-end;';
+        
+        if(en.orari){
+          const orariBox = document.createElement('div');
+          orariBox.style.cssText = `
+            font-size:20px; font-weight:700; color:#1e293b;
+            background:rgba(224, 242, 254, 0.6); border:1px solid #bae6fd;
+            padding:3px 7px; border-radius:3px; white-space:nowrap;
+          `;
+          orariBox.textContent = en.orari;
+          r.appendChild(orariBox);
+        }
+        
+        const oreBox = document.createElement('div');
+        oreBox.style.cssText = `
+          font-size:22px; font-weight:900; color:#0f172a;
+          background:rgba(186, 230, 253, 0.5); padding:3px 10px; border-radius:4px;
+          border:1px solid #bae6fd;
+        `;
+        oreBox.textContent = `${en.ore} h`;
+        r.appendChild(oreBox);
+        
+        row.appendChild(l);
+        row.appendChild(r);
+        content.appendChild(row);
+      });
+      
+      box.appendChild(content);
+      body.appendChild(box);
+    }
+
+    return col;
+  }
+
+  const leftCol  = buildCalendar(1, 15);
+  const rightCol = buildCalendar(16, 31);
+  cols.appendChild(leftCol);
+  cols.appendChild(rightCol);
+
+  // Render e cattura
+  await new Promise(r => requestAnimationFrame(r));
+  await new Promise(r => setTimeout(r, 100));
+  
+  const canvas = await html2canvas(pdfContainer, {
+    scale: 1,
+    backgroundColor: '#ffffff',
+    useCORS: true,
+    logging: false,
+    width: A4_W,
+    height: A4_H
+  });
+  
+  pdfContainer.style.display = 'none';
+
+  // PDF A4
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  
+  let scale = Math.min((pageW - 12) / canvas.width, (pageH - 12) / canvas.height);
+  const imgW = canvas.width * scale;
+  const imgH = canvas.height * scale;
+  const x = (pageW - imgW) / 2;
+  const y = (pageH - imgH) / 2;
+
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgW, imgH, undefined, 'FAST');
+  pdf.save(`Presenze_${String(M).padStart(2,'0')}_${Y}_${op}.pdf`.replace(/\s+/g,'_'));
+}
+
+/* ====== INIT ====== */
+(function init(){
+  const now = new Date();
+  setYM(now.getFullYear(), now.getMonth() + 1);
+
+  btnCarica.addEventListener('click', carica);
+  prevBtn.addEventListener('click', () => shiftMonth(-1));
+  nextBtn.addEventListener('click', () => shiftMonth(+1));
+  meseInput.addEventListener('change', carica);
+
+  tbody.addEventListener('click', (e) => {
+    const a = e.target.closest('.op-link');
+    if(a && a.dataset.op) {
+      showDetail(a.dataset.op);
+    }
+  });
+
+  document.getElementById('btnDetailPDF').addEventListener('click', exportDetailPDF);
+  btnCloseDetail.addEventListener('click', () => {
+    detailCard.style.display = 'none';
+  });
+
+  carica();
+})();
+</script>
+</body>
+</html>
