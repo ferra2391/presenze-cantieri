@@ -799,7 +799,7 @@ async function carica(){
   }
 }
 
-/* ====== EXPORT PDF A4 — due colonne affiancate full-width + statistiche sotto ====== */
+<script>
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -811,300 +811,212 @@ async function exportDetailPDF(){
   const op = state.currentOp;
   const daysInMonth = new Date(Y, M, 0).getDate();
 
-  // Statistiche cantieri
-  const cantieriStats = {};
-  const days = state.byOpDay[op] || {};
-  Object.keys(days).forEach(d => {
-    (days[d] || []).forEach(en => {
-      const cant = isBlankCantiere(en.cantiere) ? 'NO DATI' : String(en.cantiere).trim().toUpperCase();
-      cantieriStats[cant] = (cantieriStats[cant] || 0) + (en.ore || 0);
-    });
-  });
-  const totMese = state.summary.find(s => s.op === op)?.tot || 0;
-  const cantieriArray = Object.entries(cantieriStats)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([nome,ore])=>({nome, ore:+ore.toFixed(2), percentuale: totMese>0 ? +((ore/totMese)*100).toFixed(1) : 0}));
+  // === Canvas "A4 @300dpi" per qualità alta (poi ridimensioniamo in PDF) ===
+  const A4_W = 2480;  // px ~ 210mm @300dpi
+  const A4_H = 3508;  // px ~ 297mm @300dpi
+  const MARGIN = 30;  // px (margine minimo)
 
-  const splitDay = 15;
-
-  function createTableForRange(startDay, endDay, title, totRangeOp){
-    const table = document.createElement('table');
-    table.className = 'detail';
-    // Stili per il PDF (alta risoluzione per html2canvas)
-    table.style.tableLayout = 'fixed';
-    table.style.wordBreak = 'break-word';
-    table.style.width = '100%';
-    table.style.fontSize = '50px'; // Ridotto leggermente
-    table.style.borderCollapse = 'separate';
-    table.style.borderSpacing = '0';
-    table.style.border = '10px solid #c00'; // Bordo rosso come da immagine
-    table.style.height = '100%'; // Tenta di riempire l'altezza della colonna
-
-    const thead = document.createElement('thead');
-    thead.innerHTML = `
-      <tr>
-        <th colspan="4" style="padding:40px 30px; text-align:center; font-weight:900; font-size:75px; color:#c00; background:#fff; border-bottom:10px solid #c00;">
-          ${title}
-        </th>
-      </tr>
-      <tr style="background:#f0f0f0;">
-        <th style="padding:32px 25px; text-align:left; border-right:2px solid #ddd; font-weight:900; font-size:45px; color:#333; width:200px;">Giorno</th>
-        <th style="padding:32px 25px; text-align:left; border-right:2px solid #ddd; font-weight:900; font-size:45px; color:#333;">Cantiere/Lav.</th>
-        <th style="padding:32px 25px; text-align:center; border-right:2px solid #ddd; font-weight:900; font-size:45px; color:#333; width:280px;">Orario</th>
-        <th style="padding:32px 25px; text-align:right; font-weight:900; font-size:45px; color:#333; width:150px;">Ore</th>
-      </tr>`;
-    table.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
-    let totRange = 0, altFlag = false;
-
-    for(let d=startDay; d<=endDay; d++){
-      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
-      const date = new Date(Y, M-1, d);
-      const dow  = (date.getDay()+6)%7;
-      const iso  = `${Y}-${pad(M)}-${pad(d)}`;
-      const isOff= (dow===5||dow===6) || state.holidays.has(iso);
-
-      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
-      const dayLabel = `<div style="font-size:55px; font-weight:900; line-height:1.2;">${pad(d)}/${pad(M)}</div><div style="font-size:35px; font-weight:700; color:#555;">${nomeG}</div>`;
-      const bgColor = isOff ? '#ffe8cc' : (altFlag ? '#f9f9f9' : '#fff');
-      const rowBorderColor = '#ddd';
-
-      if(!list0.length){
-        const tr = document.createElement('tr');
-        tr.style.background = bgColor;
-        tr.innerHTML = `
-          <td style="padding:30px 25px; border-top:2px solid ${rowBorderColor}; font-weight:800; vertical-align:top;">${dayLabel}</td>
-          <td style="padding:30px 25px; border-top:2px solid ${rowBorderColor}; text-align:center; color:#999; font-size:45px; vertical-align:top;">—</td>
-          <td style="padding:30px 25px; border-top:2px solid ${rowBorderColor}; vertical-align:top;"></td>
-          <td style="padding:30px 25px; border-top:2px solid ${rowBorderColor}; vertical-align:top;"></td>`;
-        tbody.appendChild(tr);
-        if(!isOff) altFlag = !altFlag;
-      }else{
-        const list = groupDayEntries(list0);
-        let dayTot = 0;
-        list.forEach((en, idx) => {
-          const tr = document.createElement('tr');
-          tr.style.background = bgColor;
-          const borderStyle = idx===0 ? `border-top:2px solid ${rowBorderColor};` : '';
-
-          if(idx===0){
-            const tdDay = document.createElement('td');
-            tdDay.rowSpan = list.length;
-            tdDay.style.cssText = `padding:30px 25px; ${borderStyle} font-weight:800; vertical-align:top;`;
-            tdDay.innerHTML = dayLabel;
-            tr.appendChild(tdDay);
-          }
-
-          const tdCant = document.createElement('td');
-          tdCant.style.cssText = `padding:25px 25px; ${borderStyle} vertical-align:top; line-height:1.4;`;
-          tdCant.innerHTML = `<div style="margin-bottom:10px;">
-            <strong style="color:#c00; font-size:48px; font-weight:900; text-transform:uppercase;">${en.cant}</strong>
-          </div>`;
-          if(en.lav)  tdCant.innerHTML += `<div style="font-size:42px; color:#222; line-height:1.3;">${en.lav}</div>`;
-          if(en.note) tdCant.innerHTML += `<div style="margin-top:8px; font-size:38px; color:#666; font-style:italic; line-height:1.2;">${en.note}</div>`;
-
-          const tdOrario = document.createElement('td');
-          tdOrario.style.cssText = `padding:25px 25px; ${borderStyle} text-align:center; vertical-align:top; white-space:nowrap;`;
-          tdOrario.innerHTML = en.orari ? `<span style="font-size:42px; font-weight:800; color:#333; background:#f0f0f0; padding:15px 25px; border-radius:8px; display:inline-block; border:2px solid #ccc;">${en.orari}</span>` : '';
-
-          const tdOre = document.createElement('td');
-          tdOre.style.cssText = `padding:25px 25px; ${borderStyle} text-align:right; font-weight:900; vertical-align:top; font-size:55px; color:#000;`;
-          tdOre.textContent = en.ore ? `${en.ore} h` : '';
-
-          dayTot += (en.ore || 0);
-
-          tr.appendChild(tdCant);
-          tr.appendChild(tdOrario);
-          tr.appendChild(tdOre);
-          tbody.appendChild(tr);
-        });
-
-        if(list.length>1){
-          const trSub = document.createElement('tr');
-          trSub.style.background = isOff ? '#ffd699' : '#e8e8e8';
-          trSub.innerHTML = `
-            <td style="padding:20px; border-top:3px solid #666;"></td>
-            <td style="padding:20px; border-top:3px solid #666; text-align:right; font-weight:900; font-size:45px; color:#000;">TOT GIORNO:</td>
-            <td style="padding:20px; border-top:3px solid #666;"></td>
-            <td style="padding:20px; border-top:3px solid #666; text-align:right; font-weight:900; font-size:50px; color:#000; background:#ffeb99;">${(+dayTot.toFixed(2))} h</td>`;
-          tbody.appendChild(trSub);
-        }
-        totRange += dayTot;
-        if(!isOff) altFlag = !altFlag;
-      }
-    }
-
-    const tfoot = document.createElement('tfoot');
-    tfoot.innerHTML = `
-      <tr style="background:#fff;">
-        <td colspan="4" style="padding:0; border-top:10px solid #c00;"></td>
-      </tr>`;
-    table.appendChild(tbody);
-    table.appendChild(tfoot);
-    
-    // Total row moved to header as per image reference (testo grande sopra)
-    const totalRow = document.createElement('div');
-    totalRow.style.cssText = `padding:20px 30px; border:10px solid #00f; background:#fff; text-align:center; font-size:60px; font-weight:900; color:#0000ff;`;
-    totalRow.textContent = `ORE TOTALI MESE: ${(+totRange.toFixed(2))} h`; // Modificato testo
-    
-    // Per ottenere l'effetto "due riquadri separati" della foto, li avvolgo
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = `display:flex; flex-direction:column; height:100%;`;
-    
-    const titleDiv = document.createElement('div');
-    titleDiv.style.cssText = `padding:20px 30px; text-align:center; font-size:60px; font-weight:900; color:#c00; background:#fff;`;
-    titleDiv.textContent = title;
-    
-    const hoursDiv = document.createElement('div');
-    hoursDiv.style.cssText = `padding:20px 30px; text-align:center; font-size:60px; font-weight:900; color:#00f; background:#fff;`;
-    hoursDiv.textContent = totRangeOp; // Il testo sarà "ORE TOTALI MESE"
-
-    const tableWrapper = document.createElement('div');
-    tableWrapper.style.cssText = `flex-grow:1; display:flex; flex-direction:column; border:10px solid ${title.includes('1 AL 15') ? '#c00000' : '#0000ff'};`;
-    
-    tableWrapper.appendChild(titleDiv);
-    
-    // Aggiungo la tabella avvolta in un div per gestire lo scroll
-    const tableScrollDiv = document.createElement('div');
-    tableScrollDiv.style.cssText = 'overflow:hidden; flex-grow:1;';
-    tableScrollDiv.appendChild(table);
-    tableWrapper.appendChild(tableScrollDiv);
-    
-    tableWrapper.appendChild(hoursDiv);
-
-    return { wrapper: tableWrapper, total: totRange };
-  }
-
-  // Canvas virtuale largo: due colonne affiancate full-width + statistiche sotto
-  // Aumentato per avere più spazio per le due colonne
-  const CAPTURE_W = 2600; 
-  const CAPTURE_H = 3400; // Altezza fissa per simulare un A4 alto
-  const GAP = 40; 
-
+  // Container off-screen
   const pdfContainer = document.getElementById('pdfContainer');
   pdfContainer.innerHTML = '';
   pdfContainer.style.display = 'block';
   pdfContainer.style.position = 'absolute';
   pdfContainer.style.left = '-10000px';
   pdfContainer.style.top = '0';
-  pdfContainer.style.width = CAPTURE_W + 'px';
-  pdfContainer.style.height = CAPTURE_H + 'px'; // Altezza fissa
-  pdfContainer.style.background = '#fff';
-  pdfContainer.style.padding = '50px'; // Bordo interno
+  pdfContainer.style.width = A4_W + 'px';
+  pdfContainer.style.height = A4_H + 'px';
+  pdfContainer.style.background = '#ffffff';
+  pdfContainer.style.padding = MARGIN + 'px';
   pdfContainer.style.boxSizing = 'border-box';
-  pdfContainer.style.border = '5px solid #000'; // Bordo del "foglio"
 
-  // Header
+  // Header semplice
   const header = document.createElement('div');
-  header.style.cssText = 'text-align:center; margin-bottom:40px;';
-  header.innerHTML = `<h1 style="margin:0; font-size:100px; color:#000; font-weight:900; letter-spacing:1px;">NOME OPERAIO: ${op}</h1>`;
+  header.style.cssText = `
+    display:flex; justify-content:space-between; align-items:flex-end;
+    font-family: Arial, sans-serif; color:#000; margin-bottom:14px;
+  `;
+  const title = document.createElement('div');
+  title.style.cssText = 'font-weight:900; font-size:52px; letter-spacing:0.5px;';
+  title.textContent = `Dettaglio presenze — ${op}`;
+  const sub = document.createElement('div');
+  sub.style.cssText = 'font-weight:700; font-size:36px; color:#333;';
+  sub.textContent = `${String(M).padStart(2,'0')}/${Y}`;
+  header.appendChild(title);
+  header.appendChild(sub);
   pdfContainer.appendChild(header);
 
-  // COLONNE AFFIANCATE (FLEX per altezza dinamica ma simulando GRID)
-  const columnsDiv = document.createElement('div');
-  columnsDiv.style.cssText =
-    `display:flex;
-     justify-content:space-between;
-     align-items:stretch;
-     gap:${GAP}px;
-     width:100%;
-     height:75%; /* Riserva spazio per le statistiche */
-     margin-bottom:40px;`;
+  // Wrapper due colonne a larghezza piena
+  const cols = document.createElement('div');
+  cols.style.cssText = `
+    display:flex; gap:20px; width:100%; height:${A4_H - (MARGIN*2) - 90}px;
+  `;
+  pdfContainer.appendChild(cols);
 
-  const col1 = document.createElement('div');
-  col1.style.cssText = 'flex:1; display:flex;'; // flex:1 per larghezza equa
-  const r1 = createTableForRange(1, Math.min(splitDay, daysInMonth), 'DAL 1 AL 15', 'ORE TOTALI MESE');
-  col1.appendChild(r1.wrapper);
-
-  const col2 = document.createElement('div');
-  col2.style.cssText = 'flex:1; display:flex;'; // flex:1 per larghezza equa
-  if(daysInMonth > splitDay){
-    const r2 = createTableForRange(splitDay + 1, daysInMonth, 'DAL 16 AL 31', 'ORE TOTALI MESE');
-    col2.appendChild(r2.wrapper);
+  // Funzione utilità: raggruppa voci del giorno (mantiene orari e somma ore)
+  function groupDay(entries){
+    const map = new Map();
+    entries.forEach(e=>{
+      const cant = isBlankCantiere(e.cantiere) ? 'NO DATI' : String(e.cantiere).trim().toUpperCase();
+      const lav  = stripIntervals(e.lavorazione||"");
+      const note = stripIntervals(e.note||"");
+      const key = `${cant}|${lav}|${note}`;
+      if(!map.has(key)) map.set(key, {cant, lav, note, orari:new Set(), ore:0, count:0});
+      const rec = map.get(key);
+      if(e.orari){ String(e.orari).split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(x=>rec.orari.add(x)); }
+      rec.ore += (e.ore||0);
+      rec.count++;
+    });
+    return Array.from(map.values()).map(v=>({
+      cant: v.count>1 ? `${v.cant} (x${v.count})` : v.cant,
+      lav: v.lav,
+      note: v.note,
+      orari: Array.from(v.orari).join(', '),
+      ore: +(+v.ore).toFixed(2)
+    }));
   }
 
-  columnsDiv.appendChild(col1);
-  columnsDiv.appendChild(col2);
-  pdfContainer.appendChild(columnsDiv);
+  // Costruisce un blocco "calendario" per un range giorni
+  function buildCalendar(startDay, endDay){
+    const col = document.createElement('div');
+    col.style.cssText = `
+      flex:1; display:flex; flex-direction:column; min-width:0;
+      border:2px solid #000; padding:10px; box-sizing:border-box;
+    `;
 
-  // STATISTICHE sotto, centrate (verde)
-  const statsWrapper = document.createElement('div');
-  statsWrapper.style.cssText = 'display:flex; justify-content:center; width:100%; height:25%;';
-  const cantieriBox = document.createElement('div');
-  cantieriBox.style.cssText = `
-    padding:32px 40px;
-    background:#fff;
-    border:10px solid #28a745;
-    border-radius:12px;
-    width:90%;
-    max-width:1800px; /* Larghezza massima per centrarlo */
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-  `;
-  
-  let cantieriHTML = '<div style="font-size:70px; font-weight:900; margin-bottom:30px; color:#28a745; text-align:center; padding-bottom:14px;">STATISTICHE CANTIERI</div>';
-  
-  // Tabella delle statistiche per una migliore formattazione
-  cantieriHTML += '<table style="width:100%; border-collapse:collapse;"><tbody>';
-  cantieriArray.forEach((c, idx) => {
-    const bgColor = idx===0 ? '#27ae60' : (idx===1 ? '#3498db' : (idx===2 ? '#e67e22' : '#95a5a6'));
-    cantieriHTML += `
-      <tr>
-        <td style="padding:15px 0; font-size:50px; font-weight:900; color:#000; width:50%; vertical-align:middle;">${c.nome}</td>
-        <td style="padding:15px 0; text-align:right; font-size:55px; font-weight:900; color:#000; width:25%; vertical-align:middle;">${c.ore} h</td>
-        <td style="padding:15px 0; text-align:right; font-size:45px; font-weight:900; color:#666; width:25%; vertical-align:middle;">(${c.percentuale}%)</td>
-      </tr>
-      <tr>
-        <td colspan="3" style="padding:0 0 20px 0;">
-          <div style="background:#ddd; height:30px; border-radius:8px; overflow:hidden; border:3px solid #999;">
-            <div style="background:${bgColor}; width:${c.percentuale}%; height:100%; border-radius:5px;"></div>
-          </div>
-        </td>
-      </tr>`;
-  });
-  cantieriHTML += '</tbody></table>';
+    // Titolo della colonna
+    const h = document.createElement('div');
+    h.style.cssText = `
+      font-family: Arial, sans-serif; font-weight:900; font-size:40px;
+      text-align:center; padding:6px 4px 10px 4px; border-bottom:2px solid #000;
+    `;
+    h.textContent = startDay === 1 ? 'Giorni 1–15' : 'Giorni 16–31';
+    col.appendChild(h);
 
-  cantieriBox.innerHTML = cantieriHTML;
-  statsWrapper.appendChild(cantieriBox);
-  pdfContainer.appendChild(statsWrapper);
+    // Corpo scrollabile per adattarsi alla colonna
+    const body = document.createElement('div');
+    body.style.cssText = 'flex:1; overflow:hidden; display:flex; flex-direction:column; gap:6px; padding-top:8px;';
+    col.appendChild(body);
 
-  // Forza box-sizing su tutto il contenuto del PDF
-  pdfContainer.querySelectorAll('*').forEach(el => { el.style.boxSizing = 'border-box'; });
-  
-  // Forza uno sfondo bianco per l'area di cattura
-  pdfContainer.style.background = '#ffffff';
+    for(let d=startDay; d<=endDay; d++){
+      if(d > daysInMonth) break;
 
-  // Render e fit su UNA pagina
+      // Giorno
+      const date = new Date(Y, M-1, d);
+      const dow  = (date.getDay()+6)%7; // lun=0
+      const iso  = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isOff= (dow===5||dow===6) || state.holidays.has(iso);
+      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
+
+      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
+      const box = document.createElement('div');
+      box.style.cssText = `
+        border:1px solid #000; padding:8px; font-family: Arial, sans-serif;
+        ${isOff ? 'background:#fff6e5;' : ''}
+      `;
+
+      // Riga titolo giorno
+      const head = document.createElement('div');
+      head.style.cssText = `
+        display:flex; justify-content:space-between; align-items:center;
+        font-weight:900; font-size:30px; border-bottom:1px solid #000; padding-bottom:4px; margin-bottom:6px;
+      `;
+      const left = document.createElement('div');
+      left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
+      const right = document.createElement('div');
+      right.style.cssText = 'font-weight:900; font-size:28px;';
+      head.appendChild(left);
+      head.appendChild(right);
+      box.appendChild(head);
+
+      // Contenuto
+      const content = document.createElement('div');
+      content.style.cssText = 'display:flex; flex-direction:column; gap:4px;';
+
+      if(list0.length === 0){
+        const empty = document.createElement('div');
+        empty.style.cssText = 'color:#777; font-size:26px; text-align:center; padding:6px 0;';
+        empty.textContent = '—';
+        content.appendChild(empty);
+      } else {
+        const grouped = groupDay(list0);
+        let dayTot = 0;
+
+        grouped.forEach(en=>{
+          dayTot += (en.ore || 0);
+
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid; grid-template-columns: 1fr auto; gap:8px;';
+
+          const left = document.createElement('div');
+          left.innerHTML = `
+            <div style="font-size:28px; font-weight:900; color:#b30000; text-transform:uppercase;">${en.cant}</div>
+            ${en.lav ? `<div style="font-size:26px; color:#111;">${en.lav.replace(/\n/g,'<br>')}</div>` : ''}
+            ${en.note ? `<div style="font-size:24px; color:#666; font-style:italic;">${en.note.replace(/\n/g,'<br>')}</div>` : ''}
+          `;
+
+          const right = document.createElement('div');
+          right.style.cssText = 'text-align:right;';
+          right.innerHTML = `
+            ${en.orari ? `<div style="font-size:24px; font-weight:700; border:1px solid #bbb; padding:4px 6px; display:inline-block;">${en.orari}</div>` : ''}
+            ${en.ore ? `<div style="font-size:28px; font-weight:900; margin-top:4px;">${en.ore} h</div>` : ''}
+          `;
+
+          row.appendChild(left);
+          row.appendChild(right);
+          content.appendChild(row);
+        });
+
+        // Totale giorno (solo se più righe)
+        if(grouped.length > 1){
+          const tot = document.createElement('div');
+          tot.style.cssText = 'text-align:right; font-size:28px; font-weight:900; border-top:1px solid #000; margin-top:6px; padding-top:4px;';
+          tot.textContent = `Tot giorno: ${(+dayTot.toFixed(2))} h`;
+          content.appendChild(tot);
+        }
+
+        // mostra totale in header
+        head.lastChild.textContent = `${(+dayTot.toFixed(2)) || ''} ${dayTot ? 'h' : ''}`;
+      }
+
+      box.appendChild(content);
+      body.appendChild(box);
+    }
+
+    return col;
+  }
+
+  const leftCol  = buildCalendar(1, 15);
+  const rightCol = buildCalendar(16, 31);
+  cols.appendChild(leftCol);
+  cols.appendChild(rightCol);
+
+  // Render
   await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 100));
-
-  const canvas = await html2canvas(pdfContainer, { scale: 1, backgroundColor: '#ffffff', useCORS: true, logging: false, width: CAPTURE_W, height: CAPTURE_H });
+  await new Promise(r => setTimeout(r, 60));
+  const canvas = await html2canvas(pdfContainer, { scale: 1, backgroundColor: '#ffffff', useCORS: true, logging: false, width: A4_W, height: A4_H });
   pdfContainer.style.display = 'none';
 
+  // Crea PDF A4 e inserisce l'immagine con margini minimi
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
-  const pageW = pdf.internal.pageSize.getWidth(); // 595.28 pt
-  const pageH = pdf.internal.pageSize.getHeight(); // 841.89 pt
-  
-  // Calcola la scala per adattare il contenuto del canvas all'altezza della pagina
-  let scale = pageH / canvas.height;
-  // Regola la scala per non eccedere la larghezza (tutta larghezza con margini minimi)
-  const maxW = pageW * 0.95; // 95% della larghezza della pagina per un po' di margine
-  if ((canvas.width * scale) > maxW) {
-    scale = maxW / canvas.width;
-  }
+  const pageW = pdf.internal.pageSize.getWidth();   // 595.28 pt
+  const pageH = pdf.internal.pageSize.getHeight();  // 841.89 pt
+  const minMarginPt = 6; // ~2 mm
+
+  // Scala per riempire tutta la pagina rispettando i margini
+  let scaleW = (pageW - minMarginPt*2) / canvas.width;
+  let scaleH = (pageH - minMarginPt*2) / canvas.height;
+  let scale = Math.min(scaleW, scaleH);
 
   const imgW = canvas.width * scale;
   const imgH = canvas.height * scale;
-  
-  // Centra il contenuto (orizzontalmente e verticalmente)
   const x = (pageW - imgW) / 2;
   const y = (pageH - imgH) / 2;
 
   pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgW, imgH, undefined, 'FAST');
-  pdf.save(`Dettaglio_${op}_${pad(M)}_${Y}.pdf`.replace(/\s+/g,'_'));
+  pdf.save(`Dettaglio_${op}_${String(M).padStart(2,'0')}_${Y}.pdf`.replace(/\s+/g,'_'));
 }
+</script>
+
 
 /* ====== INIT ====== */
 (function init(){
