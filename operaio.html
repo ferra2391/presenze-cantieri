@@ -458,7 +458,7 @@
       </table>
     </div>
     <div class="detail-footer">
-      <button id="btnDetailPDF">📄 Esporta PDF Ottimizzato</button>
+      <button id="btnDetailPDF">📄 Esporta PDF</button>
       <button id="btnCloseDetail">✕ Chiudi Dettaglio</button>
     </div>
   </div>
@@ -840,16 +840,16 @@ async function exportDetailPDF(){
   const header = document.createElement('div');
   header.style.cssText = `
     display:flex; justify-content:space-between; align-items:center;
-    padding:16px 24px; background:linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-    border-radius:10px; margin-bottom:16px; color:white;
+    padding:12px 20px; background:rgba(226, 232, 240, 0.5);
+    border:1px solid #cbd5e1; border-radius:8px; margin-bottom:12px;
   `;
   
   const leftHead = document.createElement('div');
   const title = document.createElement('div');
-  title.style.cssText = 'font-weight:900; font-size:48px; letter-spacing:-0.5px;';
+  title.style.cssText = 'font-weight:900; font-size:56px; letter-spacing:-0.5px; color:#1e293b;';
   title.textContent = `${op}`;
   const subtitle = document.createElement('div');
-  subtitle.style.cssText = 'font-size:28px; font-weight:600; margin-top:2px; opacity:0.95;';
+  subtitle.style.cssText = 'font-size:26px; font-weight:600; margin-top:2px; color:#475569;';
   subtitle.textContent = `Presenze ${String(M).padStart(2,'0')}/${Y}`;
   leftHead.appendChild(title);
   leftHead.appendChild(subtitle);
@@ -857,10 +857,10 @@ async function exportDetailPDF(){
   const rightHead = document.createElement('div');
   rightHead.style.cssText = 'text-align:right;';
   const sup = document.createElement('div');
-  sup.style.cssText = 'font-size:22px; font-weight:600; opacity:0.9; margin-bottom:2px;';
+  sup.style.cssText = 'font-size:20px; font-weight:600; color:#64748b; margin-bottom:2px;';
   sup.textContent = 'TOTALE ORE';
   const big = document.createElement('div');
-  big.style.cssText = 'font-weight:900; font-size:54px; line-height:1;';
+  big.style.cssText = 'font-weight:900; font-size:72px; line-height:1; color:#0f172a;';
   big.textContent = `${(+totMese).toFixed(1)} h`;
   rightHead.appendChild(sup);
   rightHead.appendChild(big);
@@ -897,64 +897,84 @@ async function exportDetailPDF(){
     }));
   }
 
-  // Funzione per costruire una colonna (SOLO giorni con presenze)
+  // Funzione per costruire una colonna (TUTTI i giorni, vuoti = mini)
   function buildCalendar(startDay, endDay){
     const col = document.createElement('div');
     col.style.cssText = `
       flex:1; display:flex; flex-direction:column; min-width:0;
-      border:3px solid #1e40af; padding:10px; box-sizing:border-box;
-      border-radius:10px; background:#f8fafc;
+      border:1px solid #94a3b8; padding:8px; box-sizing:border-box;
+      border-radius:8px; background:#fafafa;
     `;
 
     const h = document.createElement('div');
     h.style.cssText = `
-      font-family: Arial, sans-serif; font-weight:900; font-size:32px;
-      text-align:center; padding:8px 4px; border-bottom:3px solid #1e40af;
-      background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-      border-radius:6px; margin-bottom:10px; color:#1e40af;
+      font-family: Arial, sans-serif; font-weight:900; font-size:28px;
+      text-align:center; padding:6px 4px; border-bottom:1px solid #94a3b8;
+      background:#e2e8f0; border-radius:4px; margin-bottom:8px; color:#334155;
     `;
     h.textContent = startDay === 1 ? 'GIORNI 1–15' : 'GIORNI 16–31';
     col.appendChild(h);
 
     const body = document.createElement('div');
-    body.style.cssText = `flex:1; display:flex; flex-direction:column; gap:8px;`;
+    body.style.cssText = `flex:1; display:flex; flex-direction:column; gap:4px;`;
     col.appendChild(body);
 
-    // Raccogli SOLO i giorni con presenze in questo range
+    // TUTTI i giorni del range
     for(let d=startDay; d<=Math.min(endDay, daysInMonth); d++){
       const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
-      if(list0.length === 0) continue; // SALTA giorni vuoti!
-
+      
       const date = new Date(Y, M-1, d);
       const dow  = (date.getDay()+6)%7;
       const iso  = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const isOff= (dow===5||dow===6) || state.holidays.has(iso);
       const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
 
+      // GIORNO VUOTO = versione mini
+      if(list0.length === 0){
+        const miniBox = document.createElement('div');
+        miniBox.style.cssText = `
+          border:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
+          border-radius:4px; padding:3px 8px;
+          background:${isOff ? '#fef3c7' : '#f8fafc'};
+          display:flex; justify-content:space-between; align-items:center;
+          font-size:16px; color:#64748b; font-weight:600;
+        `;
+        const label = document.createElement('span');
+        label.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} ${nomeG}`;
+        const dash = document.createElement('span');
+        dash.textContent = '—';
+        dash.style.color = '#94a3b8';
+        miniBox.appendChild(label);
+        miniBox.appendChild(dash);
+        body.appendChild(miniBox);
+        continue;
+      }
+
+      // GIORNO CON PRESENZE = versione completa
       const grouped = groupDay(list0);
       let dayTot = 0;
       grouped.forEach(en => dayTot += (en.ore || 0));
 
-      // Box giorno
       const box = document.createElement('div');
       box.style.cssText = `
-        border:2px solid ${isOff ? '#f59e0b' : '#3b82f6'}; 
-        border-radius:8px; overflow:hidden;
-        ${isOff ? 'background:#fffbeb;' : 'background:white;'}
+        border:1px solid ${isOff ? '#fbbf24' : '#94a3b8'}; 
+        border-radius:6px; overflow:hidden;
+        background:${isOff ? '#fffbeb' : 'white'};
       `;
 
       // Header giorno
       const head = document.createElement('div');
       head.style.cssText = `
         display:flex; justify-content:space-between; align-items:center;
-        padding:8px 12px;
-        background:${isOff ? 'linear-gradient(135deg, #f59e0b 0%, #fb923c 100%)' : 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)'};
-        color:white; font-weight:900; font-size:24px;
+        padding:6px 10px;
+        background:${isOff ? 'rgba(251, 191, 36, 0.15)' : 'rgba(148, 163, 184, 0.15)'};
+        border-bottom:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
+        font-weight:800; font-size:20px; color:#1e293b;
       `;
       const left = document.createElement('div');
       left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
       const right = document.createElement('div');
-      right.style.cssText = 'font-size:26px;';
+      right.style.cssText = 'font-size:24px; font-weight:900;';
       right.textContent = `${dayTot.toFixed(1)} h`;
       head.appendChild(left);
       head.appendChild(right);
@@ -962,45 +982,45 @@ async function exportDetailPDF(){
 
       // Content entries
       const content = document.createElement('div');
-      content.style.cssText = 'padding:10px; display:flex; flex-direction:column; gap:8px;';
+      content.style.cssText = 'padding:8px; display:flex; flex-direction:column; gap:6px;';
       
       grouped.forEach(en=>{
         const row = document.createElement('div');
         row.style.cssText = `
           display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start;
-          padding:8px; background:${isOff ? '#fef3c7' : '#f1f5f9'}; border-radius:6px;
-          border-left:4px solid #dc2626;
+          padding:6px; background:${isOff ? 'rgba(254, 243, 199, 0.5)' : 'rgba(241, 245, 249, 0.6)'};
+          border-radius:4px; border-left:3px solid #b91c1c;
         `;
         
         const l = document.createElement('div');
         const cantEl = document.createElement('div');
-        cantEl.style.cssText = 'font-size:20px; font-weight:900; color:#dc2626; text-transform:uppercase; margin-bottom:4px;';
+        cantEl.style.cssText = 'font-size:28px; font-weight:900; color:#b91c1c; text-transform:uppercase; margin-bottom:3px; line-height:1.1;';
         cantEl.textContent = en.cant;
         l.appendChild(cantEl);
         
         if(en.lav){
           const lavEl = document.createElement('div');
-          lavEl.style.cssText = 'font-size:18px; color:#1e293b; line-height:1.3;';
+          lavEl.style.cssText = 'font-size:17px; color:#1e293b; line-height:1.25;';
           lavEl.innerHTML = en.lav.replace(/\n/g,'<br>');
           l.appendChild(lavEl);
         }
         
         if(en.note){
           const noteEl = document.createElement('div');
-          noteEl.style.cssText = 'font-size:16px; color:#64748b; font-style:italic; margin-top:3px;';
+          noteEl.style.cssText = 'font-size:15px; color:#64748b; font-style:italic; margin-top:2px;';
           noteEl.innerHTML = en.note.replace(/\n/g,'<br>');
           l.appendChild(noteEl);
         }
         
         const r = document.createElement('div');
-        r.style.cssText = 'text-align:right; display:flex; flex-direction:column; gap:4px; align-items:flex-end;';
+        r.style.cssText = 'text-align:right; display:flex; flex-direction:column; gap:3px; align-items:flex-end;';
         
         if(en.orari){
           const orariBox = document.createElement('div');
           orariBox.style.cssText = `
-            font-size:16px; font-weight:700; color:#0c4a6e;
-            background:#e0f2fe; border:2px solid #0284c7;
-            padding:4px 8px; border-radius:4px; white-space:nowrap;
+            font-size:15px; font-weight:700; color:#1e293b;
+            background:rgba(224, 242, 254, 0.6); border:1px solid #bae6fd;
+            padding:3px 7px; border-radius:3px; white-space:nowrap;
           `;
           orariBox.textContent = en.orari;
           r.appendChild(orariBox);
@@ -1008,8 +1028,9 @@ async function exportDetailPDF(){
         
         const oreBox = document.createElement('div');
         oreBox.style.cssText = `
-          font-size:24px; font-weight:900; color:#0f172a;
-          background:#bfdbfe; padding:4px 10px; border-radius:4px;
+          font-size:32px; font-weight:900; color:#0f172a;
+          background:rgba(186, 230, 253, 0.5); padding:3px 12px; border-radius:4px;
+          border:1px solid #bae6fd;
         `;
         oreBox.textContent = `${en.ore} h`;
         r.appendChild(oreBox);
