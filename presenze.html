@@ -682,7 +682,7 @@
 
   <script>
   /* ============ CONFIG & UTIL ============ */
-  const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
+  const SHEET_ID = "1glvkWLOpUhdBUmY4j-2DJoXQvY6dnQD_OQkYYCaXXEQ";
   const GAS_URL  = "https://script.google.com/macros/s/AKfycbybSXuBklZxyoyvo-FvV-UZ280WBygR8wMRTAO97dl8h6_g8-_VjDtBa2uPrVOf2nmI6Q/exec";
 
   const pad = n => String(n).padStart(2,"0");
@@ -945,21 +945,21 @@
 
       const byOpDay = {};
       rows.forEach(r=>{
-        const dataVal = getFieldSmart(r, ["Data","A","DATA","data"]);
+        const dataVal = getFieldSmart(r, ["Data Presenza","B","DATA PRESENZA","data presenza","Data","data"]);
         const dt = parseDateAny(dataVal);
         if(!dt) return;
         const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
         if(Yf!==Y || Mf!==M) return;
 
-        const op  = String(getFieldSmart(r, ["Operaio","C","OPERAIO","operaio"]) || "").trim();
+        const op  = String(getFieldSmart(r, ["Nome Operaio","D","NOME OPERAIO","nome operaio","Operaio","operaio"]) || "").trim();
         if(!op) return;
         const d = dt.getDate();
 
-        const cantiere = String(getFieldSmart(r, ["Cantiere","E","CANTIERE","cantiere"]) || "").trim();
+        const cantiere = String(getFieldSmart(r, ["Cantiere","F","CANTIERE","cantiere"]) || "").trim();
         const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
         const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",", ".")) : null;
-        const lav      = String(getFieldSmart(r, ["Lavorazione","F","LAVORAZIONE","lavorazione"]) || "");
-        const orari    = String(getFieldSmart(r, ["Orari","B","ORARI","orari"]) || "");
+        const lav      = String(getFieldSmart(r, ["Lavorazione","G","LAVORAZIONE","lavorazione"]) || "");
+        const orari    = String(getFieldSmart(r, ["Orari","C","ORARI","orari"]) || "");
         const note     = String(getFieldSmart(r, ["Note","I","NOTE","note"]) || "");
 
         byOpDay[op] ??= {};
