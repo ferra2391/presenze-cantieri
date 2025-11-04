@@ -1001,14 +1001,14 @@ async function exportDetailPDF(){
         
         if(en.lav){
           const lavEl = document.createElement('div');
-          lavEl.style.cssText = 'font-size:17px; color:#1e293b; line-height:1.25;';
+          lavEl.style.cssText = 'font-size:20px; color:#1e293b; line-height:1.25;';
           lavEl.innerHTML = en.lav.replace(/\n/g,'<br>');
           l.appendChild(lavEl);
         }
         
         if(en.note){
           const noteEl = document.createElement('div');
-          noteEl.style.cssText = 'font-size:15px; color:#64748b; font-style:italic; margin-top:2px;';
+          noteEl.style.cssText = 'font-size:19px; color:#64748b; font-style:italic; margin-top:2px;';
           noteEl.innerHTML = en.note.replace(/\n/g,'<br>');
           l.appendChild(noteEl);
         }
@@ -1019,7 +1019,7 @@ async function exportDetailPDF(){
         if(en.orari){
           const orariBox = document.createElement('div');
           orariBox.style.cssText = `
-            font-size:15px; font-weight:700; color:#1e293b;
+            font-size:18px; font-weight:700; color:#1e293b;
             background:rgba(224, 242, 254, 0.6); border:1px solid #bae6fd;
             padding:3px 7px; border-radius:3px; white-space:nowrap;
           `;
