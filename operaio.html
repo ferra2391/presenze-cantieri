@@ -798,7 +798,8 @@ async function carica(){
     setLoading(false);
   }
 }
-
+  
+  // EXPORT PDF
 
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
@@ -811,12 +812,19 @@ async function exportDetailPDF(){
   const op = state.currentOp;
   const daysInMonth = new Date(Y, M, 0).getDate();
 
-  // === Canvas "A4 @300dpi" per qualità alta (poi ridimensioniamo in PDF) ===
-  const A4_W = 2480;  // px ~ 210mm @300dpi
-  const A4_H = 3508;  // px ~ 297mm @300dpi
-  const MARGIN = 30;  // px (margine minimo)
+  // totale mese per header
+  const totMese = (state.summary.find(s => s.op === op)?.tot) ?? (() => {
+    let t=0; const days = state.byOpDay[op]||{};
+    Object.values(days).forEach(list => list.forEach(e => t += (e.ore||0)));
+    return +t.toFixed(2);
+  })();
 
-  // Container off-screen
+  // A4 verticale @300dpi
+  const A4_W = 2480;
+  const A4_H = 3508;
+  const MARGIN = 20; // margini minimi
+
+  // container off-screen
   const pdfContainer = document.getElementById('pdfContainer');
   pdfContainer.innerHTML = '';
   pdfContainer.style.display = 'block';
@@ -829,30 +837,38 @@ async function exportDetailPDF(){
   pdfContainer.style.padding = MARGIN + 'px';
   pdfContainer.style.boxSizing = 'border-box';
 
-  // Header semplice
+  // ===== Header =====
   const header = document.createElement('div');
   header.style.cssText = `
     display:flex; justify-content:space-between; align-items:flex-end;
-    font-family: Arial, sans-serif; color:#000; margin-bottom:14px;
+    font-family: Arial, sans-serif; color:#000; margin-bottom:10px;
   `;
   const title = document.createElement('div');
-  title.style.cssText = 'font-weight:900; font-size:52px; letter-spacing:0.5px;';
-  title.textContent = `Dettaglio presenze — ${op}`;
-  const sub = document.createElement('div');
-  sub.style.cssText = 'font-weight:700; font-size:36px; color:#333;';
-  sub.textContent = `${String(M).padStart(2,'0')}/${Y}`;
-  header.appendChild(title);
-  header.appendChild(sub);
+  title.style.cssText = 'font-weight:900; font-size:50px; letter-spacing:0.5px;';
+  title.textContent = `Dettaglio ${String(M).padStart(2,'0')}/${Y} - ${op}`;
+  const rightBox = document.createElement('div');
+  rightBox.style.cssText = 'text-align:right;';
+  const sup = document.createElement('div');
+  sup.style.cssText = 'font-weight:700; font-size:28px; color:#333;';
+  sup.textContent = 'Totale ore mese';
+  const big = document.createElement('div');
+  big.style.cssText = 'font-weight:900; font-size:40px;';
+  big.textContent = `${(+totMese).toFixed(2)} h`;
+  rightBox.appendChild(sup); rightBox.appendChild(big);
+  header.appendChild(title); header.appendChild(rightBox);
   pdfContainer.appendChild(header);
 
-  // Wrapper due colonne a larghezza piena
+  // ===== Wrapper due colonne =====
   const cols = document.createElement('div');
-  cols.style.cssText = `
-    display:flex; gap:20px; width:100%; height:${A4_H - (MARGIN*2) - 90}px;
-  `;
+  cols.style.cssText = `display:flex; gap:18px; width:100%;`;
   pdfContainer.appendChild(cols);
 
-  // Funzione utilità: raggruppa voci del giorno (mantiene orari e somma ore)
+  // misura header e imposta altezza utile colonne
+  await new Promise(r => requestAnimationFrame(r));
+  const remainingH = A4_H - (MARGIN*2) - header.offsetHeight;
+  cols.style.height = `${remainingH}px`;
+
+  // utilità
   function groupDay(entries){
     const map = new Map();
     entries.forEach(e=>{
@@ -875,32 +891,40 @@ async function exportDetailPDF(){
     }));
   }
 
-  // Costruisce un blocco "calendario" per un range giorni
   function buildCalendar(startDay, endDay){
+    const daysCount = Math.min(endDay, daysInMonth) - startDay + 1;
+
     const col = document.createElement('div');
     col.style.cssText = `
       flex:1; display:flex; flex-direction:column; min-width:0;
-      border:2px solid #000; padding:10px; box-sizing:border-box;
+      border:2px solid #000; padding:8px; box-sizing:border-box;
     `;
 
-    // Titolo della colonna
     const h = document.createElement('div');
     h.style.cssText = `
-      font-family: Arial, sans-serif; font-weight:900; font-size:40px;
-      text-align:center; padding:6px 4px 10px 4px; border-bottom:2px solid #000;
+      font-family: Arial, sans-serif; font-weight:900; font-size:34px;
+      text-align:center; padding:4px 2px 6px 2px; border-bottom:2px solid #000;
     `;
     h.textContent = startDay === 1 ? 'Giorni 1–15' : 'Giorni 16–31';
     col.appendChild(h);
 
-    // Corpo scrollabile per adattarsi alla colonna
+    // calcolo altezza disponibile per i box giorno
+    const headerH =  h.offsetHeight;
+    // spazio interno colonna = altezza colonna - titolo - padding interni
+    // (8px top + 8px bottom già nei padding di col)
+    const colInnerH = cols.clientHeight - 16; 
+    const daysAreaH = colInnerH - headerH - 6; // 6px margine sopra area
+    const gap = 4; // gap tra box
+    const totalGap = gap * (daysCount - 1);
+    const dayBoxH = Math.floor((daysAreaH - totalGap) / daysCount);
+
     const body = document.createElement('div');
-    body.style.cssText = 'flex:1; overflow:hidden; display:flex; flex-direction:column; gap:6px; padding-top:8px;';
+    body.style.cssText = `flex:1; display:flex; flex-direction:column; gap:${gap}px; padding-top:6px;`;
     col.appendChild(body);
 
     for(let d=startDay; d<=endDay; d++){
       if(d > daysInMonth) break;
 
-      // Giorno
       const date = new Date(Y, M-1, d);
       const dow  = (date.getDay()+6)%7; // lun=0
       const iso  = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -908,75 +932,84 @@ async function exportDetailPDF(){
       const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
 
       const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
-      const box = document.createElement('div');
-      box.style.cssText = `
-        border:1px solid #000; padding:8px; font-family: Arial, sans-serif;
-        ${isOff ? 'background:#fff6e5;' : ''}
-      `;
 
-      // Riga titolo giorno
+      // box giorno
+      const box = document.createElement('div');
+      // se vuoto: stile super-compatto
+      if(list0.length === 0){
+        box.style.cssText = `
+          border:1px solid #000; height:${dayBoxH}px; min-height:18px; display:flex; flex-direction:column;
+          ${isOff ? 'background:#fff6e5;' : ''};
+        `;
+        const head = document.createElement('div');
+        head.style.cssText = `
+          display:flex; justify-content:space-between; align-items:center;
+          font-weight:900; font-size:20px; border-bottom:1px solid #000; padding:2px 4px;
+        `;
+        const left = document.createElement('div');
+        left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
+        const right = document.createElement('div');
+        right.style.cssText = 'font-weight:900; font-size:18px;';
+        head.appendChild(left); head.appendChild(right);
+        const empty = document.createElement('div');
+        empty.style.cssText = 'flex:1; display:flex; align-items:center; justify-content:center; color:#777; font-size:18px;';
+        empty.textContent = '—';
+        box.appendChild(head);
+        box.appendChild(empty);
+        body.appendChild(box);
+        continue;
+      }
+
+      // con contenuto
+      box.style.cssText = `
+        border:1px solid #000; height:${dayBoxH}px; display:flex; flex-direction:column; overflow:hidden;
+        ${isOff ? 'background:#fff6e5;' : ''};
+      `;
       const head = document.createElement('div');
       head.style.cssText = `
         display:flex; justify-content:space-between; align-items:center;
-        font-weight:900; font-size:30px; border-bottom:1px solid #000; padding-bottom:4px; margin-bottom:6px;
+        font-weight:900; font-size:24px; border-bottom:1px solid #000; padding:4px 6px;
       `;
       const left = document.createElement('div');
       left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
       const right = document.createElement('div');
-      right.style.cssText = 'font-weight:900; font-size:28px;';
-      head.appendChild(left);
-      head.appendChild(right);
+      right.style.cssText = 'font-weight:900; font-size:22px;';
+      head.appendChild(left); head.appendChild(right);
       box.appendChild(head);
 
-      // Contenuto
       const content = document.createElement('div');
-      content.style.cssText = 'display:flex; flex-direction:column; gap:4px;';
+      content.style.cssText = 'flex:1; display:flex; flex-direction:column; gap:2px; padding:4px 6px; overflow:hidden;';
+      const grouped = groupDay(list0);
+      let dayTot = 0;
 
-      if(list0.length === 0){
-        const empty = document.createElement('div');
-        empty.style.cssText = 'color:#777; font-size:26px; text-align:center; padding:6px 0;';
-        empty.textContent = '—';
-        content.appendChild(empty);
-      } else {
-        const grouped = groupDay(list0);
-        let dayTot = 0;
+      grouped.forEach(en=>{
+        dayTot += (en.ore || 0);
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid; grid-template-columns: 1fr auto; gap:6px;';
+        const l = document.createElement('div');
+        l.innerHTML = `
+          <div style="font-size:20px; font-weight:900; color:#b30000; text-transform:uppercase;">${en.cant}</div>
+          ${en.lav ? `<div style="font-size:18px; color:#111;">${en.lav.replace(/\n/g,'<br>')}</div>` : ''}
+          ${en.note ? `<div style="font-size:16px; color:#666; font-style:italic;">${en.note.replace(/\n/g,'<br>')}</div>` : ''}
+        `;
+        const r = document.createElement('div');
+        r.style.cssText = 'text-align:right;';
+        r.innerHTML = `
+          ${en.orari ? `<div style="font-size:16px; font-weight:700; border:1px solid #bbb; padding:2px 4px; display:inline-block;">${en.orari}</div>` : ''}
+          ${en.ore ? `<div style="font-size:20px; font-weight:900; margin-top:2px;">${en.ore} h</div>` : ''}
+        `;
+        row.appendChild(l); row.appendChild(r);
+        content.appendChild(row);
+      });
 
-        grouped.forEach(en=>{
-          dayTot += (en.ore || 0);
-
-          const row = document.createElement('div');
-          row.style.cssText = 'display:grid; grid-template-columns: 1fr auto; gap:8px;';
-
-          const left = document.createElement('div');
-          left.innerHTML = `
-            <div style="font-size:28px; font-weight:900; color:#b30000; text-transform:uppercase;">${en.cant}</div>
-            ${en.lav ? `<div style="font-size:26px; color:#111;">${en.lav.replace(/\n/g,'<br>')}</div>` : ''}
-            ${en.note ? `<div style="font-size:24px; color:#666; font-style:italic;">${en.note.replace(/\n/g,'<br>')}</div>` : ''}
-          `;
-
-          const right = document.createElement('div');
-          right.style.cssText = 'text-align:right;';
-          right.innerHTML = `
-            ${en.orari ? `<div style="font-size:24px; font-weight:700; border:1px solid #bbb; padding:4px 6px; display:inline-block;">${en.orari}</div>` : ''}
-            ${en.ore ? `<div style="font-size:28px; font-weight:900; margin-top:4px;">${en.ore} h</div>` : ''}
-          `;
-
-          row.appendChild(left);
-          row.appendChild(right);
-          content.appendChild(row);
-        });
-
-        // Totale giorno (solo se più righe)
-        if(grouped.length > 1){
-          const tot = document.createElement('div');
-          tot.style.cssText = 'text-align:right; font-size:28px; font-weight:900; border-top:1px solid #000; margin-top:6px; padding-top:4px;';
-          tot.textContent = `Tot giorno: ${(+dayTot.toFixed(2))} h`;
-          content.appendChild(tot);
-        }
-
-        // mostra totale in header
-        head.lastChild.textContent = `${(+dayTot.toFixed(2)) || ''} ${dayTot ? 'h' : ''}`;
+      if(grouped.length > 1){
+        const tot = document.createElement('div');
+        tot.style.cssText = 'text-align:right; font-size:18px; font-weight:900; border-top:1px solid #000; margin-top:2px; padding-top:2px;';
+        tot.textContent = `Tot giorno: ${(+dayTot.toFixed(2))} h`;
+        content.appendChild(tot);
       }
+
+      head.lastChild.textContent = `${(+dayTot.toFixed(2)) || ''} ${dayTot ? 'h' : ''}`;
 
       box.appendChild(content);
       body.appendChild(box);
@@ -990,19 +1023,25 @@ async function exportDetailPDF(){
   cols.appendChild(leftCol);
   cols.appendChild(rightCol);
 
-  // Render
+  // render e cattura
   await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 60));
-  const canvas = await html2canvas(pdfContainer, { scale: 1, backgroundColor: '#ffffff', useCORS: true, logging: false, width: A4_W, height: A4_H });
+  await new Promise(r => setTimeout(r, 50));
+  const canvas = await html2canvas(pdfContainer, {
+    scale: 1,
+    backgroundColor: '#ffffff',
+    useCORS: true,
+    logging: false,
+    width: A4_W,
+    height: A4_H
+  });
   pdfContainer.style.display = 'none';
 
-  // Crea PDF A4 e inserisce l'immagine con margini minimi
+  // PDF A4
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
-  const pageW = pdf.internal.pageSize.getWidth();   // 595.28 pt
-  const pageH = pdf.internal.pageSize.getHeight();  // 841.89 pt
-  const minMarginPt = 6; // ~2 mm
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const minMarginPt = 6;
 
-  // Scala per riempire tutta la pagina rispettando i margini
   let scaleW = (pageW - minMarginPt*2) / canvas.width;
   let scaleH = (pageH - minMarginPt*2) / canvas.height;
   let scale = Math.min(scaleW, scaleH);
@@ -1013,7 +1052,7 @@ async function exportDetailPDF(){
   const y = (pageH - imgH) / 2;
 
   pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgW, imgH, undefined, 'FAST');
-  pdf.save(`Dettaglio_${op}_${String(M).padStart(2,'0')}_${Y}.pdf`.replace(/\s+/g,'_'));
+  pdf.save(`Dettaglio_${String(M).padStart(2,'0')}_${Y}_${op}.pdf`.replace(/\s+/g,'_'));
 }
 
 
