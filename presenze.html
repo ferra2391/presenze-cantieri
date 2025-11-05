@@ -286,257 +286,245 @@
     }
     
     .table-wrap {
-      width: 100%;
-      overflow: auto;
+      overflow-x: auto;
+      position: relative;
     }
 
     table {
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 100%;
-      font-size: 14px;
+      width: 100%;
+      font-size: 15px;
     }
 
     thead th {
+      background: var(--hover-bg);
+      border-bottom: 2px solid var(--border-strong);
+      text-align: center;
+      font-weight: 700;
+      font-size: var(--fs-day);
+      color: var(--text);
       position: sticky;
       top: 0;
       z-index: 2;
-      background: var(--hover-bg);
-      border-bottom: 2px solid var(--border-strong);
-      padding: 12px 8px;
-      text-align: center;
+      padding: 18px 12px;
+      min-width: 160px;
+      max-width: 260px;
       white-space: nowrap;
-      font-size: var(--fs-day);
-      font-weight: 700;
     }
 
-    thead th.day-void {
-      color: #aaa;
-      background: #fafafa;
-    }
-
-    thead th.weekend,
-    thead th.festivo {
-      background: var(--orange-weak);
-      border-bottom-color: var(--orange-border);
-    }
-
-    thead th:first-child,
-    tbody th {
-      width: var(--col-op);
+    thead th:first-child {
+      left: 0;
+      z-index: 3;
+      text-align: left;
+      padding-left: 20px;
       min-width: var(--col-op);
       max-width: var(--col-op);
-      white-space: normal;
-      overflow-wrap: anywhere;
-      word-break: break-word;
+      width: var(--col-op);
+    }
+
+    thead th.weekend { background: var(--orange-weak); border-color: var(--orange-border); }
+    thead th.festivo { background: var(--orange-weak); border-color: var(--orange-border); }
+    thead th.day-void { background: #fafafa; color: #ccc; }
+
+    tbody th,
+    tbody td {
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      padding: 0;
+      min-height: var(--day-h);
     }
 
     tbody th {
       position: sticky;
       left: 0;
       z-index: 1;
-      background: #fff;
+      background: var(--card);
       border-right: 2px solid var(--border-strong);
       text-align: left;
-      padding: 12px 14px;
-      font-size: 18px;
-      line-height: 1.3;
-      vertical-align: top;
+      padding: 16px 20px;
+      min-width: var(--col-op);
+      max-width: var(--col-op);
+      width: var(--col-op);
     }
+
+    tbody tr:hover th { background: var(--hover-bg); }
 
     .op-name {
       font-weight: 700;
+      font-size: 17px;
       color: var(--text);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .op-total {
-      color: #d946ef;
-      font-weight: 800;
-      font-size: 16px;
-      background: rgba(217, 70, 239, 0.08);
-      padding: 4px 8px;
-      border-radius: 6px;
-      display: inline-block;
-    }
-
-    thead th:not(:first-child),
-    tbody td {
-      width: var(--col-w);
-      min-width: var(--col-w);
-      max-width: var(--col-w);
-      white-space: normal;
-      overflow-wrap: anywhere;
-      word-break: break-word;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-light);
     }
 
     tbody td {
-      border-left: 1px solid var(--border);
-      border-top: 1px solid var(--border);
-      padding: 8px;
-      height: var(--day-h);
-      vertical-align: middle;
-      text-align: center;
+      min-width: 160px;
+      max-width: 260px;
+      position: relative;
     }
 
-    tr:last-child td {
-      border-bottom: 1px solid var(--border);
-    }
-
-    tbody td.weekend,
-    tbody td.festivo {
-      background: var(--orange-weak);
-    }
+    tbody td.weekend { background: var(--orange-weak); }
+    tbody td.festivo { background: var(--orange-weak); }
 
     .cell {
-      height: 100%;
+      padding: 12px;
+      min-height: var(--day-h);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: 4px;
+      gap: 10px;
     }
 
     .entry {
-      margin-bottom: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: linear-gradient(to bottom, #fff, #fafafa);
+      border: 2px solid var(--border);
+      transition: all 0.2s;
       cursor: pointer;
-      transition: all 0.15s;
-      padding: 4px 6px;
-      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .entry:hover {
-      background: rgba(0, 0, 0, 0.03);
-      transform: scale(1.02);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      transform: translateY(-1px);
     }
 
     .entry.assente {
-      background: hsla(140, 60%, 80%, 0.25);
-      border: 1px solid hsla(140, 50%, 55%, 0.40);
-      border-radius: 8px;
-      padding: 8px;
-    }
-
-    .entry.assente .cant {
-      color: hsl(210, 80%, 28%);
+      background: linear-gradient(to bottom, #fee, #fcc);
+      border-color: var(--danger);
     }
 
     .cant {
-      color: var(--danger);
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
+      font-weight: 700;
       font-size: var(--fs-cantiere);
+      color: var(--primary);
       line-height: 1.2;
     }
 
+    .entry.assente .cant { color: var(--danger); }
+
     .ore {
-      color: #111;
       font-weight: 700;
       font-size: var(--fs-ore);
-      margin-top: 2px;
+      color: var(--text);
     }
 
     .lav {
-      color: #000;
       font-size: var(--fs-lav);
-      margin-top: 4px;
-      white-space: pre-wrap;
+      color: var(--text-light);
       line-height: 1.3;
+      font-weight: 500;
     }
 
     .note {
-      color: var(--muted);
-      font-style: normal;
       font-size: var(--fs-note);
-      white-space: pre-wrap;
-      font-variant-numeric: tabular-nums;
-      margin-top: 4px;
+      color: var(--muted);
+      line-height: 1.3;
+      font-style: italic;
     }
 
     .tot {
-      margin-top: 8px;
-      font-weight: 800;
+      padding: 8px 12px;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px;
+      font-weight: 700;
       font-size: var(--fs-tot);
-      color: var(--primary);
-      padding: 4px 8px;
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 6px;
+      text-align: center;
     }
 
     .center {
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 40px;
-      color: #bbb;
-      font-size: 18px;
+      min-height: var(--day-h);
+      font-size: 28px;
+      color: var(--muted);
     }
 
     /* MODALE */
     #overlay {
+      display: none;
       position: fixed;
       inset: 0;
       background: var(--overlay);
-      display: none;
-      z-index: 999;
-      backdrop-filter: blur(2px);
+      z-index: 1000;
+      animation: fadeIn 0.2s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     #modal {
+      display: none;
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: var(--card);
-      border: 1px solid var(--border);
       border-radius: 16px;
-      width: 92%;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      z-index: 1001;
+      width: 90%;
       max-width: 600px;
-      padding: 28px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      display: none;
-      z-index: 1000;
+      padding: 32px;
+      animation: slideIn 0.3s;
     }
 
-    #modalTitle {
-      margin: 0 0 20px;
+    @keyframes slideIn {
+      from { transform: translate(-50%, -48%); opacity: 0; }
+      to { transform: translate(-50%, -50%); opacity: 1; }
+    }
+
+    #modal h3 {
+      margin: 0 0 24px;
       font-size: 24px;
-      font-weight: 700;
       color: var(--text);
     }
 
     .modal-row {
       display: flex;
       gap: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .modal-field {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .modal-field label {
       font-weight: 600;
       font-size: 14px;
-      color: var(--text-light);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      color: var(--text);
     }
 
     .modal-field input,
     .modal-field textarea {
-      width: 100%;
-      padding: 12px 14px;
+      padding: 10px 14px;
       border: 2px solid var(--border);
       border-radius: 10px;
       font-size: 15px;
-      font-family: inherit;
       transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    .modal-field textarea {
+      min-height: 80px;
+      resize: vertical;
     }
 
     .modal-field input:focus,
@@ -545,56 +533,63 @@
       border-color: var(--primary);
     }
 
-    .modal-field textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
     .modal-actions {
       display: flex;
-      gap: 12px;
       justify-content: flex-end;
-      margin-top: 24px;
+      gap: 12px;
+      margin-top: 28px;
       padding-top: 20px;
       border-top: 2px solid var(--border);
     }
 
     @media print {
       body { background: white; }
-      .container { padding: 20px; }
-      .control-panel { display: none; }
+      .control-panel, .nav, button { display: none !important; }
+      .table-wrap { overflow: visible !important; }
+      thead th:first-child,
+      tbody th { position: static !important; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📅 Gestione Presenze Mensili</h1>
+    <h1>📅 Gestione Presenze Operai</h1>
 
     <div class="control-panel">
       <div class="control-row">
         <div class="control-left">
           <button id="prevMonth" class="month-btn" title="Mese precedente">◀</button>
-          <input type="month" id="mese">
-          <span id="meseFallback" class="hidden">
-            <select id="meseSel" aria-label="Mese">
-              <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
-              <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
-              <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
-              <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+          <input type="month" id="mese" />
+          <div id="meseFallback" class="hidden">
+            <select id="meseSel">
+              <option value="1">Gennaio</option>
+              <option value="2">Febbraio</option>
+              <option value="3">Marzo</option>
+              <option value="4">Aprile</option>
+              <option value="5">Maggio</option>
+              <option value="6">Giugno</option>
+              <option value="7">Luglio</option>
+              <option value="8">Agosto</option>
+              <option value="9">Settembre</option>
+              <option value="10">Ottobre</option>
+              <option value="11">Novembre</option>
+              <option value="12">Dicembre</option>
             </select>
-            <select id="annoSel" aria-label="Anno"></select>
-          </span>
+            <select id="annoSel"></select>
+          </div>
           <button id="nextMonth" class="month-btn" title="Mese successivo">▶</button>
           <button id="btnCarica" class="primary">Carica Dati</button>
-          <span class="spinner" id="spin"></span>
+          <span id="spin" class="spinner"></span>
         </div>
+        <div class="nav">
+          <a class="primary" href="gestione.html">Presenze</a>
+          <a href="operaio.html">Analisi per Operaio</a>
+          <a href="cantiere.html">Analisi per Cantiere</a>
+        </div>
+      </div>
 
+      <div class="control-row" style="margin-top: 16px;">
         <div class="control-left">
-          <nav class="nav">
-            <a class="primary" href="gestione.html" aria-current="page">Presenze</a>
-            <a href="analisi-operaio.html">Analisi per Operaio</a>
-            <a href="analisi-cantiere.html">Analisi per Cantiere</a>
-          </nav>
           <label class="checkbox-label">
             <input type="checkbox" id="toggleLav" checked>
             <span>Mostra lavorazioni</span>
@@ -684,8 +679,11 @@
   /* ============ CONFIG & UTIL ============ */
   const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
   const GAS_URL  = "https://script.google.com/macros/s/AKfycbyd_Cm47Z7STtVkIQEPVyU8Cu4Rl2JMUDaPqPt3IwQ/exec";
+  const TAB_CANDIDATES = ["Foglio1","Presenze","Sheet1","Foglio 1"];
 
   const pad = n => String(n).padStart(2,"0");
+
+  const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
 
   function parseDateAny(v){
     if(!v) return null;
@@ -699,6 +697,19 @@
   function toISODateInput(d){
     return (d instanceof Date && !isNaN(d)) ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` : "";
   }
+
+  function pick(row, ...names){
+    if(!row) return "";
+    const map = new Map(Object.keys(row).map(k => [normalize(k), k]));
+    for(const name of names){
+      const key = map.get(normalize(name));
+      if(key && row[key] != null && row[key] !== "") return row[key];
+    }
+    return "";
+  }
+
+  const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
+  const stripIntervals = s => s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : "";
 
   function calcEaster(Y){
     const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
@@ -720,6 +731,20 @@
     if(cls) n.className = cls;
     if(text!=null) n.textContent = String(text);
     return n;
+  }
+
+  /* ============ FETCH DATA ============ */
+  async function fetchRowsFromOpenSheet(sheetId){
+    for(const tab of TAB_CANDIDATES){
+      try{
+        const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
+        const res = await fetch(url, { cache: "no-store" });
+        if(!res.ok) continue;
+        const rows = await res.json();
+        if(Array.isArray(rows) && rows.length > 0) return rows;
+      }catch(e){ continue; }
+    }
+    throw new Error(`Impossibile caricare dati. Tab provati: ${TAB_CANDIDATES.join(", ")}`);
   }
 
   /* ============ MESE & RENDER ============ */
@@ -939,28 +964,27 @@
         return;
       }
 
-      const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Foglio1`, { cache: "no-store" });
-      const rows = (await res.json()) || [];
+      const rows = await fetchRowsFromOpenSheet(SHEET_ID);
       rows.forEach((r,idx)=>{ r.__row = idx + 2; });
 
       const byOpDay = {};
       rows.forEach(r=>{
-        const dataVal = getFieldSmart(r, ["Data Presenza","B","DATA PRESENZA","data presenza","Data","data"]);
+        const dataVal = pick(r, "Data Presenza", "Data");
         const dt = parseDateAny(dataVal);
         if(!dt) return;
         const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
         if(Yf!==Y || Mf!==M) return;
 
-        const op  = String(getFieldSmart(r, ["Nome Operaio","D","NOME OPERAIO","nome operaio","Operaio","operaio"]) || "").trim();
+        const op  = String(pick(r, "Nome Operaio", "Operaio") || "").trim();
         if(!op) return;
         const d = dt.getDate();
 
-        const cantiere = String(getFieldSmart(r, ["Cantiere","F","CANTIERE","cantiere"]) || "").trim();
-        const oreRaw   = getFieldSmart(r, ["Ore","H","ORE","ore"]);
+        const cantiere = String(pick(r, "Cantiere") || "").trim();
+        const oreRaw   = pick(r, "Ore");
         const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",", ".")) : null;
-        const lav      = String(getFieldSmart(r, ["Lavorazione","G","LAVORAZIONE","lavorazione"]) || "");
-        const orari    = String(getFieldSmart(r, ["Orari","C","ORARI","orari"]) || "");
-        const note     = String(getFieldSmart(r, ["Note","I","NOTE","note"]) || "");
+        const lav      = String(pick(r, "Lavorazione") || "");
+        const orari    = String(pick(r, "Orari") || "");
+        const note     = String(pick(r, "Note") || "");
 
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
@@ -980,7 +1004,7 @@
       statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (${rows.length} righe processate)</span>`;
     }catch(err){
       console.error(err);
-      statusEl.innerHTML = `<span class="error">✗ Errore nel caricamento dati</span>`;
+      statusEl.innerHTML = `<span class="error">✗ Errore nel caricamento dati: ${err.message}</span>`;
     }finally{
       setLoading(false);
     }
@@ -1362,27 +1386,6 @@
 
     carica();
   })();
-
-  /* ====== getFieldSmart ====== */
-  function getFieldSmart(row, candidates){
-    // 1) match esatto
-    for(const k of candidates){ if(Object.prototype.hasOwnProperty.call(row,k)) return row[k]; }
-    // 2) case-insensitive
-    const mapLower = {};
-    Object.keys(row).forEach(k=> mapLower[k.toLowerCase()] = k);
-    for(const c of candidates){
-      const key = mapLower[String(c).toLowerCase()];
-      if(key) return row[key];
-    }
-    // 3) contiene (case-insensitive)
-    const keys = Object.keys(row);
-    for(const c of candidates){
-      const t = String(c).toLowerCase();
-      const found = keys.find(k=>k.toLowerCase().includes(t));
-      if(found) return row[found];
-    }
-    return "";
-  }
   </script>
 </body>
 </html>
