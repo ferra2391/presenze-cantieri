@@ -1234,8 +1234,8 @@ async function exportDetailPDF(){
   const boxH = 14; 
   const weekendHours = data.filter(e=>e.isOff).reduce((s,e)=>s+(e.ore||0),0);
   const stats = [
-    { label:'Giorni',   value: giorniSet.size,                        color: GREEN },
-    { label:'Operai',   value: operaiSet.size,                        color: {r:22,g:163,b:74} },
+    { label:'Giorni',   value: giorniSet.size,                        color: PINK },
+    { label:'Operai Coinvolti',   value: operaiSet.size,                        color: YELLOW },
     { label:'Media/gg', value: `${(totOre/(giorniSet.size||1)).toFixed(1)} h`, color: ORANGE },
     { label:'Weekend',  value: `${weekendHours.toFixed(1)} h`,        color: PURPLE },
   ];
