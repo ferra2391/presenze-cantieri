@@ -226,6 +226,10 @@
     color: var(--text-light);
   }
   
+  thead th.num {
+    text-align: right;
+  }
+  
   tbody td,
   tbody th {
     border-top: 1px solid var(--border);
@@ -318,47 +322,98 @@
     font-size: 15px;
   }
 
-  /* LAVORAZIONI LIST */
-  .lav-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  /* CALENDARIO LAVORAZIONI (stile dettaglio operaio) */
+  .detail-lav {
+    font-size: 14px;
   }
   
-  .lav-item {
-    background: var(--hover-bg);
-    padding: 14px 18px;
-    border-radius: 8px;
-    border-left: 4px solid var(--primary);
-  }
-  
-  .lav-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-  
-  .lav-item-text {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  
-  .lav-item-count {
-    font-size: 13px;
+  .detail-lav .daycell {
+    white-space: nowrap;
     font-weight: 700;
-    color: var(--text-light);
-    background: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
+    font-size: 15px;
+    color: var(--text);
+    min-width: 120px;
   }
   
-  .lav-item-operai {
+  .detail-lav .op-name {
+    font-weight: 800;
+    color: #0369a1;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     font-size: 13px;
+  }
+  
+  .detail-lav .lav {
+    color: var(--text);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  
+  .detail-lav .note {
     color: var(--muted);
     font-style: italic;
+    margin-top: 4px;
+    font-size: 13px;
+  }
+  
+  .detail-lav td,
+  .detail-lav th {
+    vertical-align: top;
+    padding: 14px 16px;
+  }
+
+  /* Weekend/Festivi highlight */
+  .detail-lav tr.off td {
+    background: var(--orange-weak) !important;
+  }
+
+  /* Alternanza righe normali */
+  .detail-lav tr.alt td {
+    background: #fafafa;
+  }
+
+  /* Gabbia perimetro giorno */
+  .detail-lav tr.gstart td {
+    border-top: 2px solid var(--border-strong);
+  }
+  
+  .detail-lav tr.gend td {
+    border-bottom: 2px solid var(--border-strong);
+  }
+
+  .detail-lav tr.gstart td.daycell,
+  .detail-lav tr.gmid td.daycell,
+  .detail-lav tr.gend td.daycell {
+    border-left: 2px solid var(--border-strong);
+  }
+
+  .detail-lav tr.gstart td:last-child,
+  .detail-lav tr.gmid td:last-child,
+  .detail-lav tr.gend td:last-child {
+    border-right: 2px solid var(--border-strong);
+  }
+
+  /* Arrotondamenti */
+  .detail-lav tr.gstart td.daycell {
+    border-top-left-radius: 10px;
+  }
+  
+  .detail-lav tr.gstart td:last-child {
+    border-top-right-radius: 10px;
+  }
+  
+  .detail-lav tr.gend td.daycell {
+    border-bottom-left-radius: 10px;
+  }
+  
+  .detail-lav tr.gend td:last-child {
+    border-bottom-right-radius: 10px;
+  }
+
+  /* Tot giorno */
+  .detail-lav tr.daytot td {
+    font-weight: 800;
+    background: var(--hover-bg);
   }
   
   /* Footer azioni */
@@ -477,15 +532,22 @@
       </div>
     </div>
 
-    <!-- Lavorazioni -->
+    <!-- Lavorazioni per giorno -->
     <div class="detail-section">
-      <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <span>🔨 Lavorazioni Effettuate</span>
-        <button id="btnSintetizza" style="font-size:13px; padding:8px 16px;">
-          🤖 Sintetizza con AI
-        </button>
+      <div class="section-header">📅 Calendario Lavorazioni</div>
+      <div class="table-wrap">
+        <table id="detailLavorazioniTable" class="detail-lav">
+          <thead>
+            <tr>
+              <th>Giorno</th>
+              <th>Operaio</th>
+              <th class="num">Orario / Ore</th>
+              <th>Lavorazioni / Note</th>
+            </tr>
+          </thead>
+          <tbody id="detailLavorazioni"></tbody>
+        </table>
       </div>
-      <div id="detailLavorazioni" class="lav-list"></div>
     </div>
 
     <div class="detail-footer">
@@ -630,195 +692,26 @@ function renderSummary(list){
   });
 }
 
-/* ====== LAVORAZIONI UTILITIES ====== */
-function normalizeText(text){
-  return text.toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^\w\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function calculateSimilarity(str1, str2){
-  const n1 = normalizeText(str1);
-  const n2 = normalizeText(str2);
-  
-  // Exact match
-  if(n1 === n2) return 1.0;
-  
-  // One contains the other
-  if(n1.includes(n2) || n2.includes(n1)){
-    const shorter = Math.min(n1.length, n2.length);
-    const longer = Math.max(n1.length, n2.length);
-    return shorter / longer;
-  }
-  
-  // Word overlap
-  const words1 = new Set(n1.split(/\s+/));
-  const words2 = new Set(n2.split(/\s+/));
-  const intersection = new Set([...words1].filter(w => words2.has(w)));
-  const union = new Set([...words1, ...words2]);
-  
-  if(union.size === 0) return 0;
-  return intersection.size / union.size;
-}
-
-function groupSimilarLavorazioni(lavorazioniMap, threshold = 0.65){
-  const entries = Array.from(lavorazioniMap.entries());
-  const groups = [];
-  const used = new Set();
-  
-  entries.forEach(([lav, data], i) => {
-    if(used.has(i)) return;
-    
-    const group = {
-      main: lav,
-      variants: [lav],
-      totalCount: data.count,
-      operai: new Set(data.operai)
-    };
-    
-    used.add(i);
-    
-    // Find similar entries
-    entries.forEach(([otherLav, otherData], j) => {
-      if(i !== j && !used.has(j)){
-        const similarity = calculateSimilarity(lav, otherLav);
-        if(similarity >= threshold){
-          group.variants.push(otherLav);
-          group.totalCount += otherData.count;
-          otherData.operai.forEach(op => group.operai.add(op));
-          used.add(j);
-        }
-      }
-    });
-    
-    groups.push(group);
+function groupDayEntries(entries){
+  const map = new Map();
+  entries.forEach(e=>{
+    const op = e.operaio;
+    const lav = stripIntervals(e.lavorazione||"");
+    const note = stripIntervals(e.note||"");
+    const key = `${op}|${lav}|${note}`;
+    if(!map.has(key)) map.set(key, {operaio:op, lav, note, ore:0, orari:new Set(), count:0});
+    const rec = map.get(key);
+    rec.ore += (e.ore||0);
+    if(e.orari){ String(e.orari).split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(x=>rec.orari.add(x)); }
+    rec.count++;
   });
-  
-  return groups.sort((a,b) => b.totalCount - a.totalCount);
-}
-
-function renderLavorazioni(lavorazioniMap, synthesized = false){
-  const detailLavorazioni = document.getElementById('detailLavorazioni');
-  detailLavorazioni.innerHTML = '';
-  
-  const lavList = Array.from(lavorazioniMap.entries())
-    .sort((a,b) => b[1].count - a[1].count);
-  
-  lavList.forEach(([lav, data]) => {
-    const item = document.createElement('div');
-    item.className = 'lav-item';
-    
-    const header = document.createElement('div');
-    header.className = 'lav-item-header';
-    
-    const text = document.createElement('div');
-    text.className = 'lav-item-text';
-    text.textContent = lav;
-    
-    const count = document.createElement('div');
-    count.className = 'lav-item-count';
-    count.textContent = `${data.count} ${data.count === 1 ? 'volta' : 'volte'}`;
-    
-    header.appendChild(text);
-    header.appendChild(count);
-    
-    const operaiText = document.createElement('div');
-    operaiText.className = 'lav-item-operai';
-    operaiText.textContent = `Operai: ${Array.from(data.operai).sort().join(', ')}`;
-    
-    item.appendChild(header);
-    item.appendChild(operaiText);
-    detailLavorazioni.appendChild(item);
-  });
-}
-
-function renderSynthesizedLavorazioni(groups){
-  const detailLavorazioni = document.getElementById('detailLavorazioni');
-  detailLavorazioni.innerHTML = '';
-  
-  // Info header
-  const infoBox = document.createElement('div');
-  infoBox.style.cssText = `
-    background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px;
-    padding: 12px 16px; margin-bottom: 16px; font-size: 14px; color: #1e40af;
-  `;
-  infoBox.innerHTML = `
-    <strong>🤖 Sintesi AI attivata:</strong> ${groups.length} categorie di lavorazioni 
-    (da ${groups.reduce((sum, g) => sum + g.variants.length, 0)} voci originali)
-    <button id="btnMostraOriginali" style="margin-left:12px; font-size:12px; padding:4px 10px; background:white; border:1px solid #3b82f6; border-radius:4px; cursor:pointer;">
-      👁️ Mostra originali
-    </button>
-  `;
-  detailLavorazioni.appendChild(infoBox);
-  
-  groups.forEach(group => {
-    const item = document.createElement('div');
-    item.className = 'lav-item';
-    item.style.borderLeft = '4px solid #3b82f6';
-    
-    const header = document.createElement('div');
-    header.className = 'lav-item-header';
-    
-    const text = document.createElement('div');
-    text.className = 'lav-item-text';
-    text.textContent = group.main;
-    
-    const count = document.createElement('div');
-    count.className = 'lav-item-count';
-    count.textContent = `${group.totalCount} ${group.totalCount === 1 ? 'volta' : 'volte'}`;
-    
-    header.appendChild(text);
-    header.appendChild(count);
-    
-    const operaiText = document.createElement('div');
-    operaiText.className = 'lav-item-operai';
-    operaiText.textContent = `Operai: ${Array.from(group.operai).sort().join(', ')}`;
-    
-    item.appendChild(header);
-    item.appendChild(operaiText);
-    
-    // Show variants if more than 1
-    if(group.variants.length > 1){
-      const variantsDiv = document.createElement('div');
-      variantsDiv.style.cssText = `
-        margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1;
-        font-size: 13px; color: #64748b;
-      `;
-      variantsDiv.innerHTML = `<strong>Varianti raggruppate (${group.variants.length}):</strong><br>` +
-        group.variants.map(v => `• ${v}`).join('<br>');
-      item.appendChild(variantsDiv);
-    }
-    
-    detailLavorazioni.appendChild(item);
-  });
-}
-
-function sintetizzaLavorazioni(lavorazioniMap){
-  const btn = document.getElementById('btnSintetizza');
-  btn.disabled = true;
-  btn.textContent = '⏳ Analisi in corso...';
-  
-  setTimeout(() => {
-    const groups = groupSimilarLavorazioni(lavorazioniMap, 0.65);
-    renderSynthesizedLavorazioni(groups);
-    
-    btn.textContent = '✓ Sintetizzato';
-    btn.style.background = '#10b981';
-    btn.style.color = 'white';
-    btn.style.borderColor = '#10b981';
-    
-    // Setup button to show originals
-    document.getElementById('btnMostraOriginali').onclick = () => {
-      renderLavorazioni(lavorazioniMap, false);
-      btn.disabled = false;
-      btn.textContent = '🤖 Sintetizza con AI';
-      btn.style.background = '';
-      btn.style.color = '';
-      btn.style.borderColor = '';
-    };
-  }, 300);
+  return Array.from(map.values()).map(v=>({
+    operaio: v.operaio,
+    lav: v.lav,
+    note: v.note,
+    orari: Array.from(v.orari).join(', '),
+    ore: +(+v.ore).toFixed(2)
+  }));
 }
 
 function showDetail(cant){
@@ -837,7 +730,6 @@ function showDetail(cant){
   const giorniSet = new Set();
   const operaiOre = {};
   const operaiGiorni = {};
-  const lavorazioniMap = new Map();
 
   data.forEach(entry => {
     totOre += (entry.ore || 0);
@@ -851,17 +743,6 @@ function showDetail(cant){
     }
     operaiOre[entry.operaio] += (entry.ore || 0);
     operaiGiorni[entry.operaio].add(entry.iso);
-
-    // Aggregazione lavorazioni
-    const lav = stripIntervals(entry.lavorazione || "");
-    if(lav){
-      if(!lavorazioniMap.has(lav)){
-        lavorazioniMap.set(lav, { count: 0, operai: new Set() });
-      }
-      const lavData = lavorazioniMap.get(lav);
-      lavData.count++;
-      lavData.operai.add(entry.operaio);
-    }
   });
 
   // Statistiche generali
@@ -889,21 +770,115 @@ function showDetail(cant){
     detailOperai.appendChild(tr);
   });
 
-  // Lista lavorazioni
-  const detailLavorazioni = document.getElementById('detailLavorazioni');
-  detailLavorazioni.innerHTML = '';
-  if(lavorazioniMap.size === 0){
-    detailLavorazioni.innerHTML = '<div class="empty-state" style="padding:20px">Nessuna lavorazione registrata</div>';
-  } else {
-    renderLavorazioni(lavorazioniMap, false);
-  }
-
-  // Setup bottone sintetizza
-  document.getElementById('btnSintetizza').onclick = () => sintetizzaLavorazioni(lavorazioniMap);
+  // Calendario lavorazioni giorno per giorno
+  renderCalendarioLavorazioni(cant, Y, M);
 
   detailTitle.textContent = `🏗️ Dettaglio Cantiere — ${cant} (${pad(M)}/${Y})`;
   detailCard.style.display = 'block';
   detailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderCalendarioLavorazioni(cant, Y, M){
+  const detailLavorazioni = document.getElementById('detailLavorazioni');
+  detailLavorazioni.innerHTML = '';
+  
+  const daysInMonth = new Date(Y, M, 0).getDate();
+  
+  // Organizza dati per giorno
+  const byDay = {};
+  const data = state.byCantiere[cant];
+  data.forEach(entry => {
+    const d = Number(entry.iso.split('-')[2]);
+    if(!byDay[d]) byDay[d] = [];
+    byDay[d].push(entry);
+  });
+  
+  let altFlag = false;
+
+  for(let d=1; d<=daysInMonth; d++){
+    const list0 = byDay[d] || [];
+    const date = new Date(Y, M-1, d);
+    const dow = (date.getDay()+6)%7;
+    const iso = `${Y}-${pad(M)}-${pad(d)}`;
+    const isOff = (dow===5||dow===6) || state.holidays.has(iso);
+
+    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
+    const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
+
+    const altClass = (!isOff && altFlag) ? 'alt' : '';
+
+    if(!list0.length){
+      const tr = document.createElement('tr');
+      tr.className = `${isOff?'off':''} ${altClass} gstart gend`.trim();
+      tr.innerHTML = `
+        <td class="daycell">${dayLabel}</td>
+        <td>—</td>
+        <td class="num"></td>
+        <td></td>`;
+      detailLavorazioni.appendChild(tr);
+      if(!isOff) altFlag = !altFlag;
+      continue;
+    }
+
+    const list = groupDayEntries(list0);
+    const rowspan = list.length;
+    let dayTot = 0;
+
+    list.forEach((en, idx) => {
+      const tr = document.createElement('tr');
+      if(isOff) tr.classList.add('off');
+      if(altClass) tr.classList.add('alt');
+      if(rowspan===1) tr.classList.add('gstart','gend');
+      else if(idx===0) tr.classList.add('gstart');
+      else if(idx===rowspan-1) tr.classList.add('gend');
+      else tr.classList.add('gmid');
+
+      if(idx === 0){
+        const tdDay = document.createElement('td');
+        tdDay.className = 'daycell';
+        tdDay.rowSpan = rowspan;
+        tdDay.textContent = dayLabel;
+        tr.appendChild(tdDay);
+      }
+
+      const tdOp = document.createElement('td');
+      tdOp.innerHTML = `<div class="op-name">${en.operaio}</div>`;
+
+      const tdOrario = document.createElement('td');
+      tdOrario.className = 'num';
+      const firstLine = en.orari ? en.orari : '';
+      const secondLine = en.ore ? `<br><strong>${en.ore} h</strong>` : '';
+      tdOrario.innerHTML = firstLine + secondLine;
+
+      const tdLav = document.createElement('td');
+      const lavHtml = en.lav ? `<div class="lav">${en.lav.replace(/\n/g,'<br>')}</div>` : '';
+      const noteHtml = en.note ? `<div class="note">${en.note.replace(/\n/g,'<br>')}</div>` : '';
+      tdLav.innerHTML = lavHtml + noteHtml;
+
+      dayTot += (en.ore || 0);
+
+      tr.appendChild(tdOp);
+      tr.appendChild(tdOrario);
+      tr.appendChild(tdLav);
+      detailLavorazioni.appendChild(tr);
+    });
+
+    if(list.length > 1){
+      const trSub = document.createElement('tr');
+      if(isOff) trSub.classList.add('off');
+      if(altClass) trSub.classList.add('alt');
+      trSub.classList.add('daytot','gend');
+
+      trSub.innerHTML = `
+        <td class="daycell"></td>
+        <td style="text-align:right;">Tot giorno:</td>
+        <td class="num"><strong>${(+dayTot.toFixed(2))} h</strong></td>
+        <td></td>`;
+      detailLavorazioni.appendChild(trSub);
+    }
+
+    if(!isOff) altFlag = !altFlag;
+  }
 }
 
 /* ====== DATA LOAD ====== */
@@ -1110,12 +1085,6 @@ async function exportDetailPDF(){
       ths.forEach(th => th.style.padding = '12px');
       const tds = t.querySelectorAll('td');
       tds.forEach(td => td.style.padding = '12px');
-    });
-    
-    const lavItems = clone.querySelectorAll('.lav-item');
-    lavItems.forEach(item => {
-      item.style.fontSize = '24px';
-      item.style.padding = '16px';
     });
     
     pdfContainer.appendChild(clone);
