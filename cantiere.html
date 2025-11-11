@@ -512,6 +512,12 @@
           <div class="stat-value" id="statMedia">0 h</div>
         </div>
       </div>
+      
+      <!-- Grafico andamento ore -->
+      <div style="margin-top: 24px; background: white; padding: 20px; border-radius: 10px; border: 1px solid var(--border);">
+        <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--text);">📊 Andamento Ore Mensili</h3>
+        <canvas id="chartAndamento" style="max-height: 300px;"></canvas>
+      </div>
     </div>
 
     <!-- Operai -->
@@ -561,6 +567,7 @@
 <div id="pdfContainer" class="pdf-container"></div>
 
 <!-- Librerie -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
@@ -632,7 +639,7 @@ const detailCard   = document.getElementById('detailCard');
 const detailTitle  = document.getElementById('detailTitle');
 const btnCloseDetail = document.getElementById('btnCloseDetail');
 
-const state = { Y:null, M:null, holidays:new Set(), byCantiere:{}, cantieri:[], summary:[], currentCant:null };
+const state = { Y:null, M:null, holidays:new Set(), byCantiere:{}, cantieri:[], summary:[], currentCant:null, allData:[], chartInstance:null };
 
 function setYM(Y,M){ meseInput.value = `${Y}-${pad(M)}`; }
 
@@ -725,6 +732,149 @@ function groupDayEntries(entries){
   }));
 }
 
+function createAndamentoChart(cant){
+  // Distruggi grafico precedente se esiste
+  if(state.chartInstance){
+    state.chartInstance.destroy();
+    state.chartInstance = null;
+  }
+  
+  // Calcola ore per mese per questo cantiere
+  const orePerMese = {};
+  
+  state.allData.forEach(r => {
+    const dataVal = pick(r, "Data Presenza", "Data");
+    const dt = parseDateAny(dataVal);
+    if(!dt) return;
+    
+    const cantRaw = String(pick(r, "Cantiere")).trim();
+    const cantNorm = isBlankCantiere(cantRaw) ? 'NO DATI' : cantRaw.toUpperCase();
+    
+    if(cantNorm !== cant) return;
+    
+    const oreV = pick(r, "Ore");
+    const ore = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
+    
+    const y = dt.getFullYear();
+    const m = dt.getMonth() + 1;
+    const key = `${y}-${pad(m)}`;
+    
+    if(!orePerMese[key]) orePerMese[key] = 0;
+    orePerMese[key] += ore;
+  });
+  
+  // Ordina per data e prendi gli ultimi 12 mesi
+  const mesi = Object.keys(orePerMese).sort();
+  const ultimi12 = mesi.slice(-12);
+  
+  if(ultimi12.length === 0){
+    document.getElementById('chartAndamento').style.display = 'none';
+    return;
+  }
+  
+  const labels = ultimi12.map(key => {
+    const [y, m] = key.split('-');
+    const date = new Date(parseInt(y), parseInt(m) - 1);
+    return date.toLocaleDateString('it-IT', { month: 'short', year: '2-digit' });
+  });
+  
+  const data = ultimi12.map(key => orePerMese[key].toFixed(1));
+  
+  const ctx = document.getElementById('chartAndamento').getContext('2d');
+  
+  state.chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Ore Totali',
+          data: data,
+          backgroundColor: 'rgba(59, 130, 246, 0.6)',
+          borderColor: 'rgb(59, 130, 246)',
+          borderWidth: 2,
+          borderRadius: 6,
+        },
+        {
+          type: 'line',
+          label: 'Andamento',
+          data: data,
+          borderColor: 'rgb(220, 38, 38)',
+          borderWidth: 3,
+          pointBackgroundColor: 'rgb(220, 38, 38)',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: false,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 3,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.parsed.y + ' ore';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Ore',
+            font: {
+              weight: 'bold',
+              size: 14
+            }
+          },
+          ticks: {
+            callback: function(value) {
+              return value + ' h';
+            }
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Mese',
+            font: {
+              weight: 'bold',
+              size: 14
+            }
+          }
+        }
+      }
+    },
+    plugins: [{
+      afterDatasetsDraw: function(chart) {
+        const ctx = chart.ctx;
+        chart.data.datasets[0].data.forEach((value, index) => {
+          const meta = chart.getDatasetMeta(0);
+          const bar = meta.data[index];
+          
+          ctx.fillStyle = '#1e293b';
+          ctx.font = 'bold 13px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(value + ' h', bar.x, bar.y - 5);
+        });
+      }
+    }]
+  });
+}
+
 function showDetail(cant){
   state.currentCant = cant;
   const [Y,M] = [state.Y, state.M];
@@ -762,6 +912,9 @@ function showDetail(cant){
   document.getElementById('statOperai').textContent = operaiSet.size;
   const mediaGiorno = giorniSet.size > 0 ? (totOre / giorniSet.size) : 0;
   document.getElementById('statMedia').textContent = `${mediaGiorno.toFixed(1)} h`;
+
+  // Crea grafico andamento
+  createAndamentoChart(cant);
 
   // Tabella operai
   const detailOperai = document.getElementById('detailOperai');
@@ -901,6 +1054,9 @@ async function carica(){
     state.Y=Y; state.M=M; state.holidays = italianHolidays(Y);
 
     const rows = await fetchRowsFromOpenSheet(SHEET_ID);
+    
+    // Salva tutti i dati grezzi per il grafico
+    state.allData = rows;
 
     state.byCantiere = {};
     rows.forEach((r)=>{
@@ -1178,6 +1334,10 @@ async function exportDetailPDF(){
   document.getElementById('btnDetailPDF').addEventListener('click', exportDetailPDF);
   btnCloseDetail.addEventListener('click', () => {
     detailCard.style.display = 'none';
+    if(state.chartInstance){
+      state.chartInstance.destroy();
+      state.chartInstance = null;
+    }
   });
 
   carica();
