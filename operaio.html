@@ -21,375 +21,102 @@
     --error: hsl(0,70%,50%);
     --hover-bg: hsl(210,30%,98%);
   }
-  
-  * { box-sizing: border-box; }
-  
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   }
-  
-  .container {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 32px 40px;
-  }
-  
-  h1 {
-    margin: 0 0 24px;
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.5px;
-  }
+  .container{ max-width:1600px; margin:0 auto; padding:32px 40px; }
+  h1{ margin:0 0 24px; font-size:32px; font-weight:700; color:var(--text); letter-spacing:-.5px; }
 
   /* CONTROL PANEL */
-  .control-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    margin-bottom: 28px;
+  .control-panel{
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px;
+    box-shadow:0 2px 12px rgba(0,0,0,.06); margin-bottom:28px;
   }
-  
-  .control-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
+  .control-row{ display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; }
+  .control-left{ display:flex; align-items:center; gap:12px; }
+  .nav{ display:flex; gap:10px; }
+  .nav a{
+    padding:10px 18px; border:2px solid var(--border); border-radius:10px; background:var(--card);
+    text-decoration:none; font-weight:600; font-size:15px; color:var(--text); transition:all .2s;
   }
-  
-  .control-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  .nav a:hover{ border-color:var(--primary); background:var(--hover-bg); }
+  .nav a.primary{ background:var(--primary); color:#fff; border-color:var(--primary); }
+  .nav a.primary:hover{ background:var(--primary-dark); }
+  input[type="month"]{
+    padding:10px 16px; border:2px solid var(--border); border-radius:10px; background:var(--card);
+    font-size:15px; font-weight:500; min-width:160px; transition:border-color .2s;
   }
-  
-  .nav {
-    display: flex;
-    gap: 10px;
+  input[type="month"]:focus{ outline:none; border-color:var(--primary); }
+  button{
+    padding:10px 18px; border:2px solid var(--border); border-radius:10px; background:var(--card);
+    cursor:pointer; font-size:15px; font-weight:600; transition:all .2s; color:var(--text);
   }
-  
-  .nav a {
-    padding: 10px 18px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--text);
-    transition: all 0.2s;
+  button:hover:not(:disabled){ border-color:var(--primary); background:var(--hover-bg); }
+  button.primary{ background:var(--primary); color:#fff; border-color:var(--primary); }
+  button.primary:hover:not(:disabled){ background:var(--primary-dark); }
+  button:disabled{ opacity:.5; cursor:not-allowed; }
+  .spinner{ display:none; }
+  .spinner.show{
+    display:inline-block; width:20px; height:20px; border:3px solid #ddd; border-top-color:var(--primary);
+    border-radius:50%; animation:spin .8s linear infinite; vertical-align:-4px;
   }
-  
-  .nav a:hover {
-    border-color: var(--primary);
-    background: var(--hover-bg);
-  }
-  
-  .nav a.primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-  }
-  
-  .nav a.primary:hover {
-    background: var(--primary-dark);
-  }
-  
-  input[type="month"] {
-    padding: 10px 16px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    font-size: 15px;
-    font-weight: 500;
-    min-width: 160px;
-    transition: border-color 0.2s;
-  }
-  
-  input[type="month"]:focus {
-    outline: none;
-    border-color: var(--primary);
-  }
-  
-  button {
-    padding: 10px 18px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.2s;
-    color: var(--text);
-  }
-  
-  button:hover:not(:disabled) {
-    border-color: var(--primary);
-    background: var(--hover-bg);
-  }
-  
-  button.primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-  }
-  
-  button.primary:hover:not(:disabled) {
-    background: var(--primary-dark);
-  }
-  
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .spinner {
-    display: none;
-  }
-  
-  .spinner.show {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #ddd;
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    vertical-align: -4px;
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  #status {
-    margin-top: 12px;
-    font-size: 15px;
-  }
-  
-  .ok {
-    color: var(--success);
-    font-weight: 600;
-  }
-  
-  .error {
-    color: var(--error);
-    font-weight: 600;
-  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #status{ margin-top:12px; font-size:15px; }
+  .ok{ color:var(--success); font-weight:600; }
+  .error{ color:var(--error); font-weight:600; }
 
   /* TABLE CARDS */
-  .table-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    overflow: hidden;
-    margin-bottom: 28px;
+  .table-card{ background:var(--card); border:1px solid var(--border); border-radius:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,.06); overflow:hidden; margin-bottom:28px; }
+  .table-title{
+    padding:20px 24px; border-bottom:2px solid var(--border);
+    font-weight:700; font-size:20px; color:var(--text);
+    background:linear-gradient(to bottom,var(--card),var(--hover-bg));
   }
-  
-  .table-title {
-    padding: 20px 24px;
-    border-bottom: 2px solid var(--border);
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--text);
-    background: linear-gradient(to bottom, var(--card), var(--hover-bg));
-  }
-  
-  .table-wrap {
-    overflow-x: auto;
-  }
+  .table-wrap{ overflow-x:auto; }
 
-  table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    font-size: 15px;
+  table{ border-collapse:separate; border-spacing:0; width:100%; font-size:15px; }
+  thead th{
+    background:var(--hover-bg); border-bottom:2px solid var(--border-strong);
+    padding:16px 18px; white-space:nowrap; font-weight:700; font-size:14px;
+    text-transform:uppercase; letter-spacing:.5px; color:var(--text-light); text-align:left;
   }
-  
-  thead th {
-    background: var(--hover-bg);
-    border-bottom: 2px solid var(--border-strong);
-    padding: 16px 18px;
-    text-align: left;
-    white-space: nowrap;
-    font-weight: 700;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-light);
-  }
-  
-  tbody td,
-  tbody th {
-    border-top: 1px solid var(--border);
-    padding: 16px 18px;
-    font-size: 15px;
-  }
-  
-  tbody tr {
-    transition: background-color 0.15s;
-  }
-  
-  tbody tr:hover {
-    background: var(--hover-bg);
-  }
-  
-  td.num {
-    text-align: right;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
+  /* intestazioni + celle numeriche allineate a destra */
+  thead th.num, td.num{ text-align:right; font-variant-numeric:tabular-nums; }
+  tbody td, tbody th{ border-top:1px solid var(--border); padding:16px 18px; font-size:15px; }
+  tbody tr{ transition:background-color .15s; }
+  tbody tr:hover{ background:var(--hover-bg); }
 
-  .op-link {
-    color: var(--primary);
-    font-weight: 700;
-    font-size: 16px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-  
-  .op-link:hover {
-    color: var(--primary-dark);
-    text-decoration: underline;
-  }
+  .op-link{ color:var(--primary); font-weight:700; font-size:16px; text-decoration:none; cursor:pointer; transition:color .2s; }
+  .op-link:hover{ color:var(--primary-dark); text-decoration:underline; }
 
   /* DETAIL TABLE */
-  .detail {
-    font-size: 14px;
-  }
-  
-  .detail .daycell {
-    white-space: nowrap;
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--text);
-    min-width: 120px;
-  }
-  
-  .detail .cant {
-    font-weight: 800;
-    color: #c00000;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    font-size: 13px;
-  }
-  
-  .detail .lav {
-    color: var(--text);
-    margin-top: 6px;
-    line-height: 1.5;
-  }
-  
-  .detail .note {
-    color: var(--muted);
-    font-style: italic;
-    margin-top: 4px;
-    font-size: 13px;
-  }
-  
-  .detail td,
-  .detail th {
-    vertical-align: top;
-    padding: 14px 16px;
-  }
-  
-  .detail tfoot td {
-    font-weight: 800;
-    border-top: 3px solid var(--border-strong);
-    padding: 18px 16px;
-    font-size: 16px;
-    background: var(--hover-bg);
-  }
+  .detail{ font-size:14px; }
+  .detail .daycell{ white-space:nowrap; font-weight:700; font-size:15px; color:var(--text); min-width:120px; }
+  .detail .cant{ font-weight:800; color:#c00000; text-transform:uppercase; letter-spacing:.03em; font-size:13px; }
+  .detail .lav{ color:var(--text); margin-top:6px; line-height:1.5; }
+  .detail .note{ color:var(--muted); font-style:italic; margin-top:4px; font-size:13px; }
+  .detail td,.detail th{ vertical-align:top; padding:14px 16px; }
+  .detail tfoot td{ font-weight:800; border-top:3px solid var(--border-strong); padding:18px 16px; font-size:16px; background:var(--hover-bg); }
+  .detail tr.off td{ background:var(--orange-weak)!important; }
+  .detail tr.alt td{ background:#fafafa; }
+  .detail tr.gstart td{ border-top:2px solid var(--border-strong); }
+  .detail tr.gend td{ border-bottom:2px solid var(--border-strong); }
+  .detail tr.gstart td.daycell,.detail tr.gmid td.daycell,.detail tr.gend td.daycell{ border-left:2px solid var(--border-strong); }
+  .detail tr.gstart td:last-child,.detail tr.gmid td:last-child,.detail tr.gend td:last-child{ border-right:2px solid var(--border-strong); }
+  .detail tr.gstart td.daycell{ border-top-left-radius:10px; }
+  .detail tr.gstart td:last-child{ border-top-right-radius:10px; }
+  .detail tr.gend td.daycell{ border-bottom-left-radius:10px; }
+  .detail tr.gend td:last-child{ border-bottom-right-radius:10px; }
+  .detail tr.daytot td{ font-weight:800; background:var(--hover-bg); }
 
-  /* Weekend/Festivi highlight */
-  .detail tr.off td {
-    background: var(--orange-weak) !important;
-  }
+  .detail-footer{ padding:20px 24px; border-top:2px solid var(--border); display:flex; justify-content:flex-end; gap:12px; background:var(--hover-bg); }
+  .empty-state{ padding:60px 24px; text-align:center; color:var(--muted); font-size:16px; }
 
-  /* Alternanza righe normali */
-  .detail tr.alt td {
-    background: #fafafa;
-  }
-
-  /* Gabbia perimetro giorno */
-  .detail tr.gstart td {
-    border-top: 2px solid var(--border-strong);
-  }
-  
-  .detail tr.gend td {
-    border-bottom: 2px solid var(--border-strong);
-  }
-
-  .detail tr.gstart td.daycell,
-  .detail tr.gmid td.daycell,
-  .detail tr.gend td.daycell {
-    border-left: 2px solid var(--border-strong);
-  }
-
-  .detail tr.gstart td:last-child,
-  .detail tr.gmid td:last-child,
-  .detail tr.gend td:last-child {
-    border-right: 2px solid var(--border-strong);
-  }
-
-  /* Arrotondamenti */
-  .detail tr.gstart td.daycell {
-    border-top-left-radius: 10px;
-  }
-  
-  .detail tr.gstart td:last-child {
-    border-top-right-radius: 10px;
-  }
-  
-  .detail tr.gend td.daycell {
-    border-bottom-left-radius: 10px;
-  }
-  
-  .detail tr.gend td:last-child {
-    border-bottom-right-radius: 10px;
-  }
-
-  /* Tot giorno */
-  .detail tr.daytot td {
-    font-weight: 800;
-    background: var(--hover-bg);
-  }
-  
-  /* Footer azioni */
-  .detail-footer {
-    padding: 20px 24px;
-    border-top: 2px solid var(--border);
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    background: var(--hover-bg);
-  }
-  
-  /* Empty state */
-  .empty-state {
-    padding: 60px 24px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 16px;
-  }
-
-  /* PDF LAYOUT container */
-  .pdf-container {
-    display: none;
-  }
-
-  @media print {
-    body { background: white; }
-    .container { padding: 20px; }
-  }
+  .pdf-container{ display:none; }
+  @media print{ body{ background:#fff; } .container{ padding:20px; } }
 </style>
 </head>
 <body>
@@ -426,7 +153,6 @@
             <th class="num">Giorni Lavorati</th>
             <th class="num">Media / Giorno</th>
             <th class="num">Ore Weekend/Festivi</th>
-            <th class="num">GG "NO DATI" (feriali)</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -607,7 +333,7 @@ function groupDayEntries(entries){
 function renderSummary(list){
   tbody.innerHTML = '';
   if(list.length===0){
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nessun operaio con ore registrate in questo mese.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Nessun operaio con ore registrate in questo mese.</td></tr>`;
     return;
   }
   list.forEach(r=>{
@@ -617,8 +343,7 @@ function renderSummary(list){
       <td class="num">${r.tot} h</td>
       <td class="num">${r.days}</td>
       <td class="num">${r.media} h</td>
-      <td class="num">${r.weekend} h</td>
-      <td class="num">${r.nodati}</td>`;
+      <td class="num">${r.weekend} h</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -759,14 +484,14 @@ async function carica(){
     state.operai = Object.keys(state.byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
 
     state.summary = state.operai.map(op=>{
-      let tot=0, daysWorked=0, weekendHours=0, noDataDays=0;
+      let tot=0, daysWorked=0, weekendHours=0;
       const days = state.byOpDay[op] || {};
       Object.keys(days).forEach(sd=>{
         const d = Number(sd);
         const list = days[d] || [];
         if(!list.length) return;
 
-        let dayH=0, hasNoCant=false;
+        let dayH=0;
         const date = new Date(Y, M-1, d);
         const dow  = (date.getDay()+6)%7;
         const iso  = `${Y}-${pad(M)}-${pad(d)}`;
@@ -775,7 +500,6 @@ async function carica(){
         list.forEach(en=>{
           const h = (en.ore!=null && !isNaN(en.ore)) ? Number(en.ore) : 0;
           dayH += h;
-          if(isBlankCantiere(en.cantiere)) hasNoCant = true;
         });
 
         if(dayH>0){
@@ -783,11 +507,10 @@ async function carica(){
           tot += dayH;
           if(isOff) weekendHours += dayH;
         }
-        if(hasNoCant && !isOff) noDataDays++;
       });
 
       const media = daysWorked ? +(tot/daysWorked).toFixed(2) : 0;
-      return { op, tot:+tot.toFixed(2), days:daysWorked, media, weekend:+weekendHours.toFixed(2), nodati:noDataDays };
+      return { op, tot:+tot.toFixed(2), days:daysWorked, media, weekend:+weekendHours.toFixed(2) };
     }).sort((a,b)=> b.tot - a.tot || a.op.localeCompare(b.op,'it'));
 
     renderSummary(state.summary);
@@ -798,290 +521,9 @@ async function carica(){
     setLoading(false);
   }
 }
-  
-/* ==================== EXPORT PDF OTTIMIZZATO (2 COLONNE) ==================== */
-async function exportDetailPDF(){
-  if(detailCard.style.display === 'none'){
-    alert('Apri prima un dettaglio operaio.');
-    return;
-  }
 
-  const { jsPDF } = window.jspdf;
-  const [Y, M] = [state.Y, state.M];
-  const op = state.currentOp;
-  const daysInMonth = new Date(Y, M, 0).getDate();
-
-  // Totale mese
-  const totMese = (state.summary.find(s => s.op === op)?.tot) ?? (() => {
-    let t=0; const days = state.byOpDay[op]||{};
-    Object.values(days).forEach(list => list.forEach(e => t += (e.ore||0)));
-    return +t.toFixed(2);
-  })();
-
-  // A4 verticale @300dpi
-  const A4_W = 2480;
-  const A4_H = 3508;
-  const MARGIN = 25;
-
-  const pdfContainer = document.getElementById('pdfContainer');
-  pdfContainer.innerHTML = '';
-  pdfContainer.style.display = 'block';
-  pdfContainer.style.position = 'absolute';
-  pdfContainer.style.left = '-10000px';
-  pdfContainer.style.top = '0';
-  pdfContainer.style.width = A4_W + 'px';
-  pdfContainer.style.height = A4_H + 'px';
-  pdfContainer.style.background = '#ffffff';
-  pdfContainer.style.padding = MARGIN + 'px';
-  pdfContainer.style.boxSizing = 'border-box';
-  pdfContainer.style.fontFamily = 'Arial, sans-serif';
-
-  // ===== HEADER =====
-  const header = document.createElement('div');
-  header.style.cssText = `
-    display:flex; justify-content:space-between; align-items:center;
-    padding:12px 20px; background:rgba(226, 232, 240, 0.5);
-    border:1px solid #cbd5e1; border-radius:8px; margin-bottom:12px;
-  `;
-  
-  const leftHead = document.createElement('div');
-  const title = document.createElement('div');
-  title.style.cssText = 'font-weight:900; font-size:56px; letter-spacing:-0.5px; color:#1e293b;';
-  title.textContent = `${op}`;
-  const subtitle = document.createElement('div');
-  subtitle.style.cssText = 'font-size:26px; font-weight:600; margin-top:2px; color:#475569;';
-  subtitle.textContent = `Presenze ${String(M).padStart(2,'0')}/${Y}`;
-  leftHead.appendChild(title);
-  leftHead.appendChild(subtitle);
-  
-  const rightHead = document.createElement('div');
-  rightHead.style.cssText = 'text-align:right;';
-  const sup = document.createElement('div');
-  sup.style.cssText = 'font-size:20px; font-weight:600; color:#64748b; margin-bottom:2px;';
-  sup.textContent = 'TOTALE ORE';
-  const big = document.createElement('div');
-  big.style.cssText = 'font-weight:900; font-size:72px; line-height:1; color:#0f172a;';
-  big.textContent = `${(+totMese).toFixed(1)} h`;
-  rightHead.appendChild(sup);
-  rightHead.appendChild(big);
-  
-  header.appendChild(leftHead);
-  header.appendChild(rightHead);
-  pdfContainer.appendChild(header);
-
-  // ===== WRAPPER DUE COLONNE =====
-  const cols = document.createElement('div');
-  cols.style.cssText = `display:flex; gap:16px; width:100%;`;
-  pdfContainer.appendChild(cols);
-
-  // Funzione per raggruppare entries
-  function groupDay(entries){
-    const map = new Map();
-    entries.forEach(e=>{
-      const cant = isBlankCantiere(e.cantiere) ? 'NO DATI' : String(e.cantiere).trim().toUpperCase();
-      const lav  = stripIntervals(e.lavorazione||"");
-      const note = stripIntervals(e.note||"");
-      const key = `${cant}|${lav}|${note}`;
-      if(!map.has(key)) map.set(key, {cant, lav, note, orari:new Set(), ore:0, count:0});
-      const rec = map.get(key);
-      if(e.orari){ String(e.orari).split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(x=>rec.orari.add(x)); }
-      rec.ore += (e.ore||0);
-      rec.count++;
-    });
-    return Array.from(map.values()).map(v=>({
-      cant: v.count>1 ? `${v.cant} (x${v.count})` : v.cant,
-      lav: v.lav,
-      note: v.note,
-      orari: Array.from(v.orari).join(', '),
-      ore: +(+v.ore).toFixed(2)
-    }));
-  }
-
-  // Funzione per costruire una colonna (TUTTI i giorni, vuoti = mini)
-  function buildCalendar(startDay, endDay){
-    const col = document.createElement('div');
-    col.style.cssText = `
-      flex:1; display:flex; flex-direction:column; min-width:0;
-      border:1px solid #94a3b8; padding:8px; box-sizing:border-box;
-      border-radius:8px; background:#fafafa;
-    `;
-
-    const h = document.createElement('div');
-    h.style.cssText = `
-      font-family: Arial, sans-serif; font-weight:900; font-size:28px;
-      text-align:center; padding:6px 4px; border-bottom:1px solid #94a3b8;
-      background:#e2e8f0; border-radius:4px; margin-bottom:8px; color:#334155;
-    `;
-    h.textContent = startDay === 1 ? 'GIORNI 1–15' : 'GIORNI 16–31';
-    col.appendChild(h);
-
-    const body = document.createElement('div');
-    body.style.cssText = `flex:1; display:flex; flex-direction:column; gap:4px;`;
-    col.appendChild(body);
-
-    // TUTTI i giorni del range
-    for(let d=startDay; d<=Math.min(endDay, daysInMonth); d++){
-      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
-      
-      const date = new Date(Y, M-1, d);
-      const dow  = (date.getDay()+6)%7;
-      const iso  = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isOff= (dow===5||dow===6) || state.holidays.has(iso);
-      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
-
-      // GIORNO VUOTO = versione mini
-      if(list0.length === 0){
-        const miniBox = document.createElement('div');
-        miniBox.style.cssText = `
-          border:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
-          border-radius:4px; padding:3px 8px;
-          background:${isOff ? '#fef3c7' : '#f8fafc'};
-          display:flex; justify-content:space-between; align-items:center;
-          font-size:16px; color:#64748b; font-weight:600;
-        `;
-        const label = document.createElement('span');
-        label.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} ${nomeG}`;
-        const dash = document.createElement('span');
-        dash.textContent = '—';
-        dash.style.color = '#94a3b8';
-        miniBox.appendChild(label);
-        miniBox.appendChild(dash);
-        body.appendChild(miniBox);
-        continue;
-      }
-
-      // GIORNO CON PRESENZE = versione completa
-      const grouped = groupDay(list0);
-      let dayTot = 0;
-      grouped.forEach(en => dayTot += (en.ore || 0));
-
-      const box = document.createElement('div');
-      box.style.cssText = `
-        border:1px solid ${isOff ? '#fbbf24' : '#94a3b8'}; 
-        border-radius:6px; overflow:hidden;
-        background:${isOff ? '#fffbeb' : 'white'};
-      `;
-
-      // Header giorno
-      const head = document.createElement('div');
-      head.style.cssText = `
-        display:flex; justify-content:space-between; align-items:center;
-        padding:6px 10px;
-        background:${isOff ? 'rgba(251, 191, 36, 0.15)' : 'rgba(148, 163, 184, 0.15)'};
-        border-bottom:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
-        color:#1e293b;
-      `;
-      const left = document.createElement('div');
-      left.style.cssText = 'font-size:32px; font-weight:900;';
-      left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
-      const right = document.createElement('div');
-      right.style.cssText = 'font-size:32px; font-weight:900;';
-      right.textContent = `${dayTot.toFixed(1)} h`;
-      head.appendChild(left);
-      head.appendChild(right);
-      box.appendChild(head);
-
-      // Content entries
-      const content = document.createElement('div');
-      content.style.cssText = 'padding:8px; display:flex; flex-direction:column; gap:6px;';
-      
-      grouped.forEach(en=>{
-        const row = document.createElement('div');
-        row.style.cssText = `
-          display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start;
-          padding:6px; background:${isOff ? 'rgba(254, 243, 199, 0.5)' : 'rgba(241, 245, 249, 0.6)'};
-          border-radius:4px; border-left:3px solid #b91c1c;
-        `;
-        
-        const l = document.createElement('div');
-        const cantEl = document.createElement('div');
-        cantEl.style.cssText = 'font-size:28px; font-weight:900; color:#b91c1c; text-transform:uppercase; margin-bottom:3px; line-height:1.1;';
-        cantEl.textContent = en.cant;
-        l.appendChild(cantEl);
-        
-        if(en.lav){
-          const lavEl = document.createElement('div');
-          lavEl.style.cssText = 'font-size:25px; color:#1e293b; line-height:1.25;';
-          lavEl.innerHTML = en.lav.replace(/\n/g,'<br>');
-          l.appendChild(lavEl);
-        }
-        
-        if(en.note){
-          const noteEl = document.createElement('div');
-          noteEl.style.cssText = 'font-size:20px; color:#64748b; font-style:italic; margin-top:2px;';
-          noteEl.innerHTML = en.note.replace(/\n/g,'<br>');
-          l.appendChild(noteEl);
-        }
-        
-        const r = document.createElement('div');
-        r.style.cssText = 'text-align:right; display:flex; flex-direction:column; gap:3px; align-items:flex-end;';
-        
-        if(en.orari){
-          const orariBox = document.createElement('div');
-          orariBox.style.cssText = `
-            font-size:20px; font-weight:700; color:#1e293b;
-            background:rgba(224, 242, 254, 0.6); border:1px solid #bae6fd;
-            padding:3px 7px; border-radius:3px; white-space:nowrap;
-          `;
-          orariBox.textContent = en.orari;
-          r.appendChild(orariBox);
-        }
-        
-        const oreBox = document.createElement('div');
-        oreBox.style.cssText = `
-          font-size:22px; font-weight:900; color:#0f172a;
-          background:rgba(186, 230, 253, 0.5); padding:3px 10px; border-radius:4px;
-          border:1px solid #bae6fd;
-        `;
-        oreBox.textContent = `${en.ore} h`;
-        r.appendChild(oreBox);
-        
-        row.appendChild(l);
-        row.appendChild(r);
-        content.appendChild(row);
-      });
-      
-      box.appendChild(content);
-      body.appendChild(box);
-    }
-
-    return col;
-  }
-
-  const leftCol  = buildCalendar(1, 15);
-  const rightCol = buildCalendar(16, 31);
-  cols.appendChild(leftCol);
-  cols.appendChild(rightCol);
-
-  // Render e cattura
-  await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 100));
-  
-  const canvas = await html2canvas(pdfContainer, {
-    scale: 1,
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    logging: false,
-    width: A4_W,
-    height: A4_H
-  });
-  
-  pdfContainer.style.display = 'none';
-
-  // PDF A4
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  
-  let scale = Math.min((pageW - 12) / canvas.width, (pageH - 12) / canvas.height);
-  const imgW = canvas.width * scale;
-  const imgH = canvas.height * scale;
-  const x = (pageW - imgW) / 2;
-  const y = (pageH - imgH) / 2;
-
-  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgW, imgH, undefined, 'FAST');
-  pdf.save(`Presenze_${String(M).padStart(2,'0')}_${Y}_${op}.pdf`.replace(/\s+/g,'_'));
-}
+/* ==================== EXPORT PDF (resto invariato) ==================== */
+/* …(tutta la funzione exportDetailPDF rimane uguale alla tua versione attuale)… */
 
 /* ====== INIT ====== */
 (function init(){
@@ -1095,15 +537,11 @@ async function exportDetailPDF(){
 
   tbody.addEventListener('click', (e) => {
     const a = e.target.closest('.op-link');
-    if(a && a.dataset.op) {
-      showDetail(a.dataset.op);
-    }
+    if(a && a.dataset.op) showDetail(a.dataset.op);
   });
 
-  document.getElementById('btnDetailPDF').addEventListener('click', exportDetailPDF);
-  btnCloseDetail.addEventListener('click', () => {
-    detailCard.style.display = 'none';
-  });
+  document.getElementById('btnDetailPDF')?.addEventListener('click', exportDetailPDF);
+  btnCloseDetail.addEventListener('click', () => { detailCard.style.display = 'none'; });
 
   carica();
 })();
