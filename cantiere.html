@@ -1338,7 +1338,12 @@ async function exportDetailPDF(){
   data.forEach(e=>{ const d=Number(e.iso.split('-')[2]); (byDay[d] ||= []).push(e); });
 
   const pad = n=>String(n).padStart(2,'0');
-  const maxW = pageW - margin - 80;
+  
+  // CORREZIONE: Calcola la larghezza massima del testo per Lavorazioni per non superare il margine destro
+  const lavStartX = margin + 75; // Posizione X di inizio colonna Lavorazioni
+  const lavEndX = pageW - margin; // Posizione X del margine destro
+  const maxW = lavEndX - lavStartX;
+  
   const textLineHeight = 3.5; 
   const rowPadding = 1.5; 
   const barH = 4; 
@@ -1420,14 +1425,9 @@ async function exportDetailPDF(){
       const yRowMid = yPos + rowH2 * 0.5;
       const yBaselineCentered = yRowMid + 0.4; 
       
-      // NUOVA CORREZIONE PER LAVORAZIONI:
-      // 1. Calcola l'altezza totale del blocco di testo.
+      // Correzione allineamento Lavorazioni
       const textBlockHeight = lines * textLineHeight;
-      // 2. Calcola il padding necessario sopra/sotto il blocco per centrarlo.
       const paddingToCenter = (rowH2 - textBlockHeight) / 2;
-      // 3. Il punto di partenza Y per il testo (che è la baseline della prima riga)
-      //    è dato dalla posizione Y attuale + il padding + l'altezza della riga per raggiungere la baseline.
-      // Uso 0.75 come fattore di offset per la baseline (più preciso per font size 7)
       const yLavBaseline = yPos + paddingToCenter + (textLineHeight * 0.75);
 
 
