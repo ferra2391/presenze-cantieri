@@ -1152,9 +1152,12 @@ async function exportDetailPDF(){
   // Giallo tenue (per Weekend background)
   const WK_BG  = { r: 254, g: 243, b: 199 };
   
-  // NUOVI COLORI
+  // NUOVI COLORI STATISTICHE
   const PINK = { r: 244, g: 114, b: 182 }; // Corrisponde a #F472B6 (Rosa)
   const YELLOW = { r: 250, g: 204, b: 21 }; // Corrisponde a #FACC15 (Giallo)
+  
+  // NUOVO COLORE PER TOTALE ORE
+  const RED = { r: 239, g: 68, b: 68 }; // Rosso per il totale ore in alto a destra
 
   // Opacità portata al 50%
   const gs50 = new (GState || window.jspdf.GState)({ opacity: 0.5 });
@@ -1226,11 +1229,15 @@ async function exportDetailPDF(){
   pdf.rect(margin, yPos, pageW-2*margin, headerH, 'F');
   pdf.restoreGraphicsState();
 
-  pdf.setTextColor(255,255,255);
+  // NOME CANTIERE E REPORT: NERO
+  pdf.setTextColor(0, 0, 0); 
   pdf.setFont('helvetica','bold'); pdf.setFontSize(14);
   pdf.text(cant, margin+3, yPos + headerH*0.40);
   pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
   pdf.text(`Report ${String(M).padStart(2,'0')}/${Y}`, margin+3, yPos + headerH*0.78);
+  
+  // TOTALE ORE: ROSSO
+  pdf.setTextColor(RED.r, RED.g, RED.b); 
   pdf.setFont('helvetica','bold'); pdf.setFontSize(18);
   pdf.text(`${totOre.toFixed(1)} h`, pageW - margin - 3, yPos + headerH*0.60, { align:'right' });
 
@@ -1241,9 +1248,7 @@ async function exportDetailPDF(){
   const boxH = 14; 
   const weekendHours = data.filter(e=>e.isOff).reduce((s,e)=>s+(e.ore||0),0);
   const stats = [
-    // GIORNI (nuovo colore: Rosa)
     { label:'GIORNI',   value: giorniSet.size,                        color: PINK },
-    // OPERAI (nuovo colore: Giallo) - Etichetta cambiata
     { label:'OPERAI COINVOLTI',   value: operaiSet.size,                        color: YELLOW },
     { label:'MEDIA/GG', value: `${(totOre/(giorniSet.size||1)).toFixed(1)} h`, color: ORANGE },
     { label:'WEEKEND',  value: `${weekendHours.toFixed(1)} h`,        color: PURPLE },
@@ -1253,16 +1258,23 @@ async function exportDetailPDF(){
     pdf.saveGraphicsState(); pdf.setGState(gs50); 
     pdf.setFillColor(s.color.r, s.color.g, s.color.b);
     pdf.rect(x, yPos, boxW, boxH, 'F'); pdf.restoreGraphicsState();
+    
+    // Etichetta (in alto): BIANCO
     pdf.setTextColor(255,255,255);
-    // Usa il label aggiornato (OPERAI COINVOLTI)
     pdf.setFont('helvetica','bold'); pdf.setFontSize(5);
     pdf.text(s.label.toUpperCase(), x+boxW/2, yPos + boxH*0.35, { align:'center' }); 
+    
+    // Valore (in basso): NERO
+    pdf.setTextColor(0, 0, 0); 
     pdf.setFontSize(10);
     pdf.text(String(s.value), x+boxW/2, yPos + boxH*0.75, { align:'center' }); 
   });
   yPos += boxH + 4;
 
   // --- GRAFICO (nessun cambio colore/opacity) ---
+  // NOTA: L'immagine del grafico viene generata esternamente. Per aumentare la dimensione del 
+  // carattere (assi X/Y, totali colonne), la modifica deve essere fatta nel codice 
+  // che usa Chart.js (o equivalente) prima che venga creato il DataURL.
   const chartCanvas = document.getElementById('chartAndamento');
   if(chartCanvas && state.chartInstance){
     const chartImg = chartCanvas.toDataURL('image/png');
