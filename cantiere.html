@@ -1135,6 +1135,7 @@ async function carica(){
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){ alert('Apri prima un dettaglio cantiere.'); return; }
   
+  // Correzione per GState (mantenuta)
   const { jsPDF } = window.jspdf;
   const GState = window.GState || window.jspdf.GState; 
   
@@ -1148,8 +1149,8 @@ async function exportDetailPDF(){
   const WK_BG  = { r: 254, g: 243, b: 199 };
   const LIGHT_BORDER = { r: 210, g: 214, b: 220 };
 
-  // MODIFICA: Opacità portata al 80%
-  const gs80 = new (GState || window.jspdf.GState)({ opacity: 0.8 });
+  // MODIFICA: Opacità portata al 50%
+  const gs50 = new (GState || window.jspdf.GState)({ opacity: 0.5 });
   // Opacità bassa (8%) per il watermark, non modificata
   const gs08 = new (GState || window.jspdf.GState)({ opacity: 0.08 });
 
@@ -1173,24 +1174,19 @@ async function exportDetailPDF(){
   function addLogoWatermark(){
     if(!logoImg) return;
     const w = pageW - 2*margin;
-    // MODIFICA: Altezza ridotta del 20% (da 0.24 a 0.192)
-    const h = (pageH - 2*margin) * 0.192; 
+    // MODIFICA: Altezza ridotta del 20% (da 0.192 a 0.1536)
+    const h = (pageH - 2*margin) * 0.1536; 
     const x = margin;
     const y = (pageH - h) / 2;
     pdf.saveGraphicsState();
-    pdf.setGState(gs08); // Opacità 8%
+    pdf.setGState(gs08); // Opacità 8% (Watermark)
     pdf.addImage(logoImg, 'PNG', x, y, w, h);
     pdf.restoreGraphicsState();
   }
 
-  // --- Margini visibili (singola linea) ---
+  // RIMOZIONE: Funzione svuotata per togliere il bordo grigio
   function drawPrintMargins(){
-    pdf.setDrawColor(LIGHT_BORDER.r, LIGHT_BORDER.g, LIGHT_BORDER.b);
-    pdf.setLineWidth(0.3);
-    pdf.rect(margin, margin, pageW-2*margin, pageH-2*margin);
-    // RIMOZIONE: riga del bordo interno (doppia linea)
-    // pdf.setLineWidth(0.15);
-    // pdf.rect(margin+1.5, margin+1.5, pageW-2*(margin+1.5), pageH-2*(margin+1.5));
+    // Bordo pagina rimosso come richiesto
   }
 
   addLogoWatermark();
@@ -1216,9 +1212,9 @@ async function exportDetailPDF(){
     operaiGiorni[e.operaio].add(e.iso);
   });
 
-  // --- HEADER (verde, 80%, titolo ben centrato verticalmente) ---
+  // --- HEADER (verde, 50%, titolo ben centrato verticalmente) ---
   const headerH = 20;
-  pdf.saveGraphicsState(); pdf.setGState(gs80); // Opacità 80%
+  pdf.saveGraphicsState(); pdf.setGState(gs50); // Opacità 50%
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
   pdf.rect(margin, yPos, pageW-2*margin, headerH, 'F');
   pdf.restoreGraphicsState();
@@ -1233,7 +1229,7 @@ async function exportDetailPDF(){
 
   yPos += headerH + 2;
 
-  // --- STATISTICHE (80%) ---
+  // --- STATISTICHE (50%) ---
   const boxW = (pageW - 2*margin - 9) / 4;
   const boxH = 14; 
   const weekendHours = data.filter(e=>e.isOff).reduce((s,e)=>s+(e.ore||0),0);
@@ -1245,7 +1241,7 @@ async function exportDetailPDF(){
   ];
   stats.forEach((s,i)=>{
     const x = margin + i*(boxW+3);
-    pdf.saveGraphicsState(); pdf.setGState(gs80); // Opacità 80%
+    pdf.saveGraphicsState(); pdf.setGState(gs50); // Opacità 50%
     pdf.setFillColor(s.color.r, s.color.g, s.color.b);
     pdf.rect(x, yPos, boxW, boxH, 'F'); pdf.restoreGraphicsState();
     pdf.setTextColor(255,255,255);
@@ -1271,9 +1267,9 @@ async function exportDetailPDF(){
   pdf.text('OPERAI CHE HANNO LAVORATO', margin, yPos);
   yPos += 4;
 
-  // Header tabella (verde 80%), testo centrato verticalmente
+  // Header tabella (verde 50%), testo centrato verticalmente
   const tHeadH = 7;
-  pdf.saveGraphicsState(); pdf.setGState(gs80); // Opacità 80%
+  pdf.saveGraphicsState(); pdf.setGState(gs50); // Opacità 50%
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
   pdf.rect(margin, yPos, pageW-2*margin, tHeadH, 'F'); pdf.restoreGraphicsState();
 
@@ -1306,9 +1302,9 @@ async function exportDetailPDF(){
     yPos += rowH;
   });
 
-  // Separatore (verde 80%)
+  // Separatore (verde 50%)
   yPos = halfPage;
-  pdf.saveGraphicsState(); pdf.setGState(gs80); // Opacità 80%
+  pdf.saveGraphicsState(); pdf.setGState(gs50); // Opacità 50%
   pdf.setDrawColor(GREEN.r, GREEN.g, GREEN.b); pdf.setLineWidth(1);
   pdf.line(margin, yPos, pageW - margin, yPos);
   pdf.restoreGraphicsState();
@@ -1321,9 +1317,9 @@ async function exportDetailPDF(){
   pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align:'right' });
   yPos += 4;
 
-  // Header calendario (verde 80%, centrato)
+  // Header calendario (verde 50%, centrato)
   const calHeadH = 7;
-  pdf.saveGraphicsState(); pdf.setGState(gs80); // Opacità 80%
+  pdf.saveGraphicsState(); pdf.setGState(gs50); // Opacità 50%
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
   pdf.rect(margin, yPos, pageW-2*margin, calHeadH, 'F'); pdf.restoreGraphicsState();
 
@@ -1344,7 +1340,7 @@ async function exportDetailPDF(){
   const pad = n=>String(n).padStart(2,'0');
   const maxW = pageW - margin - 80;
   const textLineHeight = 3.5; 
-  const rowPadding = 1.5; // Leggermente ridotto per ottimizzare lo spazio
+  const rowPadding = 1.5; 
   const barH = 4; 
 
   function newPage(){
@@ -1354,7 +1350,7 @@ async function exportDetailPDF(){
     pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(100,116,139);
     pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align:'right' });
     yPos += 4;
-    pdf.saveGraphicsState(); pdf.setGState(gs80); // Opacità 80%
+    pdf.saveGraphicsState(); pdf.setGState(gs50); // Opacità 50%
     pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
     pdf.rect(margin, yPos, pageW-2*margin, calHeadH, 'F'); pdf.restoreGraphicsState();
     pdf.setTextColor(255,255,255);
@@ -1394,7 +1390,7 @@ async function exportDetailPDF(){
     list.forEach(en => {
       const textToSplit = (en.lav + (en.note ? ('\nNote: ' + en.note) : '')).trim();
       const lines = splitLav(textToSplit).length;
-      // Calcolo Altezza riga: (Linee * Altezza riga testo) + (Padding sopra e sotto)
+      // Altezza riga: (Linee * Altezza riga testo) + (Padding sopra e sotto)
       totalHeight += Math.max(textLineHeight + rowPadding * 2, lines * textLineHeight + rowPadding * 2); 
     });
     
@@ -1416,24 +1412,26 @@ async function exportDetailPDF(){
       const rowH2 = Math.max(textLineHeight + rowPadding * 2, lines * textLineHeight + rowPadding * 2);
 
       // Sfondo weekend
-      if(isOff){ pdf.saveGraphicsState(); pdf.setGState(gs80); // Opacità 80%
+      if(isOff){ pdf.saveGraphicsState(); pdf.setGState(gs50); // Opacità 50%
         pdf.setFillColor(WK_BG.r, WK_BG.g, WK_BG.b);
         pdf.rect(margin, yPos, pageW-2*margin, rowH2, 'F'); pdf.restoreGraphicsState(); } 
 
       // Calcola il punto medio per l'allineamento verticale
+      // Aggiunto offset per centratura visiva (baseline)
       const yRowMid = yPos + rowH2 * 0.5;
+      const yBaselineCentered = yRowMid + 0.4; 
 
       // Giorno (solo prima riga)
       if(idx===0){ pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
-        pdf.text(dayLabel, margin+2, yRowMid); } 
+        pdf.text(dayLabel, margin+2, yBaselineCentered); } 
 
       // Operaio: NERO GRASSETTO
       pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(0,0,0);
-      pdf.text(en.operaio, margin + 25, yRowMid); 
+      pdf.text(en.operaio, margin + 25, yBaselineCentered); 
 
       // Ore (allineate a destra, centrate verticalmente)
       pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(15,23,42);
-      pdf.text(`${en.ore.toFixed(1)} h`, margin + 70, yRowMid, { align:'right' }); 
+      pdf.text(`${en.ore.toFixed(1)} h`, margin + 70, yBaselineCentered, { align:'right' }); 
 
       // Lavorazioni: Inizia subito dopo il padding superiore
       pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
@@ -1442,10 +1440,11 @@ async function exportDetailPDF(){
       yPos += rowH2;
     });
 
-    // TOTALE GIORNO 
+    // TOTALE GIORNO (barra grigia)
     if(list.length>1){
       const dayTot = list.reduce((s,en)=>s+(en.ore||0),0);
       const barY = yPos;
+      // La barra TOTALE non ha opacità per rimanere solida (come richiesto implicitamente)
       pdf.setFillColor(FILL_GRAY.r, FILL_GRAY.g, FILL_GRAY.b);
       pdf.rect(margin, barY, pageW-2*margin, barH, 'F');
 
@@ -1453,7 +1452,7 @@ async function exportDetailPDF(){
       pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(15,23,42);
       pdf.text(`TOT: ${dayTot.toFixed(1)} h`, margin + 70, yMid, { align:'right' });
 
-      yPos += barH + 0.5; // Spazio finale ridotto
+      yPos += barH + 0.5; 
     } else {
       yPos += 0.5; 
     }
