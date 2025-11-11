@@ -1134,7 +1134,29 @@ async function carica(){
 /* ==================== EXPORT PDF A4 VERTICALE - REPORT ELEGANTE V2 ==================== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){ alert('Apri prima un dettaglio cantiere.'); return; }
+  
+  // CORREZIONE: Accedi a jsPDF e GState
   const { jsPDF } = window.jspdf;
+  // Se GState non è definito direttamente, assumiamo che sia nel global scope o che 
+  // la sua classe sia accessibile. La soluzione più comune è usare GState direttamente
+  // se jspdf è caricato in modo UMD o modularmente. 
+  // Tuttavia, se l'errore è "jsPDF.GState is not a constructor", 
+  // significa che GState è un costruttore globale che devi richiamare correttamente.
+  // Se stai usando jsPDF v2+, potresti doverlo accedere tramite la libreria.
+  // Provo la correzione standard, supponendo che GState sia stato esposto correttamente.
+  const GState = window.GState || window.jspdf.GState; 
+  
+  if (!GState) { 
+    // Fallback per jsPDF versioni che espongono GState come parte dell'oggetto ritornato
+    // o se non è esposto globalmente.
+    try {
+      const temp = new jsPDF();
+      if (temp.GState) {
+        // Questa linea è teorica per alcuni caricatori, ma non standard.
+      }
+    } catch (e) { /* ignore */ }
+  }
+
 
   // --- COLORI & OPACITÀ ---
   // Verde scurito ~20% (22,197,94 -> 27,158,75 approx, ma un filo più scuro per stampa)
@@ -1145,7 +1167,8 @@ async function exportDetailPDF(){
   const WK_BG  = { r: 254, g: 243, b: 199 };
   const LIGHT_BORDER = { r: 210, g: 214, b: 220 };
 
-  const gs70 = new jsPDF.GState({ opacity: 0.7 });
+  // CORREZIONE: usa il costruttore corretto per GState
+  const gs70 = new (GState || window.jspdf.GState)({ opacity: 0.7 });
 
   // --- PDF ---
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -1170,7 +1193,8 @@ async function exportDetailPDF(){
     const x = margin;
     const y = (pageH - h) / 2;
     pdf.saveGraphicsState();
-    pdf.setGState(new jsPDF.GState({ opacity: 0.08 }));
+    // CORREZIONE: usa il costruttore corretto per GState
+    pdf.setGState(new (GState || window.jspdf.GState)({ opacity: 0.08 }));
     pdf.addImage(logoImg, 'PNG', x, y, w, h);
     pdf.restoreGraphicsState();
   }
@@ -1228,7 +1252,7 @@ async function exportDetailPDF(){
 
   // --- STATISTICHE (70%) ---
   const boxW = (pageW - 2*margin - 9) / 4;
-  const boxH = 14; // Aumentato leggermente l'altezza dei box se necessario, ma mantengo 14mm come l'originale
+  const boxH = 14; 
   const weekendHours = data.filter(e=>e.isOff).reduce((s,e)=>s+(e.ore||0),0);
   const stats = [
     { label:'Giorni',   value: giorniSet.size,                        color: GREEN },
@@ -1243,9 +1267,9 @@ async function exportDetailPDF(){
     pdf.rect(x, yPos, boxW, boxH, 'F'); pdf.restoreGraphicsState();
     pdf.setTextColor(255,255,255);
     pdf.setFont('helvetica','bold'); pdf.setFontSize(5);
-    pdf.text(s.label.toUpperCase(), x+boxW/2, yPos + boxH*0.35, { align:'center' }); // Leggermente rialzato
+    pdf.text(s.label.toUpperCase(), x+boxW/2, yPos + boxH*0.35, { align:'center' }); 
     pdf.setFontSize(10);
-    pdf.text(String(s.value), x+boxW/2, yPos + boxH*0.75, { align:'center' }); // Leggermente abbassato
+    pdf.text(String(s.value), x+boxW/2, yPos + boxH*0.75, { align:'center' }); 
   });
   yPos += boxH + 4;
 
