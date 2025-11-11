@@ -1141,13 +1141,20 @@ async function exportDetailPDF(){
   
 
   // --- COLORI & OPACITÀ ---
-  // Verde scurito ~20% (27,158,75)
+  // Verde (per header)
   const GREEN = { r: 27, g: 158, b: 75 };
+  // Arancione (per Media/gg)
   const ORANGE = { r: 249, g: 115, b: 22 };
+  // Viola (per Weekend)
   const PURPLE = { r: 168, g: 85,  b: 247 };
+  // Grigio (per TOT giorno)
   const FILL_GRAY = { r: 226, g: 232, b: 240 };
+  // Giallo tenue (per Weekend background)
   const WK_BG  = { r: 254, g: 243, b: 199 };
-  const LIGHT_BORDER = { r: 210, g: 214, b: 220 };
+  
+  // NUOVI COLORI
+  const PINK = { r: 244, g: 114, b: 182 }; // Corrisponde a #F472B6 (Rosa)
+  const YELLOW = { r: 250, g: 204, b: 21 }; // Corrisponde a #FACC15 (Giallo)
 
   // Opacità portata al 50%
   const gs50 = new (GState || window.jspdf.GState)({ opacity: 0.5 });
@@ -1234,10 +1241,12 @@ async function exportDetailPDF(){
   const boxH = 14; 
   const weekendHours = data.filter(e=>e.isOff).reduce((s,e)=>s+(e.ore||0),0);
   const stats = [
-    { label:'Giorni',   value: giorniSet.size,                        color: PINK },
-    { label:'Operai Coinvolti',   value: operaiSet.size,                        color: YELLOW },
-    { label:'Media/gg', value: `${(totOre/(giorniSet.size||1)).toFixed(1)} h`, color: ORANGE },
-    { label:'Weekend',  value: `${weekendHours.toFixed(1)} h`,        color: PURPLE },
+    // GIORNI (nuovo colore: Rosa)
+    { label:'GIORNI',   value: giorniSet.size,                        color: PINK },
+    // OPERAI (nuovo colore: Giallo) - Etichetta cambiata
+    { label:'OPERAI COINVOLTI',   value: operaiSet.size,                        color: YELLOW },
+    { label:'MEDIA/GG', value: `${(totOre/(giorniSet.size||1)).toFixed(1)} h`, color: ORANGE },
+    { label:'WEEKEND',  value: `${weekendHours.toFixed(1)} h`,        color: PURPLE },
   ];
   stats.forEach((s,i)=>{
     const x = margin + i*(boxW+3);
@@ -1245,6 +1254,7 @@ async function exportDetailPDF(){
     pdf.setFillColor(s.color.r, s.color.g, s.color.b);
     pdf.rect(x, yPos, boxW, boxH, 'F'); pdf.restoreGraphicsState();
     pdf.setTextColor(255,255,255);
+    // Usa il label aggiornato (OPERAI COINVOLTI)
     pdf.setFont('helvetica','bold'); pdf.setFontSize(5);
     pdf.text(s.label.toUpperCase(), x+boxW/2, yPos + boxH*0.35, { align:'center' }); 
     pdf.setFontSize(10);
@@ -1339,9 +1349,9 @@ async function exportDetailPDF(){
 
   const pad = n=>String(n).padStart(2,'0');
   
-  // CORREZIONE: Calcola la larghezza massima del testo per Lavorazioni per non superare il margine destro
-  const lavStartX = margin + 75; // Posizione X di inizio colonna Lavorazioni
-  const lavEndX = pageW - margin; // Posizione X del margine destro
+  // Larghezza massima per Lavorazioni (per non uscire dal margine destro)
+  const lavStartX = margin + 75; 
+  const lavEndX = pageW - margin; 
   const maxW = lavEndX - lavStartX;
   
   const textLineHeight = 3.5; 
@@ -1425,7 +1435,7 @@ async function exportDetailPDF(){
       const yRowMid = yPos + rowH2 * 0.5;
       const yBaselineCentered = yRowMid + 0.4; 
       
-      // Correzione allineamento Lavorazioni
+      // Correzione allineamento Lavorazioni (allinea il blocco multilinea al centro)
       const textBlockHeight = lines * textLineHeight;
       const paddingToCenter = (rowH2 - textBlockHeight) / 2;
       const yLavBaseline = yPos + paddingToCenter + (textLineHeight * 0.75);
