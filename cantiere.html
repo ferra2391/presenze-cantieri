@@ -1,4 +1,3 @@
-partti da questo codice:
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -1134,25 +1133,21 @@ async function carica(){
   
 /* ==================== EXPORT PDF A4 VERTICALE - REPORT ELEGANTE V2 ==================== */
 async function exportDetailPDF(){
-  if(detailCard.style.display === 'none'){
-    alert('Apri prima un dettaglio cantiere.');
-    return;
-  }
-
+  if(detailCard.style.display === 'none'){ alert('Apri prima un dettaglio cantiere.'); return; }
   const { jsPDF } = window.jspdf;
-  const [Y, M] = [state.Y, state.M];
-  const cant = state.currentCant;
-  const data = state.byCantiere[cant];
-  if(!data) return;
 
-  // === UTILS COLORI/OPACITÀ ===
-  const GREEN = { r: 34, g: 197, b: 94 };        // verde (ex blu)
+  // --- COLORI & OPACITÀ ---
+  // Verde scurito ~20% (22,197,94 -> 27,158,75 approx, ma un filo più scuro per stampa)
+  const GREEN = { r: 27, g: 158, b: 75 };
   const ORANGE = { r: 249, g: 115, b: 22 };
   const PURPLE = { r: 168, g: 85,  b: 247 };
-  const TEAL   = { r: 16,  g: 185, b: 129 };     // testi accentati (ex blu)
-  const FILL_GRAY = { r: 226, g: 232, b: 240 };  // evidenziatore tot giorno
-  const WK_BG  = { r: 254, g: 243, b: 199 };     // weekend/off
+  const FILL_GRAY = { r: 226, g: 232, b: 240 };
+  const WK_BG  = { r: 254, g: 243, b: 199 };
+  const LIGHT_BORDER = { r: 210, g: 214, b: 220 };
 
+  const gs70 = new jsPDF.GState({ opacity: 0.7 });
+
+  // --- PDF ---
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
@@ -1160,327 +1155,282 @@ async function exportDetailPDF(){
   let yPos = margin;
   let pageNum = 1;
 
-  // Helper opacità 70% per riempimenti/linee/testi colorati
-  const gs70 = new pdf.GState({ opacity: 0.7 });
-
-  // === LOGO (WATERMARK) ===
+  // --- LOGO (watermark, entro margini, meno alto) ---
   let logoImg = null;
   try {
-    const logoUrl = 'https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/Logo.png';
-    const response = await fetch(logoUrl);
+    const response = await fetch('https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/Logo.png');
     const blob = await response.blob();
-    logoImg = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(blob);
-    });
-  } catch(e) { console.warn('Logo non caricato:', e); }
+    logoImg = await new Promise(r=>{ const fr=new FileReader(); fr.onloadend=()=>r(fr.result); fr.readAsDataURL(blob); });
+  } catch(e){ console.warn('Logo non caricato', e); }
 
   function addLogoWatermark(){
     if(!logoImg) return;
-    // Larghezza = larghezza utile entro i margini; altezza leggermente ridotta
     const w = pageW - 2*margin;
-    const h = (pageH - 2*margin) * 0.25; // "leggermente meno alto"
+    const h = (pageH - 2*margin) * 0.24;
     const x = margin;
     const y = (pageH - h) / 2;
-
     pdf.saveGraphicsState();
-    pdf.setGState(new pdf.GState({ opacity: 0.08 }));
+    pdf.setGState(new jsPDF.GState({ opacity: 0.08 }));
     pdf.addImage(logoImg, 'PNG', x, y, w, h);
     pdf.restoreGraphicsState();
   }
-  addLogoWatermark();
 
-  // === TOTALI/STAT ===
+  // --- Margini visibili (doppia linea grigio molto chiaro) ---
+  function drawPrintMargins(){
+    pdf.setDrawColor(LIGHT_BORDER.r, LIGHT_BORDER.g, LIGHT_BORDER.b);
+    pdf.setLineWidth(0.3);
+    pdf.rect(margin, margin, pageW-2*margin, pageH-2*margin);
+    pdf.setLineWidth(0.15);
+    pdf.rect(margin+1.5, margin+1.5, pageW-2*(margin+1.5), pageH-2*(margin+1.5));
+  }
+
+  addLogoWatermark();
+  drawPrintMargins();
+
+  // --- DATI BASE ---
+  const [Y, M] = [state.Y, state.M];
+  const cant   = state.currentCant;
+  const data   = state.byCantiere[cant];
+  if(!data) return;
+
   let totOre = 0;
   const operaiSet = new Set();
   const giorniSet = new Set();
   const operaiOre = {};
   const operaiGiorni = {};
-
-  data.forEach(entry => {
-    totOre += (entry.ore || 0);
-    operaiSet.add(entry.operaio);
-    giorniSet.add(entry.iso);
-    if(!operaiOre[entry.operaio]) { operaiOre[entry.operaio] = 0; operaiGiorni[entry.operaio] = new Set(); }
-    operaiOre[entry.operaio] += (entry.ore || 0);
-    operaiGiorni[entry.operaio].add(entry.iso);
+  data.forEach(e=>{
+    totOre += (e.ore||0);
+    operaiSet.add(e.operaio);
+    giorniSet.add(e.iso);
+    if(!operaiOre[e.operaio]){ operaiOre[e.operaio]=0; operaiGiorni[e.operaio]=new Set(); }
+    operaiOre[e.operaio]+=(e.ore||0);
+    operaiGiorni[e.operaio].add(e.iso);
   });
 
-  // === HEADER (ex blu → verde, opacità 70%, titolo centrato meglio) ===
-  const headerH = 20; // leggermente più alto per margini verticali
-  pdf.saveGraphicsState();
-  pdf.setGState(gs70);
+  // --- HEADER (verde, 70%, titolo ben centrato verticalmente) ---
+  const headerH = 20;
+  pdf.saveGraphicsState(); pdf.setGState(gs70);
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
-  pdf.rect(margin, yPos, pageW - 2*margin, headerH, 'F');
+  pdf.rect(margin, yPos, pageW-2*margin, headerH, 'F');
   pdf.restoreGraphicsState();
 
-  // Testi header
   pdf.setTextColor(255,255,255);
   pdf.setFont('helvetica','bold'); pdf.setFontSize(14);
-  pdf.text(cant, margin + 3, yPos + 8);
+  pdf.text(cant, margin+3, yPos + headerH*0.40);
   pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
-  pdf.text(`Report ${String(M).padStart(2,'0')}/${Y}`, margin + 3, yPos + 14.5);
+  pdf.text(`Report ${String(M).padStart(2,'0')}/${Y}`, margin+3, yPos + headerH*0.78);
   pdf.setFont('helvetica','bold'); pdf.setFontSize(18);
-  pdf.text(`${totOre.toFixed(1)} h`, pageW - margin - 3, yPos + 12, { align:'right' });
+  pdf.text(`${totOre.toFixed(1)} h`, pageW - margin - 3, yPos + headerH*0.60, { align:'right' });
 
   yPos += headerH + 2;
 
-  // === STATISTICHE (opacità 70%) ===
+  // --- STATISTICHE (70%) ---
   const boxW = (pageW - 2*margin - 9) / 4;
   const boxH = 14;
-  const weekendHours = data.filter(e=>e.isOff).reduce((sum,e)=>sum+(e.ore||0),0);
+  const weekendHours = data.filter(e=>e.isOff).reduce((s,e)=>s+(e.ore||0),0);
   const stats = [
-    { label:'Giorni',   value: giorniSet.size,                color: GREEN },
-    { label:'Operai',   value: operaiSet.size,                color: TEAL  },
+    { label:'Giorni',   value: giorniSet.size,                        color: GREEN },
+    { label:'Operai',   value: operaiSet.size,                        color: {r:22,g:163,b:74} },
     { label:'Media/gg', value: `${(totOre/(giorniSet.size||1)).toFixed(1)} h`, color: ORANGE },
-    { label:'Weekend',  value: `${weekendHours.toFixed(1)} h`, color: PURPLE },
+    { label:'Weekend',  value: `${weekendHours.toFixed(1)} h`,        color: PURPLE },
   ];
-
   stats.forEach((s,i)=>{
     const x = margin + i*(boxW+3);
-    pdf.saveGraphicsState();
-    pdf.setGState(gs70);
+    pdf.saveGraphicsState(); pdf.setGState(gs70);
     pdf.setFillColor(s.color.r, s.color.g, s.color.b);
-    pdf.rect(x, yPos, boxW, boxH, 'F');
-    pdf.restoreGraphicsState();
-
+    pdf.rect(x, yPos, boxW, boxH, 'F'); pdf.restoreGraphicsState();
     pdf.setTextColor(255,255,255);
     pdf.setFont('helvetica','bold'); pdf.setFontSize(5);
-    pdf.text(s.label.toUpperCase(), x + boxW/2, yPos + 4.5, { align:'center' });
+    pdf.text(s.label.toUpperCase(), x+boxW/2, yPos + boxH*0.38, { align:'center' });
     pdf.setFontSize(10);
-    pdf.text(String(s.value), x + boxW/2, yPos + 10.5, { align:'center' });
+    pdf.text(String(s.value), x+boxW/2, yPos + boxH*0.80, { align:'center' });
   });
   yPos += boxH + 4;
 
-  // === GRAFICO (no trasparenze/modifiche colore) ===
+  // --- GRAFICO (nessun cambio colore/opacity) ---
   const chartCanvas = document.getElementById('chartAndamento');
   if(chartCanvas && state.chartInstance){
     const chartImg = chartCanvas.toDataURL('image/png');
     const chartH = 32;
-    pdf.addImage(chartImg, 'PNG', margin, yPos, pageW - 2*margin, chartH);
+    pdf.addImage(chartImg, 'PNG', margin, yPos, pageW-2*margin, chartH);
     yPos += chartH + 4;
   }
 
-  // === OPERAI CHE HANNO LAVORATO (barra header ex blu → verde con opacità 70% + testo meglio centrato) ===
+  // --- OPERAI CHE HANNO LAVORATO ---
   pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
   pdf.setTextColor(30,41,59);
   pdf.text('OPERAI CHE HANNO LAVORATO', margin, yPos);
   yPos += 4;
 
-  const headerH1 = 7;
-  pdf.saveGraphicsState();
-  pdf.setGState(gs70);
+  // Header tabella (verde 70%), testo centrato verticalmente
+  const tHeadH = 7;
+  pdf.saveGraphicsState(); pdf.setGState(gs70);
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
-  pdf.rect(margin, yPos, pageW - 2*margin, headerH1, 'F');
-  pdf.restoreGraphicsState();
+  pdf.rect(margin, yPos, pageW-2*margin, tHeadH, 'F'); pdf.restoreGraphicsState();
 
   pdf.setTextColor(255,255,255);
   pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-  const baseY1 = yPos + 4.5; // baseline migliorata
-  pdf.text('Operaio',               margin + 2, baseY1);
-  pdf.text('Ore',        pageW - margin - 40, baseY1, { align:'right' });
-  pdf.text('Gg',         pageW - margin - 22, baseY1, { align:'right' });
-  pdf.text('Media',      pageW - margin - 2,  baseY1, { align:'right' });
-  yPos += headerH1 + 1;
+  const thY = yPos + tHeadH*0.65;
+  pdf.text('Operaio',               margin + 2, thY);
+  pdf.text('Ore',        pageW - margin - 40, thY, { align:'right' });
+  pdf.text('Gg',         pageW - margin - 22, thY, { align:'right' });
+  pdf.text('Media',      pageW - margin - 2,  thY, { align:'right' });
+  yPos += tHeadH + 1;
 
-  // Righe operai
-  const operaiList = Object.keys(operaiOre).sort((a,b) => operaiOre[b] - operaiOre[a]);
+  // Righe (altezza 5mm, testo centrato verticalmente)
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
+  const operaiList = Object.keys(operaiOre).sort((a,b)=>operaiOre[b]-operaiOre[a]);
   const halfPage = pageH / 2;
   const maxOperai = Math.floor((halfPage - yPos - 12) / 5);
+  const rowH = 5;
 
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
-  pdf.setTextColor(30,41,59);
-  operaiList.slice(0, maxOperai).forEach((op, i) => {
-    const ore = operaiOre[op];
-    const giorni = operaiGiorni[op].size;
-    const media = giorni > 0 ? (ore / giorni) : 0;
-
-    if(i % 2 === 0){
-      pdf.setFillColor(248,250,252);
-      pdf.rect(margin, yPos - 3, pageW - 2*margin, 5, 'F');
-    }
-    pdf.text(op, margin + 2, yPos + 1.5);
+  operaiList.slice(0,maxOperai).forEach((op,i)=>{
+    const yRowMid = yPos + rowH*0.65;
+    if(i % 2 === 0){ pdf.setFillColor(248,250,252); pdf.rect(margin, yPos - 3, pageW-2*margin, rowH, 'F'); }
+    pdf.text(op, margin + 2, yRowMid);
     pdf.setFont('helvetica','bold');
-    pdf.text(`${ore.toFixed(1)}`, pageW - margin - 40, yPos + 1.5, { align:'right' });
+    pdf.text(`${operaiOre[op].toFixed(1)}`, pageW - margin - 40, yRowMid, { align:'right' });
     pdf.setFont('helvetica','normal');
-    pdf.text(String(giorni), pageW - margin - 22, yPos + 1.5, { align:'right' });
-    pdf.text(`${media.toFixed(1)}`, pageW - margin - 2, yPos + 1.5, { align:'right' });
-    yPos += 5;
+    pdf.text(String(operaiGiorni[op].size), pageW - margin - 22, yRowMid, { align:'right' });
+    const media = operaiGiorni[op].size ? (operaiOre[op]/operaiGiorni[op].size) : 0;
+    pdf.text(`${media.toFixed(1)}`, pageW - margin - 2, yRowMid, { align:'right' });
+    yPos += rowH;
   });
 
-  // Separatore (ex blu → verde, opacità 70%)
+  // Separatore (verde 70%)
   yPos = halfPage;
-  pdf.saveGraphicsState();
-  pdf.setGState(gs70);
-  pdf.setDrawColor(GREEN.r, GREEN.g, GREEN.b);
-  pdf.setLineWidth(1);
+  pdf.saveGraphicsState(); pdf.setGState(gs70);
+  pdf.setDrawColor(GREEN.r, GREEN.g, GREEN.b); pdf.setLineWidth(1);
   pdf.line(margin, yPos, pageW - margin, yPos);
   pdf.restoreGraphicsState();
   yPos += 4;
 
-  // === CALENDARIO LAVORAZIONI ===
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
-  pdf.setTextColor(30,41,59);
+  // --- CALENDARIO LAVORAZIONI ---
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(9); pdf.setTextColor(30,41,59);
   pdf.text('CALENDARIO LAVORAZIONI', margin, yPos);
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
-  pdf.setTextColor(100,116,139);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(100,116,139);
   pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align:'right' });
   yPos += 4;
 
-  // Header calendario (ex blu → verde, opacità 70%, centrato meglio)
-  const headerH2 = 7;
-  pdf.saveGraphicsState();
-  pdf.setGState(gs70);
+  // Header calendario (verde 70%, centrato)
+  const calHeadH = 7;
+  pdf.saveGraphicsState(); pdf.setGState(gs70);
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
-  pdf.rect(margin, yPos, pageW - 2*margin, headerH2, 'F');
-  pdf.restoreGraphicsState();
+  pdf.rect(margin, yPos, pageW-2*margin, calHeadH, 'F'); pdf.restoreGraphicsState();
 
   pdf.setTextColor(255,255,255);
   pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-  const baseY2 = yPos + 4.5;
-  pdf.text('Giorno',      margin + 2,  baseY2);
-  pdf.text('Operaio',     margin + 25, baseY2);
-  pdf.text('Ore',         margin + 70, baseY2, { align:'right' });
-  pdf.text('Lavorazioni', margin + 75, baseY2);
-  yPos += headerH2 + 1;
+  const chY = yPos + calHeadH*0.65;
+  pdf.text('Giorno',      margin + 2,  chY);
+  pdf.text('Operaio',     margin + 25, chY);
+  pdf.text('Ore',         margin + 70, chY, { align:'right' });
+  pdf.text('Lavorazioni', margin + 75, chY);
+  yPos += calHeadH + 1;
 
-  // Organizza per giorno
+  // Dati per giorno
   const daysInMonth = new Date(Y, M, 0).getDate();
   const byDay = {};
-  data.forEach(entry => {
-    const d = Number(entry.iso.split('-')[2]);
-    if(!byDay[d]) byDay[d] = [];
-    byDay[d].push(entry);
-  });
+  data.forEach(e=>{ const d=Number(e.iso.split('-')[2]); (byDay[d] ||= []).push(e); });
 
-  function splitLav(text, maxW){
-    return pdf.splitTextToSize(text || '', maxW);
+  const pad = n=>String(n).padStart(2,'0');
+  const maxW = pageW - margin - 80;
+
+  function newPage(){
+    pdf.addPage(); addLogoWatermark(); drawPrintMargins(); pageNum++; yPos = margin + 2;
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9); pdf.setTextColor(30,41,59);
+    pdf.text('CALENDARIO LAVORAZIONI (continua)', margin, yPos);
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(100,116,139);
+    pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align:'right' });
+    yPos += 4;
+    pdf.saveGraphicsState(); pdf.setGState(gs70);
+    pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
+    pdf.rect(margin, yPos, pageW-2*margin, calHeadH, 'F'); pdf.restoreGraphicsState();
+    pdf.setTextColor(255,255,255);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
+    const chY2 = yPos + calHeadH*0.65;
+    pdf.text('Giorno', margin + 2, chY2);
+    pdf.text('Operaio', margin + 25, chY2);
+    pdf.text('Ore', margin + 70, chY2, { align:'right' });
+    pdf.text('Lavorazioni', margin + 75, chY2);
+    yPos += calHeadH + 1;
   }
+
+  function splitLav(text){ return pdf.splitTextToSize(text || '', maxW); }
 
   for(let d=1; d<=daysInMonth; d++){
     const list0 = byDay[d] || [];
     if(!list0.length) continue;
 
-    const date = new Date(Y, M-1, d);
-    const dow = (date.getDay()+6)%7;
-    const iso = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dt = new Date(Y, M-1, d);
+    const dow = (dt.getDay()+6)%7;
+    const iso = `${Y}-${pad(M)}-${pad(d)}`;
     const isOff = (dow===5||dow===6) || state.holidays.has(iso);
-    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
-    const dayLabel = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} ${nomeG}`;
+    const nomeG = dt.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
+    const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
 
-    const list = (function groupDayEntries(entries){
-      const map = new Map();
-      entries.forEach(e=>{
-        const op = e.operaio;
-        const lav = (e.lavorazione||'');
-        const note = (e.note||'');
-        const key = `${op}|${lav}|${note}`;
-        if(!map.has(key)) map.set(key,{operaio:op,lav,note,ore:0});
-        const rec = map.get(key);
-        rec.ore += (e.ore||0);
-      });
-      return Array.from(map.values()).map(v=>({ operaio:v.operaio, lav:v.lav, note:v.note, ore:+(+v.ore).toFixed(2)}));
-    })(list0);
+    // Aggrega per operaio/lavorazione
+    const map = new Map();
+    list0.forEach(e=>{
+      const key = `${e.operaio}|${e.lavorazione||''}|${e.note||''}`;
+      if(!map.has(key)) map.set(key,{operaio:e.operaio,lav:e.lavorazione||'',ore:0});
+      map.get(key).ore += (e.ore||0);
+    });
+    const list = Array.from(map.values()).map(v=>({ ...v, ore:+(+v.ore).toFixed(2) }));
 
-    // Calcolo spazio necessario
-    let totalRowsNeeded = 0;
-    const maxW = pageW - margin - 80;
-    list.forEach(en => totalRowsNeeded += splitLav(en.lav, maxW).length);
-    totalRowsNeeded += (list.length > 1 ? 1 : 0);
-    const spaceNeeded = totalRowsNeeded * 5 + list.length * 2;
-
-    // Nuova pagina se serve
-    if(yPos + spaceNeeded > pageH - 10){
-      pdf.addPage();
-      addLogoWatermark();
-      pageNum++;
-      yPos = margin + 2;
-
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
-      pdf.setTextColor(30,41,59);
-      pdf.text('CALENDARIO LAVORAZIONI (continua)', margin, yPos);
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
-      pdf.setTextColor(100,116,139);
-      pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align:'right' });
-      yPos += 4;
-
-      // Header calendario (verde, 70%)
-      pdf.saveGraphicsState();
-      pdf.setGState(gs70);
-      pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
-      pdf.rect(margin, yPos, pageW - 2*margin, headerH2, 'F');
-      pdf.restoreGraphicsState();
-
-      pdf.setTextColor(255,255,255);
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-      const baseY2b = yPos + 4.5;
-      pdf.text('Giorno',      margin + 2,  baseY2b);
-      pdf.text('Operaio',     margin + 25, baseY2b);
-      pdf.text('Ore',         margin + 70, baseY2b, { align:'right' });
-      pdf.text('Lavorazioni', margin + 75, baseY2b);
-      yPos += headerH2 + 1;
-    }
+    // Spazio necessario
+    let totalRows = 0;
+    list.forEach(en => totalRows += splitLav(en.lav).length);
+    totalRows += (list.length>1?1:0);
+    const need = totalRows*5 + list.length*2;
+    if(yPos + need > pageH - 10) newPage();
 
     list.forEach((en, idx) => {
-      const lavLines = splitLav(en.lav, maxW);
-      const rowHeight = Math.max(5, lavLines.length * 4);
+      const lavLines = splitLav(en.lav);
+      const rowH2 = Math.max(5, lavLines.length*4);
 
-      if(isOff){
-        pdf.saveGraphicsState();
-        pdf.setGState(gs70);
+      if(isOff){ pdf.saveGraphicsState(); pdf.setGState(gs70);
         pdf.setFillColor(WK_BG.r, WK_BG.g, WK_BG.b);
-        pdf.rect(margin, yPos - 3, pageW - 2*margin, rowHeight, 'F');
-        pdf.restoreGraphicsState();
-      }
+        pdf.rect(margin, yPos - 3, pageW-2*margin, rowH2, 'F'); pdf.restoreGraphicsState(); }
 
-      // Giorno (solo prima riga)
-      if(idx === 0){
-        pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-        pdf.setTextColor(30,41,59);
-        pdf.text(dayLabel, margin + 2, yPos + 1.5);
-      }
+      // Giorno (solo prima riga), centrato verticalmente
+      if(idx===0){ pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
+        pdf.text(dayLabel, margin+2, yPos + rowH2*0.65); }
 
-      // Operaio (ex blu → verde, opacità 70%)
-      pdf.saveGraphicsState();
-      pdf.setGState(gs70);
-      pdf.setTextColor(TEAL.r, TEAL.g, TEAL.b);
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-      pdf.text(en.operaio, margin + 25, yPos + 1.5);
-      pdf.restoreGraphicsState();
+      // Operaio: NERO GRASSETTO (non trasparente)
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(0,0,0);
+      pdf.text(en.operaio, margin + 25, yPos + rowH2*0.65);
 
-      // Ore
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-      pdf.setTextColor(15,23,42);
-      pdf.text(`${en.ore} h`, margin + 70, yPos + 1.5, { align:'right' });
+      // Ore (allineate a destra, centrate verticalmente)
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(15,23,42);
+      pdf.text(`${en.ore} h`, margin + 70, yPos + rowH2*0.65, { align:'right' });
 
       // Lavorazioni
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
-      pdf.setTextColor(30,41,59);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
       pdf.text(lavLines, margin + 75, yPos + 1.5);
 
-      yPos += rowHeight;
+      yPos += rowH2;
     });
 
-    // === TOTALE GIORNO (highlight più basso + testo centrato) ===
-    if(list.length > 1){
-      const dayTot = list.reduce((sum, en) => sum + (en.ore || 0), 0);
-      const barH = 4; // più basso
+    // TOTALE GIORNO (barra più bassa + TOT allineato alla colonna Ore e centrato verticalmente)
+    if(list.length>1){
+      const dayTot = list.reduce((s,en)=>s+(en.ore||0),0);
+      const barH = 4;
+      const barY = yPos - 3;
       pdf.setFillColor(FILL_GRAY.r, FILL_GRAY.g, FILL_GRAY.b);
-      pdf.rect(margin, yPos - 3, pageW - 2*margin, barH, 'F');
+      pdf.rect(margin, barY, pageW-2*margin, barH, 'F');
 
-      const totText = `TOT: ${dayTot.toFixed(1)} h`;
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-      pdf.setTextColor(15,23,42);
-      pdf.text(totText, pageW/2, yPos + 1.2, { align:'center' }); // centrato
+      // Allineato alla colonna "Ore" (x = margin + 70), centrato verticalmente nella barra
+      const yMid = barY + barH*0.65;
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(15,23,42);
+      pdf.text(`TOT: ${dayTot.toFixed(1)} h`, margin + 70, yMid, { align:'right' });
+
       yPos += barH;
     }
   }
 
   // Footer
-  pdf.setFont('helvetica','italic'); pdf.setFontSize(6);
-  pdf.setTextColor(150,150,150);
-  pdf.text(`Report generato il ${new Date().toLocaleDateString('it-IT')}`, pageW/2, pageH - 5, { align:'center' });
+  pdf.setFont('helvetica','italic'); pdf.setFontSize(6); pdf.setTextColor(150,150,150);
+  pdf.text(`Report generato il ${new Date().toLocaleDateString('it-IT')}`, pageW/2, pageH-5, { align:'center' });
 
   pdf.save(`Analisi_Cantiere_${cant.replace(/\s+/g,'_')}_${String(M).padStart(2,'0')}_${Y}.pdf`);
 }
