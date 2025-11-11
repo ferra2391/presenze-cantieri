@@ -547,7 +547,7 @@
             <tr>
               <th>Giorno</th>
               <th>Operaio</th>
-              <th class="num">Orario / Ore</th>
+              <th class="num">Ore</th>
               <th>Lavorazioni / Note</th>
             </tr>
           </thead>
@@ -1010,9 +1010,7 @@ function renderCalendarioLavorazioni(cant, Y, M){
 
       const tdOrario = document.createElement('td');
       tdOrario.className = 'num';
-      const firstLine = en.orari ? en.orari : '';
-      const secondLine = en.ore ? `<br><strong>${en.ore} h</strong>` : '';
-      tdOrario.innerHTML = firstLine + secondLine;
+      tdOrario.innerHTML = `<strong>${en.ore} h</strong>`;
 
       const tdLav = document.createElement('td');
       const lavHtml = en.lav ? `<div class="lav">${en.lav.replace(/\n/g,'<br>')}</div>` : '';
@@ -1133,7 +1131,7 @@ async function carica(){
   }
 }
   
-/* ==================== EXPORT PDF ==================== */
+/* ==================== EXPORT PDF A3 ORIZZONTALE ==================== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio cantiere.');
@@ -1151,167 +1149,254 @@ async function exportDetailPDF(){
   let totOre = 0;
   const operaiSet = new Set();
   const giorniSet = new Set();
+  const operaiOre = {};
+  const operaiGiorni = {};
+  
   data.forEach(entry => {
     totOre += (entry.ore || 0);
     operaiSet.add(entry.operaio);
     giorniSet.add(entry.iso);
-  });
-
-  const A4_W = 2480;
-  const A4_H = 3508;
-  const MARGIN = 25;
-
-  const pdfContainer = document.getElementById('pdfContainer');
-  pdfContainer.innerHTML = '';
-  pdfContainer.style.display = 'block';
-  pdfContainer.style.position = 'absolute';
-  pdfContainer.style.left = '-10000px';
-  pdfContainer.style.top = '0';
-  pdfContainer.style.width = A4_W + 'px';
-  pdfContainer.style.minHeight = A4_H + 'px';
-  pdfContainer.style.background = '#ffffff';
-  pdfContainer.style.padding = MARGIN + 'px';
-  pdfContainer.style.boxSizing = 'border-box';
-  pdfContainer.style.fontFamily = 'Arial, sans-serif';
-
-  // Header
-  const header = document.createElement('div');
-  header.style.cssText = `
-    display:flex; justify-content:space-between; align-items:center;
-    padding:12px 20px; background:rgba(226, 232, 240, 0.5);
-    border:1px solid #cbd5e1; border-radius:8px; margin-bottom:20px;
-  `;
-  
-  const leftHead = document.createElement('div');
-  const title = document.createElement('div');
-  title.style.cssText = 'font-weight:900; font-size:56px; letter-spacing:-0.5px; color:#1e293b;';
-  title.textContent = cant;
-  const subtitle = document.createElement('div');
-  subtitle.style.cssText = 'font-size:26px; font-weight:600; margin-top:2px; color:#475569;';
-  subtitle.textContent = `Analisi Cantiere ${String(M).padStart(2,'0')}/${Y}`;
-  leftHead.appendChild(title);
-  leftHead.appendChild(subtitle);
-  
-  const rightHead = document.createElement('div');
-  rightHead.style.cssText = 'text-align:right;';
-  const sup = document.createElement('div');
-  sup.style.cssText = 'font-size:20px; font-weight:600; color:#64748b; margin-bottom:2px;';
-  sup.textContent = 'TOTALE ORE';
-  const big = document.createElement('div');
-  big.style.cssText = 'font-weight:900; font-size:72px; line-height:1; color:#0f172a;';
-  big.textContent = `${totOre.toFixed(1)} h`;
-  rightHead.appendChild(sup);
-  rightHead.appendChild(big);
-  
-  header.appendChild(leftHead);
-  header.appendChild(rightHead);
-  pdfContainer.appendChild(header);
-
-  // Stats
-  const statsDiv = document.createElement('div');
-  statsDiv.style.cssText = 'display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:20px;';
-  
-  const statBoxes = [
-    { label: 'GIORNI LAVORATI', value: giorniSet.size },
-    { label: 'OPERAI COINVOLTI', value: operaiSet.size },
-    { label: 'MEDIA / GIORNO', value: `${(totOre/giorniSet.size).toFixed(1)} h` }
-  ];
-  
-  statBoxes.forEach(stat => {
-    const box = document.createElement('div');
-    box.style.cssText = `
-      background:#f1f5f9; padding:16px; border-radius:8px;
-      border:1px solid #cbd5e1; text-align:center;
-    `;
-    const label = document.createElement('div');
-    label.style.cssText = 'font-size:18px; font-weight:600; color:#64748b; margin-bottom:8px;';
-    label.textContent = stat.label;
-    const value = document.createElement('div');
-    value.style.cssText = 'font-size:48px; font-weight:900; color:#0f172a;';
-    value.textContent = stat.value;
-    box.appendChild(label);
-    box.appendChild(value);
-    statsDiv.appendChild(box);
-  });
-  pdfContainer.appendChild(statsDiv);
-
-  // Clone and append detail sections
-  const sections = detailCard.querySelectorAll('.detail-section');
-  sections.forEach(section => {
-    const clone = section.cloneNode(true);
-    clone.style.cssText = 'margin-bottom:20px; page-break-inside:avoid;';
     
-    // Adjust font sizes for PDF
-    const headers = clone.querySelectorAll('.section-header');
-    headers.forEach(h => h.style.fontSize = '32px');
-    
-    const tables = clone.querySelectorAll('table');
-    tables.forEach(t => {
-      t.style.fontSize = '24px';
-      const ths = t.querySelectorAll('th');
-      ths.forEach(th => th.style.padding = '12px');
-      const tds = t.querySelectorAll('td');
-      tds.forEach(td => td.style.padding = '12px');
-    });
-    
-    pdfContainer.appendChild(clone);
+    if(!operaiOre[entry.operaio]) {
+      operaiOre[entry.operaio] = 0;
+      operaiGiorni[entry.operaio] = new Set();
+    }
+    operaiOre[entry.operaio] += (entry.ore || 0);
+    operaiGiorni[entry.operaio].add(entry.iso);
   });
 
-  await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 100));
-  
-  const canvas = await html2canvas(pdfContainer, {
-    scale: 1,
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    logging: false
+  // Organizza dati per giorno
+  const daysInMonth = new Date(Y, M, 0).getDate();
+  const byDay = {};
+  data.forEach(entry => {
+    const d = Number(entry.iso.split('-')[2]);
+    if(!byDay[d]) byDay[d] = [];
+    byDay[d].push(entry);
   });
-  
-  pdfContainer.style.display = 'none';
 
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
+  // === A3 ORIZZONTALE ===
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a3' });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 15;
+  let yPos = margin;
+
+  // === HEADER ===
+  pdf.setFillColor(226, 232, 240);
+  pdf.rect(margin, yPos, pageW - 2*margin, 25, 'F');
   
-  const imgData = canvas.toDataURL('image/png');
-  const imgW = canvas.width;
-  const imgH = canvas.height;
+  pdf.setFontSize(24);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(30, 41, 59);
+  pdf.text(cant, margin + 5, yPos + 10);
   
-  const ratio = Math.min((pageW - 20) / imgW, (pageH - 20) / imgH);
-  const scaledW = imgW * ratio;
-  const scaledH = imgH * ratio;
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(71, 85, 105);
+  pdf.text(`Analisi Cantiere ${pad(M)}/${Y}`, margin + 5, yPos + 18);
   
-  // Se il contenuto è più alto di una pagina, dividi in più pagine
-  if(scaledH > pageH - 20) {
-    let yOffset = 0;
-    let pageCount = 0;
+  pdf.setFontSize(32);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(15, 23, 42);
+  pdf.text(`${totOre.toFixed(1)} h`, pageW - margin - 5, yPos + 18, { align: 'right' });
+  
+  yPos += 30;
+
+  // === STATISTICHE (4 box orizzontali) ===
+  const boxW = (pageW - 2*margin - 15) / 4;
+  const stats = [
+    { label: 'GIORNI LAVORATI', value: giorniSet.size },
+    { label: 'OPERAI COINVOLTI', value: operaiSet.size },
+    { label: 'MEDIA / GIORNO', value: `${(totOre/giorniSet.size).toFixed(1)} h` },
+    { label: 'ORE WEEKEND/FESTIVI', value: `${data.filter(e=>e.isOff).reduce((sum,e)=>sum+(e.ore||0),0).toFixed(1)} h` }
+  ];
+  
+  stats.forEach((stat, i) => {
+    const x = margin + i * (boxW + 5);
+    pdf.setFillColor(241, 245, 249);
+    pdf.rect(x, yPos, boxW, 20, 'F');
     
-    while(yOffset < imgH) {
-      if(pageCount > 0) pdf.addPage();
-      
-      const sourceY = yOffset;
-      const sourceHeight = Math.min(imgH - yOffset, (pageH - 20) / ratio);
-      
-      // Crea un canvas temporaneo per questa sezione
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = imgW;
-      tempCanvas.height = sourceHeight;
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.drawImage(canvas, 0, sourceY, imgW, sourceHeight, 0, 0, imgW, sourceHeight);
-      
-      const tempImg = tempCanvas.toDataURL('image/png');
-      pdf.addImage(tempImg, 'PNG', 10, 10, scaledW, sourceHeight * ratio, undefined, 'FAST');
-      
-      yOffset += sourceHeight;
-      pageCount++;
-    }
-  } else {
-    const x = (pageW - scaledW) / 2;
-    const y = (pageH - scaledH) / 2;
-    pdf.addImage(imgData, 'PNG', x, y, scaledW, scaledH, undefined, 'FAST');
-  }
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(100, 116, 139);
+    pdf.text(stat.label, x + boxW/2, yPos + 7, { align: 'center' });
+    
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(15, 23, 42);
+    pdf.text(String(stat.value), x + boxW/2, yPos + 16, { align: 'center' });
+  });
   
-  pdf.save(`Analisi_Cantiere_${cant.replace(/\s+/g,'_')}_${String(M).padStart(2,'0')}_${Y}.pdf`);
+  yPos += 25;
+
+  // === GRAFICO ===
+  const chartCanvas = document.getElementById('chartAndamento');
+  if(chartCanvas && state.chartInstance){
+    const chartImg = chartCanvas.toDataURL('image/png');
+    const chartH = 50;
+    pdf.addImage(chartImg, 'PNG', margin, yPos, pageW - 2*margin, chartH);
+    yPos += chartH + 5;
+  }
+
+  // === TABELLA OPERAI ===
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(30, 41, 59);
+  pdf.text('👷 Operai che hanno lavorato', margin, yPos);
+  yPos += 8;
+
+  // Header tabella operai
+  pdf.setFillColor(248, 250, 252);
+  pdf.rect(margin, yPos, pageW - 2*margin, 8, 'F');
+  
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(71, 85, 105);
+  pdf.text('OPERAIO', margin + 5, yPos + 5);
+  pdf.text('ORE TOTALI', pageW - margin - 80, yPos + 5, { align: 'right' });
+  pdf.text('GIORNI', pageW - margin - 45, yPos + 5, { align: 'right' });
+  pdf.text('MEDIA/GG', pageW - margin - 15, yPos + 5, { align: 'right' });
+  
+  yPos += 10;
+
+  // Righe operai (max 10)
+  const operaiList = Object.keys(operaiOre).sort((a,b) => operaiOre[b] - operaiOre[a]).slice(0, 10);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(30, 41, 59);
+  
+  operaiList.forEach((op, i) => {
+    const ore = operaiOre[op];
+    const giorni = operaiGiorni[op].size;
+    const media = giorni > 0 ? (ore / giorni) : 0;
+    
+    if(i % 2 === 0){
+      pdf.setFillColor(250, 250, 250);
+      pdf.rect(margin, yPos - 3, pageW - 2*margin, 6, 'F');
+    }
+    
+    pdf.text(op, margin + 5, yPos + 2);
+    pdf.text(`${ore.toFixed(1)} h`, pageW - margin - 80, yPos + 2, { align: 'right' });
+    pdf.text(String(giorni), pageW - margin - 45, yPos + 2, { align: 'right' });
+    pdf.text(`${media.toFixed(1)} h`, pageW - margin - 15, yPos + 2, { align: 'right' });
+    
+    yPos += 6;
+  });
+  
+  yPos += 5;
+
+  // === CALENDARIO LAVORAZIONI (formato compatto) ===
+  if(yPos > pageH - 40){
+    pdf.addPage();
+    yPos = margin;
+  }
+
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(30, 41, 59);
+  pdf.text('📅 Calendario Lavorazioni', margin, yPos);
+  yPos += 8;
+
+  // Tabella calendario (formato compatto - solo giorni con presenze)
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFillColor(248, 250, 252);
+  pdf.rect(margin, yPos, pageW - 2*margin, 7, 'F');
+  
+  pdf.setTextColor(71, 85, 105);
+  pdf.text('GIORNO', margin + 3, yPos + 4.5);
+  pdf.text('OPERAIO', margin + 30, yPos + 4.5);
+  pdf.text('ORE', margin + 90, yPos + 4.5, { align: 'right' });
+  pdf.text('LAVORAZIONI', margin + 95, yPos + 4.5);
+  
+  yPos += 9;
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7);
+  
+  let rowCount = 0;
+  const maxRows = 35; // Limita righe per non uscire dalla pagina
+
+  for(let d=1; d<=daysInMonth && rowCount < maxRows; d++){
+    const list0 = byDay[d] || [];
+    if(!list0.length) continue;
+    
+    const date = new Date(Y, M-1, d);
+    const dow = (date.getDay()+6)%7;
+    const iso = `${Y}-${pad(M)}-${pad(d)}`;
+    const isOff = (dow===5||dow===6) || state.holidays.has(iso);
+    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
+    const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
+    
+    const list = groupDayEntries(list0);
+    
+    list.forEach((en, idx) => {
+      if(rowCount >= maxRows) return;
+      
+      // Sfondo weekend
+      if(isOff){
+        pdf.setFillColor(254, 243, 199);
+        pdf.rect(margin, yPos - 2.5, pageW - 2*margin, 5, 'F');
+      } else if(rowCount % 2 === 0){
+        pdf.setFillColor(250, 250, 250);
+        pdf.rect(margin, yPos - 2.5, pageW - 2*margin, 5, 'F');
+      }
+      
+      pdf.setTextColor(30, 41, 59);
+      
+      // Giorno (solo prima riga)
+      if(idx === 0){
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(dayLabel, margin + 3, yPos + 1.5);
+        pdf.setFont('helvetica', 'normal');
+      }
+      
+      // Operaio
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(3, 105, 161);
+      pdf.text(en.operaio, margin + 30, yPos + 1.5);
+      
+      // Ore
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(15, 23, 42);
+      pdf.text(`${en.ore} h`, margin + 90, yPos + 1.5, { align: 'right' });
+      
+      // Lavorazioni
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(30, 41, 59);
+      const lavText = en.lav || '—';
+      const maxW = pageW - margin - 100;
+      const lines = pdf.splitTextToSize(lavText, maxW);
+      pdf.text(lines[0] || '', margin + 95, yPos + 1.5);
+      
+      yPos += 5;
+      rowCount++;
+    });
+    
+    // Totale giorno se più operai
+    if(list.length > 1 && rowCount < maxRows){
+      const dayTot = list.reduce((sum, en) => sum + (en.ore || 0), 0);
+      pdf.setFillColor(226, 232, 240);
+      pdf.rect(margin, yPos - 2.5, pageW - 2*margin, 5, 'F');
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(15, 23, 42);
+      pdf.text('Tot giorno:', margin + 70, yPos + 1.5, { align: 'right' });
+      pdf.text(`${dayTot.toFixed(1)} h`, margin + 90, yPos + 1.5, { align: 'right' });
+      yPos += 5;
+      rowCount++;
+    }
+  }
+
+  // Nota se ci sono più giorni
+  const totalDays = Object.keys(byDay).length;
+  if(totalDays > maxRows / 2){
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'italic');
+    pdf.setTextColor(100, 116, 139);
+    pdf.text(`Nota: Visualizzati i primi ${Math.min(maxRows, totalDays)} giorni lavorati`, margin, yPos + 5);
+  }
+
+  pdf.save(`Analisi_Cantiere_${cant.replace(/\s+/g,'_')}_${pad(M)}_${Y}.pdf`);
 }
 
 /* ====== INIT ====== */
