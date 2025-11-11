@@ -1,1137 +1,4 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8" />
-<title>Analisi per Cantiere - Dashboard Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<style>
-  :root{
-    --primary: hsl(210,100%,45%);
-    --primary-dark: hsl(210,100%,35%);
-    --text: hsl(210,15%,15%);
-    --text-light: hsl(210,10%,40%);
-    --muted: hsl(210,8%,50%);
-    --bg: hsl(210,25%,96%);
-    --card: #ffffff;
-    --border: hsl(210,20%,88%);
-    --border-strong: hsl(210,20%,75%);
-    --orange-weak: hsla(30,100%,50%,0.12);
-    --orange-border: hsla(30,100%,50%,0.3);
-    --success: hsl(140,70%,40%);
-    --error: hsl(0,70%,50%);
-    --hover-bg: hsl(210,30%,98%);
-  }
-  
-  * { box-sizing: border-box; }
-  
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  }
-  
-  .container {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 32px 40px;
-  }
-  
-  h1 {
-    margin: 0 0 24px;
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.5px;
-  }
-
-  /* CONTROL PANEL */
-  .control-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    margin-bottom: 28px;
-  }
-  
-  .control-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  
-  .control-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .nav {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .nav a {
-    padding: 10px 18px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--text);
-    transition: all 0.2s;
-  }
-  
-  .nav a:hover {
-    border-color: var(--primary);
-    background: var(--hover-bg);
-  }
-  
-  .nav a.primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-  }
-  
-  .nav a.primary:hover {
-    background: var(--primary-dark);
-  }
-  
-  input[type="month"] {
-    padding: 10px 16px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    font-size: 15px;
-    font-weight: 500;
-    min-width: 160px;
-    transition: border-color 0.2s;
-  }
-  
-  input[type="month"]:focus {
-    outline: none;
-    border-color: var(--primary);
-  }
-  
-  button {
-    padding: 10px 18px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.2s;
-    color: var(--text);
-  }
-  
-  button:hover:not(:disabled) {
-    border-color: var(--primary);
-    background: var(--hover-bg);
-  }
-  
-  button.primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-  }
-  
-  button.primary:hover:not(:disabled) {
-    background: var(--primary-dark);
-  }
-  
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .spinner {
-    display: none;
-  }
-  
-  .spinner.show {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #ddd;
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    vertical-align: -4px;
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  #status {
-    margin-top: 12px;
-    font-size: 15px;
-  }
-  
-  .ok {
-    color: var(--success);
-    font-weight: 600;
-  }
-  
-  .error {
-    color: var(--error);
-    font-weight: 600;
-  }
-
-  /* TABLE CARDS */
-  .table-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    overflow: hidden;
-    margin-bottom: 28px;
-  }
-  
-  .table-title {
-    padding: 20px 24px;
-    border-bottom: 2px solid var(--border);
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--text);
-    background: linear-gradient(to bottom, var(--card), var(--hover-bg));
-  }
-  
-  .table-wrap {
-    overflow-x: auto;
-  }
-
-  table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    font-size: 15px;
-  }
-  
-  thead th {
-    background: var(--hover-bg);
-    border-bottom: 2px solid var(--border-strong);
-    padding: 16px 18px;
-    text-align: left;
-    white-space: nowrap;
-    font-weight: 700;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-light);
-  }
-  
-  thead th.num {
-    text-align: right;
-  }
-  
-  tbody td,
-  tbody th {
-    border-top: 1px solid var(--border);
-    padding: 16px 18px;
-    font-size: 15px;
-  }
-  
-  tbody tr {
-    transition: background-color 0.15s;
-  }
-  
-  tbody tr:hover {
-    background: var(--hover-bg);
-  }
-  
-  td.num {
-    text-align: right;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .cant-link {
-    color: var(--primary);
-    font-weight: 700;
-    font-size: 16px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-  
-  .cant-link:hover {
-    color: var(--primary-dark);
-    text-decoration: underline;
-  }
-
-  /* DETAIL SECTIONS */
-  .detail-section {
-    padding: 24px;
-    border-bottom: 1px solid var(--border);
-  }
-  
-  .detail-section:last-child {
-    border-bottom: none;
-  }
-  
-  .section-header {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--border);
-  }
-  
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  
-  .stat-box {
-    background: var(--hover-bg);
-    padding: 16px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-  }
-  
-  .stat-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-light);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-  }
-  
-  .stat-value {
-    font-size: 28px;
-    font-weight: 900;
-    color: var(--text);
-  }
-
-  /* OPERAI TABLE */
-  .operai-table {
-    margin-top: 16px;
-  }
-  
-  .operai-table table {
-    font-size: 15px;
-  }
-
-  /* CALENDARIO LAVORAZIONI (stile dettaglio operaio) */
-  .detail-lav {
-    font-size: 14px;
-  }
-  
-  .detail-lav .daycell {
-    white-space: nowrap;
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--text);
-    min-width: 120px;
-  }
-  
-  .detail-lav .op-name {
-    font-weight: 800;
-    color: #0369a1;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    font-size: 13px;
-  }
-  
-  .detail-lav .lav {
-    color: var(--text);
-    margin-top: 6px;
-    line-height: 1.5;
-  }
-  
-  .detail-lav .note {
-    color: var(--muted);
-    font-style: italic;
-    margin-top: 4px;
-    font-size: 13px;
-  }
-  
-  .detail-lav td,
-  .detail-lav th {
-    vertical-align: top;
-    padding: 14px 16px;
-  }
-
-  /* Weekend/Festivi highlight */
-  .detail-lav tr.off td {
-    background: var(--orange-weak) !important;
-  }
-
-  /* Alternanza righe normali */
-  .detail-lav tr.alt td {
-    background: #fafafa;
-  }
-
-  /* Gabbia perimetro giorno */
-  .detail-lav tr.gstart td {
-    border-top: 2px solid var(--border-strong);
-  }
-  
-  .detail-lav tr.gend td {
-    border-bottom: 2px solid var(--border-strong);
-  }
-
-  .detail-lav tr.gstart td.daycell,
-  .detail-lav tr.gmid td.daycell,
-  .detail-lav tr.gend td.daycell {
-    border-left: 2px solid var(--border-strong);
-  }
-
-  .detail-lav tr.gstart td:last-child,
-  .detail-lav tr.gmid td:last-child,
-  .detail-lav tr.gend td:last-child {
-    border-right: 2px solid var(--border-strong);
-  }
-
-  /* Arrotondamenti */
-  .detail-lav tr.gstart td.daycell {
-    border-top-left-radius: 10px;
-  }
-  
-  .detail-lav tr.gstart td:last-child {
-    border-top-right-radius: 10px;
-  }
-  
-  .detail-lav tr.gend td.daycell {
-    border-bottom-left-radius: 10px;
-  }
-  
-  .detail-lav tr.gend td:last-child {
-    border-bottom-right-radius: 10px;
-  }
-
-  /* Tot giorno */
-  .detail-lav tr.daytot td {
-    font-weight: 800;
-    background: var(--hover-bg);
-  }
-  
-  /* Footer azioni */
-  .detail-footer {
-    padding: 20px 24px;
-    border-top: 2px solid var(--border);
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    background: var(--hover-bg);
-  }
-  
-  /* Empty state */
-  .empty-state {
-    padding: 60px 24px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 16px;
-  }
-
-  /* PDF LAYOUT container */
-  .pdf-container {
-    display: none;
-  }
-
-  @media print {
-    body { background: white; }
-    .container { padding: 20px; }
-  }
-</style>
-</head>
-<body>
-<div class="container">
-  <h1>🏗️ Analisi per Cantiere</h1>
-
-  <div class="control-panel">
-    <div class="control-row">
-      <div class="control-left">
-        <button id="prevMonth" title="Mese precedente">◀</button>
-        <input type="month" id="mese" />
-        <button id="nextMonth" title="Mese successivo">▶</button>
-        <button id="btnCarica" class="primary">Carica Dati</button>
-        <span id="spin" class="spinner"></span>
-      </div>
-      <div class="nav">
-        <a href="presenze.html">Presenze</a>
-        <a href="operaio.html">Analisi per Operaio</a>
-        <a class="primary" href="cantiere.html">Analisi per Cantiere</a>
-      </div>
-    </div>
-    <div id="status"></div>
-  </div>
-
-  <!-- RIEPILOGO -->
-  <div class="table-card">
-    <div class="table-title">📊 Riepilogo Mensile</div>
-    <div class="table-wrap">
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th>Cantiere</th>
-            <th class="num">Ore Totali</th>
-            <th class="num">Giorni Lavorati</th>
-            <th class="num">Media / Giorno</th>
-            <th class="num"># Operai</th>
-            <th class="num">Ore Weekend/Festivi</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- DETTAGLIO -->
-  <div class="table-card" id="detailCard" style="display:none">
-    <div class="table-title" id="detailTitle">🏗️ Dettaglio Cantiere</div>
-    
-    <!-- Statistiche generali -->
-    <div class="detail-section">
-      <div class="section-header">📈 Statistiche Generali</div>
-      <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-label">Ore Totali</div>
-          <div class="stat-value" id="statOreTot">0 h</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Giorni Lavorati</div>
-          <div class="stat-value" id="statGiorni">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Operai Coinvolti</div>
-          <div class="stat-value" id="statOperai">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Media / Giorno</div>
-          <div class="stat-value" id="statMedia">0 h</div>
-        </div>
-      </div>
-      
-      <!-- Grafico andamento ore -->
-      <div style="margin-top: 24px; background: white; padding: 20px; border-radius: 10px; border: 1px solid var(--border);">
-        <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--text);">📊 Andamento Ore Mensili</h3>
-        <canvas id="chartAndamento" style="max-height: 300px;"></canvas>
-      </div>
-    </div>
-
-    <!-- Operai -->
-    <div class="detail-section">
-      <div class="section-header">👷 Operai che hanno lavorato</div>
-      <div class="operai-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Operaio</th>
-              <th class="num">Ore Totali</th>
-              <th class="num">Giorni Lavorati</th>
-              <th class="num">Media / Giorno</th>
-            </tr>
-          </thead>
-          <tbody id="detailOperai"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Lavorazioni per giorno -->
-    <div class="detail-section">
-      <div class="section-header">📅 Calendario Lavorazioni</div>
-      <div class="table-wrap">
-        <table id="detailLavorazioniTable" class="detail-lav">
-          <thead>
-            <tr>
-              <th>Giorno</th>
-              <th>Operaio</th>
-              <th class="num">Ore</th>
-              <th>Lavorazioni / Note</th>
-            </tr>
-          </thead>
-          <tbody id="detailLavorazioni"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="detail-footer">
-      <button id="btnDetailPDF">📄 Esporta PDF</button>
-      <button id="btnCloseDetail">✕ Chiudi Dettaglio</button>
-    </div>
-  </div>
-</div>
-
-<!-- Container nascosto per il PDF -->
-<div id="pdfContainer" class="pdf-container"></div>
-
-<!-- Librerie -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
 <script>
-/* ====== CONFIG ====== */
-const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
-
-/* ====== UTIL ====== */
-const pad = n => String(n).padStart(2,"0");
-
-function calcEaster(Y){
-  const a=Y%19,b=Math.floor(Y/100),c=Y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
-        g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,L=(32+2*e+2*i-h-k)%7,
-        m=Math.floor((a+11*h+22*L)/451),month=Math.floor((h+L-7*m+114)/31),day=((h+L-7*m+114)%31)+1;
-  return new Date(Y,month-1,day);
-}
-
-function italianHolidays(year){
-  const set=new Set(),add=(m,d)=>set.add(`${year}-${pad(m)}-${pad(d)}`);
-  add(1,1); add(1,6); add(4,25); add(5,1); add(6,2); add(8,15); add(11,1); add(12,8); add(12,25); add(12,26);
-  const p=calcEaster(year), q=new Date(p); q.setDate(p.getDate()+1);
-  add(p.getMonth()+1,p.getDate()); add(q.getMonth()+1,q.getDate());
-  return set;
-}
-
-const normalize = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
-
-function parseDateAny(v){
-  if(!v) return null;
-  if(v instanceof Date) return v;
-  const s = String(v).trim();
-  if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const [Y,M,D]=s.split("T")[0].split("-").map(Number); return new Date(Y,M-1,D); }
-  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
-  const t = new Date(s); return isNaN(t) ? null : t;
-}
-
-function pick(row, ...names){
-  if(!row) return "";
-  const map = new Map(Object.keys(row).map(k => [normalize(k), k]));
-  for(const name of names){
-    const key = map.get(normalize(name));
-    if(key && row[key] != null && row[key] !== "") return row[key];
-  }
-  return "";
-}
-
-function isBlankCantiere(value){
-  const s = String(value||"").trim();
-  if(!s) return true;
-  if (/^[-–—]+$/.test(s)) return true;
-  if (/^(nd|n\.d\.|n\/d|na|n\.a\.|n\/a|non\s+specificato|sconosciuto|nessuno|undefined|null)$/i.test(s)) return true;
-  if (/^\(s.*cantiere\)$/i.test(s)) return true;
-  return false;
-}
-
-const TIME_RANGE_RE = /\b\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}\b/g;
-const stripIntervals = s => s ? String(s).replace(TIME_RANGE_RE,"").replace(/\s{2,}/g," ").trim() : "";
-
-/* ====== STATE & UI refs ====== */
-const meseInput = document.getElementById('mese');
-const prevBtn   = document.getElementById('prevMonth');
-const nextBtn   = document.getElementById('nextMonth');
-const btnCarica = document.getElementById('btnCarica');
-const spin      = document.getElementById('spin');
-const statusEl  = document.getElementById('status');
-const tbody     = document.getElementById('tbody');
-
-const detailCard   = document.getElementById('detailCard');
-const detailTitle  = document.getElementById('detailTitle');
-const btnCloseDetail = document.getElementById('btnCloseDetail');
-
-const state = { Y:null, M:null, holidays:new Set(), byCantiere:{}, cantieri:[], summary:[], currentCant:null, allData:[], chartInstance:null };
-
-function setYM(Y,M){ meseInput.value = `${Y}-${pad(M)}`; }
-
-function getYM(){
-  const v = meseInput.value;
-  if(/^\d{4}-\d{2}$/.test(v)){ const [Y,M]=v.split('-').map(Number); return [Y,M]; }
-  const d=new Date(); return [d.getFullYear(), d.getMonth()+1];
-}
-
-function shiftMonth(delta){
-  let [Y,M]=getYM(); M+=delta;
-  if(M<1){M=12;Y--} if(M>12){M=1;Y++}
-  setYM(Y,M); carica();
-}
-
-function setLoading(on){
-  spin.classList.toggle('show', !!on);
-  btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
-}
-
-/* ====== FETCH ====== */
-async function fetchRowsFromOpenSheet(sheetId){
-  const tabs = ["Presenze", "Storico"];
-  const allRows = [];
-  const loadedTabs = [];
-  
-  for(const tab of tabs){
-    try{
-      const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
-      const res = await fetch(url, { cache: "no-store" });
-      if(res.ok){
-        const rows = await res.json();
-        if(Array.isArray(rows) && rows.length > 0){
-          allRows.push(...rows);
-          loadedTabs.push(tab);
-        }
-      }
-    }catch(_e){
-      console.warn(`Tab "${tab}" non trovata o errore nel caricamento`);
-    }
-  }
-  
-  if(allRows.length === 0){
-    throw new Error("Nessun dato trovato nei fogli Presenze e Storico");
-  }
-  
-  statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (${loadedTabs.join(', ')}) - ${allRows.length} righe totali</span>`;
-  return allRows;
-}
-
-/* ====== RENDER ====== */
-function renderSummary(list){
-  tbody.innerHTML = '';
-  if(list.length===0){
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nessun cantiere con ore registrate in questo mese.</td></tr>`;
-    return;
-  }
-  list.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML = `
-      <td><a class="cant-link" data-cant="${r.cant}">${r.cant}</a></td>
-      <td class="num">${r.tot} h</td>
-      <td class="num">${r.days}</td>
-      <td class="num">${r.media} h</td>
-      <td class="num">${r.operai}</td>
-      <td class="num">${r.weekend} h</td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-function groupDayEntries(entries){
-  const map = new Map();
-  entries.forEach(e=>{
-    const op = e.operaio;
-    const lav = stripIntervals(e.lavorazione||"");
-    const note = stripIntervals(e.note||"");
-    const key = `${op}|${lav}|${note}`;
-    if(!map.has(key)) map.set(key, {operaio:op, lav, note, ore:0, orari:new Set(), count:0});
-    const rec = map.get(key);
-    rec.ore += (e.ore||0);
-    if(e.orari){ String(e.orari).split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(x=>rec.orari.add(x)); }
-    rec.count++;
-  });
-  return Array.from(map.values()).map(v=>({
-    operaio: v.operaio,
-    lav: v.lav,
-    note: v.note,
-    orari: Array.from(v.orari).join(', '),
-    ore: +(+v.ore).toFixed(2)
-  }));
-}
-
-function createAndamentoChart(cant){
-  // Distruggi grafico precedente se esiste
-  if(state.chartInstance){
-    state.chartInstance.destroy();
-    state.chartInstance = null;
-  }
-  
-  // Calcola ore per mese per questo cantiere
-  const orePerMese = {};
-  
-  state.allData.forEach(r => {
-    const dataVal = pick(r, "Data Presenza", "Data");
-    const dt = parseDateAny(dataVal);
-    if(!dt) return;
-    
-    const cantRaw = String(pick(r, "Cantiere")).trim();
-    const cantNorm = isBlankCantiere(cantRaw) ? 'NO DATI' : cantRaw.toUpperCase();
-    
-    if(cantNorm !== cant) return;
-    
-    const oreV = pick(r, "Ore");
-    const ore = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
-    
-    const y = dt.getFullYear();
-    const m = dt.getMonth() + 1;
-    const key = `${y}-${pad(m)}`;
-    
-    if(!orePerMese[key]) orePerMese[key] = 0;
-    orePerMese[key] += ore;
-  });
-  
-  // Ordina per data e prendi gli ultimi 12 mesi
-  const mesi = Object.keys(orePerMese).sort();
-  const ultimi12 = mesi.slice(-12);
-  
-  if(ultimi12.length === 0){
-    document.getElementById('chartAndamento').style.display = 'none';
-    return;
-  }
-  
-  const labels = ultimi12.map(key => {
-    const [y, m] = key.split('-');
-    const date = new Date(parseInt(y), parseInt(m) - 1);
-    return date.toLocaleDateString('it-IT', { month: 'short', year: '2-digit' });
-  });
-  
-  const data = ultimi12.map(key => orePerMese[key].toFixed(1));
-  
-  const ctx = document.getElementById('chartAndamento').getContext('2d');
-  
-  state.chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          type: 'bar',
-          label: 'Ore Totali',
-          data: data,
-          backgroundColor: 'rgba(59, 130, 246, 0.6)',
-          borderColor: 'rgb(59, 130, 246)',
-          borderWidth: 2,
-          borderRadius: 6,
-        },
-        {
-          type: 'line',
-          label: 'Andamento',
-          data: data,
-          borderColor: 'rgb(220, 38, 38)',
-          borderWidth: 3,
-          pointBackgroundColor: 'rgb(220, 38, 38)',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          fill: false,
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 3,
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return context.parsed.y + ' ore';
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Ore',
-            font: {
-              weight: 'bold',
-              size: 14
-            }
-          },
-          ticks: {
-            callback: function(value) {
-              return value + ' h';
-            }
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Mese',
-            font: {
-              weight: 'bold',
-              size: 14
-            }
-          }
-        }
-      }
-    },
-    plugins: [{
-      afterDatasetsDraw: function(chart) {
-        const ctx = chart.ctx;
-        chart.data.datasets[0].data.forEach((value, index) => {
-          const meta = chart.getDatasetMeta(0);
-          const bar = meta.data[index];
-          
-          ctx.fillStyle = '#1e293b';
-          ctx.font = 'bold 13px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(value + ' h', bar.x, bar.y - 5);
-        });
-      }
-    }]
-  });
-}
-
-function showDetail(cant){
-  state.currentCant = cant;
-  const [Y,M] = [state.Y, state.M];
-  const data = state.byCantiere[cant];
-  
-  if(!data){
-    alert('Nessun dato per questo cantiere');
-    return;
-  }
-
-  // Calcola statistiche generali
-  let totOre = 0;
-  const operaiSet = new Set();
-  const giorniSet = new Set();
-  const operaiOre = {};
-  const operaiGiorni = {};
-
-  data.forEach(entry => {
-    totOre += (entry.ore || 0);
-    operaiSet.add(entry.operaio);
-    giorniSet.add(entry.iso);
-    
-    // Aggregazione per operaio
-    if(!operaiOre[entry.operaio]) {
-      operaiOre[entry.operaio] = 0;
-      operaiGiorni[entry.operaio] = new Set();
-    }
-    operaiOre[entry.operaio] += (entry.ore || 0);
-    operaiGiorni[entry.operaio].add(entry.iso);
-  });
-
-  // Statistiche generali
-  document.getElementById('statOreTot').textContent = `${totOre.toFixed(1)} h`;
-  document.getElementById('statGiorni').textContent = giorniSet.size;
-  document.getElementById('statOperai').textContent = operaiSet.size;
-  const mediaGiorno = giorniSet.size > 0 ? (totOre / giorniSet.size) : 0;
-  document.getElementById('statMedia').textContent = `${mediaGiorno.toFixed(1)} h`;
-
-  // Crea grafico andamento
-  createAndamentoChart(cant);
-
-  // Tabella operai
-  const detailOperai = document.getElementById('detailOperai');
-  detailOperai.innerHTML = '';
-  const operaiList = Object.keys(operaiOre).sort((a,b) => operaiOre[b] - operaiOre[a]);
-  operaiList.forEach(op => {
-    const ore = operaiOre[op];
-    const giorni = operaiGiorni[op].size;
-    const media = giorni > 0 ? (ore / giorni) : 0;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${op}</td>
-      <td class="num">${ore.toFixed(1)} h</td>
-      <td class="num">${giorni}</td>
-      <td class="num">${media.toFixed(1)} h</td>
-    `;
-    detailOperai.appendChild(tr);
-  });
-
-  // Calendario lavorazioni giorno per giorno
-  renderCalendarioLavorazioni(cant, Y, M);
-
-  detailTitle.textContent = `🏗️ Dettaglio Cantiere — ${cant} (${pad(M)}/${Y})`;
-  detailCard.style.display = 'block';
-  detailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function renderCalendarioLavorazioni(cant, Y, M){
-  const detailLavorazioni = document.getElementById('detailLavorazioni');
-  detailLavorazioni.innerHTML = '';
-  
-  const daysInMonth = new Date(Y, M, 0).getDate();
-  
-  // Organizza dati per giorno
-  const byDay = {};
-  const data = state.byCantiere[cant];
-  data.forEach(entry => {
-    const d = Number(entry.iso.split('-')[2]);
-    if(!byDay[d]) byDay[d] = [];
-    byDay[d].push(entry);
-  });
-  
-  let altFlag = false;
-
-  for(let d=1; d<=daysInMonth; d++){
-    const list0 = byDay[d] || [];
-    const date = new Date(Y, M-1, d);
-    const dow = (date.getDay()+6)%7;
-    const iso = `${Y}-${pad(M)}-${pad(d)}`;
-    const isOff = (dow===5||dow===6) || state.holidays.has(iso);
-
-    const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'});
-    const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
-
-    const altClass = (!isOff && altFlag) ? 'alt' : '';
-
-    if(!list0.length){
-      const tr = document.createElement('tr');
-      tr.className = `${isOff?'off':''} ${altClass} gstart gend`.trim();
-      tr.innerHTML = `
-        <td class="daycell">${dayLabel}</td>
-        <td>—</td>
-        <td class="num"></td>
-        <td></td>`;
-      detailLavorazioni.appendChild(tr);
-      if(!isOff) altFlag = !altFlag;
-      continue;
-    }
-
-    const list = groupDayEntries(list0);
-    const rowspan = list.length;
-    let dayTot = 0;
-
-    list.forEach((en, idx) => {
-      const tr = document.createElement('tr');
-      if(isOff) tr.classList.add('off');
-      if(altClass) tr.classList.add('alt');
-      if(rowspan===1) tr.classList.add('gstart','gend');
-      else if(idx===0) tr.classList.add('gstart');
-      else if(idx===rowspan-1) tr.classList.add('gend');
-      else tr.classList.add('gmid');
-
-      if(idx === 0){
-        const tdDay = document.createElement('td');
-        tdDay.className = 'daycell';
-        tdDay.rowSpan = rowspan;
-        tdDay.textContent = dayLabel;
-        tr.appendChild(tdDay);
-      }
-
-      const tdOp = document.createElement('td');
-      tdOp.innerHTML = `<div class="op-name">${en.operaio}</div>`;
-
-      const tdOrario = document.createElement('td');
-      tdOrario.className = 'num';
-      tdOrario.innerHTML = `<strong>${en.ore} h</strong>`;
-
-      const tdLav = document.createElement('td');
-      const lavHtml = en.lav ? `<div class="lav">${en.lav.replace(/\n/g,'<br>')}</div>` : '';
-      const noteHtml = en.note ? `<div class="note">${en.note.replace(/\n/g,'<br>')}</div>` : '';
-      tdLav.innerHTML = lavHtml + noteHtml;
-
-      dayTot += (en.ore || 0);
-
-      tr.appendChild(tdOp);
-      tr.appendChild(tdOrario);
-      tr.appendChild(tdLav);
-      detailLavorazioni.appendChild(tr);
-    });
-
-    if(list.length > 1){
-      const trSub = document.createElement('tr');
-      if(isOff) trSub.classList.add('off');
-      if(altClass) trSub.classList.add('alt');
-      trSub.classList.add('daytot','gend');
-
-      trSub.innerHTML = `
-        <td class="daycell"></td>
-        <td style="text-align:right;">Tot giorno:</td>
-        <td class="num"><strong>${(+dayTot.toFixed(2))} h</strong></td>
-        <td></td>`;
-      detailLavorazioni.appendChild(trSub);
-    }
-
-    if(!isOff) altFlag = !altFlag;
-  }
-}
-
-/* ====== DATA LOAD ====== */
-async function carica(){
-  try{
-    setLoading(true); statusEl.textContent=""; tbody.innerHTML=''; detailCard.style.display='none';
-
-    const [Y,M]=getYM();
-    state.Y=Y; state.M=M; state.holidays = italianHolidays(Y);
-
-    const rows = await fetchRowsFromOpenSheet(SHEET_ID);
-    
-    // Salva tutti i dati grezzi per il grafico
-    state.allData = rows;
-
-    state.byCantiere = {};
-    rows.forEach((r)=>{
-      const dataVal = pick(r, "Data Presenza", "Data");
-      const dt = parseDateAny(dataVal);
-      if(!dt) return;
-      const y=dt.getFullYear(), m=dt.getMonth()+1, d=dt.getDate();
-      if(y!==Y || m!==M) return;
-
-      const op = String(pick(r, "Nome Operaio", "Operaio")).trim();
-      if(!op) return;
-
-      const cantRaw = String(pick(r, "Cantiere")).trim();
-      const cant = isBlankCantiere(cantRaw) ? 'NO DATI' : cantRaw.toUpperCase();
-      
-      const orariStr = String(pick(r, "Orari") || "").trim();
-      const oreV     = pick(r, "Ore");
-      const ore      = (oreV!=="" && oreV!=null) ? Number(String(oreV).replace(",",".")) : 0;
-      const lav      = stripIntervals(String(pick(r, "Lavorazione") || ""));
-      const note     = stripIntervals(String(pick(r, "Note") || ""));
-
-      const iso = `${Y}-${pad(m)}-${pad(d)}`;
-      const date = new Date(Y, m-1, d);
-      const dow  = (date.getDay()+6)%7;
-      const isOff= (dow===5||dow===6) || state.holidays.has(iso);
-
-      if(!state.byCantiere[cant]) state.byCantiere[cant] = [];
-      state.byCantiere[cant].push({ 
-        operaio: op, 
-        ore, 
-        lavorazione: lav, 
-        note, 
-        orari: orariStr,
-        iso,
-        isOff
-      });
-    });
-
-    state.cantieri = Object.keys(state.byCantiere).sort((a,b)=>a.localeCompare(b,'it'));
-
-    state.summary = state.cantieri.map(cant=>{
-      const entries = state.byCantiere[cant] || [];
-      let tot=0, weekendHours=0;
-      const giorniSet = new Set();
-      const operaiSet = new Set();
-
-      entries.forEach(en => {
-        const h = en.ore || 0;
-        tot += h;
-        giorniSet.add(en.iso);
-        operaiSet.add(en.operaio);
-        if(en.isOff) weekendHours += h;
-      });
-
-      const days = giorniSet.size;
-      const media = days ? +(tot/days).toFixed(2) : 0;
-      
-      return { 
-        cant, 
-        tot: +tot.toFixed(2), 
-        days, 
-        media, 
-        operai: operaiSet.size,
-        weekend: +weekendHours.toFixed(2)
-      };
-    }).sort((a,b)=> b.tot - a.tot || a.cant.localeCompare(b.cant,'it'));
-
-    renderSummary(state.summary);
-  }catch(e){
-    console.error(e);
-    statusEl.innerHTML = `<span class="error">✗ ${e.message || "Errore nel caricamento dati."}</span>`;
-  }finally{
-    setLoading(false);
-  }
-}
-  
-/* ==================== EXPORT PDF A4 VERTICALE - REPORT ELEGANTE V2 ==================== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio cantiere.');
@@ -1141,48 +8,28 @@ async function exportDetailPDF(){
   const { jsPDF } = window.jspdf;
   const [Y, M] = [state.Y, state.M];
   const cant = state.currentCant;
-  
   const data = state.byCantiere[cant];
   if(!data) return;
 
-  // Calcola totali
-  let totOre = 0;
-  const operaiSet = new Set();
-  const giorniSet = new Set();
-  const operaiOre = {};
-  const operaiGiorni = {};
-  
-  data.forEach(entry => {
-    totOre += (entry.ore || 0);
-    operaiSet.add(entry.operaio);
-    giorniSet.add(entry.iso);
-    
-    if(!operaiOre[entry.operaio]) {
-      operaiOre[entry.operaio] = 0;
-      operaiGiorni[entry.operaio] = new Set();
-    }
-    operaiOre[entry.operaio] += (entry.ore || 0);
-    operaiGiorni[entry.operaio].add(entry.iso);
-  });
+  // === UTILS COLORI/OPACITÀ ===
+  const GREEN = { r: 34, g: 197, b: 94 };        // verde (ex blu)
+  const ORANGE = { r: 249, g: 115, b: 22 };
+  const PURPLE = { r: 168, g: 85,  b: 247 };
+  const TEAL   = { r: 16,  g: 185, b: 129 };     // testi accentati (ex blu)
+  const FILL_GRAY = { r: 226, g: 232, b: 240 };  // evidenziatore tot giorno
+  const WK_BG  = { r: 254, g: 243, b: 199 };     // weekend/off
 
-  // Organizza dati per giorno
-  const daysInMonth = new Date(Y, M, 0).getDate();
-  const byDay = {};
-  data.forEach(entry => {
-    const d = Number(entry.iso.split('-')[2]);
-    if(!byDay[d]) byDay[d] = [];
-    byDay[d].push(entry);
-  });
-
-  // === A4 VERTICALE ===
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 8; // Ridotto del 50% (da 15 a 8)
+  const margin = 8;
   let yPos = margin;
   let pageNum = 1;
-  
-  // === CARICA LOGO (watermark) ===
+
+  // Helper opacità 70% per riempimenti/linee/testi colorati
+  const gs70 = new pdf.GState({ opacity: 0.7 });
+
+  // === LOGO (WATERMARK) ===
   let logoImg = null;
   try {
     const logoUrl = 'https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/Logo.png';
@@ -1193,316 +40,314 @@ async function exportDetailPDF(){
       reader.onloadend = () => resolve(reader.result);
       reader.readAsDataURL(blob);
     });
-  } catch(e) {
-    console.warn('Logo non caricato:', e);
-  }
+  } catch(e) { console.warn('Logo non caricato:', e); }
 
-  // Funzione per aggiungere logo watermark
   function addLogoWatermark(){
-    if(logoImg){
-      const logoSize = 60;
-      const logoX = (pageW - logoSize) / 2;
-      const logoY = (pageH - logoSize) / 2;
-      pdf.saveGraphicsState();
-      pdf.setGState(new pdf.GState({opacity: 0.08}));
-      pdf.addImage(logoImg, 'PNG', logoX, logoY, logoSize, logoSize);
-      pdf.restoreGraphicsState();
-    }
+    if(!logoImg) return;
+    // Larghezza = larghezza utile entro i margini; altezza leggermente ridotta
+    const w = pageW - 2*margin;
+    const h = (pageH - 2*margin) * 0.25; // "leggermente meno alto"
+    const x = margin;
+    const y = (pageH - h) / 2;
+
+    pdf.saveGraphicsState();
+    pdf.setGState(new pdf.GState({ opacity: 0.08 }));
+    pdf.addImage(logoImg, 'PNG', x, y, w, h);
+    pdf.restoreGraphicsState();
   }
-  
   addLogoWatermark();
 
-  // === HEADER ELEGANTE ===
-  // Box azzurro sfumato
-  pdf.setFillColor(59, 130, 246);
-  pdf.rect(margin, yPos, pageW - 2*margin, 18, 'F');
-  
-  pdf.setFontSize(14); // Era 16, ora 14
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(255, 255, 255);
-  pdf.text(cant, margin + 3, yPos + 7);
-  
-  pdf.setFontSize(8); // Era 10, ora 8
-  pdf.setFont('helvetica', 'normal');
-  pdf.text(`Report ${pad(M)}/${Y}`, margin + 3, yPos + 13);
-  
-  pdf.setFontSize(18); // Era 20, ora 18
-  pdf.setFont('helvetica', 'bold');
-  pdf.text(`${totOre.toFixed(1)} h`, pageW - margin - 3, yPos + 11, { align: 'right' });
-  
-  yPos += 20;
+  // === TOTALI/STAT ===
+  let totOre = 0;
+  const operaiSet = new Set();
+  const giorniSet = new Set();
+  const operaiOre = {};
+  const operaiGiorni = {};
 
-  // === STATISTICHE COLORATE ===
-  const boxW = (pageW - 2*margin - 9) / 4;
-  const boxH = 14; // Era 16, ora 14
-  const stats = [
-    { label: 'Giorni', value: giorniSet.size, color: [59, 130, 246] },
-    { label: 'Operai', value: operaiSet.size, color: [16, 185, 129] },
-    { label: 'Media/gg', value: `${(totOre/giorniSet.size).toFixed(1)} h`, color: [249, 115, 22] },
-    { label: 'Weekend', value: `${data.filter(e=>e.isOff).reduce((sum,e)=>sum+(e.ore||0),0).toFixed(1)} h`, color: [168, 85, 247] }
-  ];
-  
-  stats.forEach((stat, i) => {
-    const x = margin + i * (boxW + 3);
-    
-    // Gradiente con colore specifico
-    pdf.setFillColor(stat.color[0], stat.color[1], stat.color[2]);
-    pdf.rect(x, yPos, boxW, boxH, 'F');
-    
-    pdf.setFontSize(5); // Era 7, ora 5
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(255, 255, 255);
-    pdf.text(stat.label.toUpperCase(), x + boxW/2, yPos + 4, { align: 'center' });
-    
-    pdf.setFontSize(10); // Era 12, ora 10
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(String(stat.value), x + boxW/2, yPos + 10, { align: 'center' });
+  data.forEach(entry => {
+    totOre += (entry.ore || 0);
+    operaiSet.add(entry.operaio);
+    giorniSet.add(entry.iso);
+    if(!operaiOre[entry.operaio]) { operaiOre[entry.operaio] = 0; operaiGiorni[entry.operaio] = new Set(); }
+    operaiOre[entry.operaio] += (entry.ore || 0);
+    operaiGiorni[entry.operaio].add(entry.iso);
   });
-  
+
+  // === HEADER (ex blu → verde, opacità 70%, titolo centrato meglio) ===
+  const headerH = 20; // leggermente più alto per margini verticali
+  pdf.saveGraphicsState();
+  pdf.setGState(gs70);
+  pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
+  pdf.rect(margin, yPos, pageW - 2*margin, headerH, 'F');
+  pdf.restoreGraphicsState();
+
+  // Testi header
+  pdf.setTextColor(255,255,255);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(14);
+  pdf.text(cant, margin + 3, yPos + 8);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+  pdf.text(`Report ${String(M).padStart(2,'0')}/${Y}`, margin + 3, yPos + 14.5);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(18);
+  pdf.text(`${totOre.toFixed(1)} h`, pageW - margin - 3, yPos + 12, { align:'right' });
+
+  yPos += headerH + 2;
+
+  // === STATISTICHE (opacità 70%) ===
+  const boxW = (pageW - 2*margin - 9) / 4;
+  const boxH = 14;
+  const weekendHours = data.filter(e=>e.isOff).reduce((sum,e)=>sum+(e.ore||0),0);
+  const stats = [
+    { label:'Giorni',   value: giorniSet.size,                color: GREEN },
+    { label:'Operai',   value: operaiSet.size,                color: TEAL  },
+    { label:'Media/gg', value: `${(totOre/(giorniSet.size||1)).toFixed(1)} h`, color: ORANGE },
+    { label:'Weekend',  value: `${weekendHours.toFixed(1)} h`, color: PURPLE },
+  ];
+
+  stats.forEach((s,i)=>{
+    const x = margin + i*(boxW+3);
+    pdf.saveGraphicsState();
+    pdf.setGState(gs70);
+    pdf.setFillColor(s.color.r, s.color.g, s.color.b);
+    pdf.rect(x, yPos, boxW, boxH, 'F');
+    pdf.restoreGraphicsState();
+
+    pdf.setTextColor(255,255,255);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(5);
+    pdf.text(s.label.toUpperCase(), x + boxW/2, yPos + 4.5, { align:'center' });
+    pdf.setFontSize(10);
+    pdf.text(String(s.value), x + boxW/2, yPos + 10.5, { align:'center' });
+  });
   yPos += boxH + 4;
 
-  // === GRAFICO COMPATTO ===
+  // === GRAFICO (no trasparenze/modifiche colore) ===
   const chartCanvas = document.getElementById('chartAndamento');
   if(chartCanvas && state.chartInstance){
     const chartImg = chartCanvas.toDataURL('image/png');
-    const chartH = 32; // Era 35, ora 32
+    const chartH = 32;
     pdf.addImage(chartImg, 'PNG', margin, yPos, pageW - 2*margin, chartH);
     yPos += chartH + 4;
   }
 
-  // === TABELLA OPERAI ===
-  pdf.setFontSize(9); // Era 11, ora 9
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(30, 41, 59);
+  // === OPERAI CHE HANNO LAVORATO (barra header ex blu → verde con opacità 70% + testo meglio centrato) ===
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
+  pdf.setTextColor(30,41,59);
   pdf.text('OPERAI CHE HANNO LAVORATO', margin, yPos);
   yPos += 4;
 
-  // Header tabella con colore
-  pdf.setFillColor(59, 130, 246);
-  pdf.rect(margin, yPos, pageW - 2*margin, 6, 'F'); // Era 7, ora 6
-  
-  pdf.setFontSize(7); // Era 9, ora 7
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(255, 255, 255);
-  pdf.text('Operaio', margin + 2, yPos + 4);
-  pdf.text('Ore', pageW - margin - 40, yPos + 4, { align: 'right' });
-  pdf.text('Gg', pageW - margin - 22, yPos + 4, { align: 'right' });
-  pdf.text('Media', pageW - margin - 2, yPos + 4, { align: 'right' });
-  
-  yPos += 7;
+  const headerH1 = 7;
+  pdf.saveGraphicsState();
+  pdf.setGState(gs70);
+  pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
+  pdf.rect(margin, yPos, pageW - 2*margin, headerH1, 'F');
+  pdf.restoreGraphicsState();
+
+  pdf.setTextColor(255,255,255);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
+  const baseY1 = yPos + 4.5; // baseline migliorata
+  pdf.text('Operaio',               margin + 2, baseY1);
+  pdf.text('Ore',        pageW - margin - 40, baseY1, { align:'right' });
+  pdf.text('Gg',         pageW - margin - 22, baseY1, { align:'right' });
+  pdf.text('Media',      pageW - margin - 2,  baseY1, { align:'right' });
+  yPos += headerH1 + 1;
 
   // Righe operai
   const operaiList = Object.keys(operaiOre).sort((a,b) => operaiOre[b] - operaiOre[a]);
   const halfPage = pageH / 2;
   const maxOperai = Math.floor((halfPage - yPos - 12) / 5);
-  
-  pdf.setFontSize(7); // Era 9, ora 7
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(30, 41, 59);
-  
+
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+  pdf.setTextColor(30,41,59);
   operaiList.slice(0, maxOperai).forEach((op, i) => {
     const ore = operaiOre[op];
     const giorni = operaiGiorni[op].size;
     const media = giorni > 0 ? (ore / giorni) : 0;
-    
+
     if(i % 2 === 0){
-      pdf.setFillColor(248, 250, 252);
+      pdf.setFillColor(248,250,252);
       pdf.rect(margin, yPos - 3, pageW - 2*margin, 5, 'F');
     }
-    
     pdf.text(op, margin + 2, yPos + 1.5);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(`${ore.toFixed(1)}`, pageW - margin - 40, yPos + 1.5, { align: 'right' });
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(String(giorni), pageW - margin - 22, yPos + 1.5, { align: 'right' });
-    pdf.text(`${media.toFixed(1)}`, pageW - margin - 2, yPos + 1.5, { align: 'right' });
-    
+    pdf.setFont('helvetica','bold');
+    pdf.text(`${ore.toFixed(1)}`, pageW - margin - 40, yPos + 1.5, { align:'right' });
+    pdf.setFont('helvetica','normal');
+    pdf.text(String(giorni), pageW - margin - 22, yPos + 1.5, { align:'right' });
+    pdf.text(`${media.toFixed(1)}`, pageW - margin - 2, yPos + 1.5, { align:'right' });
     yPos += 5;
   });
-  
-  // Linea separatore colorata
+
+  // Separatore (ex blu → verde, opacità 70%)
   yPos = halfPage;
-  pdf.setDrawColor(59, 130, 246);
+  pdf.saveGraphicsState();
+  pdf.setGState(gs70);
+  pdf.setDrawColor(GREEN.r, GREEN.g, GREEN.b);
   pdf.setLineWidth(1);
   pdf.line(margin, yPos, pageW - margin, yPos);
+  pdf.restoreGraphicsState();
   yPos += 4;
 
   // === CALENDARIO LAVORAZIONI ===
-  pdf.setFontSize(9); // Era 11, ora 9
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(30, 41, 59);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
+  pdf.setTextColor(30,41,59);
   pdf.text('CALENDARIO LAVORAZIONI', margin, yPos);
-  pdf.setFontSize(7); // Era 8, ora 7
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(100, 116, 139);
-  pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align: 'right' });
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+  pdf.setTextColor(100,116,139);
+  pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align:'right' });
   yPos += 4;
 
-  // Header tabella calendario con colore
-  pdf.setFontSize(7); // Era 9, ora 7
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFillColor(59, 130, 246);
-  pdf.rect(margin, yPos, pageW - 2*margin, 6, 'F'); // Era 7, ora 6
-  
-  pdf.setTextColor(255, 255, 255);
-  pdf.text('Giorno', margin + 2, yPos + 4);
-  pdf.text('Operaio', margin + 25, yPos + 4);
-  pdf.text('Ore', margin + 70, yPos + 4, { align: 'right' });
-  pdf.text('Lavorazioni', margin + 75, yPos + 4);
-  
-  yPos += 7;
+  // Header calendario (ex blu → verde, opacità 70%, centrato meglio)
+  const headerH2 = 7;
+  pdf.saveGraphicsState();
+  pdf.setGState(gs70);
+  pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
+  pdf.rect(margin, yPos, pageW - 2*margin, headerH2, 'F');
+  pdf.restoreGraphicsState();
 
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(7); // Era 9, ora 7
+  pdf.setTextColor(255,255,255);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
+  const baseY2 = yPos + 4.5;
+  pdf.text('Giorno',      margin + 2,  baseY2);
+  pdf.text('Operaio',     margin + 25, baseY2);
+  pdf.text('Ore',         margin + 70, baseY2, { align:'right' });
+  pdf.text('Lavorazioni', margin + 75, baseY2);
+  yPos += headerH2 + 1;
+
+  // Organizza per giorno
+  const daysInMonth = new Date(Y, M, 0).getDate();
+  const byDay = {};
+  data.forEach(entry => {
+    const d = Number(entry.iso.split('-')[2]);
+    if(!byDay[d]) byDay[d] = [];
+    byDay[d].push(entry);
+  });
+
+  function splitLav(text, maxW){
+    return pdf.splitTextToSize(text || '', maxW);
+  }
 
   for(let d=1; d<=daysInMonth; d++){
     const list0 = byDay[d] || [];
     if(!list0.length) continue;
-    
+
     const date = new Date(Y, M-1, d);
     const dow = (date.getDay()+6)%7;
-    const iso = `${Y}-${pad(M)}-${pad(d)}`;
+    const iso = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isOff = (dow===5||dow===6) || state.holidays.has(iso);
     const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
-    const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
-    
-    const list = groupDayEntries(list0);
-    
-    // Calcola spazio necessario (con text wrap per lavorazioni)
+    const dayLabel = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} ${nomeG}`;
+
+    const list = (function groupDayEntries(entries){
+      const map = new Map();
+      entries.forEach(e=>{
+        const op = e.operaio;
+        const lav = (e.lavorazione||'');
+        const note = (e.note||'');
+        const key = `${op}|${lav}|${note}`;
+        if(!map.has(key)) map.set(key,{operaio:op,lav,note,ore:0});
+        const rec = map.get(key);
+        rec.ore += (e.ore||0);
+      });
+      return Array.from(map.values()).map(v=>({ operaio:v.operaio, lav:v.lav, note:v.note, ore:+(+v.ore).toFixed(2)}));
+    })(list0);
+
+    // Calcolo spazio necessario
     let totalRowsNeeded = 0;
-    list.forEach(en => {
-      const lavText = en.lav || '';
-      const maxW = pageW - margin - 80;
-      const lines = pdf.splitTextToSize(lavText, maxW);
-      totalRowsNeeded += lines.length;
-    });
-    totalRowsNeeded += (list.length > 1 ? 1 : 0); // +1 per totale
+    const maxW = pageW - margin - 80;
+    list.forEach(en => totalRowsNeeded += splitLav(en.lav, maxW).length);
+    totalRowsNeeded += (list.length > 1 ? 1 : 0);
     const spaceNeeded = totalRowsNeeded * 5 + list.length * 2;
-    
-    // Nuova pagina se necessario
+
+    // Nuova pagina se serve
     if(yPos + spaceNeeded > pageH - 10){
       pdf.addPage();
       addLogoWatermark();
       pageNum++;
       yPos = margin + 2;
-      
-      // Header nuova pagina
-      pdf.setFontSize(9);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(30, 41, 59);
+
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
+      pdf.setTextColor(30,41,59);
       pdf.text('CALENDARIO LAVORAZIONI (continua)', margin, yPos);
-      pdf.setFontSize(7);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(100, 116, 139);
-      pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align: 'right' });
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+      pdf.setTextColor(100,116,139);
+      pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align:'right' });
       yPos += 4;
-      
-      // Ristampa header tabella
-      pdf.setFontSize(7);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFillColor(59, 130, 246);
-      pdf.rect(margin, yPos, pageW - 2*margin, 6, 'F');
-      
-      pdf.setTextColor(255, 255, 255);
-      pdf.text('Giorno', margin + 2, yPos + 4);
-      pdf.text('Operaio', margin + 25, yPos + 4);
-      pdf.text('Ore', margin + 70, yPos + 4, { align: 'right' });
-      pdf.text('Lavorazioni', margin + 75, yPos + 4);
-      
-      yPos += 7;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(7);
+
+      // Header calendario (verde, 70%)
+      pdf.saveGraphicsState();
+      pdf.setGState(gs70);
+      pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
+      pdf.rect(margin, yPos, pageW - 2*margin, headerH2, 'F');
+      pdf.restoreGraphicsState();
+
+      pdf.setTextColor(255,255,255);
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
+      const baseY2b = yPos + 4.5;
+      pdf.text('Giorno',      margin + 2,  baseY2b);
+      pdf.text('Operaio',     margin + 25, baseY2b);
+      pdf.text('Ore',         margin + 70, baseY2b, { align:'right' });
+      pdf.text('Lavorazioni', margin + 75, baseY2b);
+      yPos += headerH2 + 1;
     }
-    
+
     list.forEach((en, idx) => {
-      const lavText = en.lav || '';
-      const maxW = pageW - margin - 80;
-      const lavLines = pdf.splitTextToSize(lavText, maxW);
+      const lavLines = splitLav(en.lav, maxW);
       const rowHeight = Math.max(5, lavLines.length * 4);
-      
-      // Sfondo
+
       if(isOff){
-        pdf.setFillColor(254, 243, 199);
+        pdf.saveGraphicsState();
+        pdf.setGState(gs70);
+        pdf.setFillColor(WK_BG.r, WK_BG.g, WK_BG.b);
         pdf.rect(margin, yPos - 3, pageW - 2*margin, rowHeight, 'F');
+        pdf.restoreGraphicsState();
       }
-      
-      pdf.setTextColor(30, 41, 59);
-      
+
       // Giorno (solo prima riga)
       if(idx === 0){
-        pdf.setFont('helvetica', 'bold');
+        pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
+        pdf.setTextColor(30,41,59);
         pdf.text(dayLabel, margin + 2, yPos + 1.5);
-        pdf.setFont('helvetica', 'normal');
       }
-      
-      // Operaio
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(3, 105, 161);
+
+      // Operaio (ex blu → verde, opacità 70%)
+      pdf.saveGraphicsState();
+      pdf.setGState(gs70);
+      pdf.setTextColor(TEAL.r, TEAL.g, TEAL.b);
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
       pdf.text(en.operaio, margin + 25, yPos + 1.5);
-      
+      pdf.restoreGraphicsState();
+
       // Ore
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(15, 23, 42);
-      pdf.text(`${en.ore} h`, margin + 70, yPos + 1.5, { align: 'right' });
-      
-      // Lavorazioni (con wrap)
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(30, 41, 59);
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
+      pdf.setTextColor(15,23,42);
+      pdf.text(`${en.ore} h`, margin + 70, yPos + 1.5, { align:'right' });
+
+      // Lavorazioni
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+      pdf.setTextColor(30,41,59);
       pdf.text(lavLines, margin + 75, yPos + 1.5);
-      
+
       yPos += rowHeight;
     });
-    
-    // Totale giorno se più operai
+
+    // === TOTALE GIORNO (highlight più basso + testo centrato) ===
     if(list.length > 1){
       const dayTot = list.reduce((sum, en) => sum + (en.ore || 0), 0);
-      pdf.setFillColor(226, 232, 240);
-      pdf.rect(margin, yPos - 3, pageW - 2*margin, 5, 'F');
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(15, 23, 42);
-      pdf.text('Tot:', margin + 57, yPos + 1.5, { align: 'right' });
-      pdf.text(`${dayTot.toFixed(1)} h`, margin + 70, yPos + 1.5, { align: 'right' });
-      yPos += 5;
+      const barH = 4; // più basso
+      pdf.setFillColor(FILL_GRAY.r, FILL_GRAY.g, FILL_GRAY.b);
+      pdf.rect(margin, yPos - 3, pageW - 2*margin, barH, 'F');
+
+      const totText = `TOT: ${dayTot.toFixed(1)} h`;
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
+      pdf.setTextColor(15,23,42);
+      pdf.text(totText, pageW/2, yPos + 1.2, { align:'center' }); // centrato
+      yPos += barH;
     }
   }
 
-  // Footer ultima pagina
-  pdf.setFontSize(6); // Era 8, ora 6
-  pdf.setFont('helvetica', 'italic');
-  pdf.setTextColor(150, 150, 150);
-  pdf.text(`Report generato il ${new Date().toLocaleDateString('it-IT')}`, pageW / 2, pageH - 5, { align: 'center' });
+  // Footer
+  pdf.setFont('helvetica','italic'); pdf.setFontSize(6);
+  pdf.setTextColor(150,150,150);
+  pdf.text(`Report generato il ${new Date().toLocaleDateString('it-IT')}`, pageW/2, pageH - 5, { align:'center' });
 
-  pdf.save(`Analisi_Cantiere_${cant.replace(/\s+/g,'_')}_${pad(M)}_${Y}.pdf`);
+  pdf.save(`Analisi_Cantiere_${cant.replace(/\s+/g,'_')}_${String(M).padStart(2,'0')}_${Y}.pdf`);
 }
-
-/* ====== INIT ====== */
-(function init(){
-  const now = new Date();
-  setYM(now.getFullYear(), now.getMonth() + 1);
-
-  btnCarica.addEventListener('click', carica);
-  prevBtn.addEventListener('click', () => shiftMonth(-1));
-  nextBtn.addEventListener('click', () => shiftMonth(+1));
-  meseInput.addEventListener('change', carica);
-
-  tbody.addEventListener('click', (e) => {
-    const a = e.target.closest('.cant-link');
-    if(a && a.dataset.cant) {
-      showDetail(a.dataset.cant);
-    }
-  });
-
-  document.getElementById('btnDetailPDF').addEventListener('click', exportDetailPDF);
-  btnCloseDetail.addEventListener('click', () => {
-    detailCard.style.display = 'none';
-    if(state.chartInstance){
-      state.chartInstance.destroy();
-      state.chartInstance = null;
-    }
-  });
-
-  carica();
-})();
 </script>
-</body>
-</html>
