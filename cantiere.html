@@ -1186,7 +1186,7 @@ async function exportDetailPDF(){
 
   // Bordo pagina rimosso
   function drawPrintMargins(){
-    // Funzione svuotata per rimuovere il bordo
+    // Funzione svuotata
   }
 
   addLogoWatermark();
@@ -1420,11 +1420,16 @@ async function exportDetailPDF(){
       const yRowMid = yPos + rowH2 * 0.5;
       const yBaselineCentered = yRowMid + 0.4; 
       
-      // Calcola il punto di partenza Y per Lavorazioni per centrare il blocco di testo multilinea
-      // Inizia dal punto medio yRowMid e sottrai metà dell'altezza totale del blocco di testo (lines * textLineHeight / 2)
-      // Quindi aggiungi l'offset della baseline (0.4)
-      // MODIFICA: Nuova logica per centrare Lavorazioni
-      const yLavCentered = yRowMid - (lines * textLineHeight / 2) + 0.4;
+      // NUOVA CORREZIONE PER LAVORAZIONI:
+      // 1. Calcola l'altezza totale del blocco di testo.
+      const textBlockHeight = lines * textLineHeight;
+      // 2. Calcola il padding necessario sopra/sotto il blocco per centrarlo.
+      const paddingToCenter = (rowH2 - textBlockHeight) / 2;
+      // 3. Il punto di partenza Y per il testo (che è la baseline della prima riga)
+      //    è dato dalla posizione Y attuale + il padding + l'altezza della riga per raggiungere la baseline.
+      // Uso 0.75 come fattore di offset per la baseline (più preciso per font size 7)
+      const yLavBaseline = yPos + paddingToCenter + (textLineHeight * 0.75);
+
 
       // Giorno (solo prima riga)
       if(idx===0){ pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
@@ -1440,7 +1445,7 @@ async function exportDetailPDF(){
 
       // Lavorazioni: Allineato verticalmente al centro
       pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
-      pdf.text(lavLines, margin + 75, yLavCentered); // USARE yLavCentered
+      pdf.text(lavLines, margin + 75, yLavBaseline); 
 
       yPos += rowH2;
     });
