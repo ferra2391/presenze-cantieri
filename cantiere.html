@@ -1269,7 +1269,7 @@ async function exportDetailPDF(){
 
   pdf.setTextColor(255,255,255);
   pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-  const thY = yPos + tHeadH*0.65;
+  const thY = yPos + tHeadH*0.45;
   pdf.text('Operaio',               margin + 2, thY);
   pdf.text('Ore',        pageW - margin - 40, thY, { align:'right' });
   pdf.text('Gg',         pageW - margin - 22, thY, { align:'right' });
