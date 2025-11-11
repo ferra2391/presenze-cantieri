@@ -1137,15 +1137,12 @@ async function exportDetailPDF(){
   const { jsPDF } = window.jspdf;
 
   // --- COLORI & OPACITÀ ---
-  // Verde scurito ~20% (22,197,94 -> 27,158,75 approx, ma un filo più scuro per stampa)
-  const GREEN = { r: 27, g: 158, b: 75 };
+  const GREEN = { r: 27, g: 158, b: 75 };      // verde -20% luminanza
   const ORANGE = { r: 249, g: 115, b: 22 };
   const PURPLE = { r: 168, g: 85,  b: 247 };
   const FILL_GRAY = { r: 226, g: 232, b: 240 };
   const WK_BG  = { r: 254, g: 243, b: 199 };
   const LIGHT_BORDER = { r: 210, g: 214, b: 220 };
-
-  const gs70 = new jsPDF.GState({ opacity: 0.7 });
 
   // --- PDF ---
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -1154,6 +1151,9 @@ async function exportDetailPDF(){
   const margin = 8;
   let yPos = margin;
   let pageNum = 1;
+
+  // GState va creato *dopo* l'istanza pdf
+  const gs70 = new pdf.GState({ opacity: 0.7 });
 
   // --- LOGO (watermark, entro margini, meno alto) ---
   let logoImg = null;
@@ -1170,7 +1170,7 @@ async function exportDetailPDF(){
     const x = margin;
     const y = (pageH - h) / 2;
     pdf.saveGraphicsState();
-    pdf.setGState(new jsPDF.GState({ opacity: 0.08 }));
+    pdf.setGState(new pdf.GState({ opacity: 0.08 }));
     pdf.addImage(logoImg, 'PNG', x, y, w, h);
     pdf.restoreGraphicsState();
   }
@@ -1207,7 +1207,7 @@ async function exportDetailPDF(){
     operaiGiorni[e.operaio].add(e.iso);
   });
 
-  // --- HEADER (verde, 70%, titolo ben centrato verticalmente) ---
+  // --- HEADER (verde 70%) ---
   const headerH = 20;
   pdf.saveGraphicsState(); pdf.setGState(gs70);
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
@@ -1262,7 +1262,6 @@ async function exportDetailPDF(){
   pdf.text('OPERAI CHE HANNO LAVORATO', margin, yPos);
   yPos += 4;
 
-  // Header tabella (verde 70%), testo centrato verticalmente
   const tHeadH = 7;
   pdf.saveGraphicsState(); pdf.setGState(gs70);
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
@@ -1277,7 +1276,6 @@ async function exportDetailPDF(){
   pdf.text('Media',      pageW - margin - 2,  thY, { align:'right' });
   yPos += tHeadH + 1;
 
-  // Righe (altezza 5mm, testo centrato verticalmente)
   pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
   const operaiList = Object.keys(operaiOre).sort((a,b)=>operaiOre[b]-operaiOre[a]);
   const halfPage = pageH / 2;
@@ -1297,7 +1295,7 @@ async function exportDetailPDF(){
     yPos += rowH;
   });
 
-  // Separatore (verde 70%)
+  // Separatore
   yPos = halfPage;
   pdf.saveGraphicsState(); pdf.setGState(gs70);
   pdf.setDrawColor(GREEN.r, GREEN.g, GREEN.b); pdf.setLineWidth(1);
@@ -1312,7 +1310,6 @@ async function exportDetailPDF(){
   pdf.text(`Pagina ${pageNum}`, pageW - margin, yPos, { align:'right' });
   yPos += 4;
 
-  // Header calendario (verde 70%, centrato)
   const calHeadH = 7;
   pdf.saveGraphicsState(); pdf.setGState(gs70);
   pdf.setFillColor(GREEN.r, GREEN.g, GREEN.b);
@@ -1327,7 +1324,6 @@ async function exportDetailPDF(){
   pdf.text('Lavorazioni', margin + 75, chY);
   yPos += calHeadH + 1;
 
-  // Dati per giorno
   const daysInMonth = new Date(Y, M, 0).getDate();
   const byDay = {};
   data.forEach(e=>{ const d=Number(e.iso.split('-')[2]); (byDay[d] ||= []).push(e); });
@@ -1368,7 +1364,7 @@ async function exportDetailPDF(){
     const nomeG = dt.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
     const dayLabel = `${pad(d)}/${pad(M)} ${nomeG}`;
 
-    // Aggrega per operaio/lavorazione
+    // Aggregazione
     const map = new Map();
     list0.forEach(e=>{
       const key = `${e.operaio}|${e.lavorazione||''}|${e.note||''}`;
@@ -1377,7 +1373,6 @@ async function exportDetailPDF(){
     });
     const list = Array.from(map.values()).map(v=>({ ...v, ore:+(+v.ore).toFixed(2) }));
 
-    // Spazio necessario
     let totalRows = 0;
     list.forEach(en => totalRows += splitLav(en.lav).length);
     totalRows += (list.length>1?1:0);
@@ -1392,15 +1387,14 @@ async function exportDetailPDF(){
         pdf.setFillColor(WK_BG.r, WK_BG.g, WK_BG.b);
         pdf.rect(margin, yPos - 3, pageW-2*margin, rowH2, 'F'); pdf.restoreGraphicsState(); }
 
-      // Giorno (solo prima riga), centrato verticalmente
       if(idx===0){ pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(30,41,59);
         pdf.text(dayLabel, margin+2, yPos + rowH2*0.65); }
 
-      // Operaio: NERO GRASSETTO (non trasparente)
+      // Operaio NERO GRASSETTO
       pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(0,0,0);
       pdf.text(en.operaio, margin + 25, yPos + rowH2*0.65);
 
-      // Ore (allineate a destra, centrate verticalmente)
+      // Ore
       pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(15,23,42);
       pdf.text(`${en.ore} h`, margin + 70, yPos + rowH2*0.65, { align:'right' });
 
@@ -1411,7 +1405,7 @@ async function exportDetailPDF(){
       yPos += rowH2;
     });
 
-    // TOTALE GIORNO (barra più bassa + TOT allineato alla colonna Ore e centrato verticalmente)
+    // Totale giorno (barra bassa + testo allineato alla colonna "Ore", centrato verticalmente)
     if(list.length>1){
       const dayTot = list.reduce((s,en)=>s+(en.ore||0),0);
       const barH = 4;
@@ -1419,7 +1413,6 @@ async function exportDetailPDF(){
       pdf.setFillColor(FILL_GRAY.r, FILL_GRAY.g, FILL_GRAY.b);
       pdf.rect(margin, barY, pageW-2*margin, barH, 'F');
 
-      // Allineato alla colonna "Ore" (x = margin + 70), centrato verticalmente nella barra
       const yMid = barY + barH*0.65;
       pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(15,23,42);
       pdf.text(`TOT: ${dayTot.toFixed(1)} h`, margin + 70, yMid, { align:'right' });
@@ -1434,7 +1427,6 @@ async function exportDetailPDF(){
 
   pdf.save(`Analisi_Cantiere_${cant.replace(/\s+/g,'_')}_${String(M).padStart(2,'0')}_${Y}.pdf`);
 }
-
 /* ====== INIT ====== */
 (function init(){
   const now = new Date();
