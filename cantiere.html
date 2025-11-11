@@ -782,93 +782,88 @@ function createAndamentoChart(cant){
   
   const ctx = document.getElementById('chartAndamento').getContext('2d');
   
-  state.chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          type: 'bar',
-          label: 'Ore Totali',
-          data: data,
-          backgroundColor: 'rgba(59, 130, 246, 0.6)',
-          borderColor: 'rgb(59, 130, 246)',
-          borderWidth: 2,
-          borderRadius: 6,
-        },
-        {
-          type: 'line',
-          label: 'Andamento',
-          data: data,
-          borderColor: 'rgb(220, 38, 38)',
-          borderWidth: 3,
-          pointBackgroundColor: 'rgb(220, 38, 38)',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          fill: false,
-          tension: 0.3
+ state.chartInstance = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      {
+        type: 'bar',
+        label: 'Ore Totali',
+        data: data,
+        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+        borderColor: 'rgb(59, 130, 246)',
+        borderWidth: 2,
+        borderRadius: 6,
+      },
+      {
+        type: 'line',
+        label: 'Andamento',
+        data: data,
+        borderColor: 'rgb(220, 38, 38)',
+        borderWidth: 3,
+        pointBackgroundColor: 'rgb(220, 38, 38)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: false,
+        tension: 0.3
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 3,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => ctx.parsed.y + ' ore'
         }
-      ]
+      }
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 3,
-      plugins: {
-        legend: {
-          display: false
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Ore',
+          font: { family: 'Arial', weight: 'bold', size: 17 }
         },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return context.parsed.y + ' ore';
-            }
-          }
+        ticks: {
+          font: { family: 'Arial', size: 15, weight: '600' },
+          callback: (v) => v + ' h'
         }
       },
-    scales: {
-  y: {
-    beginAtZero: true,
-    title: {
-      display: true,
-      text: 'Ore',
-      font: { family: 'Arial', weight: 'bold', size: 17 }
-    },
-    ticks: {
-      font: { family: 'Arial', size: 15, weight: '600' },
-      callback: v => v + ' h'
+      x: {
+        title: {
+          display: true,
+          text: 'Mese',
+          font: { family: 'Arial', weight: 'bold', size: 17 }
+        },
+        ticks: {
+          font: { family: 'Arial', size: 15, weight: '600' }
+        }
+      }
     }
   },
-  x: {
-    title: {
-      display: true,
-      text: 'Mese',
-      font: { family: 'Arial', weight: 'bold', size: 17 }
-    },
-    ticks: {
-      font: { family: 'Arial', size: 15, weight: '600' }
+  plugins: [{
+    afterDatasetsDraw: (chart) => {
+      const ctx = chart.ctx;
+      chart.data.datasets[0].data.forEach((value, index) => {
+        const bar = chart.getDatasetMeta(0).data[index];
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 15px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(value + ' h', bar.x, bar.y - 5);
+      });
     }
-  }
-},
+  }]
+});
 
-    plugins: [{
-      afterDatasetsDraw: function(chart) {
-        const ctx = chart.ctx;
-        chart.data.datasets[0].data.forEach((value, index) => {
-          const meta = chart.getDatasetMeta(0);
-          const bar = meta.data[index];
-          
-          ctx.fillStyle = '#1e293b';
-          ctx.font = 'bold 15px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(value + ' h', bar.x, bar.y - 5);
-        });
-      }
-    }]
-  });
 }
 
 function showDetail(cant){
