@@ -477,7 +477,6 @@
 <script>
 /* ====== CONFIG ====== */
 const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
-const TAB_CANDIDATES = ["Foglio1","Presenze","Sheet1","Foglio 1"];
 
 /* ====== UTIL ====== */
 const pad = n => String(n).padStart(2,"0");
@@ -568,20 +567,32 @@ function setLoading(on){
 
 /* ====== FETCH ====== */
 async function fetchRowsFromOpenSheet(sheetId){
-  for(const tab of TAB_CANDIDATES){
+  const tabs = ["Presenze", "Storico"];
+  const allRows = [];
+  const loadedTabs = [];
+  
+  for(const tab of tabs){
     try{
       const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
       const res = await fetch(url, { cache: "no-store" });
       if(res.ok){
         const rows = await res.json();
-        if(Array.isArray(rows)){
-          statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (tab: ${tab})</span>`;
-          return rows;
+        if(Array.isArray(rows) && rows.length > 0){
+          allRows.push(...rows);
+          loadedTabs.push(tab);
         }
       }
-    }catch(_e){}
+    }catch(_e){
+      console.warn(`Tab "${tab}" non trovata o errore nel caricamento`);
+    }
   }
-  throw new Error("Impossibile leggere il foglio: controlla il nome della tab.");
+  
+  if(allRows.length === 0){
+    throw new Error("Nessun dato trovato nei fogli Presenze e Storico");
+  }
+  
+  statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (${loadedTabs.join(', ')}) - ${allRows.length} righe totali</span>`;
+  return allRows;
 }
 
 function groupDayEntries(entries){
