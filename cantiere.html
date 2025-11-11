@@ -828,35 +828,31 @@ function createAndamentoChart(cant){
           }
         }
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Ore',
-            font: {
-              weight: 'bold',
-              size: 14
-            }
-          },
-          ticks: {
-            callback: function(value) {
-              return value + ' h';
-            }
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Mese',
-            font: {
-              weight: 'bold',
-              size: 14
-            }
-          }
-        }
-      }
+    scales: {
+  y: {
+    beginAtZero: true,
+    title: {
+      display: true,
+      text: 'Ore',
+      font: { family: 'Arial', weight: 'bold', size: 17 }
     },
+    ticks: {
+      font: { family: 'Arial', size: 15, weight: '600' },
+      callback: v => v + ' h'
+    }
+  },
+  x: {
+    title: {
+      display: true,
+      text: 'Mese',
+      font: { family: 'Arial', weight: 'bold', size: 17 }
+    },
+    ticks: {
+      font: { family: 'Arial', size: 15, weight: '600' }
+    }
+  }
+},
+
     plugins: [{
       afterDatasetsDraw: function(chart) {
         const ctx = chart.ctx;
@@ -865,7 +861,7 @@ function createAndamentoChart(cant){
           const bar = meta.data[index];
           
           ctx.fillStyle = '#1e293b';
-          ctx.font = 'bold 13px Arial';
+          ctx.font = 'bold 15px Arial';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
           ctx.fillText(value + ' h', bar.x, bar.y - 5);
@@ -1152,12 +1148,12 @@ async function exportDetailPDF(){
   // Giallo tenue (per Weekend background)
   const WK_BG  = { r: 254, g: 243, b: 199 };
   
-  // NUOVI COLORI STATISTICHE
-  const PINK = { r: 244, g: 114, b: 182 }; // Corrisponde a #F472B6 (Rosa)
-  const YELLOW = { r: 250, g: 204, b: 21 }; // Corrisponde a #FACC15 (Giallo)
+  // COLORI STATISTICHE
+  const PINK = { r: 244, g: 114, b: 182 }; // Rosa
+  const YELLOW = { r: 250, g: 204, b: 21 }; // Giallo
   
-  // NUOVO COLORE PER TOTALE ORE
-  const RED = { r: 239, g: 68, b: 68 }; // Rosso per il totale ore in alto a destra
+  // COLORE PER TOTALE ORE
+  const RED = { r: 239, g: 68, b: 68 }; // Rosso
 
   // Opacità portata al 50%
   const gs50 = new (GState || window.jspdf.GState)({ opacity: 0.5 });
@@ -1229,11 +1225,13 @@ async function exportDetailPDF(){
   pdf.rect(margin, yPos, pageW-2*margin, headerH, 'F');
   pdf.restoreGraphicsState();
 
-  // NOME CANTIERE E REPORT: NERO
+  // NOME CANTIERE: NERO
   pdf.setTextColor(0, 0, 0); 
   pdf.setFont('helvetica','bold'); pdf.setFontSize(14);
   pdf.text(cant, margin+3, yPos + headerH*0.40);
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+  
+  // REPORT MM/AAAA: NERO e +20% (8pt -> 9.6pt)
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(9.6); 
   pdf.text(`Report ${String(M).padStart(2,'0')}/${Y}`, margin+3, yPos + headerH*0.78);
   
   // TOTALE ORE: ROSSO
@@ -1259,22 +1257,21 @@ async function exportDetailPDF(){
     pdf.setFillColor(s.color.r, s.color.g, s.color.b);
     pdf.rect(x, yPos, boxW, boxH, 'F'); pdf.restoreGraphicsState();
     
-    // Etichetta (in alto): BIANCO
-    pdf.setTextColor(255,255,255);
+    // Etichetta (in alto): NERO (Modifica richiesta)
+    pdf.setTextColor(0, 0, 0);
     pdf.setFont('helvetica','bold'); pdf.setFontSize(5);
     pdf.text(s.label.toUpperCase(), x+boxW/2, yPos + boxH*0.35, { align:'center' }); 
     
     // Valore (in basso): NERO
-    pdf.setTextColor(0, 0, 0); 
     pdf.setFontSize(10);
     pdf.text(String(s.value), x+boxW/2, yPos + boxH*0.75, { align:'center' }); 
   });
   yPos += boxH + 4;
 
   // --- GRAFICO (nessun cambio colore/opacity) ---
-  // NOTA: L'immagine del grafico viene generata esternamente. Per aumentare la dimensione del 
-  // carattere (assi X/Y, totali colonne), la modifica deve essere fatta nel codice 
-  // che usa Chart.js (o equivalente) prima che venga creato il DataURL.
+  // Per rendere il testo del grafico più leggibile (assi X/Y, totali sulle colonne), 
+  // è necessario modificare il codice che genera il grafico (es. Chart.js) prima della 
+  // creazione del DataURL.
   const chartCanvas = document.getElementById('chartAndamento');
   if(chartCanvas && state.chartInstance){
     const chartImg = chartCanvas.toDataURL('image/png');
