@@ -995,16 +995,16 @@ function createOverviewChart(){
             
             // Posiziona il testo sopra la barra
             const x = bar.x;
-            const y = bar.y - 5;
+            const y = bar.y - 8;
             
-            // Ruota il testo di -45 gradi
+            // Ruota il testo di -90 gradi (verticale dal basso verso l'alto)
             ctx.translate(x, y);
-            ctx.rotate(-Math.PI / 4);
+            ctx.rotate(-Math.PI / 2);
             
             // Stile testo
             ctx.fillStyle = '#1e293b';
             ctx.font = 'bold 11px Arial';
-            ctx.textAlign = 'right';
+            ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             
             // Disegna il testo
