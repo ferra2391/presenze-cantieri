@@ -182,15 +182,72 @@
   .chip:hover::before { opacity: 1; }
   .chip.active{ border-style:solid;border-color:var(--danger);color:#fff;background:linear-gradient(135deg,rgba(239,68,68,.3),rgba(127,29,29,.3));box-shadow:0 4px 20px rgba(239,68,68,.4); }
 
-  /* Time slots (più compatti, testo bianco) */
+  /* Time slots */
   .time-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
-  .time-slot{ position:relative; overflow:hidden; border-radius:16px; border:2px solid var(--border); min-height:180px; padding:16px 12px; background:var(--bg-light); transition:all .3s ease; box-shadow:0 4px 20px rgba(0,0,0,.2); display:flex; flex-direction:column;}
+  .time-slot{ 
+    position:relative; overflow:hidden; border-radius:16px; border:2px solid var(--border); 
+    min-height:180px; padding:16px 12px; background:var(--bg-light); 
+    transition:all .3s ease; box-shadow:0 4px 20px rgba(0,0,0,.2); 
+    display:flex; flex-direction:column;
+  }
   .time-slot:hover { transform: translateY(-4px); box-shadow:0 8px 30px rgba(0,0,0,.3); border-color:rgba(255,255,255,.3);}
+  .time-slot.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(0.5);
+  }
+  .time-slot.disabled .shift-toggle {
+    opacity: 1;
+    filter: none;
+  }
   .slot-bg{ position:absolute; inset:0; opacity:.9; border-radius:14px; z-index:0; transition:opacity .3s ease;}
   .time-slot:hover .slot-bg { opacity:1; }
   .time-slot.morning .slot-bg{ background:linear-gradient(135deg,#3b82f6,#06b6d4,#8b5cf6); background-size:200% 200%; animation: gradientShift 6s ease infinite;}
   .time-slot.afternoon .slot-bg{ background:linear-gradient(135deg,var(--primary),#f59e0b,#ec4899); background-size:200% 200%; animation: gradientShift 6s ease infinite;}
-  .slot-inner{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:8px;}
+  
+  /* Toggle per turno */
+  .shift-toggle {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(10px);
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 2px solid rgba(255,255,255,.3);
+    transition: all .3s ease;
+    user-select: none;
+    pointer-events: auto !important;
+  }
+  .shift-toggle:hover {
+    background: rgba(0,0,0,.75);
+    border-color: rgba(255,255,255,.5);
+    box-shadow: 0 4px 15px rgba(0,0,0,.4);
+  }
+  .shift-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--success);
+    margin: 0;
+    pointer-events: auto;
+  }
+  .shift-toggle label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    pointer-events: auto;
+  }
+  
+  .slot-inner{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:8px; padding-bottom:50px;}
   .slot-time{ font-size:16px; font-weight:900; text-align:center; text-shadow:2px 2px 8px rgba(0,0,0,.4); letter-spacing:.5px; color:#fff; }
   .slot-hours{ font-size:12px; font-weight:800; background:rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.3); padding:4px 10px; border-radius:999px; box-shadow:0 4px 15px rgba(0,0,0,.3); transition:all .3s ease; color:#fff; }
   .time-selects{ margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px; width:100%;}
@@ -239,21 +296,20 @@
   .mi-main{display:flex;flex-direction:column;min-width:0;flex:1}
   .mi-cant{ font-weight:800; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text); }
   .mi-entry{ display:flex; flex-direction:column; gap:2px; }
-.mi-cant{ font-weight:800; font-size:13px; color:var(--text); text-align:center; }  /* se vuoi centrato */
-.mi-lav{
-  font-size:11px;
-  color:var(--text-secondary);
-  white-space:normal;      /* <-- consente l'andare a capo */
-  overflow:visible;
-  text-overflow:clip;
-  line-height:1.25;
-
-}
-.mi-orari{
-  font-size:10px;
-  opacity:.85;
-  text-align:center;       /* coerente col resto */
-}
+  .mi-cant{ font-weight:800; font-size:13px; color:var(--text); text-align:center; }
+  .mi-lav{
+    font-size:11px;
+    color:var(--text-secondary);
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    line-height:1.25;
+  }
+  .mi-orari{
+    font-size:10px;
+    opacity:.85;
+    text-align:center;
+  }
 
   .mi-right{display:flex;align-items:center;gap:8px}
   .mi-ore{ font-weight:900; font-size:14px; background:linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
@@ -373,9 +429,17 @@
     <div class="view" id="page2">
       <div class="card">
         <div class="card-title"><span>⏰</span><span>Orario di lavoro</span></div>
+        
+        <div style="text-align:center;margin-bottom:12px;color:var(--text-secondary);font-size:13px;font-weight:700;">
+          💡 Disattiva un turno se non lavori in quel momento
+        </div>
 
         <div class="time-picker">
-          <div class="time-slot morning">
+          <div class="time-slot morning" id="morningSlot">
+            <div class="shift-toggle">
+              <input type="checkbox" id="morningCheck" checked onchange="toggleMorning()">
+              <label for="morningCheck">Mattina</label>
+            </div>
             <div class="slot-bg"></div>
             <div class="slot-inner">
               <div class="slot-time" id="morningText">08:00 - 12:00</div>
@@ -388,7 +452,11 @@
             </div>
           </div>
 
-          <div class="time-slot afternoon">
+          <div class="time-slot afternoon" id="afternoonSlot">
+            <div class="shift-toggle">
+              <input type="checkbox" id="afternoonCheck" checked onchange="toggleAfternoon()">
+              <label for="afternoonCheck">Pomeriggio</label>
+            </div>
             <div class="slot-bg"></div>
             <div class="slot-inner">
               <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
@@ -483,6 +551,10 @@
   let ABSENT_MODE = false;
   let PREVIEW_DATA = null;
   let MONTH_OPEN = false;
+  
+  // >>> Stato turni attivi
+  let MORNING_ENABLED = true;
+  let AFTERNOON_ENABLED = true;
 
   // >>> Stato lock per "Ripeti ieri"
   let LOCK_OTHER_DAYS = false;
@@ -514,7 +586,7 @@
 
   /* ====== BLOCCO PRECEDENTE GIORNO LAVORATIVO ====== */
   function isWorkingDay(d){
-    const w = d.getDay(); // 0=dom, 6=sab
+    const w = d.getDay();
     return w >= 1 && w <= 5 && !isItalianHoliday(d);
   }
   function previousWorkingDay(fromDate){
@@ -526,15 +598,12 @@
     return null;
   }
   function mustBlockForPreviousWorkingDay(baseDate){
-  // ADMIN: niente blocco
-  if (isAdmin()) return false;
-
-  const d = new Date(baseDate); d.setHours(0,0,0,0);
-  const prev = previousWorkingDay(d);
-  if (!prev) return false;
-  return !hasPresenceOnDate(prev);
-}
-
+    if (isAdmin()) return false;
+    const d = new Date(baseDate); d.setHours(0,0,0,0);
+    const prev = previousWorkingDay(d);
+    if (!prev) return false;
+    return !hasPresenceOnDate(prev);
+  }
 
   /* ====== BLOCCO altri giorni (Ripeti ieri) ====== */
   function lockOtherDaysExceptToday(lock = true){
@@ -549,6 +618,33 @@
         if (LOCK_OTHER_DAYS) el.setAttribute('aria-disabled','true'); else el.removeAttribute('aria-disabled');
       }
     });
+  }
+
+  /* ====== TOGGLE TURNI ====== */
+  function toggleMorning(){
+    MORNING_ENABLED = document.getElementById('morningCheck').checked;
+    updateShiftUI();
+    updateTimes();
+  }
+  
+  function toggleAfternoon(){
+    AFTERNOON_ENABLED = document.getElementById('afternoonCheck').checked;
+    updateShiftUI();
+    updateTimes();
+  }
+  
+  function updateShiftUI(){
+    const morningSlot = document.getElementById('morningSlot');
+    const afternoonSlot = document.getElementById('afternoonSlot');
+    
+    morningSlot.classList.toggle('disabled', !MORNING_ENABLED);
+    afternoonSlot.classList.toggle('disabled', !AFTERNOON_ENABLED);
+    
+    // Disabilita i select se il turno è disattivato
+    document.getElementById('mStart').disabled = !MORNING_ENABLED;
+    document.getElementById('mEnd').disabled = !MORNING_ENABLED;
+    document.getElementById('pStart').disabled = !AFTERNOON_ENABLED;
+    document.getElementById('pEnd').disabled = !AFTERNOON_ENABLED;
   }
 
   /* ====== GENERA OPZIONI ORARI ====== */
@@ -691,7 +787,7 @@
 
   function selectDate(el,d){
     if (LOCK_OTHER_DAYS && !isToday(d)) {
-      return; // bloccato durante "Ripeti ieri"
+      return;
     }
     document.querySelectorAll('.date-day').forEach(x=>x.classList.remove('selected'));
     el.classList.add('selected'); 
@@ -709,21 +805,18 @@
 
   /* ====== BLOCCO IMMEDIATO IN PAG.1 ====== */
   function goFromPage1(){
-    // Avviso se sulla data selezionata esiste già almeno una presenza
     const now = new Date(); now.setHours(0,0,0,0);
     if (selectedDate <= now && hasPresenceOnDate(selectedDate)) {
       const cont = confirm('⚠️ Per questo giorno risulta già una registrazione.\nVuoi continuare comunque e inserirne un\'altra?');
       if (!cont) return;
     }
 
-    // Blocco sul precedente giorno lavorativo rispetto alla DATA SELEZIONATA
     if (mustBlockForPreviousWorkingDay(selectedDate)){
       const prev = previousWorkingDay(selectedDate);
       alert(`⚠️ Devi prima compilare il precedente giorno lavorativo: ${prev.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })} (anche come ASSENTE).`);
       return;
     }
 
-    // Rete esistente: se sto compilando OGGI verifica eventuali giorni mancanti
     if (isToday(selectedDate)) {
       const missingDays = checkMissingWorkdays();
       if (missingDays.length > 0) {
@@ -745,8 +838,9 @@
     document.getElementById('morningText').textContent = `${ms} - ${me}`;
     document.getElementById('afternoonText').textContent = `${ps} - ${pe}`;
 
-    const hM = diffHours(ms,me);
-    const hP = diffHours(ps,pe);
+    const hM = MORNING_ENABLED ? diffHours(ms,me) : 0;
+    const hP = AFTERNOON_ENABLED ? diffHours(ps,pe) : 0;
+    
     document.getElementById('morningHours').textContent = `${hM.toFixed(1)} h`;
     document.getElementById('afternoonHours').textContent = `${hP.toFixed(1)} h`;
     document.getElementById('totalHours').textContent = (hM+hP).toFixed(1)+'h';
@@ -851,22 +945,20 @@
       if(sameYMD(dt,today)) item.classList.add('today');
       if(dt>today) item.classList.add('future');
 
-      // Mostra tutte le presenze del giorno e somma ore
       let innerList = '';
       if(entries.length){
         innerList = entries.map(e => {
-  const cant = (e.cantiere||'').trim() || '—';
-  const lav  = (e.lavorazione||'').trim() || '';
-  const orari = (e.orari||'').trim();
-  return `
-    <div class="mi-entry">
-      <div class="mi-cant">${cant}</div>
-      <div class="mi-lav">${lav.replace(/\n/g,'<br>')}</div>
-      ${orari ? `<div class="mi-orari">⏰ ${orari}</div>` : ''}
-    </div>
-  `;
-}).join('');
-
+          const cant = (e.cantiere||'').trim() || '—';
+          const lav  = (e.lavorazione||'').trim() || '';
+          const orari = (e.orari||'').trim();
+          return `
+            <div class="mi-entry">
+              <div class="mi-cant">${cant}</div>
+              <div class="mi-lav">${lav.replace(/\n/g,'<br>')}</div>
+              ${orari ? `<div class="mi-orari">⏰ ${orari}</div>` : ''}
+            </div>
+          `;
+        }).join('');
       } else if(dt<today){
         innerList = `<span class="badge-missing">NON COMPILATO</span>`;
       } else {
@@ -909,13 +1001,23 @@
 
     const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
     const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
-    document.getElementById('summaryTime').textContent=`${ms}-${me} + ${ps}-${pe}`;
-    const tot=diffHours(ms,me)+diffHours(ps,pe);
+    
+    // Costruisci la stringa orari solo per i turni attivi
+    let orariParts = [];
+    if(MORNING_ENABLED) orariParts.push(`${ms}-${me}`);
+    if(AFTERNOON_ENABLED) orariParts.push(`${ps}-${pe}`);
+    
+    document.getElementById('summaryTime').textContent = orariParts.join(' + ') || '—';
+    
+    const hM = MORNING_ENABLED ? diffHours(ms,me) : 0;
+    const hP = AFTERNOON_ENABLED ? diffHours(ps,pe) : 0;
+    const tot = hM + hP;
+    
     document.getElementById('summaryHours').textContent = tot.toFixed(1)+'h';
 
     workState.forEach((w,i)=>{
-      const name=(w.siteSelect||'-').trim()||'-';
-      const lav=(w.work||'-').trim()||'-';
+      const name=(w.siteSelect||'').trim()||'-';
+      const lav=(w.work||'').trim()||'-';
       const div=document.createElement('div'); div.className='summary-work';
       div.innerHTML=`<div><strong>Cantiere ${i+1}:</strong> ${name}</div><div><strong>Lavorazione:</strong> ${lav}</div>`;
       worksBox.appendChild(div);
@@ -925,10 +1027,10 @@
     document.getElementById('summaryNotes').textContent = note || '-';
   }
 
-  /* ====== RIPETI IERI (solo per OGGI, data registrata = OGGI) ====== */
+  /* ====== RIPETI IERI ====== */
   async function repeatYesterday(){
     if(!isToday(selectedDate)){
-      alert('“Ripeti ieri” è disponibile solo quando stai compilando OGGI.');
+      alert('"Ripeti ieri" è disponibile solo quando stai compilando OGGI.');
       return;
     }
     if (!LAST_PRESENZE.length) { await loadPresenze(); }
@@ -938,7 +1040,6 @@
     if(!found){ alert('Nessuna presenza trovata per ieri'); return; }
 
     PREVIEW_DATA = found;
-    // L'anteprima chiarisce che registreremo OGGI
     document.getElementById('previewDate').textContent = fmtHuman(today);
     document.getElementById('previewTime').textContent = found.orari || '-';
     document.getElementById('previewHours').textContent = found.ore ? found.ore + 'h' : '-';
@@ -948,34 +1049,62 @@
     document.getElementById('previewCard').classList.add('show');
     document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-    // >>> blocca altri giorni
     lockOtherDaysExceptToday(true);
   }
+  
   function confirmRepeat(){
     if(!PREVIEW_DATA) return;
 
-    // NON cambiamo la data selezionata: resta OGGI
     const parts = (PREVIEW_DATA.orari||'').split('+').map(s=>s.trim());
+    
+    // Reset turni
+    MORNING_ENABLED = false;
+    AFTERNOON_ENABLED = false;
+    
     const [m1,p1] = parts;
-    if(m1){ const [a,b] = m1.split('-'); document.getElementById('mStart').value = a; document.getElementById('mEnd').value = b; }
-    if(p1){ const [c,d] = p1.split('-'); document.getElementById('pStart').value = c; document.getElementById('pEnd').value = d; }
+    if(m1){ 
+      const [a,b] = m1.split('-'); 
+      document.getElementById('mStart').value = a; 
+      document.getElementById('mEnd').value = b;
+      MORNING_ENABLED = true;
+    }
+    if(p1){ 
+      const [c,d] = p1.split('-'); 
+      document.getElementById('pStart').value = c; 
+      document.getElementById('pEnd').value = d;
+      AFTERNOON_ENABLED = true;
+    }
+    
+    // Aggiorna UI dei checkbox
+    document.getElementById('morningCheck').checked = MORNING_ENABLED;
+    document.getElementById('afternoonCheck').checked = AFTERNOON_ENABLED;
+    updateShiftUI();
 
     workState = [newWorkItem()];
     const cantiere = PREVIEW_DATA.cantiere || '';
-    if(SITE_OPTIONS.includes(cantiere)){ workState[0].siteSelect = cantiere; workState[0].work = PREVIEW_DATA.lavorazione || ''; }
-    else { workState[0].siteSelect=''; workState[0].work = PREVIEW_DATA.lavorazione || ''; }
+    if(SITE_OPTIONS.includes(cantiere)){ 
+      workState[0].siteSelect = cantiere; 
+      workState[0].work = PREVIEW_DATA.lavorazione || ''; 
+    } else { 
+      workState[0].siteSelect=''; 
+      workState[0].work = PREVIEW_DATA.lavorazione || ''; 
+    }
 
     renderWorkItems();
     updateTimes();
     document.getElementById('previewCard').classList.remove('show');
     PREVIEW_DATA = null;
 
-    // >>> sblocca
     lockOtherDaysExceptToday(false);
 
     nextPage(2);
   }
-  function cancelRepeat(){ document.getElementById('previewCard').classList.remove('show'); PREVIEW_DATA = null; lockOtherDaysExceptToday(false); }
+  
+  function cancelRepeat(){ 
+    document.getElementById('previewCard').classList.remove('show'); 
+    PREVIEW_DATA = null; 
+    lockOtherDaysExceptToday(false); 
+  }
 
   /* ====== ADMIN: UI ====== */
   function showAdminUI(){
@@ -1079,9 +1208,8 @@
     return missing;
   }
 
-  /* ====== SUBMIT: overlay + rete di sicurezza ====== */
+  /* ====== SUBMIT ====== */
   async function submitPresence(){
-    // Blocco sul precedente giorno lavorativo rispetto alla DATA SELEZIONATA
     if (mustBlockForPreviousWorkingDay(selectedDate)){
       const prev = previousWorkingDay(selectedDate);
       alert(`⚠️ Devi prima compilare il precedente giorno lavorativo: ${prev.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })} (anche come ASSENTE).`);
@@ -1091,7 +1219,6 @@
     const overlay = document.getElementById('successOverlay');
     const notes = (document.getElementById('notesInput').value||'').trim();
 
-    // Rete di sicurezza: blocco anche qui se sto inviando "oggi"
     if (isToday(selectedDate)) {
       const missingDays = checkMissingWorkdays();
       if (missingDays.length > 0) {
@@ -1103,10 +1230,8 @@
       }
     }
 
-    // Feedback immediato
     overlay.classList.add('show');
 
-    // Identità
     const isAdminActing = isAdmin() && !!ADMIN_SELECTED;
     const USERID = isAdminActing ? "Admin" : (AUTH.user||"");
     const NOME_OPERAIO = isAdminActing ? ADMIN_SELECTED : (AUTH.nome||AUTH.user||"");
@@ -1116,32 +1241,65 @@
     const payloads = [];
     if(ABSENT_MODE){
       for(let i=0;i<numRighe;i++){
-        payloads.push({ dataISO: fmtISO(selectedDate), orari: "-", operaio: NOME_OPERAIO, user: USERID, cantiere:"ASSENTE", lavorazione:"ASSENTE", ore:0, note: notes });
+        payloads.push({ 
+          dataISO: fmtISO(selectedDate), 
+          orari: "-", 
+          operaio: NOME_OPERAIO, 
+          user: USERID, 
+          cantiere:"ASSENTE", 
+          lavorazione:"ASSENTE", 
+          ore:0, 
+          note: notes 
+        });
       }
     }else{
       const ms=document.getElementById('mStart').value, me=document.getElementById('mEnd').value;
       const ps=document.getElementById('pStart').value, pe=document.getElementById('pEnd').value;
-      const tot=diffHours(ms,me)+diffHours(ps,pe);
-      const lavori=workState.map(w=>({cantiere:(w.siteSelect||'').trim(), lavorazione:(w.work||'').trim()})).filter(x=>x.cantiere||x.lavorazione);
+      
+      const hM = MORNING_ENABLED ? diffHours(ms,me) : 0;
+      const hP = AFTERNOON_ENABLED ? diffHours(ps,pe) : 0;
+      const tot = hM + hP;
+      
+      // Costruisci stringa orari
+      let orariParts = [];
+      if(MORNING_ENABLED) orariParts.push(`${ms}-${me}`);
+      if(AFTERNOON_ENABLED) orariParts.push(`${ps}-${pe}`);
+      const orariStr = orariParts.join(' + ');
+      
+      const lavori=workState.map(w=>({
+        cantiere:(w.siteSelect||'').trim(), 
+        lavorazione:(w.work||'').trim()
+      })).filter(x=>x.cantiere||x.lavorazione);
+      
       const invalidItems = workState.filter(w => {
         const hasCantiere = (w.siteSelect || '').trim() !== '';
         const hasLavorazione = (w.work || '').trim() !== '';
         return hasCantiere !== hasLavorazione || (!hasCantiere && !hasLavorazione);
       });
+      
       if(invalidItems.length > 0 || lavori.length === 0){
         overlay.classList.remove('show');
         alert('⚠️ CAMPI OBBLIGATORI\n\nDevi compilare ENTRAMBI i campi per ogni cantiere:\n• Nome cantiere\n• Descrizione lavorazione\n\nSe non hai altri cantieri, rimuovili.');
         return;
       }
+      
       const quota = tot / lavori.length;
       for(const w of lavori){
         for(let i=0;i<numRighe;i++){
-          payloads.push({ dataISO: fmtISO(selectedDate), orari:`${ms}-${me} + ${ps}-${pe}`, operaio: NOME_OPERAIO, user: USERID, cantiere:w.cantiere, lavorazione:w.lavorazione, ore:Number(quota.toFixed(2)), note: notes });
+          payloads.push({ 
+            dataISO: fmtISO(selectedDate), 
+            orari: orariStr, 
+            operaio: NOME_OPERAIO, 
+            user: USERID, 
+            cantiere:w.cantiere, 
+            lavorazione:w.lavorazione, 
+            ore:Number(quota.toFixed(2)), 
+            note: notes 
+          });
         }
       }
     }
 
-    // Invio in parallelo con throttle
     const chunkSize = 10;
     for(let i=0;i<payloads.length;i+=chunkSize){
       const chunk = payloads.slice(i,i+chunkSize).map(body =>
@@ -1180,10 +1338,10 @@
     showAdminUI();
     if (!workState.length) workState=[newWorkItem()];
     renderWorkItems();
+    updateShiftUI();
     updateTimes();
     updateSummary();
     updateRepeatBtnState();
-    // assicurati che all'avvio sia sbloccato
     lockOtherDaysExceptToday(false);
   }
 
@@ -1194,6 +1352,8 @@
   window.prevPage = prevPage;
   window.goFromPage1 = goFromPage1;
   window.toggleAssente = toggleAssente;
+  window.toggleMorning = toggleMorning;
+  window.toggleAfternoon = toggleAfternoon;
   window.repeatYesterday = repeatYesterday;
   window.confirmRepeat = confirmRepeat;
   window.cancelRepeat = cancelRepeat;
@@ -1205,7 +1365,6 @@
   window.updateSummary = updateSummary;
   window.updateTimes = updateTimes;
 
-  // Admin
   window.openGestioneCantieri = openGestioneCantieri;
   window.openSelectOperaio = openSelectOperaio;
   window.closeSelectOperaio = closeSelectOperaio;
