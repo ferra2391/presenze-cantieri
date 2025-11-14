@@ -196,6 +196,10 @@
     pointer-events: none;
     filter: grayscale(0.5);
   }
+  .time-slot.disabled .shift-toggle {
+    opacity: 1;
+    filter: none;
+  }
   .slot-bg{ position:absolute; inset:0; opacity:.9; border-radius:14px; z-index:0; transition:opacity .3s ease;}
   .time-slot:hover .slot-bg { opacity:1; }
   .time-slot.morning .slot-bg{ background:linear-gradient(135deg,#3b82f6,#06b6d4,#8b5cf6); background-size:200% 200%; animation: gradientShift 6s ease infinite;}
@@ -218,6 +222,7 @@
     border: 2px solid rgba(255,255,255,.3);
     transition: all .3s ease;
     user-select: none;
+    pointer-events: auto !important;
   }
   .shift-toggle:hover {
     background: rgba(0,0,0,.75);
@@ -230,6 +235,7 @@
     cursor: pointer;
     accent-color: var(--success);
     margin: 0;
+    pointer-events: auto;
   }
   .shift-toggle label {
     font-size: 11px;
@@ -238,6 +244,7 @@
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    pointer-events: auto;
   }
   
   .slot-inner{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:8px; padding-bottom:50px;}
