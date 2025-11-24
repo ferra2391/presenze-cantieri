@@ -502,8 +502,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-  const SHEET_ID = "1FYnWnWnO5PH-kLLK1qXr7w9oHlFCWDSDuN_lrT7V4TY";
-  const GID = "1738028949";
+  /* ============ CONFIG & UTIL ============ */
+  const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
+  const TAB_CANDIDATES = ["Foglio1","Presenze","Sheet1","Foglio 1"];
   let SHOW_LAV = true;
   
   const statusEl = document.getElementById("status");
@@ -520,7 +521,34 @@
 
   chkLav.addEventListener("change", ()=>{ SHOW_LAV = chkLav.checked; buildAll(); });
 
-  function pad(n){ return String(n).padStart(2,'0'); }
+  const pad = n => String(n).padStart(2,'0');
+
+  function pick(obj, ...keys){
+    for(const k of keys){ if(obj[k]!==undefined) return obj[k]; }
+    return undefined;
+  }
+
+  function parseDateAny(v){
+    if(!v) return null;
+    if(v instanceof Date) return v;
+    const s = String(v).trim();
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const [Y,M,D]=s.split("T")[0].split("-").map(Number); return new Date(Y,M-1,D); }
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
+    const t = new Date(s); return isNaN(t) ? null : t;
+  }
+
+  async function fetchRowsFromOpenSheet(sheetId){
+    for(const tab of TAB_CANDIDATES){
+      try{
+        const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
+        const res = await fetch(url, { cache: "no-store" });
+        if(!res.ok) continue;
+        const rows = await res.json();
+        if(Array.isArray(rows) && rows.length > 0) return rows;
+      }catch(e){ continue; }
+    }
+    throw new Error(`Impossibile caricare dati. Tab provati: ${TAB_CANDIDATES.join(", ")}`);
+  }
 
   function populateYearSelect(Y){
     selAnno.innerHTML="";
@@ -576,49 +604,49 @@
       return new Date(y,n-1,p+1);
     }
     const e=easter(Y), eM=e.getMonth(), eD=e.getDate();
-    const set={
-      [`${Y}-01-01`]:1,[`${Y}-01-06`]:1,[`${Y}-04-25`]:1,[`${Y}-05-01`]:1,[`${Y}-06-02`]:1,
-      [`${Y}-08-15`]:1,[`${Y}-11-01`]:1,[`${Y}-12-08`]:1,[`${Y}-12-25`]:1,[`${Y}-12-26`]:1
-    };
-    const lun=new Date(Y,eM,eD+1); set[`${Y}-${pad(lun.getMonth()+1)}-${pad(lun.getDate())}`]=1;
+    const set = new Set([
+      `${Y}-01-01`,`${Y}-01-06`,`${Y}-04-25`,`${Y}-05-01`,`${Y}-06-02`,
+      `${Y}-08-15`,`${Y}-11-01`,`${Y}-12-08`,`${Y}-12-25`,`${Y}-12-26`
+    ]);
+    const lun=new Date(Y,eM,eD+1); 
+    set.add(`${Y}-${pad(lun.getMonth()+1)}-${pad(lun.getDate())}`);
     return set;
-  }
-
-  function parseDateTime(s){
-    if(!s||s==="-"||s==="—")return null;
-    s=s.trim();
-    const parts=s.split(/[\/\-]/);
-    if(parts.length===3){
-      const [d,m,y]=parts.map(Number);
-      if(d>=1&&d<=31 && m>=1&&m<=12 && y>1900)return new Date(y,m-1,d);
-    }
-    return null;
-  }
-
-  function parseOre(s){
-    s=String(s||"").trim().toLowerCase();
-    if(!s||s==="-"||s==="—")return null;
-    s=s.replace(/[h]/g,"").trim();
-    const n=parseFloat(s);
-    return (!isNaN(n)&&n>=0)?n:null;
-  }
-
-  function parsePartialDay(s){
-    const st=String(s||"").toLowerCase().trim();
-    return st==="mattina"||st==="pomeriggio";
   }
 
   async function carica(){
     const Y=cache.Y, M=cache.M;
     if(!Y||!M){alert("Seleziona un mese valido.");return;}
 
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
     statusEl.innerHTML='<span class="spinner show"></span> Caricamento...';
     try{
-      const r=await fetch(url);
-      if(!r.ok)throw new Error("Errore download CSV");
-      const text=await r.text();
-      cache.data=parseCSV(text);
+      const rows = await fetchRowsFromOpenSheet(SHEET_ID);
+      
+      cache.byOpDay={};
+      rows.forEach(r=>{
+        const dataVal = pick(r, "Data Presenza", "Data", "data");
+        const dt = parseDateAny(dataVal);
+        if(!dt) return;
+        const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
+        if(Yf!==Y || Mf!==M) return;
+
+        const op = String(pick(r, "Nome Operaio", "Operaio", "operaio") || "").trim();
+        if(!op) return;
+        const d = dt.getDate();
+
+        const cantiere = String(pick(r, "Cantiere", "cantiere") || "").trim();
+        const oreRaw = pick(r, "Ore", "ore");
+        const ore = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",", ".")) : null;
+        const lav = String(pick(r, "Lavorazione", "lavorazione") || "");
+        const orari = String(pick(r, "Orari", "orari") || "");
+        const note = String(pick(r, "Note", "note") || "");
+
+        cache.byOpDay[op] ??= {};
+        cache.byOpDay[op][d] ??= [];
+        cache.byOpDay[op][d].push({ cantiere, ore, lavorazione: lav, orari, note });
+      });
+
+      cache.operai = Object.keys(cache.byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
+      
       statusEl.innerHTML='<span class="ok">✓ Dati caricati con successo!</span>';
       setTimeout(()=>statusEl.textContent='',3000);
       buildAll();
@@ -628,62 +656,9 @@
     }
   }
 
-  function parseCSV(txt){
-    const lines=txt.split(/\r?\n/).filter(l=>l.trim());
-    if(lines.length<2)return[];
-    const header=lines[0].split(',');
-    const rows=[];
-    for(let i=1;i<lines.length;i++){
-      const cells=parseCSVLine(lines[i]);
-      if(cells.length!==header.length)continue;
-      const obj={};
-      for(let j=0;j<header.length;j++){obj[header[j].trim()]=cells[j];}
-      rows.push(obj);
-    }
-    return rows;
-  }
-
-  function parseCSVLine(line){
-    const res=[]; let cell='',inQuote=false;
-    for(let i=0;i<line.length;i++){
-      const c=line[i];
-      if(c==='"'){
-        if(inQuote&&line[i+1]==='"'){cell+='"';i++;}
-        else inQuote=!inQuote;
-      }else if(c===','&&!inQuote){res.push(cell.trim());cell='';}
-      else cell+=c;
-    }
-    res.push(cell.trim());
-    return res;
-  }
-
   function buildAll(){
     const Y=cache.Y, M=cache.M;
     if(!Y||!M)return;
-
-    const filtered=cache.data.filter(r=>{
-      const dt=parseDateTime(r.data);
-      return dt&&dt.getFullYear()===Y&&(dt.getMonth()+1)===M;
-    });
-    const opSet=new Set(filtered.map(r=>r.operaio).filter(Boolean));
-    cache.operai=Array.from(opSet).sort();
-
-    cache.byOpDay={};
-    filtered.forEach(r=>{
-      const op=r.operaio; if(!op)return;
-      const dt=parseDateTime(r.data);
-      const d=dt.getDate();
-      if(!cache.byOpDay[op])cache.byOpDay[op]={};
-      if(!cache.byOpDay[op][d])cache.byOpDay[op][d]=[];
-      cache.byOpDay[op][d].push({
-        cantiere:r.cantiere||"",
-        ore:parseOre(r.ore),
-        partial:parsePartialDay(r.partial_day),
-        orari:r.orari||"",
-        lavorazione:r.lavorazione||"",
-        note:r.note||""
-      });
-    });
 
     buildTable(tableA, 1, 10);
     buildTable(tableB, 11, 20);
@@ -710,7 +685,7 @@
         const dow=dt.getDay();
         const iso=`${Y}-${pad(M)}-${pad(d)}`;
         let cls='';
-        if(holidays[iso])cls='holiday';
+        if(holidays.has(iso))cls='holiday';
         else if(dow===0||dow===6)cls='weekend';
 
         const entries=(cache.byOpDay[op]&&cache.byOpDay[op][d])?cache.byOpDay[op][d]:[];
@@ -723,10 +698,7 @@
           const ore=en.ore;
           if(ore!=null && !isNaN(ore))totalOre+=ore;
 
-          let ecls="entry";
-          if(en.partial)ecls+=" ";
-
-          content+=`<div class="${ecls}">`;
+          content+=`<div class="entry">`;
           if(cant)content+=`<div class="entry-cantiere">${cant}</div>`;
           if(ore!=null && !isNaN(ore))content+=`<div class="entry-ore">${ore} h</div>`;
           if(SHOW_LAV && en.lavorazione)content+=`<div class="entry-lav">${en.lavorazione}</div>`;
@@ -744,9 +716,7 @@
           content+=`<div class="tot">Tot: ${(+totalOre.toFixed(2)).toString()} h</div>`;
         }
 
-        let style='';
-        if(en && en.partial)style=' style="background:var(--orange-weak);border:1px solid var(--orange-border);"';
-        html+=`<td class="${cls}"${style}>${content}</td>`;
+        html+=`<td class="${cls}">${content}</td>`;
       }
       html+='</tr>';
     });
