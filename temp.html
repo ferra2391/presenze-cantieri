@@ -1236,13 +1236,13 @@
       .replace(/'/g,"&apos;");
   }
 
-  // Costruisce la matrice di testo per Excel
+  // Costruisce la matrice di testo per Excel - VERSIONE PULITA
   function buildMatrix(startDay, endDay){
     const Y = cache.Y, M = cache.M;
     const daysInMonth = new Date(Y, M, 0).getDate();
 
     // Header
-    const header = ["Operaio"];
+    const header = ["OPERAIO"];
     for(let d=startDay; d<=endDay; d++){
       header.push(d <= daysInMonth ? String(d) : "");
     }
@@ -1259,7 +1259,7 @@
 
         const entries = (cache.byOpDay[op] && cache.byOpDay[op][d]) ? cache.byOpDay[op][d] : [];
         if(!entries.length){
-          line.push("");
+          line.push("—");
           continue;
         }
 
@@ -1269,40 +1269,32 @@
         entries.forEach(en=>{
           const chunks = [];
 
-          // CANTIERE
+          // CANTIERE - evidenziato e in maiuscolo
           const cantDisp = (en.cantiere || "").toString().trim().toUpperCase();
           if(cantDisp){
-            chunks.push("CANTIERE: " + cantDisp);
+            chunks.push(cantDisp);
           }
 
-          // ORE + LAVORAZIONE
-          let oreStr = "";
+          // ORE - ben visibili
           if(en.ore != null && !isNaN(en.ore)){
-            oreStr = "ORE: " + en.ore + " h";
+            chunks.push(en.ore + " h");
             total += Number(en.ore);
           }
 
-          let lavStr = "";
+          // LAVORAZIONE - se presente
           if(SHOW_LAV && en.lavorazione){
-            lavStr = "LAVORAZIONE: " + en.lavorazione;
+            chunks.push(en.lavorazione);
           }
 
-          if(oreStr && lavStr){
-            chunks.push(oreStr + " - " + lavStr);
-          }else if(oreStr){
-            chunks.push(oreStr);
-          }else if(lavStr){
-            chunks.push(lavStr);
+          // ORARI
+          if(en.orari){
+            chunks.push(en.orari);
           }
 
-          // ORARI + NOTE
-          let lineNote = en.orari || "";
+          // NOTE - solo se diverse da orari
           const nt = (en.note || "").trim();
-          if (nt && nt !== "-" && nt !== "—" && nt !== "." && nt !== "·" && nt !== lineNote.trim()){
-            lineNote = lineNote ? (lineNote + " — " + nt) : nt;
-          }
-          if(lineNote){
-            chunks.push("NOTE: " + lineNote);
+          if (nt && nt !== "-" && nt !== "—" && nt !== "." && nt !== "·" && nt !== (en.orari || "").trim()){
+            chunks.push(nt);
           }
 
           parts.push(chunks.join("\n"));
@@ -1310,10 +1302,10 @@
 
         // Totale se più ingressi
         if(entries.length > 1){
-          parts.push("TOTALE GIORNO: " + (+total.toFixed(2)).toString() + " h");
+          parts.push("───────────\nTOT: " + (+total.toFixed(2)).toString() + " h");
         }
 
-        line.push(parts.join("\n--------------------\n"));
+        line.push(parts.join("\n\n"));
       }
 
       rows.push(line);
@@ -1322,16 +1314,16 @@
     return rows;
   }
 
-  // Genera XML di un singolo foglio
+  // Genera XML di un singolo foglio - STILI PROFESSIONALI
   function sheetXML(name, rows, startDay){
     const colCount = rows[0]?.length || 1;
     const Y = cache.Y, M = cache.M;
     const holidays = italianHolidays(Y);
 
     // Larghezze colonne
-    let cols = `<Column ss:Width="180"/>`; // Operai
+    let cols = `<Column ss:Width="200"/>`; // Operai - più largo
     for(let i=1; i<colCount; i++){
-      cols += `<Column ss:Width="130"/>`; // Giorni
+      cols += `<Column ss:Width="120"/>`; // Giorni
     }
 
     const lines = rows.map((r, ri)=>{
@@ -1375,10 +1367,10 @@
 
               if(isAssente){
                 style = "sAssente";
-              }else if(text.trim() !== ""){
+              }else if(text.trim() !== "" && text.trim() !== "—"){
                 style = isHoliday ? "sWeekendData" : "sBodyData";
               }else{
-                style = isHoliday ? "sWeekendEmpty" : "sBody";
+                style = isHoliday ? "sWeekendEmpty" : "sBodyEmpty";
               }
             }
           }
@@ -1426,100 +1418,130 @@
  </ExcelWorkbook>
  <Styles>
   <Style ss:ID="Default" ss:Name="Normal">
-    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
-    <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#333333"/>
+    <Alignment ss:Vertical="Center" ss:WrapText="1"/>
+    <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#2C3E50"/>
     <Borders>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D5D8DC"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D5D8DC"/>
     </Borders>
   </Style>
 
+  <!-- HEADER PRIMA COLONNA -->
   <Style ss:ID="sHeaderFirst">
-    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-    <Font ss:Bold="1" ss:Size="12" ss:Color="#000000"/>
-    <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+    <Font ss:Bold="1" ss:Size="13" ss:Color="#FFFFFF" ss:FontName="Calibri"/>
+    <Interior ss:Color="#34495E" ss:Pattern="Solid"/>
     <Borders>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BBBBBB"/>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BBBBBB"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#2C3E50"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#2C3E50"/>
+      <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#2C3E50"/>
+      <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#2C3E50"/>
     </Borders>
   </Style>
 
+  <!-- HEADER GIORNI NORMALI -->
   <Style ss:ID="sHeader">
     <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-    <Font ss:Bold="1" ss:Size="12" ss:Color="#333333"/>
-    <Interior ss:Color="#F5F7FA" ss:Pattern="Solid"/>
+    <Font ss:Bold="1" ss:Size="12" ss:Color="#2C3E50" ss:FontName="Calibri"/>
+    <Interior ss:Color="#ECF0F1" ss:Pattern="Solid"/>
     <Borders>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BBBBBB"/>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BDC3C7"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#BDC3C7"/>
+      <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BDC3C7"/>
     </Borders>
   </Style>
 
+  <!-- HEADER WEEKEND/FESTIVI -->
   <Style ss:ID="sHeaderWeekend">
     <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-    <Font ss:Bold="1" ss:Size="12" ss:Color="#C04000"/>
-    <Interior ss:Color="#FFF4E6" ss:Pattern="Solid"/>
+    <Font ss:Bold="1" ss:Size="12" ss:Color="#D35400" ss:FontName="Calibri"/>
+    <Interior ss:Color="#FEF5E7" ss:Pattern="Solid"/>
     <Borders>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#FFCCAA"/>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFCCAA"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#F39C12"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#F39C12"/>
+      <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#F39C12"/>
     </Borders>
   </Style>
 
+  <!-- HEADER VUOTO -->
   <Style ss:ID="sHeaderVoid">
-    <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+    <Interior ss:Color="#FAFAFA" ss:Pattern="Solid"/>
   </Style>
 
+  <!-- NOME OPERAIO -->
   <Style ss:ID="sName">
-    <Alignment ss:Vertical="Center" ss:WrapText="1"/>
-    <Font ss:Bold="1" ss:Size="11" ss:Color="#000000"/>
-    <Interior ss:Color="#F9F9F9" ss:Pattern="Solid"/>
+    <Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="0"/>
+    <Font ss:Bold="1" ss:Size="13" ss:Color="#2C3E50" ss:FontName="Calibri"/>
+    <Interior ss:Color="#D5DBDB" ss:Pattern="Solid"/>
     <Borders>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BBBBBB"/>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#85929E"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#AEB6BF"/>
+      <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#85929E"/>
     </Borders>
   </Style>
 
+  <!-- CELLE DATI NORMALI -->
   <Style ss:ID="sBodyData">
-    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
+    <Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+    <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#2C3E50"/>
     <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
     <Borders>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D5D8DC"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D5D8DC"/>
+    </Borders>
+  </Style>
+
+  <!-- CELLE VUOTE NORMALI -->
+  <Style ss:ID="sBodyEmpty">
+    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+    <Font ss:FontName="Calibri" ss:Size="14" ss:Color="#BDC3C7"/>
+    <Interior ss:Color="#FAFAFA" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#ECF0F1"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#ECF0F1"/>
+    </Borders>
+  </Style>
+
+  <!-- CELLE VUOTE (giorni oltre il mese) -->
+  <Style ss:ID="sVoid">
+    <Interior ss:Color="#F8F9F9" ss:Pattern="Solid"/>
+  </Style>
+
+  <!-- CELLE WEEKEND CON DATI -->
+  <Style ss:ID="sWeekendData">
+    <Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+    <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#7D3C14"/>
+    <Interior ss:Color="#FEF9E7" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FAD7A0"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FAD7A0"/>
+    </Borders>
+  </Style>
+
+  <!-- CELLE WEEKEND VUOTE -->
+  <Style ss:ID="sWeekendEmpty">
+    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+    <Font ss:FontName="Calibri" ss:Size="14" ss:Color="#E59866"/>
+    <Interior ss:Color="#FEF5E7" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#F8E5D0"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#F8E5D0"/>
+    </Borders>
+  </Style>
+
+  <!-- ASSENTE -->
+  <Style ss:ID="sAssente">
+    <Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+    <Font ss:FontName="Calibri" ss:Size="12" ss:Color="#C0392B" ss:Bold="1"/>
+    <Interior ss:Color="#FADBD8" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E74C3C"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E74C3C"/>
     </Borders>
   </Style>
 
   <Style ss:ID="sBody">
     <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
-  </Style>
-
-  <Style ss:ID="sVoid">
-    <Interior ss:Color="#FAFAFA" ss:Pattern="Solid"/>
-  </Style>
-
-  <Style ss:ID="sWeekendData">
-    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
-    <Interior ss:Color="#FFFBF5" ss:Pattern="Solid"/>
-    <Borders>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFCCAA"/>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFCCAA"/>
-    </Borders>
-  </Style>
-
-  <Style ss:ID="sWeekendEmpty">
-    <Interior ss:Color="#FFF4E6" ss:Pattern="Solid"/>
-    <Borders>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFCCAA"/>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
-    </Borders>
-  </Style>
-
-  <Style ss:ID="sAssente">
-    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
-    <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#C00000" ss:Bold="1"/>
-    <Interior ss:Color="#FFEEEE" ss:Pattern="Solid"/>
-    <Borders>
-      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-    </Borders>
   </Style>
 
  </Styles>
