@@ -1226,7 +1226,7 @@
     }
   }
 
-    /* ============ EXCEL EXPORT ============ */
+  /* ============ EXCEL EXPORT ============ */
   function xmlEscape(s){
     return String(s)
       .replace(/&/g,"&amp;")
@@ -1236,10 +1236,12 @@
       .replace(/'/g,"&apos;");
   }
 
+  // Costruisce la matrice di testo per Excel
   function buildMatrix(startDay, endDay){
     const Y = cache.Y, M = cache.M;
     const daysInMonth = new Date(Y, M, 0).getDate();
 
+    // Header
     const header = ["Operaio"];
     for(let d=startDay; d<=endDay; d++){
       header.push(d <= daysInMonth ? String(d) : "");
@@ -1248,107 +1250,134 @@
 
     cache.operai.forEach(op=>{
       const line = [op];
+
       for(let d=startDay; d<=endDay; d++){
-        if(d>daysInMonth){ line.push(""); continue; }
+        if(d>daysInMonth){
+          line.push("");
+          continue;
+        }
 
         const entries = (cache.byOpDay[op] && cache.byOpDay[op][d]) ? cache.byOpDay[op][d] : [];
-        if(!entries.length){ line.push(""); continue; }
+        if(!entries.length){
+          line.push("");
+          continue;
+        }
 
-        let total=0;
-        const parts=[];
-        
+        let total = 0;
+        const parts = [];
+
         entries.forEach(en=>{
-          const chunks=[];
-          const cantDisp = (en.cantiere||"").toString().trim().toUpperCase();
-          if(cantDisp) chunks.push(`🏗 ${cantDisp}`);
+          const chunks = [];
 
+          // CANTIERE
+          const cantDisp = (en.cantiere || "").toString().trim().toUpperCase();
+          if(cantDisp){
+            chunks.push("CANTIERE: " + cantDisp);
+          }
+
+          // ORE + LAVORAZIONE
           let oreStr = "";
-          if(en.ore!=null && !isNaN(en.ore)){
-            oreStr = `⏱ ${en.ore} h`;
-            total+=Number(en.ore);
+          if(en.ore != null && !isNaN(en.ore)){
+            oreStr = "ORE: " + en.ore + " h";
+            total += Number(en.ore);
           }
 
           let lavStr = "";
           if(SHOW_LAV && en.lavorazione){
-            lavStr = en.lavorazione;
+            lavStr = "LAVORAZIONE: " + en.lavorazione;
           }
 
-          if(oreStr && lavStr) chunks.push(`${oreStr} - ${lavStr}`);
-          else if(oreStr) chunks.push(oreStr);
-          else if(lavStr) chunks.push(`🔨 ${lavStr}`);
+          if(oreStr && lavStr){
+            chunks.push(oreStr + " - " + lavStr);
+          }else if(oreStr){
+            chunks.push(oreStr);
+          }else if(lavStr){
+            chunks.push(lavStr);
+          }
 
+          // ORARI + NOTE
           let lineNote = en.orari || "";
-          const nt = (en.note||"").trim();
+          const nt = (en.note || "").trim();
           if (nt && nt !== "-" && nt !== "—" && nt !== "." && nt !== "·" && nt !== lineNote.trim()){
             lineNote = lineNote ? (lineNote + " — " + nt) : nt;
           }
-          if(lineNote) chunks.push(`📝 ${lineNote}`);
+          if(lineNote){
+            chunks.push("NOTE: " + lineNote);
+          }
 
           parts.push(chunks.join("\n"));
         });
 
-        if(entries.length>1){
-          parts.push(`∑ TOT: ${(+total.toFixed(2)).toString()} h`);
+        // Totale se più ingressi
+        if(entries.length > 1){
+          parts.push("TOTALE GIORNO: " + (+total.toFixed(2)).toString() + " h");
         }
 
-        line.push(parts.join("\n\n────────────────\n"));
+        line.push(parts.join("\n--------------------\n"));
       }
+
       rows.push(line);
     });
+
     return rows;
   }
 
+  // Genera XML di un singolo foglio
   function sheetXML(name, rows, startDay){
     const colCount = rows[0]?.length || 1;
     const Y = cache.Y, M = cache.M;
     const holidays = italianHolidays(Y);
 
-    let cols = `<Column ss:Width="180"/>`;
+    // Larghezze colonne
+    let cols = `<Column ss:Width="180"/>`; // Operai
     for(let i=1; i<colCount; i++){
-      cols += `<Column ss:Width="130"/>`;
+      cols += `<Column ss:Width="130"/>`; // Giorni
     }
 
     const lines = rows.map((r, ri)=>{
       const cells = r.map((c, ci)=>{
-        const text = xmlEscape(c==null?"":String(c));
+        const text = xmlEscape(c == null ? "" : String(c));
         let style = "sBody";
 
-        if(ri === 0) {
-          if(ci === 0) {
+        if(ri === 0){
+          // HEADER
+          if(ci === 0){
             style = "sHeaderFirst";
-          } else {
+          }else{
             const dayNum = startDay + (ci - 1);
-            if(text === "") {
+            if(text === ""){
               style = "sHeaderVoid";
-            } else {
+            }else{
               const dtStr = `${Y}-${pad(M)}-${pad(dayNum)}`;
               const dateObj = new Date(Y, M-1, dayNum);
-              const dow = dateObj.getDay();
-              if(dow===0 || dow===6 || holidays.has(dtStr)){
-                style = "sHeaderWeekend";
-              } else {
-                style = "sHeader";
-              }
+              const dow = dateObj.getDay(); // 0 Dom, 6 Sab
+              const isHoliday = (dow === 0 || dow === 6 || holidays.has(dtStr));
+              style = isHoliday ? "sHeaderWeekend" : "sHeader";
             }
           }
-        } else {
-          if(ci === 0) {
+        }else{
+          // CORPO
+          if(ci === 0){
+            // Nome operaio
             style = "sName";
-          } else {
+          }else{
             const dayNum = startDay + (ci - 1);
-            if(dayNum > new Date(Y, M, 0).getDate()) {
+            if(dayNum > new Date(Y, M, 0).getDate()){
               style = "sVoid";
-            } else {
+            }else{
               const dtStr = `${Y}-${pad(M)}-${pad(dayNum)}`;
               const dateObj = new Date(Y, M-1, dayNum);
               const dow = dateObj.getDay();
-              const isHoliday = (dow===0 || dow===6 || holidays.has(dtStr));
+              const isHoliday = (dow === 0 || dow === 6 || holidays.has(dtStr));
 
-              if(text.toUpperCase().includes("ASSENTE") || text.toUpperCase().includes("🏗 ASSENTE")){
+              const upper = text.toUpperCase();
+              const isAssente = upper.includes("ASSENTE");
+
+              if(isAssente){
                 style = "sAssente";
-              } else if(text.trim() !== "") {
+              }else if(text.trim() !== ""){
                 style = isHoliday ? "sWeekendData" : "sBodyData";
-              } else {
+              }else{
                 style = isHoliday ? "sWeekendEmpty" : "sBody";
               }
             }
@@ -1357,6 +1386,7 @@
 
         return `<Cell ss:StyleID="${style}"><Data ss:Type="String">${text}</Data></Cell>`;
       }).join("");
+
       return `<Row>${cells}</Row>`;
     }).join("");
 
@@ -1373,7 +1403,7 @@
 
     const dataA = buildMatrix(1,15);
     const xmlA  = sheetXML("Giorni 1–15", dataA, 1);
-    
+
     const dataB = buildMatrix(16,31);
     const xmlB  = sheetXML("Giorni 16–31", dataB, 16);
 
@@ -1386,37 +1416,132 @@
  xmlns:o="urn:schemas-microsoft-com:office:office"
  xmlns:x="urn:schemas-microsoft-com:office:excel"
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>Presenze Cantiere</Author>
+  <Created>${xmlEscape(now)}</Created>
+ </DocumentProperties>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
  <Styles>
   <Style ss:ID="Default" ss:Name="Normal">
     <Alignment ss:Vertical="Top" ss:WrapText="1"/>
     <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#333333"/>
     <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
     </Borders>
   </Style>
 
-  <!-- tutti gli stili sHeader*, sName, sBody*, sWeekend*, sAssente come li avevi -->
-  ...QUI INCOLLA IL BLOCCO STILI CHE HAI GIÀ...
+  <Style ss:ID="sHeaderFirst">
+    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+    <Font ss:Bold="1" ss:Size="12" ss:Color="#000000"/>
+    <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BBBBBB"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BBBBBB"/>
+    </Borders>
+  </Style>
+
+  <Style ss:ID="sHeader">
+    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+    <Font ss:Bold="1" ss:Size="12" ss:Color="#333333"/>
+    <Interior ss:Color="#F5F7FA" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BBBBBB"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    </Borders>
+  </Style>
+
+  <Style ss:ID="sHeaderWeekend">
+    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+    <Font ss:Bold="1" ss:Size="12" ss:Color="#C04000"/>
+    <Interior ss:Color="#FFF4E6" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#FFCCAA"/>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFCCAA"/>
+    </Borders>
+  </Style>
+
+  <Style ss:ID="sHeaderVoid">
+    <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+  </Style>
+
+  <Style ss:ID="sName">
+    <Alignment ss:Vertical="Center" ss:WrapText="1"/>
+    <Font ss:Bold="1" ss:Size="11" ss:Color="#000000"/>
+    <Interior ss:Color="#F9F9F9" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#BBBBBB"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    </Borders>
+  </Style>
+
+  <Style ss:ID="sBodyData">
+    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
+    <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    </Borders>
+  </Style>
+
+  <Style ss:ID="sBody">
+    <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+  </Style>
+
+  <Style ss:ID="sVoid">
+    <Interior ss:Color="#FAFAFA" ss:Pattern="Solid"/>
+  </Style>
+
+  <Style ss:ID="sWeekendData">
+    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
+    <Interior ss:Color="#FFFBF5" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFCCAA"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFCCAA"/>
+    </Borders>
+  </Style>
+
+  <Style ss:ID="sWeekendEmpty">
+    <Interior ss:Color="#FFF4E6" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFCCAA"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    </Borders>
+  </Style>
+
+  <Style ss:ID="sAssente">
+    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
+    <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#C00000" ss:Bold="1"/>
+    <Interior ss:Color="#FFEEEE" ss:Pattern="Solid"/>
+    <Borders>
+      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    </Borders>
+  </Style>
 
  </Styles>
  ${xmlA}
  ${xmlB}
 </Workbook>`;
 
-    const blob = new Blob([xml], {type: "application/vnd.ms-excel"});
+    const blob = new Blob([xml], { type: "application/vnd.ms-excel" });
     const [Y,M] = [cache.Y, cache.M];
     const fname = `Presenze_${Y}-${pad(M)}.xls`;
+
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = fname;
-    document.body.appendChild(a); a.click(); a.remove();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
 
     statusEl.innerHTML = '<span class="ok">✓ Excel esportato con successo!</span>';
     setTimeout(() => statusEl.textContent = '', 3000);
   }
-
 
   /* ============ INIT ============ */
   (function init(){
