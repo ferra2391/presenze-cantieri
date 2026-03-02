@@ -1300,15 +1300,22 @@
       }
     }
 
-    const chunkSize = 10;
-    for(let i=0;i<payloads.length;i+=chunkSize){
-      const chunk = payloads.slice(i,i+chunkSize).map(body =>
-        fetch(L0URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-        .catch(()=>null)
-      );
-      await Promise.allSettled(chunk);
-      await sleep(40);
-    }
+    // Invia tutto l'array "payloads" in una singola richiesta HTTP
+  try {
+    await fetch(L0URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payloads)
+    });
+    // Piccola pausa per dare tempo al server di scrivere i dati
+    await sleep(1000); 
+  } catch (e) {
+    console.error('Errore di rete:', e);
+    alert('Errore di connessione durante il salvataggio. Riprova.');
+    overlay.classList.remove('show');
+    return;
+  }
 
     await loadPresenze();
     await renderMonthList();
