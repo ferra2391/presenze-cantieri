@@ -265,9 +265,10 @@
     text-decoration: underline;
   }
 
-  /* DETAIL TABLE */
+  /* DETAIL TABLE AGGIORNAMENTI */
   .detail {
     font-size: 14px;
+    width: 100%;
   }
   
   .detail .daycell {
@@ -275,15 +276,17 @@
     font-weight: 700;
     font-size: 15px;
     color: var(--text);
-    min-width: 120px;
+    min-width: 130px;
+    background: #f8fafc;
   }
   
   .detail .cant {
     font-weight: 800;
-    color: #c00000;
+    color: var(--primary-dark);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
     font-size: 13px;
+    margin-bottom: 4px;
   }
   
   .detail .lav {
@@ -313,9 +316,12 @@
     background: var(--hover-bg);
   }
 
-  /* Weekend/Festivi highlight */
+  /* Weekend/Festivi highlight - Più morbido */
   .detail tr.off td {
-    background: var(--orange-weak) !important;
+    background: #fffbf1 !important;
+  }
+  .detail tr.off td.daycell {
+    color: #b45309;
   }
 
   /* Alternanza righe normali */
@@ -323,42 +329,48 @@
     background: #fafafa;
   }
 
-  /* Gabbia perimetro giorno */
+  /* Gabbia perimetro giorno più pulita */
   .detail tr.gstart td {
-    border-top: 2px solid var(--border-strong);
+    border-top: 1px solid var(--border-strong);
   }
   
   .detail tr.gend td {
-    border-bottom: 2px solid var(--border-strong);
+    border-bottom: 1px solid var(--border-strong);
   }
 
   .detail tr.gstart td.daycell,
   .detail tr.gmid td.daycell,
   .detail tr.gend td.daycell {
-    border-left: 2px solid var(--border-strong);
+    border-left: 3px solid var(--border-strong);
+  }
+
+  .detail tr.off.gstart td.daycell,
+  .detail tr.off.gmid td.daycell,
+  .detail tr.off.gend td.daycell {
+    border-left-color: #f59e0b;
   }
 
   .detail tr.gstart td:last-child,
   .detail tr.gmid td:last-child,
   .detail tr.gend td:last-child {
-    border-right: 2px solid var(--border-strong);
+    border-right: 1px solid var(--border-strong);
   }
 
   /* Arrotondamenti */
   .detail tr.gstart td.daycell {
-    border-top-left-radius: 10px;
+    border-top-left-radius: 8px;
   }
   
   .detail tr.gstart td:last-child {
-    border-top-right-radius: 10px;
+    border-top-right-radius: 8px;
   }
   
   .detail tr.gend td.daycell {
-    border-bottom-left-radius: 10px;
+    border-bottom-left-radius: 8px;
   }
   
   .detail tr.gend td:last-child {
-    border-bottom-right-radius: 10px;
+    border-bottom-right-radius: 8px;
   }
 
   /* Tot giorno */
@@ -418,9 +430,11 @@
     <div id="status"></div>
   </div>
 
-  <!-- RIEPILOGO -->
   <div class="table-card">
-    <div class="table-title">📈 Riepilogo Mensile</div>
+    <div class="table-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>📈 Riepilogo Mensile</span>
+      <button id="btnDownloadAll" class="primary" style="font-size: 14px; padding: 6px 14px;" disabled>📥 Download Presenze di Tutti</button>
+    </div>
     <div class="table-wrap">
       <table id="tbl">
         <thead>
@@ -437,7 +451,6 @@
     </div>
   </div>
 
-  <!-- DETTAGLIO -->
   <div class="table-card" id="detailCard" style="display:none">
     <div class="table-title" id="detailTitle">👤 Dettaglio Operaio</div>
     <div class="table-wrap">
@@ -467,10 +480,8 @@
   </div>
 </div>
 
-<!-- Container nascosto per il PDF -->
 <div id="pdfContainer" class="pdf-container"></div>
 
-<!-- Librerie -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
@@ -543,6 +554,7 @@ const detailTitle  = document.getElementById('detailTitle');
 const detailBody   = document.getElementById('detailBody');
 const detailTotOre = document.getElementById('detailTotOre');
 const btnCloseDetail = document.getElementById('btnCloseDetail');
+const btnDownloadAll = document.getElementById('btnDownloadAll');
 
 const state = { Y:null, M:null, holidays:new Set(), byOpDay:{}, operai:[], summary:[], currentOp:null };
 
@@ -563,6 +575,8 @@ function shiftMonth(delta){
 function setLoading(on){
   spin.classList.toggle('show', !!on);
   btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
+  // Disabilita anche il pulsante scarica tutti durante il caricamento
+  if (on) btnDownloadAll.disabled = true;
 }
 
 /* ====== FETCH ====== */
@@ -622,6 +636,7 @@ function renderSummary(list){
   tbody.innerHTML = '';
   if(list.length===0){
     tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Nessun operaio con ore registrate in questo mese.</td></tr>`;
+    btnDownloadAll.disabled = true;
     return;
   }
   list.forEach(r=>{
@@ -634,6 +649,8 @@ function renderSummary(list){
       <td class="num">${r.weekend} h</td>`;
     tbody.appendChild(tr);
   });
+  // Abilita il pulsante solo se ci sono dati caricati
+  btnDownloadAll.disabled = false;
 }
 
 function showDetail(op){
@@ -812,7 +829,116 @@ async function carica(){
   }
 }
   
-/* ==================== EXPORT PDF OTTIMIZZATO (2 COLONNE) ==================== */
+/* ==================== EXPORT PDF: HTML BUILDER CONDIVISO ==================== */
+function buildWorkerPdfHtml(op, totMese, Y, M, daysInMonth) {
+  const pdfCSS = `
+    <style>
+      .pdf-wrap { width: 1000px; padding: 25px; background: #fff; font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; box-sizing: border-box; }
+      .pdf-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 15px; }
+      .pdf-title { font-size: 26px; font-weight: 900; margin: 0; color: #0f172a; line-height: 1; }
+      .pdf-subtitle { font-size: 14px; color: #64748b; margin-top: 4px; }
+      .pdf-tot { text-align: right; }
+      .pdf-tot-label { font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; }
+      .pdf-tot-val { font-size: 28px; font-weight: 900; color: #0f172a; line-height: 1; margin-top: 2px; }
+      .pdf-cols { display: flex; gap: 20px; }
+      .pdf-col { flex: 1; }
+      .pdf-col-title { font-size: 14px; font-weight: bold; text-align: center; background: #f1f5f9; padding: 6px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+      .day-row { display: flex; flex-direction: column; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; overflow: hidden; page-break-inside: avoid; }
+      .day-row.off { border-color: #fcd34d; background: #fffbf1; }
+      .day-header { display: flex; justify-content: space-between; padding: 5px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: bold; font-size: 12px; }
+      .day-row.off .day-header { background: #fef3c7; border-bottom-color: #fde68a; }
+      .day-body { padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; }
+      .task-item { display: flex; justify-content: space-between; font-size: 11px; padding-left: 8px; border-left: 3px solid #3b82f6; line-height: 1.3; }
+      .task-item.off { border-left-color: #f59e0b; }
+      .task-cant { font-weight: bold; color: #0f172a; text-transform: uppercase; font-size: 12px; }
+      .task-lav { color: #334155; margin-top: 1px; }
+      .task-note { font-size: 10px; color: #64748b; font-style: italic; }
+      .task-ore { font-weight: bold; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 11px; height: fit-content; }
+      .empty-day { display: flex; justify-content: space-between; padding: 5px 8px; font-size: 12px; color: #94a3b8; border: 1px dashed #cbd5e1; border-radius: 6px; margin-bottom: 6px; }
+      .empty-day.off { border-color: #fde68a; background: #fffbf1; color: #d97706; border-style: solid; }
+    </style>
+  `;
+
+  const generateDaysHTML = (startDay, endDay) => {
+    let html = '';
+    for(let d=startDay; d<=Math.min(endDay, daysInMonth); d++){
+      const date = new Date(Y, M-1, d);
+      const dow = (date.getDay()+6)%7;
+      const iso = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isOff = (dow===5||dow===6) || state.holidays.has(iso);
+      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
+      const dateLabel = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} - ${nomeG}`;
+      const offClass = isOff ? 'off' : '';
+
+      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
+      
+      if(list0.length === 0){
+        html += `<div class="empty-day ${offClass}"><span>${dateLabel}</span><span>—</span></div>`;
+        continue;
+      }
+
+      const map = new Map();
+      let dayTot = 0;
+      list0.forEach(e => {
+        const cant = isBlankCantiere(e.cantiere) ? 'NO DATI' : String(e.cantiere).trim().toUpperCase();
+        const key = `${cant}|${e.lavorazione||''}|${e.note||''}`;
+        if(!map.has(key)) map.set(key, {cant, lav: e.lavorazione, note: e.note, ore: 0});
+        map.get(key).ore += (e.ore||0);
+        dayTot += (e.ore||0);
+      });
+
+      let tasksHTML = '';
+      Array.from(map.values()).forEach(t => {
+        tasksHTML += `
+          <div class="task-item ${offClass}">
+            <div>
+              <div class="task-cant">${t.cant}</div>
+              ${t.lav ? `<div class="task-lav">${String(t.lav).replace(/\n/g,'<br>')}</div>` : ''}
+              ${t.note ? `<div class="task-note">${String(t.note).replace(/\n/g,'<br>')}</div>` : ''}
+            </div>
+            <div class="task-ore">${t.ore.toFixed(2)} h</div>
+          </div>
+        `;
+      });
+
+      html += `
+        <div class="day-row ${offClass}">
+          <div class="day-header"><span>${dateLabel}</span><span>Tot: ${dayTot.toFixed(2)} h</span></div>
+          <div class="day-body">${tasksHTML}</div>
+        </div>
+      `;
+    }
+    return html;
+  };
+
+  return `
+    ${pdfCSS}
+    <div class="pdf-wrap" id="pdfCapture">
+      <div class="pdf-header">
+        <div>
+          <h1 class="pdf-title">${op}</h1>
+          <div class="pdf-subtitle">Resoconto Presenze: ${String(M).padStart(2,'0')}/${Y}</div>
+        </div>
+        <div class="pdf-tot">
+          <div class="pdf-tot-label">Totale Ore Mese</div>
+          <div class="pdf-tot-val">${totMese.toFixed(2)} h</div>
+        </div>
+      </div>
+      <div class="pdf-cols">
+        <div class="pdf-col">
+          <div class="pdf-col-title">Giorni 1 - 15</div>
+          ${generateDaysHTML(1, 15)}
+        </div>
+        <div class="pdf-col">
+          <div class="pdf-col-title">Giorni 16 - 31</div>
+          ${generateDaysHTML(16, 31)}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ==================== EXPORT SINGOLO OPERAIO ==================== */
 async function exportDetailPDF(){
   if(detailCard.style.display === 'none'){
     alert('Apri prima un dettaglio operaio.');
@@ -824,276 +950,126 @@ async function exportDetailPDF(){
   const op = state.currentOp;
   const daysInMonth = new Date(Y, M, 0).getDate();
 
-  // Totale mese
   const totMese = (state.summary.find(s => s.op === op)?.tot) ?? (() => {
     let t=0; const days = state.byOpDay[op]||{};
     Object.values(days).forEach(list => list.forEach(e => t += (e.ore||0)));
     return +t.toFixed(2);
   })();
 
-  // A4 verticale @300dpi
-  const A4_W = 2480;
-  const A4_H = 3508;
-  const MARGIN = 25;
-
   const pdfContainer = document.getElementById('pdfContainer');
-  pdfContainer.innerHTML = '';
+  pdfContainer.innerHTML = buildWorkerPdfHtml(op, totMese, Y, M, daysInMonth);
   pdfContainer.style.display = 'block';
   pdfContainer.style.position = 'absolute';
-  pdfContainer.style.left = '-10000px';
+  pdfContainer.style.left = '-9999px';
   pdfContainer.style.top = '0';
-  pdfContainer.style.width = A4_W + 'px';
-  pdfContainer.style.height = A4_H + 'px';
-  pdfContainer.style.background = '#ffffff';
-  pdfContainer.style.padding = MARGIN + 'px';
-  pdfContainer.style.boxSizing = 'border-box';
-  pdfContainer.style.fontFamily = 'Arial, sans-serif';
 
-  // ===== HEADER =====
-  const header = document.createElement('div');
-  header.style.cssText = `
-    display:flex; justify-content:space-between; align-items:center;
-    padding:12px 20px; background:rgba(226, 232, 240, 0.5);
-    border:1px solid #cbd5e1; border-radius:8px; margin-bottom:12px;
-  `;
+  const captureEl = document.getElementById('pdfCapture');
+  await new Promise(r => setTimeout(r, 150)); 
   
-  const leftHead = document.createElement('div');
-  const title = document.createElement('div');
-  title.style.cssText = 'font-weight:900; font-size:56px; letter-spacing:-0.5px; color:#1e293b;';
-  title.textContent = `${op}`;
-  const subtitle = document.createElement('div');
-  subtitle.style.cssText = 'font-size:26px; font-weight:600; margin-top:2px; color:#475569;';
-  subtitle.textContent = `Presenze ${String(M).padStart(2,'0')}/${Y}`;
-  leftHead.appendChild(title);
-  leftHead.appendChild(subtitle);
-  
-  const rightHead = document.createElement('div');
-  rightHead.style.cssText = 'text-align:right;';
-  const sup = document.createElement('div');
-  sup.style.cssText = 'font-size:20px; font-weight:600; color:#64748b; margin-bottom:2px;';
-  sup.textContent = 'TOTALE ORE';
-  const big = document.createElement('div');
-  big.style.cssText = 'font-weight:900; font-size:72px; line-height:1; color:#0f172a;';
-  big.textContent = `${(+totMese).toFixed(1)} h`;
-  rightHead.appendChild(sup);
-  rightHead.appendChild(big);
-  
-  header.appendChild(leftHead);
-  header.appendChild(rightHead);
-  pdfContainer.appendChild(header);
-
-  // ===== WRAPPER DUE COLONNE =====
-  const cols = document.createElement('div');
-  cols.style.cssText = `display:flex; gap:16px; width:100%;`;
-  pdfContainer.appendChild(cols);
-
-  // Funzione per raggruppare entries
-  function groupDay(entries){
-    const map = new Map();
-    entries.forEach(e=>{
-      const cant = isBlankCantiere(e.cantiere) ? 'NO DATI' : String(e.cantiere).trim().toUpperCase();
-      const lav  = stripIntervals(e.lavorazione||"");
-      const note = stripIntervals(e.note||"");
-      const key = `${cant}|${lav}|${note}`;
-      if(!map.has(key)) map.set(key, {cant, lav, note, orari:new Set(), ore:0, count:0});
-      const rec = map.get(key);
-      if(e.orari){ String(e.orari).split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(x=>rec.orari.add(x)); }
-      rec.ore += (e.ore||0);
-      rec.count++;
-    });
-    return Array.from(map.values()).map(v=>({
-      cant: v.count>1 ? `${v.cant} (x${v.count})` : v.cant,
-      lav: v.lav,
-      note: v.note,
-      orari: Array.from(v.orari).join(', '),
-      ore: +(+v.ore).toFixed(2)
-    }));
-  }
-
-  // Funzione per costruire una colonna (TUTTI i giorni, vuoti = mini)
-  function buildCalendar(startDay, endDay){
-    const col = document.createElement('div');
-    col.style.cssText = `
-      flex:1; display:flex; flex-direction:column; min-width:0;
-      border:1px solid #94a3b8; padding:8px; box-sizing:border-box;
-      border-radius:8px; background:#fafafa;
-    `;
-
-    const h = document.createElement('div');
-    h.style.cssText = `
-      font-family: Arial, sans-serif; font-weight:900; font-size:28px;
-      text-align:center; padding:6px 4px; border-bottom:1px solid #94a3b8;
-      background:#e2e8f0; border-radius:4px; margin-bottom:8px; color:#334155;
-    `;
-    h.textContent = startDay === 1 ? 'GIORNI 1–15' : 'GIORNI 16–31';
-    col.appendChild(h);
-
-    const body = document.createElement('div');
-    body.style.cssText = `flex:1; display:flex; flex-direction:column; gap:4px;`;
-    col.appendChild(body);
-
-    // TUTTI i giorni del range
-    for(let d=startDay; d<=Math.min(endDay, daysInMonth); d++){
-      const list0 = (state.byOpDay[op] && state.byOpDay[op][d]) ? state.byOpDay[op][d] : [];
-      
-      const date = new Date(Y, M-1, d);
-      const dow  = (date.getDay()+6)%7;
-      const iso  = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isOff= (dow===5||dow===6) || state.holidays.has(iso);
-      const nomeG = date.toLocaleDateString('it-IT',{weekday:'short'}).toUpperCase();
-
-      // GIORNO VUOTO = versione mini
-      if(list0.length === 0){
-        const miniBox = document.createElement('div');
-        miniBox.style.cssText = `
-          border:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
-          border-radius:4px; padding:3px 8px;
-          background:${isOff ? '#fef3c7' : '#f8fafc'};
-          display:flex; justify-content:space-between; align-items:center;
-          font-size:16px; color:#64748b; font-weight:600;
-        `;
-        const label = document.createElement('span');
-        label.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} ${nomeG}`;
-        const dash = document.createElement('span');
-        dash.textContent = '—';
-        dash.style.color = '#94a3b8';
-        miniBox.appendChild(label);
-        miniBox.appendChild(dash);
-        body.appendChild(miniBox);
-        continue;
-      }
-
-      // GIORNO CON PRESENZE = versione completa
-      const grouped = groupDay(list0);
-      let dayTot = 0;
-      grouped.forEach(en => dayTot += (en.ore || 0));
-
-      const box = document.createElement('div');
-      box.style.cssText = `
-        border:1px solid ${isOff ? '#fbbf24' : '#94a3b8'}; 
-        border-radius:6px; overflow:hidden;
-        background:${isOff ? '#fffbeb' : 'white'};
-      `;
-
-      // Header giorno
-      const head = document.createElement('div');
-      head.style.cssText = `
-        display:flex; justify-content:space-between; align-items:center;
-        padding:6px 10px;
-        background:${isOff ? 'rgba(251, 191, 36, 0.15)' : 'rgba(148, 163, 184, 0.15)'};
-        border-bottom:1px solid ${isOff ? '#fbbf24' : '#cbd5e1'};
-        color:#1e293b;
-      `;
-      const left = document.createElement('div');
-      left.style.cssText = 'font-size:32px; font-weight:900;';
-      left.textContent = `${String(d).padStart(2,'0')}/${String(M).padStart(2,'0')} — ${nomeG}`;
-      const right = document.createElement('div');
-      right.style.cssText = 'font-size:32px; font-weight:900;';
-      right.textContent = `${dayTot.toFixed(1)} h`;
-      head.appendChild(left);
-      head.appendChild(right);
-      box.appendChild(head);
-
-      // Content entries
-      const content = document.createElement('div');
-      content.style.cssText = 'padding:8px; display:flex; flex-direction:column; gap:6px;';
-      
-      grouped.forEach(en=>{
-        const row = document.createElement('div');
-        row.style.cssText = `
-          display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start;
-          padding:6px; background:${isOff ? 'rgba(254, 243, 199, 0.5)' : 'rgba(241, 245, 249, 0.6)'};
-          border-radius:4px; border-left:3px solid #b91c1c;
-        `;
-        
-        const l = document.createElement('div');
-        const cantEl = document.createElement('div');
-        cantEl.style.cssText = 'font-size:28px; font-weight:900; color:#b91c1c; text-transform:uppercase; margin-bottom:3px; line-height:1.1;';
-        cantEl.textContent = en.cant;
-        l.appendChild(cantEl);
-        
-        if(en.lav){
-          const lavEl = document.createElement('div');
-          lavEl.style.cssText = 'font-size:25px; color:#1e293b; line-height:1.25;';
-          lavEl.innerHTML = en.lav.replace(/\n/g,'<br>');
-          l.appendChild(lavEl);
-        }
-        
-        if(en.note){
-          const noteEl = document.createElement('div');
-          noteEl.style.cssText = 'font-size:20px; color:#64748b; font-style:italic; margin-top:2px;';
-          noteEl.innerHTML = en.note.replace(/\n/g,'<br>');
-          l.appendChild(noteEl);
-        }
-        
-        const r = document.createElement('div');
-        r.style.cssText = 'text-align:right; display:flex; flex-direction:column; gap:3px; align-items:flex-end;';
-        
-        if(en.orari){
-          const orariBox = document.createElement('div');
-          orariBox.style.cssText = `
-            font-size:20px; font-weight:700; color:#1e293b;
-            background:rgba(224, 242, 254, 0.6); border:1px solid #bae6fd;
-            padding:3px 7px; border-radius:3px; white-space:nowrap;
-          `;
-          orariBox.textContent = en.orari;
-          r.appendChild(orariBox);
-        }
-        
-        const oreBox = document.createElement('div');
-        oreBox.style.cssText = `
-          font-size:22px; font-weight:900; color:#0f172a;
-          background:rgba(186, 230, 253, 0.5); padding:3px 10px; border-radius:4px;
-          border:1px solid #bae6fd;
-        `;
-        oreBox.textContent = `${en.ore} h`;
-        r.appendChild(oreBox);
-        
-        row.appendChild(l);
-        row.appendChild(r);
-        content.appendChild(row);
-      });
-      
-      box.appendChild(content);
-      body.appendChild(box);
-    }
-
-    return col;
-  }
-
-  const leftCol  = buildCalendar(1, 15);
-  const rightCol = buildCalendar(16, 31);
-  cols.appendChild(leftCol);
-  cols.appendChild(rightCol);
-
-  // Render e cattura
-  await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 100));
-  
-  const canvas = await html2canvas(pdfContainer, {
-    scale: 1,
-    backgroundColor: '#ffffff',
+  const canvas = await html2canvas(captureEl, {
+    scale: 2, 
     useCORS: true,
     logging: false,
-    width: A4_W,
-    height: A4_H
+    backgroundColor: '#ffffff'
   });
   
   pdfContainer.style.display = 'none';
+  pdfContainer.innerHTML = ''; 
 
-  // PDF A4
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+  const pdfW = pdf.internal.pageSize.getWidth();
+  const pdfH = pdf.internal.pageSize.getHeight();
+  const ratio = canvas.width / canvas.height;
   
-  let scale = Math.min((pageW - 12) / canvas.width, (pageH - 12) / canvas.height);
-  const imgW = canvas.width * scale;
-  const imgH = canvas.height * scale;
-  const x = (pageW - imgW) / 2;
-  const y = (pageH - imgH) / 2;
+  let imgW = pdfW - 20; 
+  let imgH = imgW / ratio;
 
-  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgW, imgH, undefined, 'FAST');
+  if (imgH > pdfH - 20) {
+    imgH = pdfH - 20; 
+    imgW = imgH * ratio; 
+  }
+
+  const xOffset = (pdfW - imgW) / 2;
+
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', xOffset, 10, imgW, imgH, undefined, 'FAST');
   pdf.save(`Presenze_${String(M).padStart(2,'0')}_${Y}_${op}.pdf`.replace(/\s+/g,'_'));
+}
+
+/* ==================== EXPORT TUTTI GLI OPERAI (PDF UNICO) ==================== */
+async function exportAllPDF() {
+  if (!state.summary || state.summary.length === 0) {
+    alert("Nessun dato da esportare. Carica prima i dati.");
+    return;
+  }
+
+  const originalStatus = statusEl.innerHTML;
+  statusEl.innerHTML = `<span style="color:var(--primary); font-weight:600;">⏳ Generazione PDF di tutti gli operai in corso... Potrebbe richiedere qualche secondo.</span>`;
+  setLoading(true);
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const [Y, M] = [state.Y, state.M];
+    const daysInMonth = new Date(Y, M, 0).getDate();
+    
+    const pdfContainer = document.getElementById('pdfContainer');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+
+    for (let i = 0; i < state.summary.length; i++) {
+      const op = state.summary[i].op;
+      const totMese = state.summary[i].tot;
+
+      pdfContainer.innerHTML = buildWorkerPdfHtml(op, totMese, Y, M, daysInMonth);
+      pdfContainer.style.display = 'block';
+      pdfContainer.style.position = 'absolute';
+      pdfContainer.style.left = '-9999px';
+      pdfContainer.style.top = '0';
+
+      const captureEl = document.getElementById('pdfCapture');
+      await new Promise(r => setTimeout(r, 100)); // Breve pausa per rendering
+      
+      const canvas = await html2canvas(captureEl, {
+        scale: 2, 
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const ratio = canvas.width / canvas.height;
+      let imgW = pdfW - 20; 
+      let imgH = imgW / ratio;
+
+      if (imgH > pdfH - 20) {
+        imgH = pdfH - 20; 
+        imgW = imgH * ratio; 
+      }
+
+      const xOffset = (pdfW - imgW) / 2;
+
+      // Aggiungi nuova pagina dal secondo operaio in poi
+      if (i > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', xOffset, 10, imgW, imgH, undefined, 'FAST');
+    }
+
+    pdfContainer.style.display = 'none';
+    pdfContainer.innerHTML = ''; 
+
+    pdf.save(`Presenze_Tutti_${String(M).padStart(2,'0')}_${Y}.pdf`.replace(/\s+/g,'_'));
+    statusEl.innerHTML = `<span class="ok">✓ PDF globale scaricato con successo!</span>`;
+    
+  } catch (error) {
+    console.error(error);
+    statusEl.innerHTML = `<span class="error">✗ Errore nella generazione del PDF globale.</span>`;
+  } finally {
+    setLoading(false);
+    setTimeout(() => { 
+      if(statusEl.textContent.includes('PDF globale')) statusEl.innerHTML = originalStatus; 
+    }, 4000);
+  }
 }
 
 /* ====== INIT ====== */
@@ -1114,6 +1090,8 @@ async function exportDetailPDF(){
   });
 
   document.getElementById('btnDetailPDF').addEventListener('click', exportDetailPDF);
+  btnDownloadAll.addEventListener('click', exportAllPDF); // Aggiunto listener per il pulsante Download Tutti
+  
   btnCloseDetail.addEventListener('click', () => {
     detailCard.style.display = 'none';
   });
