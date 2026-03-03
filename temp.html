@@ -431,7 +431,10 @@
   </div>
 
   <div class="table-card">
-    <div class="table-title">📈 Riepilogo Mensile</div>
+    <div class="table-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>📈 Riepilogo Mensile</span>
+      <button id="btnDownloadAll" class="primary" style="font-size: 14px; padding: 6px 14px;" disabled>📥 Download Presenze di Tutti</button>
+    </div>
     <div class="table-wrap">
       <table id="tbl">
         <thead>
@@ -551,6 +554,7 @@ const detailTitle  = document.getElementById('detailTitle');
 const detailBody   = document.getElementById('detailBody');
 const detailTotOre = document.getElementById('detailTotOre');
 const btnCloseDetail = document.getElementById('btnCloseDetail');
+const btnDownloadAll = document.getElementById('btnDownloadAll');
 
 const state = { Y:null, M:null, holidays:new Set(), byOpDay:{}, operai:[], summary:[], currentOp:null };
 
@@ -571,6 +575,8 @@ function shiftMonth(delta){
 function setLoading(on){
   spin.classList.toggle('show', !!on);
   btnCarica.disabled = !!on; prevBtn.disabled=!!on; nextBtn.disabled=!!on;
+  // Disabilita anche il pulsante scarica tutti durante il caricamento
+  if (on) btnDownloadAll.disabled = true;
 }
 
 /* ====== FETCH ====== */
@@ -630,6 +636,7 @@ function renderSummary(list){
   tbody.innerHTML = '';
   if(list.length===0){
     tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Nessun operaio con ore registrate in questo mese.</td></tr>`;
+    btnDownloadAll.disabled = true;
     return;
   }
   list.forEach(r=>{
@@ -642,6 +649,8 @@ function renderSummary(list){
       <td class="num">${r.weekend} h</td>`;
     tbody.appendChild(tr);
   });
+  // Abilita il pulsante solo se ci sono dati caricati
+  btnDownloadAll.disabled = false;
 }
 
 function showDetail(op){
@@ -820,28 +829,8 @@ async function carica(){
   }
 }
   
-/* ==================== EXPORT PDF OTTIMIZZATO E COMPATTATO ==================== */
-async function exportDetailPDF(){
-  if(detailCard.style.display === 'none'){
-    alert('Apri prima un dettaglio operaio.');
-    return;
-  }
-
-  const { jsPDF } = window.jspdf;
-  const [Y, M] = [state.Y, state.M];
-  const op = state.currentOp;
-  const daysInMonth = new Date(Y, M, 0).getDate();
-
-  // Calcolo totale mese
-  const totMese = (state.summary.find(s => s.op === op)?.tot) ?? (() => {
-    let t=0; const days = state.byOpDay[op]||{};
-    Object.values(days).forEach(list => list.forEach(e => t += (e.ore||0)));
-    return +t.toFixed(2);
-  })();
-
-  const pdfContainer = document.getElementById('pdfContainer');
-  
-  // Stili base per il PDF - COMPATTATI PER OCCUPARE MENO SPAZIO VERTICALE
+/* ==================== EXPORT PDF: HTML BUILDER CONDIVISO ==================== */
+function buildWorkerPdfHtml(op, totMese, Y, M, daysInMonth) {
   const pdfCSS = `
     <style>
       .pdf-wrap { width: 1000px; padding: 25px; background: #fff; font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; box-sizing: border-box; }
@@ -870,7 +859,6 @@ async function exportDetailPDF(){
     </style>
   `;
 
-  // Funzione helper per generare l'HTML di una colonna di giorni
   const generateDaysHTML = (startDay, endDay) => {
     let html = '';
     for(let d=startDay; d<=Math.min(endDay, daysInMonth); d++){
@@ -889,7 +877,6 @@ async function exportDetailPDF(){
         continue;
       }
 
-      // Raggruppa lavorazioni del giorno
       const map = new Map();
       let dayTot = 0;
       list0.forEach(e => {
@@ -924,8 +911,7 @@ async function exportDetailPDF(){
     return html;
   };
 
-  // Costruzione della griglia HTML principale
-  pdfContainer.innerHTML = `
+  return `
     ${pdfCSS}
     <div class="pdf-wrap" id="pdfCapture">
       <div class="pdf-header">
@@ -950,14 +936,33 @@ async function exportDetailPDF(){
       </div>
     </div>
   `;
+}
 
-  // Prepara il container per lo scatto
+/* ==================== EXPORT SINGOLO OPERAIO ==================== */
+async function exportDetailPDF(){
+  if(detailCard.style.display === 'none'){
+    alert('Apri prima un dettaglio operaio.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const [Y, M] = [state.Y, state.M];
+  const op = state.currentOp;
+  const daysInMonth = new Date(Y, M, 0).getDate();
+
+  const totMese = (state.summary.find(s => s.op === op)?.tot) ?? (() => {
+    let t=0; const days = state.byOpDay[op]||{};
+    Object.values(days).forEach(list => list.forEach(e => t += (e.ore||0)));
+    return +t.toFixed(2);
+  })();
+
+  const pdfContainer = document.getElementById('pdfContainer');
+  pdfContainer.innerHTML = buildWorkerPdfHtml(op, totMese, Y, M, daysInMonth);
   pdfContainer.style.display = 'block';
   pdfContainer.style.position = 'absolute';
   pdfContainer.style.left = '-9999px';
   pdfContainer.style.top = '0';
 
-  // Render e cattura
   const captureEl = document.getElementById('pdfCapture');
   await new Promise(r => setTimeout(r, 150)); 
   
@@ -971,28 +976,100 @@ async function exportDetailPDF(){
   pdfContainer.style.display = 'none';
   pdfContainer.innerHTML = ''; 
 
-  // Generazione File PDF A4
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
   const pdfW = pdf.internal.pageSize.getWidth();
   const pdfH = pdf.internal.pageSize.getHeight();
-  
   const ratio = canvas.width / canvas.height;
   
-  // Calcolo le dimensioni massime per la larghezza
-  let imgW = pdfW - 20; // 10mm di margini laterali (sinistra e destra)
+  let imgW = pdfW - 20; 
   let imgH = imgW / ratio;
 
-  // CONTROLLO DI SICUREZZA: se l'altezza supera l'A4, scalo ulteriormente per farlo rientrare
   if (imgH > pdfH - 20) {
-    imgH = pdfH - 20; // Limito all'altezza massima con 10mm di margini (sopra e sotto)
-    imgW = imgH * ratio; // Ricalcolo la larghezza per mantenere le proporzioni
+    imgH = pdfH - 20; 
+    imgW = imgH * ratio; 
   }
 
-  // Centratura automatica orizzontale
   const xOffset = (pdfW - imgW) / 2;
 
   pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', xOffset, 10, imgW, imgH, undefined, 'FAST');
   pdf.save(`Presenze_${String(M).padStart(2,'0')}_${Y}_${op}.pdf`.replace(/\s+/g,'_'));
+}
+
+/* ==================== EXPORT TUTTI GLI OPERAI (PDF UNICO) ==================== */
+async function exportAllPDF() {
+  if (!state.summary || state.summary.length === 0) {
+    alert("Nessun dato da esportare. Carica prima i dati.");
+    return;
+  }
+
+  const originalStatus = statusEl.innerHTML;
+  statusEl.innerHTML = `<span style="color:var(--primary); font-weight:600;">⏳ Generazione PDF di tutti gli operai in corso... Potrebbe richiedere qualche secondo.</span>`;
+  setLoading(true);
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const [Y, M] = [state.Y, state.M];
+    const daysInMonth = new Date(Y, M, 0).getDate();
+    
+    const pdfContainer = document.getElementById('pdfContainer');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+
+    for (let i = 0; i < state.summary.length; i++) {
+      const op = state.summary[i].op;
+      const totMese = state.summary[i].tot;
+
+      pdfContainer.innerHTML = buildWorkerPdfHtml(op, totMese, Y, M, daysInMonth);
+      pdfContainer.style.display = 'block';
+      pdfContainer.style.position = 'absolute';
+      pdfContainer.style.left = '-9999px';
+      pdfContainer.style.top = '0';
+
+      const captureEl = document.getElementById('pdfCapture');
+      await new Promise(r => setTimeout(r, 100)); // Breve pausa per rendering
+      
+      const canvas = await html2canvas(captureEl, {
+        scale: 2, 
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const ratio = canvas.width / canvas.height;
+      let imgW = pdfW - 20; 
+      let imgH = imgW / ratio;
+
+      if (imgH > pdfH - 20) {
+        imgH = pdfH - 20; 
+        imgW = imgH * ratio; 
+      }
+
+      const xOffset = (pdfW - imgW) / 2;
+
+      // Aggiungi nuova pagina dal secondo operaio in poi
+      if (i > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', xOffset, 10, imgW, imgH, undefined, 'FAST');
+    }
+
+    pdfContainer.style.display = 'none';
+    pdfContainer.innerHTML = ''; 
+
+    pdf.save(`Presenze_Tutti_${String(M).padStart(2,'0')}_${Y}.pdf`.replace(/\s+/g,'_'));
+    statusEl.innerHTML = `<span class="ok">✓ PDF globale scaricato con successo!</span>`;
+    
+  } catch (error) {
+    console.error(error);
+    statusEl.innerHTML = `<span class="error">✗ Errore nella generazione del PDF globale.</span>`;
+  } finally {
+    setLoading(false);
+    setTimeout(() => { 
+      if(statusEl.textContent.includes('PDF globale')) statusEl.innerHTML = originalStatus; 
+    }, 4000);
+  }
 }
 
 /* ====== INIT ====== */
@@ -1013,6 +1090,8 @@ async function exportDetailPDF(){
   });
 
   document.getElementById('btnDetailPDF').addEventListener('click', exportDetailPDF);
+  btnDownloadAll.addEventListener('click', exportAllPDF); // Aggiunto listener per il pulsante Download Tutti
+  
   btnCloseDetail.addEventListener('click', () => {
     detailCard.style.display = 'none';
   });
