@@ -30,7 +30,11 @@
     }
 
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
 
     body {
       margin: 0;
@@ -43,19 +47,42 @@
     .container {
       max-width: 100%;
       margin: 0 auto;
-      padding: 26px 32px 40px;
+      padding: 18px 24px 18px;
+    }
+
+    .page-shell {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .top-fixed-area {
+      flex: 0 0 auto;
+      background: var(--bg);
+      z-index: 20;
+    }
+
+    .cantieri-scroll-area {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 8px;
+      scrollbar-width: thin;
     }
 
     h1 {
       margin: 0 0 8px;
-      font-size: 32px;
+      font-size: 34px;
       font-weight: 800;
       letter-spacing: -0.5px;
     }
 
     .subtitle {
       color: var(--text-light);
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
       margin-bottom: 18px;
     }
@@ -71,7 +98,7 @@
     }
 
     .control-panel { margin-bottom: 18px; }
-    .operai-panel { margin-bottom: 18px; }
+    .operai-panel { margin-bottom: 0; }
 
     .control-row {
       display: flex;
@@ -163,11 +190,11 @@
     input[type="text"],
     textarea,
     select {
-      padding: 10px 14px;
+      padding: 11px 14px;
       border: 2px solid var(--border);
       border-radius: 10px;
       background: var(--card);
-      font-size: 15px;
+      font-size: 16px;
       color: var(--text);
       transition: border-color .2s;
     }
@@ -180,7 +207,7 @@
     }
 
     textarea {
-      min-height: 82px;
+      min-height: 86px;
       resize: vertical;
     }
 
@@ -217,12 +244,12 @@
 
     .section-title h2 {
       margin: 0;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 800;
     }
 
     .section-note {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-light);
       font-weight: 700;
     }
@@ -238,10 +265,11 @@
       display: grid;
       grid-template-rows: repeat(2, auto);
       grid-auto-flow: column;
-      grid-auto-columns: 300px;
+      grid-auto-columns: 320px;
       gap: 14px;
       overflow-x: auto;
-      overflow-y: hidden;
+      overflow-y: auto;
+      max-height: 280px;
       padding: 4px 2px 8px;
       align-items: stretch;
       scrollbar-width: thin;
@@ -292,8 +320,8 @@
     }
 
     .mini-avatar {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
     }
 
@@ -348,21 +376,24 @@
 
     .cantiere-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
     }
 
     .site-card {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      padding: 14px;
+      gap: 12px;
+      padding: 16px;
       border-radius: 16px;
       border: 1px solid var(--border);
       background: linear-gradient(to bottom, #fff, #fcfdff);
       box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      min-height: 260px;
-      transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+      min-height: 285px;
+      transition: transform .22s ease, box-shadow .22s ease, background .22s ease, border-color .22s ease, opacity .22s ease, filter .22s ease;
+      position: relative;
+      transform-origin: center center;
     }
 
     .site-card.mosaic-a {
@@ -379,6 +410,20 @@
       border-color: var(--border-strong);
     }
 
+    .cantiere-grid.has-focus .site-card {
+      opacity: .32;
+      filter: saturate(.75) blur(.2px);
+    }
+
+    .cantiere-grid.has-focus .site-card.focused {
+      opacity: 1;
+      filter: none;
+      transform: scale(1.3);
+      z-index: 50;
+      box-shadow: 0 18px 40px rgba(0,0,0,.18);
+      border-color: var(--primary);
+    }
+
     .site-head {
       display: flex;
       align-items: flex-start;
@@ -386,8 +431,24 @@
       gap: 12px;
     }
 
+    .site-head-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .site-head-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+      flex: 0 0 auto;
+    }
+
     .site-name {
-      font-size: 17px;
+      font-size: 19px;
       font-weight: 800;
       line-height: 1.2;
       color: var(--text);
@@ -396,9 +457,9 @@
     .site-dropzone {
       border: 2px dashed var(--border-strong);
       border-radius: 14px;
-      background: rgba(255,255,255,.45);
+      background: var(--hover-bg);
       padding: 10px;
-      min-height: 70px;
+      min-height: 78px;
       transition: all .2s;
     }
 
@@ -408,7 +469,7 @@
     }
 
     .drop-hint {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-light);
       margin-bottom: 8px;
@@ -421,7 +482,7 @@
     }
 
     .assigned-empty {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--muted);
       font-style: italic;
     }
@@ -431,7 +492,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 6px 8px;
+      padding: 7px 8px;
       border-radius: 10px;
       background: #fff;
       border: 1px solid var(--border);
@@ -446,24 +507,35 @@
 
     .assigned-name {
       font-weight: 700;
-      font-size: 13px;
+      font-size: 14px;
       word-break: break-word;
     }
 
-    .icon-btn {
-      width: 34px;
-      height: 34px;
+    .icon-btn,
+    .export-btn {
+      width: 36px;
+      height: 36px;
       padding: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 17px;
+      font-size: 16px;
       border-radius: 10px;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .export-btn {
+      width: auto;
+      min-width: 96px;
+      padding: 0 12px;
+      font-size: 14px;
+      font-weight: 800;
     }
 
     .todo-form {
       display: grid;
-      grid-template-columns: 1fr 165px auto;
+      grid-template-columns: 1fr 175px auto;
       gap: 8px;
       align-items: start;
     }
@@ -476,7 +548,7 @@
     }
 
     .todo-empty {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--muted);
       font-style: italic;
       padding: 10px 0 4px;
@@ -510,9 +582,9 @@
     }
 
     .todo-text {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 800;
-      line-height: 1.3;
+      line-height: 1.35;
       white-space: pre-wrap;
     }
 
@@ -520,7 +592,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-light);
       font-weight: 700;
     }
@@ -597,7 +669,7 @@
     .modal-field.full { grid-column: 1 / -1; }
 
     .modal-field label {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 800;
       color: var(--text);
     }
@@ -615,7 +687,7 @@
       .cantiere-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 
-    @media (max-width: 1500px){
+    @media (max-width: 1450px){
       .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
@@ -624,58 +696,78 @@
     }
 
     @media (max-width: 720px){
+      html, body {
+        overflow: auto;
+      }
+
+      .page-shell {
+        height: auto;
+      }
+
+      .cantieri-scroll-area {
+        overflow: visible;
+      }
+
       .container { padding: 18px; }
       .todo-form,
       .modal-grid { grid-template-columns: 1fr; }
       .cantiere-grid { grid-template-columns: 1fr; }
+
       .workers-grid {
         grid-template-rows: none;
         grid-auto-flow: row;
         grid-auto-columns: unset;
         grid-template-columns: 1fr;
         overflow-x: visible;
+        max-height: none;
+      }
+
+      .cantiere-grid.has-focus .site-card.focused {
+        transform: scale(1.03);
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 id="pageTitle">🚚 Smistamento Operai</h1>
-    <div class="subtitle" id="pageSubtitle">Pianificazione del giorno successivo</div>
+  <div class="container page-shell">
+    <div class="top-fixed-area">
+      <h1 id="pageTitle">🚚 Smistamento Operai</h1>
+      <div class="subtitle" id="pageSubtitle">Pianificazione del giorno successivo</div>
 
-    <div class="control-panel">
-      <div class="control-row">
-        <div class="control-left">
-          <button id="btnReload" class="primary">Carica dati</button>
-          <button id="btnResetDay" class="danger">Reset giornata</button>
-          <span class="badge" id="badgeTarget">Giorno operativo: —</span>
-          <span class="badge" id="badgeStats">Operai assegnati: 0</span>
-        </div>
+      <div class="control-panel">
+        <div class="control-row">
+          <div class="control-left">
+            <button id="btnReload" class="primary">Carica dati</button>
+            <button id="btnResetDay" class="danger">Reset giornata</button>
+            <span class="badge" id="badgeTarget">Giorno operativo: —</span>
+            <span class="badge" id="badgeStats">Operai assegnati: 0</span>
+          </div>
 
-        <div class="nav">
-          <a href="presenze.html">Presenze</a>
-          <a href="operaio.html">Analisi per Operaio</a>
-          <a href="cantiere.html">Analisi per Cantiere</a>
-          <a class="primary" href="smistamento.html">Smistamento</a>
+          <div class="nav">
+            <a href="presenze.html">Presenze</a>
+            <a href="operaio.html">Analisi per Operaio</a>
+            <a href="cantiere.html">Analisi per Cantiere</a>
+            <a class="primary" href="smistamento.html">Smistamento</a>
+          </div>
         </div>
+        <div id="status"></div>
       </div>
-      <div id="status"></div>
+
+      <section class="section-card operai-panel">
+        <div class="section-title">
+          <h2>👷 Operai disponibili</h2>
+          <span class="section-note">Trascina sulle schede cantiere</span>
+        </div>
+
+        <div class="workers-toolbar">
+          <input type="search" id="workerSearch" placeholder="Cerca operaio..." />
+        </div>
+
+        <div class="workers-grid" id="workersGrid"></div>
+      </section>
     </div>
 
-    <section class="section-card operai-panel">
-      <div class="section-title">
-        <h2>👷 Operai disponibili</h2>
-        <span class="section-note">Trascina sulle schede cantiere</span>
-      </div>
-
-      <div class="workers-toolbar">
-        <input type="search" id="workerSearch" placeholder="Cerca operaio..." />
-      </div>
-
-      <div class="workers-grid" id="workersGrid"></div>
-    </section>
-
-    <section class="cantieri-panel">
+    <section class="cantieri-panel cantieri-scroll-area">
       <div class="section-title">
         <h2>🏗️ Cantieri e lavorazioni</h2>
         <span class="section-note">Ogni card contiene operai assegnati + to do list</span>
@@ -721,6 +813,9 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
     const GITHUB_OPERAI_BASE = "https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/";
@@ -731,7 +826,8 @@
       tasksBySite: {},
       assignmentsBySite: {},
       targetDate: null,
-      dragWorkerName: null
+      dragWorkerName: null,
+      focusedSiteName: null
     };
 
     const $ = sel => document.querySelector(sel);
@@ -997,16 +1093,27 @@
         workersGrid.appendChild(div);
       });
 
-      badgeStats.textContent = `Operai assegnati: ${allAssignedNames().size}`;
+      badgeStats.textContent = `Operai assegnati: ${assigned.size}`;
     }
 
     function getCurrentMosaicCols(){
       const w = window.innerWidth;
       if (w <= 720) return 1;
       if (w <= 1120) return 2;
-      if (w <= 1500) return 3;
-      if (w <= 1800) return 4;
-      return 5;
+      if (w <= 1450) return 3;
+      return 4;
+    }
+
+    function focusSiteCard(siteName){
+      state.focusedSiteName = siteName;
+      renderSites();
+    }
+
+    function clearFocusedCard(){
+      if(state.focusedSiteName !== null){
+        state.focusedSiteName = null;
+        renderSites();
+      }
     }
 
     function renderSites(){
@@ -1015,6 +1122,7 @@
       const mosaicCols = getCurrentMosaicCols();
 
       cantiereGrid.innerHTML = '';
+      cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
 
       if(!sites.length){
         cantiereGrid.innerHTML = `<div class="muted">Nessun cantiere trovato.</div>`;
@@ -1038,7 +1146,7 @@
                     ${miniImage(worker.photoUrl, worker.name)}
                     <div class="assigned-name">${escapeHtml(worker.name)}</div>
                   </div>
-                  <button class="icon-btn" title="Rimuovi assegnazione" onclick='removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(name)})'>✕</button>
+                  <button class="icon-btn" title="Rimuovi assegnazione" onclick='event.stopPropagation(); removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(name)})'>✕</button>
                 </div>
               `;
             }).join('')
@@ -1050,8 +1158,8 @@
                 <div class="todo-top">
                   <div class="todo-text">${escapeHtml(t.text)}</div>
                   <div class="todo-actions">
-                    <button class="icon-btn" title="Modifica" onclick='openEditTask(${jsStr(siteName)}, ${jsStr(t.row)})'>✏️</button>
-                    <button class="icon-btn" title="Completa" onclick='closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
+                    <button class="icon-btn" title="Modifica" onclick='event.stopPropagation(); openEditTask(${jsStr(siteName)}, ${jsStr(t.row)})'>✏️</button>
+                    <button class="icon-btn" title="Completa" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
                   </div>
                 </div>
                 <div class="todo-meta">
@@ -1066,13 +1174,20 @@
         const rowIndex = Math.floor(index / mosaicCols);
         const colIndex = index % mosaicCols;
         const mosaicClass = ((rowIndex + colIndex) % 2 === 0) ? 'mosaic-a' : 'mosaic-b';
+        const focusedClass = state.focusedSiteName === siteName ? 'focused' : '';
 
         const card = document.createElement('div');
-        card.className = `site-card ${mosaicClass}`;
+        card.className = `site-card ${mosaicClass} ${focusedClass}`;
+        card.dataset.siteCardName = siteName;
         card.innerHTML = `
           <div class="site-head">
-            <div class="site-name">${escapeHtml(siteName)}</div>
-            <span class="badge">${tasks.length} lavorazioni</span>
+            <div class="site-head-left">
+              <div class="site-name">${escapeHtml(siteName)}</div>
+              <span class="badge">${tasks.length} lavorazioni</span>
+            </div>
+            <div class="site-head-right">
+              <button class="export-btn" onclick='event.stopPropagation(); exportSiteCard(${jsStr(siteName)})'>📄 Export</button>
+            </div>
           </div>
 
           <div class="site-dropzone" data-site-name="${escapeHtml(siteName)}">
@@ -1087,11 +1202,16 @@
               <option value="2">🟠 Media</option>
               <option value="3">⚪ Minima</option>
             </select>
-            <button class="primary" onclick='createTask(${jsStr(siteName)})'>Aggiungi</button>
+            <button class="primary" onclick='event.stopPropagation(); createTask(${jsStr(siteName)})'>Aggiungi</button>
           </div>
 
           <div class="todo-list">${taskHtml}</div>
         `;
+
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('button, textarea, select, input, .site-dropzone')) return;
+          focusSiteCard(siteName);
+        });
 
         cantiereGrid.appendChild(card);
       });
@@ -1112,11 +1232,13 @@
 
         zone.addEventListener('drop', async e => {
           e.preventDefault();
+          e.stopPropagation();
           zone.classList.remove('over');
 
           const siteName = zone.dataset.siteName;
           if(!siteName || !state.dragWorkerName) return;
 
+          focusSiteCard(siteName);
           await addWorkerToSite(state.dragWorkerName, siteName);
         });
       });
@@ -1300,6 +1422,69 @@
       setStatus('✓ Lavorazione chiusa.', 'ok');
     }
 
+    async function exportSiteCard(siteName){
+      const card = Array.from(document.querySelectorAll('.site-card')).find(el => el.dataset.siteCardName === siteName);
+      if(!card){
+        setStatus('⚠️ Card non trovata per export.', 'error');
+        return;
+      }
+
+      try {
+        setStatus(`⏳ Export PDF di ${siteName}...`, 'ok');
+
+        const clone = card.cloneNode(true);
+        clone.classList.remove('focused');
+        clone.style.transform = 'none';
+        clone.style.opacity = '1';
+        clone.style.filter = 'none';
+        clone.style.width = `${card.offsetWidth}px`;
+
+        const holder = document.createElement('div');
+        holder.style.position = 'absolute';
+        holder.style.left = '-10000px';
+        holder.style.top = '0';
+        holder.style.width = `${card.offsetWidth}px`;
+        holder.style.background = '#ffffff';
+        holder.appendChild(clone);
+        document.body.appendChild(holder);
+
+        const canvas = await html2canvas(clone, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          logging: false
+        });
+
+        document.body.removeChild(holder);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 18;
+        const availW = pageW - margin * 2;
+        const availH = pageH - margin * 2;
+        const ratio = Math.min(availW / canvas.width, availH / canvas.height);
+
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        const x = margin + (availW - w) / 2;
+        const y = margin;
+
+        const img = canvas.toDataURL('image/png');
+        pdf.addImage(img, 'PNG', x, y, w, h);
+
+        const safeName = siteName.replace(/[\\/:*?"<>|]+/g, '_');
+        pdf.save(`Smistamento_${safeName}_${state.targetDate}.pdf`);
+
+        setStatus(`✓ PDF esportato: ${siteName}`, 'ok');
+      } catch (err) {
+        console.error(err);
+        setStatus(`✗ Export PDF fallito: ${err.message}`, 'error');
+      }
+    }
+
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
 
@@ -1325,7 +1510,16 @@
     overlay.addEventListener('click', closeModal);
 
     window.addEventListener('keydown', e => {
-      if(e.key === 'Escape') closeModal();
+      if(e.key === 'Escape') {
+        closeModal();
+        clearFocusedCard();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if(!e.target.closest('.site-card') && !e.target.closest('.modal')){
+        clearFocusedCard();
+      }
     });
 
     let resizeRenderTimer = null;
@@ -1348,6 +1542,7 @@
     window.openEditTask = openEditTask;
     window.closeTask = closeTask;
     window.removeWorkerFromSite = removeWorkerFromSite;
+    window.exportSiteCard = exportSiteCard;
 
     loadAll(false);
   </script>
