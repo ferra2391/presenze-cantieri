@@ -79,8 +79,7 @@
       flex-wrap: wrap;
     }
 
-    .control-left,
-    .control-right {
+    .control-left {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -673,9 +672,9 @@
       <div class="modal-field">
         <label>Priorità</label>
         <select id="editPriority">
-          <option value="rosso">🔴 Urgente</option>
-          <option value="arancione">🟠 Media</option>
-          <option value="bianco">⚪ Minima</option>
+          <option value="1">🔴 Urgente</option>
+          <option value="2">🟠 Media</option>
+          <option value="3">⚪ Minima</option>
         </select>
       </div>
       <div class="modal-field">
@@ -691,8 +690,8 @@
   </div>
 
   <script>
-    const GAS_URL  = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
-    const GITHUB_OPERAI_BASE = "https://github.com/ferra2391/presenze-cantieri/blob/main/operai/";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
+    const GITHUB_OPERAI_BASE = "https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/";
 
     const state = {
       workers: [],
@@ -715,7 +714,15 @@
     const modalTodo = $('#modalTodo');
 
     function pad(n){ return String(n).padStart(2,'0'); }
-    function normalize(s){ return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g,'').trim().toLowerCase(); }
+
+    function normalize(s){
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'')
+        .trim()
+        .toLowerCase();
+    }
+
     function escapeHtml(s){
       return String(s || '')
         .replace(/&/g,'&amp;')
@@ -735,16 +742,21 @@
     function formatDateIT(iso){
       if(!iso) return '—';
       const [y,m,d] = String(iso).split('-').map(Number);
-      return new Date(y, m-1, d).toLocaleDateString('it-IT', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
-    }
-
-    function nowStamp(){
-      return new Date().toLocaleString('it-IT');
+      return new Date(y, m-1, d).toLocaleDateString('it-IT', {
+        weekday:'long',
+        day:'2-digit',
+        month:'long',
+        year:'numeric'
+      });
     }
 
     function photoUrlForWorker(name, explicitUrl){
       if(explicitUrl) return explicitUrl;
-      return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png?raw=true`;
+      return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png`;
+    }
+
+    function jsStr(v){
+      return JSON.stringify(String(v || ''));
     }
 
     function allAssignedNames(){
@@ -803,21 +815,28 @@
     async function loadAll(){
       updateHeader();
       setStatus('⏳ Caricamento smistamento...', 'ok');
-      try{
-        const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
-        state.workers = Array.isArray(json.workers) ? json.workers.map(w => ({
-          name: String(w.name || '').trim(),
-          photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
-          role: String(w.role || '').trim()
-        })).filter(w => w.name) : [];
 
-        state.sites = Array.isArray(json.sites) ? json.sites.map(String).filter(Boolean) : [];
+      try {
+        const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
+
+        state.workers = Array.isArray(json.workers)
+          ? json.workers.map(w => ({
+              name: String(w.name || '').trim(),
+              photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
+              role: String(w.role || '').trim()
+            })).filter(w => w.name)
+          : [];
+
+        state.sites = Array.isArray(json.sites)
+          ? json.sites.map(String).filter(Boolean)
+          : [];
+
         state.tasksBySite = json.tasksBySite || {};
         state.assignmentsBySite = json.assignmentsBySite || {};
 
         renderAll();
         setStatus('✓ Smistamento caricato.', 'ok');
-      }catch(err){
+      } catch (err) {
         console.error(err);
         setStatus('✗ Errore nel caricamento dei dati.', 'error');
       }
@@ -826,11 +845,13 @@
     function renderWorkers(){
       const q = normalize(workerSearch.value);
       const assigned = allAssignedNames();
+
       const list = state.workers
         .filter(w => !q || normalize(w.name).includes(q))
         .sort((a,b) => a.name.localeCompare(b.name, 'it'));
 
       workersGrid.innerHTML = '';
+
       if(!list.length){
         workersGrid.innerHTML = `<div class="muted">Nessun operaio trovato.</div>`;
         return;
@@ -842,6 +863,7 @@
         div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
         div.draggable = true;
         div.dataset.workerName = w.name;
+
         div.innerHTML = `
           <div class="worker-x">✕</div>
           ${workerImage(w.photoUrl, w.name)}
@@ -855,6 +877,7 @@
           state.dragWorkerName = w.name;
           div.classList.add('dragging');
         });
+
         div.addEventListener('dragend', () => {
           state.dragWorkerName = null;
           div.classList.remove('dragging');
@@ -869,6 +892,7 @@
     function renderSites(){
       const q = normalize(siteSearch.value);
       const sites = state.sites.filter(name => !q || normalize(name).includes(q));
+
       cantiereGrid.innerHTML = '';
 
       if(!sites.length){
@@ -882,14 +906,18 @@
 
         const assignedHtml = assigned.length
           ? assigned.map(name => {
-              const worker = state.workers.find(w => w.name === name) || { name, photoUrl: photoUrlForWorker(name) };
+              const worker = state.workers.find(w => w.name === name) || {
+                name,
+                photoUrl: photoUrlForWorker(name)
+              };
+
               return `
                 <div class="assigned-item">
                   <div class="assigned-left">
                     ${miniImage(worker.photoUrl, worker.name)}
                     <div class="assigned-name">${escapeHtml(worker.name)}</div>
                   </div>
-                  <button class="icon-btn" title="Rimuovi assegnazione" onclick="removeWorkerFromSite('${escapeHtml(siteName)}','${escapeHtml(name)}')">✕</button>
+                  <button class="icon-btn" title="Rimuovi assegnazione" onclick='removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(name)})'>✕</button>
                 </div>
               `;
             }).join('')
@@ -901,8 +929,8 @@
                 <div class="todo-top">
                   <div class="todo-text">${escapeHtml(t.text)}</div>
                   <div class="todo-actions">
-                    <button class="icon-btn" title="Modifica" onclick="openEditTask('${escapeHtml(siteName)}', ${Number(t.row)})">✏️</button>
-                    <button class="icon-btn" title="Completa" onclick="closeTask('${escapeHtml(siteName)}', ${Number(t.row)})">🗑️</button>
+                    <button class="icon-btn" title="Modifica" onclick='openEditTask(${jsStr(siteName)}, ${Number(t.row)})'>✏️</button>
+                    <button class="icon-btn" title="Completa" onclick='closeTask(${jsStr(siteName)}, ${Number(t.row)})'>🗑️</button>
                   </div>
                 </div>
                 <div class="todo-meta">
@@ -933,11 +961,12 @@
               <option value="2">🟠 Media</option>
               <option value="3">⚪ Minima</option>
             </select>
-            <button class="primary" onclick="createTask('${escapeHtml(siteName)}')">Aggiungi</button>
+            <button class="primary" onclick='createTask(${jsStr(siteName)})'>Aggiungi</button>
           </div>
 
           <div class="todo-list">${taskHtml}</div>
         `;
+
         cantiereGrid.appendChild(card);
       });
 
@@ -950,12 +979,18 @@
           e.preventDefault();
           zone.classList.add('over');
         });
-        zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+
+        zone.addEventListener('dragleave', () => {
+          zone.classList.remove('over');
+        });
+
         zone.addEventListener('drop', async e => {
           e.preventDefault();
           zone.classList.remove('over');
+
           const siteName = zone.dataset.siteName;
           if(!siteName || !state.dragWorkerName) return;
+
           await addWorkerToSite(state.dragWorkerName, siteName);
         });
       });
@@ -977,7 +1012,11 @@
 
     async function addWorkerToSite(workerName, siteName){
       const current = JSON.parse(JSON.stringify(state.assignmentsBySite || {}));
-      const alreadyElsewhere = Object.entries(current).some(([site, arr]) => site !== siteName && (arr || []).includes(workerName));
+
+      const alreadyElsewhere = Object.entries(current).some(([site, arr]) => {
+        return site !== siteName && (arr || []).includes(workerName);
+      });
+
       if(alreadyElsewhere){
         setStatus('⚠️ Questo operaio è già assegnato a un altro cantiere per il giorno selezionato.', 'error');
         return;
@@ -985,11 +1024,13 @@
 
       current[siteName] = Array.isArray(current[siteName]) ? current[siteName] : [];
       if(current[siteName].includes(workerName)) return;
+
       current[siteName].push(workerName);
       current[siteName].sort((a,b) => a.localeCompare(b, 'it'));
 
       state.assignmentsBySite = current;
       renderAll();
+
       setStatus('⏳ Salvataggio assegnazione...', 'ok');
       await persistSiteWorkers(siteName, current[siteName]);
       setTimeout(loadAll, 600);
@@ -998,8 +1039,10 @@
     async function removeWorkerFromSite(siteName, workerName){
       const current = JSON.parse(JSON.stringify(state.assignmentsBySite || {}));
       current[siteName] = (current[siteName] || []).filter(n => n !== workerName);
+
       state.assignmentsBySite = current;
       renderAll();
+
       setStatus('⏳ Rimozione assegnazione...', 'ok');
       await persistSiteWorkers(siteName, current[siteName]);
       setTimeout(loadAll, 600);
@@ -1010,18 +1053,21 @@
       const prEl = document.querySelector(`[data-priority-input="${CSS.escape(siteName)}"]`);
       const text = (txtEl?.value || '').trim();
       const priority = (prEl?.value || '3').trim();
+
       if(!text){
         setStatus('⚠️ Inserisci la lavorazione.', 'error');
         return;
       }
 
       setStatus('⏳ Salvataggio lavorazione...', 'ok');
+
       await apiPost({
         action: 'createTask',
         siteName,
         text,
         priority
       });
+
       txtEl.value = '';
       setTimeout(loadAll, 600);
     }
@@ -1051,6 +1097,7 @@
       const row = Number($('#editId').value || 0);
       const text = $('#editTaskText').value.trim();
       const priority = $('#editPriority').value;
+
       if(!siteName || !row || !text){
         setStatus('⚠️ Dati lavorazione incompleti.', 'error');
         return;
@@ -1058,6 +1105,7 @@
 
       closeModal();
       setStatus('⏳ Aggiornamento lavorazione...', 'ok');
+
       await apiPost({
         action: 'updateTask',
         siteName,
@@ -1065,32 +1113,46 @@
         text,
         priority
       });
+
       setTimeout(loadAll, 600);
     }
 
     async function closeTask(siteName, row){
       setStatus('⏳ Chiusura lavorazione...', 'ok');
+
       await apiPost({
         action: 'closeTask',
         siteName,
         row
       });
+
       setTimeout(loadAll, 600);
     }
 
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
+
     $('#btnReload').addEventListener('click', loadAll);
+
     $('#btnResetDay').addEventListener('click', async () => {
       if(!confirm(`Confermi il reset assegnazioni del ${formatDateIT(state.targetDate)}?`)) return;
+
       setStatus('⏳ Reset assegnazioni...', 'ok');
-      await apiPost({ action:'resetSiteWorkers', targetDate: state.targetDate });
+      await apiPost({
+        action:'resetSiteWorkers',
+        targetDate: state.targetDate
+      });
+
       setTimeout(loadAll, 600);
     });
+
     $('#btnCloseModal').addEventListener('click', closeModal);
     $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
     overlay.addEventListener('click', closeModal);
-    window.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+    window.addEventListener('keydown', e => {
+      if(e.key === 'Escape') closeModal();
+    });
 
     setInterval(() => {
       const next = nextDayISO();
