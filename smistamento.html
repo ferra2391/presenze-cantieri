@@ -79,7 +79,8 @@
       flex-wrap: wrap;
     }
 
-    .control-left {
+    .control-left,
+    .control-right {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -206,7 +207,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 1fr;
       gap: 22px;
       align-items: start;
     }
@@ -240,16 +241,24 @@
 
     .workers-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-rows: repeat(2, auto);
+      grid-auto-flow: column;
+      grid-auto-columns: 260px;
+      gap: 14px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 2px 8px;
+      align-items: stretch;
+      scrollbar-width: thin;
     }
 
     .worker-chip {
       position: relative;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px;
+      gap: 14px;
+      padding: 14px;
+      min-height: 96px;
       border-radius: 14px;
       border: 2px solid var(--border);
       background: linear-gradient(to bottom, #fff, #fafafa);
@@ -281,10 +290,10 @@
     }
 
     .worker-avatar {
-      width: 56px;
-      height: 56px;
+      width: 68px;
+      height: 68px;
       border-radius: 50%;
-      flex: 0 0 56px;
+      flex: 0 0 68px;
     }
 
     .mini-avatar {
@@ -305,10 +314,11 @@
       line-height: 1.2;
       color: var(--text);
       word-break: break-word;
+      font-size: 16px;
     }
 
     .worker-sub {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-light);
     }
@@ -640,6 +650,7 @@
         </div>
 
         <div class="workers-grid" id="workersGrid"></div>
+        <div class="section-note" style="margin-top:10px;">Scorri orizzontalmente per vedere tutti gli operai.</div>
       </section>
 
       <section class="section-card">
@@ -690,7 +701,7 @@
   </div>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
+    const GAS_URL  = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
     const GITHUB_OPERAI_BASE = "https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/";
 
     const state = {
@@ -714,15 +725,7 @@
     const modalTodo = $('#modalTodo');
 
     function pad(n){ return String(n).padStart(2,'0'); }
-
-    function normalize(s){
-      return String(s || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g,'')
-        .trim()
-        .toLowerCase();
-    }
-
+    function normalize(s){ return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g,'').trim().toLowerCase(); }
     function escapeHtml(s){
       return String(s || '')
         .replace(/&/g,'&amp;')
@@ -742,21 +745,16 @@
     function formatDateIT(iso){
       if(!iso) return '—';
       const [y,m,d] = String(iso).split('-').map(Number);
-      return new Date(y, m-1, d).toLocaleDateString('it-IT', {
-        weekday:'long',
-        day:'2-digit',
-        month:'long',
-        year:'numeric'
-      });
+      return new Date(y, m-1, d).toLocaleDateString('it-IT', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+    }
+
+    function nowStamp(){
+      return new Date().toLocaleString('it-IT');
     }
 
     function photoUrlForWorker(name, explicitUrl){
       if(explicitUrl) return explicitUrl;
-      return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png`;
-    }
-
-    function jsStr(v){
-      return JSON.stringify(String(v || ''));
+      return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png?raw=true`;
     }
 
     function allAssignedNames(){
@@ -815,28 +813,21 @@
     async function loadAll(){
       updateHeader();
       setStatus('⏳ Caricamento smistamento...', 'ok');
-
-      try {
+      try{
         const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
+        state.workers = Array.isArray(json.workers) ? json.workers.map(w => ({
+          name: String(w.name || '').trim(),
+          photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
+          role: String(w.role || '').trim()
+        })).filter(w => w.name) : [];
 
-        state.workers = Array.isArray(json.workers)
-          ? json.workers.map(w => ({
-              name: String(w.name || '').trim(),
-              photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
-              role: String(w.role || '').trim()
-            })).filter(w => w.name)
-          : [];
-
-        state.sites = Array.isArray(json.sites)
-          ? json.sites.map(String).filter(Boolean)
-          : [];
-
+        state.sites = Array.isArray(json.sites) ? json.sites.map(String).filter(Boolean) : [];
         state.tasksBySite = json.tasksBySite || {};
         state.assignmentsBySite = json.assignmentsBySite || {};
 
         renderAll();
         setStatus('✓ Smistamento caricato.', 'ok');
-      } catch (err) {
+      }catch(err){
         console.error(err);
         setStatus('✗ Errore nel caricamento dei dati.', 'error');
       }
@@ -845,13 +836,11 @@
     function renderWorkers(){
       const q = normalize(workerSearch.value);
       const assigned = allAssignedNames();
-
       const list = state.workers
         .filter(w => !q || normalize(w.name).includes(q))
         .sort((a,b) => a.name.localeCompare(b.name, 'it'));
 
       workersGrid.innerHTML = '';
-
       if(!list.length){
         workersGrid.innerHTML = `<div class="muted">Nessun operaio trovato.</div>`;
         return;
@@ -863,7 +852,6 @@
         div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
         div.draggable = true;
         div.dataset.workerName = w.name;
-
         div.innerHTML = `
           <div class="worker-x">✕</div>
           ${workerImage(w.photoUrl, w.name)}
@@ -877,7 +865,6 @@
           state.dragWorkerName = w.name;
           div.classList.add('dragging');
         });
-
         div.addEventListener('dragend', () => {
           state.dragWorkerName = null;
           div.classList.remove('dragging');
@@ -892,7 +879,6 @@
     function renderSites(){
       const q = normalize(siteSearch.value);
       const sites = state.sites.filter(name => !q || normalize(name).includes(q));
-
       cantiereGrid.innerHTML = '';
 
       if(!sites.length){
@@ -906,18 +892,14 @@
 
         const assignedHtml = assigned.length
           ? assigned.map(name => {
-              const worker = state.workers.find(w => w.name === name) || {
-                name,
-                photoUrl: photoUrlForWorker(name)
-              };
-
+              const worker = state.workers.find(w => w.name === name) || { name, photoUrl: photoUrlForWorker(name) };
               return `
                 <div class="assigned-item">
                   <div class="assigned-left">
                     ${miniImage(worker.photoUrl, worker.name)}
                     <div class="assigned-name">${escapeHtml(worker.name)}</div>
                   </div>
-                  <button class="icon-btn" title="Rimuovi assegnazione" onclick='removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(name)})'>✕</button>
+                  <button class="icon-btn" title="Rimuovi assegnazione" onclick="removeWorkerFromSite('${escapeHtml(siteName)}','${escapeHtml(name)}')">✕</button>
                 </div>
               `;
             }).join('')
@@ -929,8 +911,8 @@
                 <div class="todo-top">
                   <div class="todo-text">${escapeHtml(t.text)}</div>
                   <div class="todo-actions">
-                    <button class="icon-btn" title="Modifica" onclick='openEditTask(${jsStr(siteName)}, ${Number(t.row)})'>✏️</button>
-                    <button class="icon-btn" title="Completa" onclick='closeTask(${jsStr(siteName)}, ${Number(t.row)})'>🗑️</button>
+                    <button class="icon-btn" title="Modifica" onclick="openEditTask('${escapeHtml(siteName)}', ${Number(t.row)})">✏️</button>
+                    <button class="icon-btn" title="Completa" onclick="closeTask('${escapeHtml(siteName)}', ${Number(t.row)})">🗑️</button>
                   </div>
                 </div>
                 <div class="todo-meta">
@@ -961,12 +943,11 @@
               <option value="2">🟠 Media</option>
               <option value="3">⚪ Minima</option>
             </select>
-            <button class="primary" onclick='createTask(${jsStr(siteName)})'>Aggiungi</button>
+            <button class="primary" onclick="createTask('${escapeHtml(siteName)}')">Aggiungi</button>
           </div>
 
           <div class="todo-list">${taskHtml}</div>
         `;
-
         cantiereGrid.appendChild(card);
       });
 
@@ -979,18 +960,12 @@
           e.preventDefault();
           zone.classList.add('over');
         });
-
-        zone.addEventListener('dragleave', () => {
-          zone.classList.remove('over');
-        });
-
+        zone.addEventListener('dragleave', () => zone.classList.remove('over'));
         zone.addEventListener('drop', async e => {
           e.preventDefault();
           zone.classList.remove('over');
-
           const siteName = zone.dataset.siteName;
           if(!siteName || !state.dragWorkerName) return;
-
           await addWorkerToSite(state.dragWorkerName, siteName);
         });
       });
@@ -1033,7 +1008,7 @@
 
       setStatus('⏳ Salvataggio assegnazione...', 'ok');
       await persistSiteWorkers(siteName, current[siteName]);
-      setTimeout(loadAll, 600);
+      setStatus('✓ Operaio assegnato. La pagina non si ricarica più da sola.', 'ok');
     }
 
     async function removeWorkerFromSite(siteName, workerName){
@@ -1045,7 +1020,7 @@
 
       setStatus('⏳ Rimozione assegnazione...', 'ok');
       await persistSiteWorkers(siteName, current[siteName]);
-      setTimeout(loadAll, 600);
+      setStatus('✓ Assegnazione rimossa.', 'ok');
     }
 
     async function createTask(siteName){
@@ -1068,14 +1043,28 @@
         priority
       });
 
+      state.tasksBySite[siteName] = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+      state.tasksBySite[siteName].unshift({
+        row: 0,
+        createdAt: new Date().toLocaleString('it-IT'),
+        text,
+        priority,
+        temp: true
+      });
+
       txtEl.value = '';
-      setTimeout(loadAll, 600);
+      renderSites();
+      setStatus('✓ Lavorazione aggiunta. Premi "Carica dati" quando vuoi riallineare i numeri di riga.', 'ok');
     }
 
     function openEditTask(siteName, row){
       const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
       const task = arr.find(t => Number(t.row) === Number(row));
       if(!task) return;
+      if(task.temp){
+        setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
+        return;
+      }
 
       $('#editSiteId').value = siteName;
       $('#editId').value = row;
@@ -1103,7 +1092,15 @@
         return;
       }
 
+      const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+      const task = arr.find(t => Number(t.row) === Number(row));
+      if(task){
+        task.text = text;
+        task.priority = priority;
+      }
+
       closeModal();
+      renderSites();
       setStatus('⏳ Aggiornamento lavorazione...', 'ok');
 
       await apiPost({
@@ -1114,10 +1111,21 @@
         priority
       });
 
-      setTimeout(loadAll, 600);
+      setStatus('✓ Lavorazione aggiornata.', 'ok');
     }
 
     async function closeTask(siteName, row){
+      const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+      const idx = arr.findIndex(t => Number(t.row) === Number(row));
+      if(idx < 0) return;
+      if(arr[idx].temp){
+        setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
+        return;
+      }
+
+      const removed = arr.splice(idx, 1);
+      state.tasksBySite[siteName] = arr;
+      renderSites();
       setStatus('⏳ Chiusura lavorazione...', 'ok');
 
       await apiPost({
@@ -1126,38 +1134,34 @@
         row
       });
 
-      setTimeout(loadAll, 600);
+      setStatus('✓ Lavorazione chiusa.', 'ok');
     }
 
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
-
     $('#btnReload').addEventListener('click', loadAll);
-
     $('#btnResetDay').addEventListener('click', async () => {
       if(!confirm(`Confermi il reset assegnazioni del ${formatDateIT(state.targetDate)}?`)) return;
 
+      state.assignmentsBySite = {};
+      renderAll();
       setStatus('⏳ Reset assegnazioni...', 'ok');
       await apiPost({
         action:'resetSiteWorkers',
         targetDate: state.targetDate
       });
-
-      setTimeout(loadAll, 600);
+      setStatus('✓ Giornata resettata.', 'ok');
     });
-
     $('#btnCloseModal').addEventListener('click', closeModal);
     $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
     overlay.addEventListener('click', closeModal);
-
-    window.addEventListener('keydown', e => {
-      if(e.key === 'Escape') closeModal();
-    });
+    window.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 
     setInterval(() => {
       const next = nextDayISO();
       if(state.targetDate !== next){
-        loadAll();
+        updateHeader();
+        setStatus('ℹ️ È cambiato il giorno operativo. Premi "Carica dati" per riallineare manualmente.', 'ok');
       }
     }, 60 * 1000);
 
