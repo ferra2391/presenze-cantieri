@@ -57,11 +57,12 @@
       color: var(--text-light);
       font-size: 15px;
       font-weight: 600;
-      margin-bottom: 22px;
+      margin-bottom: 18px;
     }
 
     .control-panel,
-    .section-card {
+    .section-card,
+    .cantieri-panel {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -69,7 +70,8 @@
       box-shadow: var(--shadow);
     }
 
-    .control-panel { margin-bottom: 22px; }
+    .control-panel { margin-bottom: 18px; }
+    .operai-panel { margin-bottom: 18px; }
 
     .control-row {
       display: flex;
@@ -79,8 +81,7 @@
       flex-wrap: wrap;
     }
 
-    .control-left,
-    .control-right {
+    .control-left {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -205,19 +206,13 @@
     .ok { color: var(--success); }
     .error { color: var(--error); }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 22px;
-      align-items: start;
-    }
-
     .section-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
     }
 
     .section-title h2 {
@@ -236,14 +231,14 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .workers-grid {
       display: grid;
       grid-template-rows: repeat(2, auto);
       grid-auto-flow: column;
-      grid-auto-columns: 260px;
+      grid-auto-columns: 300px;
       gap: 14px;
       overflow-x: auto;
       overflow-y: hidden;
@@ -401,7 +396,7 @@
     .site-dropzone {
       border: 2px dashed var(--border-strong);
       border-radius: 14px;
-      background: var(--hover-bg);
+      background: rgba(255,255,255,.45);
       padding: 10px;
       min-height: 70px;
       transition: all .2s;
@@ -625,17 +620,21 @@
     }
 
     @media (max-width: 1120px){
-      .grid { grid-template-columns: 1fr; }
       .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
     }
 
     @media (max-width: 720px){
       .container { padding: 18px; }
-      .workers-grid { grid-template-columns: 1fr; }
       .todo-form,
       .modal-grid { grid-template-columns: 1fr; }
       .cantiere-grid { grid-template-columns: 1fr; }
+      .workers-grid {
+        grid-template-rows: none;
+        grid-auto-flow: row;
+        grid-auto-columns: unset;
+        grid-template-columns: 1fr;
+        overflow-x: visible;
+      }
     }
   </style>
 </head>
@@ -663,36 +662,32 @@
       <div id="status"></div>
     </div>
 
-    <div class="grid">
-      <section class="section-card">
-        <div class="section-title">
-          <h2>👷 Operai disponibili</h2>
-          <span class="section-note">Trascina sulle schede cantiere</span>
-        </div>
+    <section class="section-card operai-panel">
+      <div class="section-title">
+        <h2>👷 Operai disponibili</h2>
+        <span class="section-note">Trascina sulle schede cantiere</span>
+      </div>
 
-        <div class="workers-toolbar">
-          <input type="search" id="workerSearch" placeholder="Cerca operaio..." />
-          
-        </div>
+      <div class="workers-toolbar">
+        <input type="search" id="workerSearch" placeholder="Cerca operaio..." />
+      </div>
 
-        <div class="workers-grid" id="workersGrid"></div>
-        
-      </section>
+      <div class="workers-grid" id="workersGrid"></div>
+    </section>
 
-      <section class="section-card">
-        <div class="section-title">
-          <h2>🏗️ Cantieri e lavorazioni</h2>
-          <span class="section-note">Ogni card contiene operai assegnati + to do list</span>
-        </div>
+    <section class="cantieri-panel">
+      <div class="section-title">
+        <h2>🏗️ Cantieri e lavorazioni</h2>
+        <span class="section-note">Ogni card contiene operai assegnati + to do list</span>
+      </div>
 
-        <div class="site-toolbar">
-          <input type="search" id="siteSearch" placeholder="Cerca cantiere..." />
-          <div class="section-note">Le lavorazioni salvano automaticamente data creazione e data chiusura.</div>
-        </div>
+      <div class="site-toolbar">
+        <input type="search" id="siteSearch" placeholder="Cerca cantiere..." />
+        <div class="section-note">Le lavorazioni salvano automaticamente data creazione e data chiusura.</div>
+      </div>
 
-        <div class="cantiere-grid" id="cantiereGrid"></div>
-      </section>
-    </div>
+      <div class="cantiere-grid" id="cantiereGrid"></div>
+    </section>
   </div>
 
   <div class="overlay" id="overlay"></div>
@@ -727,7 +722,7 @@
   </div>
 
   <script>
-    const GAS_URL  = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
     const GITHUB_OPERAI_BASE = "https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/";
 
     const state = {
@@ -751,7 +746,15 @@
     const modalTodo = $('#modalTodo');
 
     function pad(n){ return String(n).padStart(2,'0'); }
-    function normalize(s){ return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g,'').trim().toLowerCase(); }
+
+    function normalize(s){
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'')
+        .trim()
+        .toLowerCase();
+    }
+
     function escapeHtml(s){
       return String(s || '')
         .replace(/&/g,'&amp;')
@@ -771,16 +774,21 @@
     function formatDateIT(iso){
       if(!iso) return '—';
       const [y,m,d] = String(iso).split('-').map(Number);
-      return new Date(y, m-1, d).toLocaleDateString('it-IT', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
-    }
-
-    function nowStamp(){
-      return new Date().toLocaleString('it-IT');
+      return new Date(y, m-1, d).toLocaleDateString('it-IT', {
+        weekday:'long',
+        day:'2-digit',
+        month:'long',
+        year:'numeric'
+      });
     }
 
     function photoUrlForWorker(name, explicitUrl){
       if(explicitUrl) return explicitUrl;
-      return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png?raw=true`;
+      return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png`;
+    }
+
+    function jsStr(v){
+      return JSON.stringify(String(v || ''));
     }
 
     function allAssignedNames(){
@@ -792,7 +800,7 @@
     }
 
     function workerImage(url, name){
-      return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/80?text=%F0%9F%91%B7'">`;
+      return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
     }
 
     function miniImage(url, name){
@@ -818,10 +826,88 @@
       badgeTarget.textContent = `Giorno operativo: ${formatDateIT(state.targetDate)}`;
     }
 
+    function snapshotKey(targetDate){
+      return `smistamento_snapshot_${targetDate}`;
+    }
+
+    function saveSnapshot(){
+      try {
+        const payload = {
+          workers: state.workers,
+          sites: state.sites,
+          tasksBySite: state.tasksBySite,
+          assignmentsBySite: state.assignmentsBySite,
+          savedAt: Date.now()
+        };
+        localStorage.setItem(snapshotKey(state.targetDate), JSON.stringify(payload));
+      } catch(e) {}
+    }
+
+    function loadSnapshot(targetDate){
+      try {
+        const raw = localStorage.getItem(snapshotKey(targetDate));
+        if(!raw) return null;
+        const parsed = JSON.parse(raw);
+        if(!parsed || typeof parsed !== 'object') return null;
+        return parsed;
+      } catch(e) {
+        return null;
+      }
+    }
+
+    function applyServerPayload(json){
+      state.workers = Array.isArray(json.workers)
+        ? json.workers.map(w => ({
+            name: String(w.name || '').trim(),
+            photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
+            role: String(w.role || '').trim()
+          })).filter(w => w.name)
+        : [];
+
+      state.sites = Array.isArray(json.sites)
+        ? json.sites.map(String).filter(Boolean)
+        : [];
+
+      state.tasksBySite = json.tasksBySite || {};
+      state.assignmentsBySite = json.assignmentsBySite || {};
+
+      state.sites.forEach(siteName => {
+        if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
+        if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
+      });
+
+      saveSnapshot();
+    }
+
+    function applySnapshot(snapshot){
+      state.workers = Array.isArray(snapshot.workers) ? snapshot.workers : [];
+      state.sites = Array.isArray(snapshot.sites) ? snapshot.sites : [];
+      state.tasksBySite = snapshot.tasksBySite || {};
+      state.assignmentsBySite = snapshot.assignmentsBySite || {};
+
+      state.sites.forEach(siteName => {
+        if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
+        if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
+      });
+    }
+
     async function apiGet(action, params = {}){
       const qs = new URLSearchParams({ action, ...params });
       const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache:'no-store' });
-      return await res.json();
+      const text = await res.text();
+
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch(e) {
+        throw new Error(`Risposta non JSON dal GAS: ${text.slice(0, 200)}`);
+      }
+
+      if (!json.ok) {
+        throw new Error(json.error || 'Errore GAS sconosciuto');
+      }
+
+      return json;
     }
 
     async function apiPost(payload){
@@ -836,53 +922,47 @@
       statusEl.innerHTML = `<span class="${type}">${msg}</span>`;
     }
 
-    async function loadAll(){
+    async function loadAll(forceServer = false){
       updateHeader();
-      setStatus('⏳ Caricamento smistamento...', 'ok');
+
+      if(!forceServer){
+        const snap = loadSnapshot(state.targetDate);
+        if(snap){
+          applySnapshot(snap);
+          renderAll();
+          setStatus('⚡ Dati locali caricati. Allineo dal server...', 'ok');
+        } else {
+          setStatus('⏳ Caricamento smistamento...', 'ok');
+        }
+      } else {
+        setStatus('⏳ Caricamento smistamento...', 'ok');
+      }
 
       try {
         const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
-
-        state.workers = Array.isArray(json.workers)
-          ? json.workers.map(w => ({
-              name: String(w.name || '').trim(),
-              photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
-              role: String(w.role || '').trim()
-            })).filter(w => w.name)
-          : [];
-
-        state.sites = Array.isArray(json.sites)
-          ? json.sites.map(String).filter(Boolean)
-          : [];
-
-        state.tasksBySite = json.tasksBySite || {};
-        state.assignmentsBySite = json.assignmentsBySite || {};
-
-        state.sites.forEach((siteName, index) => {
-          if(!Array.isArray(state.assignmentsBySite[siteName])) {
-            state.assignmentsBySite[siteName] = [];
-          }
-          if(!Array.isArray(state.tasksBySite[siteName])) {
-            state.tasksBySite[siteName] = [];
-          }
-        });
-
+        applyServerPayload(json);
         renderAll();
         setStatus('✓ Smistamento caricato.', 'ok');
-      }catch(err){
+      } catch (err) {
         console.error(err);
-        setStatus('✗ Errore nel caricamento dei dati.', 'error');
+        if(!state.sites.length && !state.workers.length){
+          setStatus(`✗ ${err.message}`, 'error');
+        } else {
+          setStatus(`⚠️ ${err.message}`, 'error');
+        }
       }
     }
 
     function renderWorkers(){
       const q = normalize(workerSearch.value);
       const assigned = allAssignedNames();
+
       const list = state.workers
         .filter(w => !q || normalize(w.name).includes(q))
         .sort((a,b) => a.name.localeCompare(b.name, 'it'));
 
       workersGrid.innerHTML = '';
+
       if(!list.length){
         workersGrid.innerHTML = `<div class="muted">Nessun operaio trovato.</div>`;
         return;
@@ -894,6 +974,7 @@
         div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
         div.draggable = true;
         div.dataset.workerName = w.name;
+
         div.innerHTML = `
           <div class="worker-x">✕</div>
           ${workerImage(w.photoUrl, w.name)}
@@ -907,6 +988,7 @@
           state.dragWorkerName = w.name;
           div.classList.add('dragging');
         });
+
         div.addEventListener('dragend', () => {
           state.dragWorkerName = null;
           div.classList.remove('dragging');
@@ -915,7 +997,7 @@
         workersGrid.appendChild(div);
       });
 
-      badgeStats.textContent = `Operai assegnati: ${assigned.size}`;
+      badgeStats.textContent = `Operai assegnati: ${allAssignedNames().size}`;
     }
 
     function getCurrentMosaicCols(){
@@ -931,6 +1013,7 @@
       const q = normalize(siteSearch.value);
       const sites = state.sites.filter(name => !q || normalize(name).includes(q));
       const mosaicCols = getCurrentMosaicCols();
+
       cantiereGrid.innerHTML = '';
 
       if(!sites.length){
@@ -938,20 +1021,24 @@
         return;
       }
 
-      sites.forEach(siteName => {
+      sites.forEach((siteName, index) => {
         const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
         const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
 
         const assignedHtml = assigned.length
           ? assigned.map(name => {
-              const worker = state.workers.find(w => w.name === name) || { name, photoUrl: photoUrlForWorker(name) };
+              const worker = state.workers.find(w => w.name === name) || {
+                name,
+                photoUrl: photoUrlForWorker(name)
+              };
+
               return `
                 <div class="assigned-item">
                   <div class="assigned-left">
                     ${miniImage(worker.photoUrl, worker.name)}
                     <div class="assigned-name">${escapeHtml(worker.name)}</div>
                   </div>
-                  <button class="icon-btn" title="Rimuovi assegnazione" onclick="removeWorkerFromSite('${escapeHtml(siteName)}','${escapeHtml(name)}')">✕</button>
+                  <button class="icon-btn" title="Rimuovi assegnazione" onclick='removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(name)})'>✕</button>
                 </div>
               `;
             }).join('')
@@ -963,22 +1050,24 @@
                 <div class="todo-top">
                   <div class="todo-text">${escapeHtml(t.text)}</div>
                   <div class="todo-actions">
-                    <button class="icon-btn" title="Modifica" onclick="openEditTask('${escapeHtml(siteName)}', ${Number(t.row)})">✏️</button>
-                    <button class="icon-btn" title="Completa" onclick="closeTask('${escapeHtml(siteName)}', ${Number(t.row)})">🗑️</button>
+                    <button class="icon-btn" title="Modifica" onclick='openEditTask(${jsStr(siteName)}, ${jsStr(t.row)})'>✏️</button>
+                    <button class="icon-btn" title="Completa" onclick='closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
                   </div>
                 </div>
                 <div class="todo-meta">
                   <span><span class="priority-dot ${priorityClass(t.priority)}"></span>${labelPriority(t.priority)}</span>
                   <span>Creata: ${escapeHtml(t.createdAt || '')}</span>
+                  ${t.temp ? '<span>Da riallineare</span>' : ''}
                 </div>
               </div>
             `).join('')
           : `<div class="todo-empty">Nessuna lavorazione aperta.</div>`;
 
-        const card = document.createElement('div');
         const rowIndex = Math.floor(index / mosaicCols);
         const colIndex = index % mosaicCols;
         const mosaicClass = ((rowIndex + colIndex) % 2 === 0) ? 'mosaic-a' : 'mosaic-b';
+
+        const card = document.createElement('div');
         card.className = `site-card ${mosaicClass}`;
         card.innerHTML = `
           <div class="site-head">
@@ -998,11 +1087,12 @@
               <option value="2">🟠 Media</option>
               <option value="3">⚪ Minima</option>
             </select>
-            <button class="primary" onclick="createTask('${escapeHtml(siteName)}')">Aggiungi</button>
+            <button class="primary" onclick='createTask(${jsStr(siteName)})'>Aggiungi</button>
           </div>
 
           <div class="todo-list">${taskHtml}</div>
         `;
+
         cantiereGrid.appendChild(card);
       });
 
@@ -1015,12 +1105,18 @@
           e.preventDefault();
           zone.classList.add('over');
         });
-        zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+
+        zone.addEventListener('dragleave', () => {
+          zone.classList.remove('over');
+        });
+
         zone.addEventListener('drop', async e => {
           e.preventDefault();
           zone.classList.remove('over');
+
           const siteName = zone.dataset.siteName;
           if(!siteName || !state.dragWorkerName) return;
+
           await addWorkerToSite(state.dragWorkerName, siteName);
         });
       });
@@ -1059,11 +1155,12 @@
       current[siteName].sort((a,b) => a.localeCompare(b, 'it'));
 
       state.assignmentsBySite = current;
+      saveSnapshot();
       renderAll();
 
       setStatus('⏳ Salvataggio assegnazione...', 'ok');
       await persistSiteWorkers(siteName, current[siteName]);
-      setStatus('✓ Operaio assegnato. La pagina non si ricarica più da sola.', 'ok');
+      setStatus('✓ Operaio assegnato.', 'ok');
     }
 
     async function removeWorkerFromSite(siteName, workerName){
@@ -1071,6 +1168,7 @@
       current[siteName] = (current[siteName] || []).filter(n => n !== workerName);
 
       state.assignmentsBySite = current;
+      saveSnapshot();
       renderAll();
 
       setStatus('⏳ Rimozione assegnazione...', 'ok');
@@ -1089,18 +1187,11 @@
         return;
       }
 
-      setStatus('⏳ Salvataggio lavorazione...', 'ok');
-
-      await apiPost({
-        action: 'createTask',
-        siteName,
-        text,
-        priority
-      });
+      const fakeRow = `tmp_${Date.now()}`;
 
       state.tasksBySite[siteName] = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
       state.tasksBySite[siteName].unshift({
-        row: 0,
+        row: fakeRow,
         createdAt: new Date().toLocaleString('it-IT'),
         text,
         priority,
@@ -1108,14 +1199,25 @@
       });
 
       txtEl.value = '';
+      saveSnapshot();
       renderSites();
-      setStatus('✓ Lavorazione aggiunta. Premi "Carica dati" quando vuoi riallineare i numeri di riga.', 'ok');
+
+      setStatus('⏳ Salvataggio lavorazione...', 'ok');
+      await apiPost({
+        action: 'createTask',
+        siteName,
+        text,
+        priority
+      });
+
+      setStatus('✓ Lavorazione aggiunta. Premi "Carica dati" quando vuoi riallineare dal foglio.', 'ok');
     }
 
     function openEditTask(siteName, row){
       const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-      const task = arr.find(t => Number(t.row) === Number(row));
+      const task = arr.find(t => String(t.row) === String(row));
       if(!task) return;
+
       if(task.temp){
         setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
         return;
@@ -1138,7 +1240,7 @@
 
     async function saveTaskEdit(){
       const siteName = $('#editSiteId').value;
-      const row = Number($('#editId').value || 0);
+      const row = String($('#editId').value || '');
       const text = $('#editTaskText').value.trim();
       const priority = $('#editPriority').value;
 
@@ -1148,14 +1250,16 @@
       }
 
       const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-      const task = arr.find(t => Number(t.row) === Number(row));
+      const task = arr.find(t => String(t.row) === String(row));
       if(task){
         task.text = text;
         task.priority = priority;
       }
 
       closeModal();
+      saveSnapshot();
       renderSites();
+
       setStatus('⏳ Aggiornamento lavorazione...', 'ok');
 
       await apiPost({
@@ -1171,16 +1275,20 @@
 
     async function closeTask(siteName, row){
       const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-      const idx = arr.findIndex(t => Number(t.row) === Number(row));
+      const idx = arr.findIndex(t => String(t.row) === String(row));
       if(idx < 0) return;
+
       if(arr[idx].temp){
         setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
         return;
       }
 
-      const removed = arr.splice(idx, 1);
+      arr.splice(idx, 1);
       state.tasksBySite[siteName] = arr;
+
+      saveSnapshot();
       renderSites();
+
       setStatus('⏳ Chiusura lavorazione...', 'ok');
 
       await apiPost({
@@ -1194,12 +1302,16 @@
 
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
-    $('#btnReload').addEventListener('click', loadAll);
+
+    $('#btnReload').addEventListener('click', () => loadAll(true));
+
     $('#btnResetDay').addEventListener('click', async () => {
       if(!confirm(`Confermi il reset assegnazioni del ${formatDateIT(state.targetDate)}?`)) return;
 
       state.assignmentsBySite = {};
+      saveSnapshot();
       renderAll();
+
       setStatus('⏳ Reset assegnazioni...', 'ok');
       await apiPost({
         action:'resetSiteWorkers',
@@ -1207,9 +1319,11 @@
       });
       setStatus('✓ Giornata resettata.', 'ok');
     });
+
     $('#btnCloseModal').addEventListener('click', closeModal);
     $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
     overlay.addEventListener('click', closeModal);
+
     window.addEventListener('keydown', e => {
       if(e.key === 'Escape') closeModal();
     });
@@ -1226,7 +1340,7 @@
       const next = nextDayISO();
       if(state.targetDate !== next){
         updateHeader();
-        setStatus('ℹ️ È cambiato il giorno operativo. Premi "Carica dati" per riallineare manualmente.', 'ok');
+        setStatus('ℹ️ È cambiato il giorno operativo. Premi "Carica dati" per riallineare.', 'ok');
       }
     }, 60 * 1000);
 
@@ -1235,7 +1349,7 @@
     window.closeTask = closeTask;
     window.removeWorkerFromSite = removeWorkerFromSite;
 
-    loadAll();
+    loadAll(false);
   </script>
 </body>
 </html>
