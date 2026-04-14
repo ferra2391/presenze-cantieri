@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smistamento Operai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --primary: hsl(210,100%,45%);
+      --primary-dark: hsl(210,100%,35%);
+      --text: hsl(210,15%,15%);
+      --text-light: hsl(210,10%,40%);
+      --muted: hsl(210,8%,50%);
+      --bg: hsl(210,25%,96%);
+      --card: #ffffff;
+      --border: hsl(210,20%,88%);
+      --border-strong: hsl(210,20%,75%);
+      --success: hsl(140,70%,40%);
+      --error: hsl(0,70%,50%);
+      --hover-bg: hsl(210,30%,98%);
+      --danger: #c00000;
+      --overlay: rgba(0,0,0,.5);
+      --urgent: #ffe1e1;
+      --urgent-border: #d40000;
+      --medium: #fff0d8;
+      --medium-border: #ff8a00;
+      --low: #ffffff;
+      --low-border: hsl(210,20%,82%);
+      --shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 26px 32px 40px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: var(--text-light);
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 22px;
+    }
+
+    .control-panel,
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .control-panel { margin-bottom: 22px; }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .control-left,
+    .control-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav a {
+      padding: 10px 18px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      transition: all .2s;
+    }
+
+    .nav a:hover {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+
+    .nav a.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    button, input[type="text"], input[type="search"], textarea, select {
+      font: inherit;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      transition: all .2s;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    button.danger {
+      border-color: #f0b9b9;
+      color: #9f0000;
+      background: #fff7f7;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    input[type="search"],
+    input[type="text"],
+    textarea,
+    select {
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      font-size: 15px;
+      color: var(--text);
+      transition: border-color .2s;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    #status {
+      margin-top: 14px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .ok { color: var(--success); }
+    .error { color: var(--error); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .section-note {
+      font-size: 13px;
+      color: var(--text-light);
+      font-weight: 700;
+    }
+
+    .workers-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .workers-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .worker-chip {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 2px solid var(--border);
+      background: linear-gradient(to bottom, #fff, #fafafa);
+      transition: all .2s;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .worker-chip:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .worker-chip.dragging { opacity: .55; }
+
+    .worker-chip.assigned {
+      opacity: .42;
+      filter: grayscale(.25);
+      border-style: dashed;
+    }
+
+    .worker-avatar,
+    .mini-avatar {
+      object-fit: cover;
+      background: #edf3fa;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+
+    .worker-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      flex: 0 0 56px;
+    }
+
+    .mini-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+    }
+
+    .worker-meta {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .worker-name {
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .worker-sub {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    .worker-x {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(192,0,0,.9);
+      color: #fff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .worker-chip.assigned .worker-x { display: flex; }
+
+    .site-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .cantiere-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 18px;
+    }
+
+    .site-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: linear-gradient(to bottom, #fff, #fcfdff);
+      box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      min-height: 320px;
+    }
+
+    .site-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .site-name {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    .site-dropzone {
+      border: 2px dashed var(--border-strong);
+      border-radius: 14px;
+      background: var(--hover-bg);
+      padding: 14px;
+      min-height: 82px;
+      transition: all .2s;
+    }
+
+    .site-dropzone.over {
+      border-color: var(--primary);
+      background: #eef6ff;
+    }
+
+    .drop-hint {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 10px;
+    }
+
+    .assigned-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .assigned-empty {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .assigned-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+
+    .assigned-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .assigned-name {
+      font-weight: 700;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      border-radius: 10px;
+    }
+
+    .todo-form {
+      display: grid;
+      grid-template-columns: 1fr 130px auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 40px;
+    }
+
+    .todo-empty {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+      padding: 10px 0 4px;
+    }
+
+    .todo-item {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 2px solid var(--low-border);
+      background: var(--low);
+    }
+
+    .todo-item.priority-rosso {
+      background: var(--urgent);
+      border-color: var(--urgent-border);
+    }
+
+    .todo-item.priority-arancione {
+      background: var(--medium);
+      border-color: var(--medium-border);
+    }
+
+    .todo-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .todo-text {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+
+    .todo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-light);
+      font-weight: 700;
+    }
+
+    .todo-meta span {
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.7);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+
+    .priority-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      vertical-align: -1px;
+      margin-right: 6px;
+    }
+
+    .priority-dot.rosso { background: #d40000; }
+    .priority-dot.arancione { background: #ff8a00; }
+    .priority-dot.bianco { background: #fff; border: 1px solid #bbb; }
+
+    .todo-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 1000;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(720px, 92vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.22);
+      z-index: 1001;
+      padding: 24px;
+    }
+
+    .modal h3 {
+      margin: 0 0 18px;
+      font-size: 24px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .modal-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .modal-field.full { grid-column: 1 / -1; }
+
+    .modal-field label {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 2px solid var(--border);
+    }
+
+    @media (max-width: 1120px){
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px){
+      .container { padding: 18px; }
+      .workers-grid { grid-template-columns: 1fr; }
+      .todo-form,
+      .modal-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="pageTitle">🚚 Smistamento Operai</h1>
+    <div class="subtitle" id="pageSubtitle">Pianificazione del giorno successivo</div>
+
+    <div class="control-panel">
+      <div class="control-row">
+        <div class="control-left">
+          <button id="btnReload" class="primary">Carica dati</button>
+          <button id="btnResetDay" class="danger">Reset giornata</button>
+          <span class="badge" id="badgeTarget">Giorno operativo: —</span>
+          <span class="badge" id="badgeStats">Operai assegnati: 0</span>
+        </div>
+
+        <div class="nav">
+          <a href="presenze.html">Presenze</a>
+          <a href="operaio.html">Analisi per Operaio</a>
+          <a href="cantiere.html">Analisi per Cantiere</a>
+          <a class="primary" href="smistamento.html">Smistamento</a>
+        </div>
+      </div>
+      <div id="status"></div>
+    </div>
+
+    <div class="grid">
+      <section class="section-card">
+        <div class="section-title">
+          <h2>👷 Operai disponibili</h2>
+          <span class="section-note">Trascina sulle schede cantiere</span>
+        </div>
+
+        <div class="workers-toolbar">
+          <input type="search" id="workerSearch" placeholder="Cerca operaio..." />
+          <div class="section-note">Foto: mettile in una cartella pubblica e valorizza la colonna <strong>FotoURL</strong> del foglio <strong>Operai</strong>.</div>
+        </div>
+
+        <div class="workers-grid" id="workersGrid"></div>
+      </section>
+
+      <section class="section-card">
+        <div class="section-title">
+          <h2>🏗️ Cantieri e lavorazioni</h2>
+          <span class="section-note">Ogni card contiene operai assegnati + to do list</span>
+        </div>
+
+        <div class="site-toolbar">
+          <input type="search" id="siteSearch" placeholder="Cerca cantiere..." />
+          <div class="section-note">Le lavorazioni salvano automaticamente data creazione e data chiusura.</div>
+        </div>
+
+        <div class="cantiere-grid" id="cantiereGrid"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="modalTodo">
+    <h3>✏️ Modifica lavorazione</h3>
+    <input type="hidden" id="editId" />
+    <input type="hidden" id="editSiteId" />
+
+    <div class="modal-grid">
+      <div class="modal-field full">
+        <label>Lavorazione</label>
+        <textarea id="editTaskText" placeholder="Descrizione lavorazione"></textarea>
+      </div>
+      <div class="modal-field">
+        <label>Priorità</label>
+        <select id="editPriority">
+          <option value="rosso">🔴 Urgente</option>
+          <option value="arancione">🟠 Media</option>
+          <option value="bianco">⚪ Minima</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Operai assegnati</label>
+        <input type="text" id="editWorkers" readonly />
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="btnCloseModal">Annulla</button>
+      <button id="btnSaveEdit" class="primary">Salva modifica</button>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
+    const GAS_URL  = "https://script.google.com/macros/s/AKfycbyd_Cm47Z7STtVkIQEPVyU8Cu4Rl2JMUDaPqPt3IwQ/exec";
+
+    const TAB_OPERAI = ["Operai", "Utenti", "gestionale"];
+    const TAB_CANTIERI = ["Cantieri", "Cantiere", "CantieriAttivi"];
+
+    const state = {
+      workers: [],
+      sites: [],
+      tasks: [],
+      assignments: [],
+      targetDate: null,
+      dragWorkerId: null
+    };
+
+    const $ = sel => document.querySelector(sel);
+    const workersGrid = $('#workersGrid');
+    const cantiereGrid = $('#cantiereGrid');
+    const statusEl = $('#status');
+    const badgeTarget = $('#badgeTarget');
+    const badgeStats = $('#badgeStats');
+    const workerSearch = $('#workerSearch');
+    const siteSearch = $('#siteSearch');
+
+    const overlay = $('#overlay');
+    const modalTodo = $('#modalTodo');
+
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function normalize(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
+    function todayISO(){ const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+    function formatDateIT(iso){
+      if(!iso) return '—';
+      const [y,m,d] = String(iso).split('-').map(Number);
+      return new Date(y, m-1, d).toLocaleDateString('it-IT', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+    }
+    function nextDayISO(){
+      const d = new Date();
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() + 1);
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+    function escapeHtml(s){
+      return String(s || '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+    }
+
+    function pick(row, ...names){
+      if(!row) return '';
+      const map = new Map(Object.keys(row).map(k => [normalize(k), k]));
+      for(const name of names){
+        const key = map.get(normalize(name));
+        if(key && row[key] != null && row[key] !== '') return row[key];
+      }
+      return '';
+    }
+
+    async function fetchRowsFromOpenSheet(sheetId, candidates){
+      for(const tab of candidates){
+        try{
+          const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
+          const res = await fetch(url, { cache: 'no-store' });
+          if(!res.ok) continue;
+          const rows = await res.json();
+          if(Array.isArray(rows) && rows.length) return rows;
+        }catch(e){}
+      }
+      return [];
+    }
+
+    function setStatus(msg, type='ok'){
+      statusEl.innerHTML = `<span class="${type}">${msg}</span>`;
+    }
+
+    function updateHeader(){
+      state.targetDate = nextDayISO();
+      $('#pageTitle').textContent = `🚚 Smistamento Operai — giorno ${formatDateIT(state.targetDate)}`;
+      $('#pageSubtitle').textContent = `Pianificazione del lavoro per il giorno successivo. A mezzanotte il sistema passa automaticamente al giorno nuovo.`;
+      badgeTarget.textContent = `Giorno operativo: ${formatDateIT(state.targetDate)}`;
+    }
+
+    function workerImage(url, name){
+      if(url){
+        return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/80?text=%F0%9F%91%B7'">`;
+      }
+      return `<img class="worker-avatar" src="https://via.placeholder.com/80?text=%F0%9F%91%B7" alt="${escapeHtml(name)}">`;
+    }
+
+    function miniImage(url, name){
+      if(url){
+        return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`;
+      }
+      return `<img class="mini-avatar" src="https://via.placeholder.com/40?text=%F0%9F%91%B7" alt="${escapeHtml(name)}">`;
+    }
+
+    function getAssignmentsForSite(siteId){
+      return state.assignments.filter(a => String(a.targetDate) === state.targetDate && String(a.siteId) === String(siteId));
+    }
+
+    function getTasksForSite(siteId){
+      return state.tasks.filter(t => String(t.targetDate) === state.targetDate && String(t.siteId) === String(siteId) && !t.closedAt);
+    }
+
+    function getAssignedWorkerIds(){
+      return new Set(state.assignments.filter(a => String(a.targetDate) === state.targetDate).map(a => String(a.workerId)));
+    }
+
+    function renderWorkers(){
+      const q = normalize(workerSearch.value);
+      const assignedIds = getAssignedWorkerIds();
+      const list = state.workers.filter(w => !q || normalize(w.name).includes(q));
+
+      workersGrid.innerHTML = '';
+      if(!list.length){
+        workersGrid.innerHTML = `<div class="muted">Nessun operaio trovato.</div>`;
+        return;
+      }
+
+      list.forEach(w => {
+        const assigned = assignedIds.has(String(w.id));
+        const div = document.createElement('div');
+        div.className = `worker-chip${assigned ? ' assigned' : ''}`;
+        div.draggable = true;
+        div.dataset.workerId = w.id;
+        div.innerHTML = `
+          <div class="worker-x">✕</div>
+          ${workerImage(w.photoUrl, w.name)}
+          <div class="worker-meta">
+            <div class="worker-name">${escapeHtml(w.name)}</div>
+            <div class="worker-sub">${assigned ? 'Già assegnato' : 'Disponibile'}</div>
+          </div>
+        `;
+
+        div.addEventListener('dragstart', () => {
+          state.dragWorkerId = w.id;
+          div.classList.add('dragging');
+        });
+        div.addEventListener('dragend', () => {
+          state.dragWorkerId = null;
+          div.classList.remove('dragging');
+        });
+
+        workersGrid.appendChild(div);
+      });
+
+      badgeStats.textContent = `Operai assegnati: ${assignedIds.size}`;
+    }
+
+    function renderSites(){
+      const q = normalize(siteSearch.value);
+      const sites = state.sites.filter(s => !q || normalize(s.name).includes(q));
+
+      cantiereGrid.innerHTML = '';
+      if(!sites.length){
+        cantiereGrid.innerHTML = `<div class="muted">Nessun cantiere trovato.</div>`;
+        return;
+      }
+
+      sites.forEach(site => {
+        const assignments = getAssignmentsForSite(site.id);
+        const tasks = getTasksForSite(site.id);
+
+        const assignedHtml = assignments.length
+          ? assignments.map(a => {
+              const w = state.workers.find(x => String(x.id) === String(a.workerId));
+              if(!w) return '';
+              return `
+                <div class="assigned-item">
+                  <div class="assigned-left">
+                    ${miniImage(w.photoUrl, w.name)}
+                    <div class="assigned-name">${escapeHtml(w.name)}</div>
+                  </div>
+                  <button class="icon-btn" title="Rimuovi assegnazione" onclick="removeAssignment('${String(a.id)}')">✕</button>
+                </div>
+              `;
+            }).join('')
+          : `<div class="assigned-empty">Nessun operaio assegnato.</div>`;
+
+        const taskHtml = tasks.length
+          ? tasks.map(t => {
+              const taskAssignments = assignments.filter(a => String(a.taskId || '') === String(t.id));
+              const workersTxt = taskAssignments.length
+                ? taskAssignments.map(a => {
+                    const w = state.workers.find(x => String(x.id) === String(a.workerId));
+                    return w ? w.name : '';
+                  }).filter(Boolean).join(', ')
+                : 'Non associati alla singola lavorazione';
+
+              return `
+                <div class="todo-item priority-${escapeHtml(t.priority)}">
+                  <div class="todo-top">
+                    <div class="todo-text">${escapeHtml(t.text)}</div>
+                    <div class="todo-actions">
+                      <button class="icon-btn" title="Modifica" onclick="openEditTask('${String(t.id)}')">✏️</button>
+                      <button class="icon-btn" title="Completa / elimina" onclick="closeTask('${String(t.id)}')">🗑️</button>
+                    </div>
+                  </div>
+                  <div class="todo-meta">
+                    <span><span class="priority-dot ${escapeHtml(t.priority)}"></span>${labelPriority(t.priority)}</span>
+                    <span>Creata: ${escapeHtml(t.createdAt || '')}</span>
+                    <span>Operai: ${escapeHtml(workersTxt)}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')
+          : `<div class="todo-empty">Nessuna lavorazione aperta.</div>`;
+
+        const card = document.createElement('div');
+        card.className = 'site-card';
+        card.dataset.siteId = site.id;
+        card.innerHTML = `
+          <div class="site-head">
+            <div class="site-name">${escapeHtml(site.name)}</div>
+            <span class="badge">${tasks.length} lavorazioni</span>
+          </div>
+
+          <div class="site-dropzone" data-site-id="${escapeHtml(site.id)}">
+            <div class="drop-hint">Trascina qui l'operaio</div>
+            <div class="assigned-list">${assignedHtml}</div>
+          </div>
+
+          <div class="todo-form">
+            <textarea placeholder="Nuova lavorazione..." data-task-input="${escapeHtml(site.id)}"></textarea>
+            <select data-priority-input="${escapeHtml(site.id)}">
+              <option value="rosso">🔴 Urgente</option>
+              <option value="arancione">🟠 Media</option>
+              <option value="bianco">⚪ Minima</option>
+            </select>
+            <button class="primary" onclick="createTask('${String(site.id)}')">Aggiungi</button>
+          </div>
+
+          <div class="todo-list">${taskHtml}</div>
+        `;
+
+        cantiereGrid.appendChild(card);
+      });
+
+      bindDropzones();
+    }
+
+    function bindDropzones(){
+      document.querySelectorAll('.site-dropzone').forEach(zone => {
+        zone.addEventListener('dragover', e => {
+          e.preventDefault();
+          zone.classList.add('over');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+        zone.addEventListener('drop', async e => {
+          e.preventDefault();
+          zone.classList.remove('over');
+          const siteId = zone.dataset.siteId;
+          if(!state.dragWorkerId || !siteId) return;
+          await assignWorkerToSite(state.dragWorkerId, siteId);
+        });
+      });
+    }
+
+    function labelPriority(p){
+      if(p === 'rosso') return 'Urgente';
+      if(p === 'arancione') return 'Media';
+      return 'Minima';
+    }
+
+    async function loadBaseData(){
+      setStatus('⏳ Caricamento dati...', 'ok');
+      updateHeader();
+
+      const [rawWorkers, rawSites] = await Promise.all([
+        fetchRowsFromOpenSheet(SHEET_ID, TAB_OPERAI),
+        fetchRowsFromOpenSheet(SHEET_ID, TAB_CANTIERI)
+      ]);
+
+      state.workers = normalizeWorkers(rawWorkers);
+      state.sites = normalizeSites(rawSites);
+
+      await loadDailyState();
+      renderAll();
+      setStatus('✓ Smistamento caricato.', 'ok');
+    }
+
+    function normalizeWorkers(rows){
+      const out = rows.map((r, idx) => {
+        const name = String(pick(r, 'Nome Operaio', 'Nome', 'Operaio', 'Dipendente') || '').trim();
+        const role = String(pick(r, 'Ruolo') || '').trim();
+        const active = normalize(pick(r, 'Attivo', 'Abilitato', 'Stato') || 'si');
+        const photoUrl = String(pick(r, 'FotoURL', 'Foto Url', 'Foto', 'Immagine') || '').trim();
+        const id = String(pick(r, 'ID', 'Id', 'Codice', 'Username') || name || (idx + 1));
+        return { id, name, role, photoUrl, active };
+      }).filter(w => w.name && !['no','0','false','disattivo'].includes(w.active));
+
+      out.sort((a,b) => a.name.localeCompare(b.name, 'it'));
+      return out;
+    }
+
+    function normalizeSites(rows){
+      const seen = new Set();
+      const out = [];
+      rows.forEach((r, idx) => {
+        const name = String(pick(r, 'Nome Cantiere', 'Cantiere', 'Nome') || '').trim();
+        if(!name) return;
+        const id = String(pick(r, 'ID', 'Id', 'Codice') || name || (idx + 1));
+        const key = `${id}__${normalize(name)}`;
+        if(seen.has(key)) return;
+        seen.add(key);
+        out.push({ id, name });
+      });
+      out.sort((a,b) => a.name.localeCompare(b.name, 'it'));
+      return out;
+    }
+
+    async function loadDailyState(){
+      try{
+        const res = await fetch(`${GAS_URL}?action=getSmistamento&targetDate=${encodeURIComponent(state.targetDate)}`, { cache: 'no-store' });
+        const json = await res.json();
+        state.tasks = Array.isArray(json.tasks) ? json.tasks : [];
+        state.assignments = Array.isArray(json.assignments) ? json.assignments : [];
+      }catch(e){
+        state.tasks = [];
+        state.assignments = [];
+        setStatus('⚠️ Dati giornalieri non letti dal GAS. Struttura base caricata comunque.', 'error');
+      }
+    }
+
+    function renderAll(){
+      renderWorkers();
+      renderSites();
+    }
+
+    async function assignWorkerToSite(workerId, siteId){
+      const already = state.assignments.find(a => String(a.targetDate) === state.targetDate && String(a.workerId) === String(workerId));
+      if(already){
+        setStatus('⚠️ Operaio già assegnato a un cantiere per questo giorno.', 'error');
+        renderAll();
+        return;
+      }
+
+      const payload = {
+        action: 'assignWorker',
+        targetDate: state.targetDate,
+        workerId: String(workerId),
+        siteId: String(siteId),
+        createdAt: new Date().toISOString()
+      };
+
+      await postNoCors(payload);
+      state.assignments.push({
+        id: `A_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+        targetDate: state.targetDate,
+        workerId: String(workerId),
+        siteId: String(siteId),
+        taskId: ''
+      });
+      renderAll();
+      setStatus('✓ Operaio assegnato al cantiere.', 'ok');
+    }
+
+    async function createTask(siteId){
+      const txtEl = document.querySelector(`[data-task-input="${CSS.escape(String(siteId))}"]`);
+      const prEl = document.querySelector(`[data-priority-input="${CSS.escape(String(siteId))}"]`);
+      const text = (txtEl?.value || '').trim();
+      const priority = (prEl?.value || 'bianco').trim();
+      if(!text){
+        setStatus('⚠️ Inserisci la lavorazione.', 'error');
+        return;
+      }
+
+      const payload = {
+        action: 'createTask',
+        targetDate: state.targetDate,
+        siteId: String(siteId),
+        text,
+        priority,
+        createdAt: new Date().toISOString()
+      };
+
+      await postNoCors(payload);
+      state.tasks.push({
+        id: `T_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+        targetDate: state.targetDate,
+        siteId: String(siteId),
+        text,
+        priority,
+        createdAt: nowStamp()
+      });
+
+      txtEl.value = '';
+      renderSites();
+      setStatus('✓ Lavorazione aggiunta.', 'ok');
+    }
+
+    function nowStamp(){
+      return new Date().toLocaleString('it-IT');
+    }
+
+    async function closeTask(taskId){
+      const task = state.tasks.find(t => String(t.id) === String(taskId));
+      if(!task) return;
+
+      const payload = {
+        action: 'closeTask',
+        taskId: String(taskId),
+        closedAt: new Date().toISOString(),
+        targetDate: state.targetDate
+      };
+
+      await postNoCors(payload);
+      task.closedAt = nowStamp();
+      renderSites();
+      setStatus('✓ Lavorazione chiusa e storicizzata.', 'ok');
+    }
+
+    async function removeAssignment(assignId){
+      const idx = state.assignments.findIndex(a => String(a.id) === String(assignId));
+      if(idx < 0) return;
+      const payload = {
+        action: 'removeAssignment',
+        assignmentId: String(assignId),
+        removedAt: new Date().toISOString(),
+        targetDate: state.targetDate
+      };
+      await postNoCors(payload);
+      state.assignments.splice(idx, 1);
+      renderAll();
+      setStatus('✓ Assegnazione rimossa.', 'ok');
+    }
+
+    function openEditTask(taskId){
+      const task = state.tasks.find(t => String(t.id) === String(taskId));
+      if(!task) return;
+      const taskAssignments = state.assignments.filter(a => String(a.taskId || '') === String(task.id));
+      const workerNames = taskAssignments.map(a => {
+        const w = state.workers.find(x => String(x.id) === String(a.workerId));
+        return w ? w.name : '';
+      }).filter(Boolean).join(', ');
+
+      $('#editId').value = task.id;
+      $('#editSiteId').value = task.siteId;
+      $('#editTaskText').value = task.text || '';
+      $('#editPriority').value = task.priority || 'bianco';
+      $('#editWorkers').value = workerNames;
+
+      overlay.style.display = 'block';
+      modalTodo.style.display = 'block';
+    }
+
+    function closeModal(){
+      overlay.style.display = 'none';
+      modalTodo.style.display = 'none';
+    }
+
+    async function saveTaskEdit(){
+      const id = $('#editId').value;
+      const text = $('#editTaskText').value.trim();
+      const priority = $('#editPriority').value;
+      if(!id || !text){
+        setStatus('⚠️ Testo lavorazione mancante.', 'error');
+        return;
+      }
+      const task = state.tasks.find(t => String(t.id) === String(id));
+      if(!task) return;
+
+      const payload = {
+        action: 'updateTask',
+        taskId: String(id),
+        text,
+        priority,
+        updatedAt: new Date().toISOString(),
+        targetDate: state.targetDate
+      };
+      await postNoCors(payload);
+      task.text = text;
+      task.priority = priority;
+      renderSites();
+      closeModal();
+      setStatus('✓ Lavorazione aggiornata.', 'ok');
+    }
+
+    async function resetCurrentDay(){
+      if(!confirm(`Confermi il reset completo dello smistamento del ${formatDateIT(state.targetDate)}?`)) return;
+      await postNoCors({ action:'resetDay', targetDate: state.targetDate, resetAt: new Date().toISOString() });
+      state.tasks = state.tasks.filter(t => String(t.targetDate) !== state.targetDate);
+      state.assignments = state.assignments.filter(a => String(a.targetDate) !== state.targetDate);
+      renderAll();
+      setStatus('✓ Giornata resettata.', 'ok');
+    }
+
+    async function postNoCors(payload){
+      try{
+        await fetch(GAS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(payload)
+        });
+      }catch(e){}
+    }
+
+    workerSearch.addEventListener('input', renderWorkers);
+    siteSearch.addEventListener('input', renderSites);
+    $('#btnReload').addEventListener('click', loadBaseData);
+    $('#btnResetDay').addEventListener('click', resetCurrentDay);
+    $('#btnCloseModal').addEventListener('click', closeModal);
+    $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
+    overlay.addEventListener('click', closeModal);
+    window.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+    setInterval(() => {
+      const old = state.targetDate;
+      const next = nextDayISO();
+      if(old !== next){
+        updateHeader();
+        loadDailyState().then(renderAll);
+      }
+    }, 60 * 1000);
+
+    window.createTask = createTask;
+    window.closeTask = closeTask;
+    window.removeAssignment = removeAssignment;
+    window.openEditTask = openEditTask;
+
+    loadBaseData();
+  </script>
+</body>
+</html>
