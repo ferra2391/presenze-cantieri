@@ -1,595 +1,1305 @@
-<script>
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
-  const GITHUB_OPERAI_BASE = "https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/";
-
-  const state = {
-    workers: [],
-    sites: [],
-    tasksBySite: {},
-    assignmentsBySite: {},
-    targetDate: null,
-    dragWorkerName: null
-  };
-
-  const $ = sel => document.querySelector(sel);
-  const workersGrid = $('#workersGrid');
-  const cantiereGrid = $('#cantiereGrid');
-  const statusEl = $('#status');
-  const badgeTarget = $('#badgeTarget');
-  const badgeStats = $('#badgeStats');
-  const workerSearch = $('#workerSearch');
-  const siteSearch = $('#siteSearch');
-  const overlay = $('#overlay');
-  const modalTodo = $('#modalTodo');
-
-  function pad(n){ return String(n).padStart(2,'0'); }
-
-  function normalize(s){
-    return String(s || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g,'')
-      .trim()
-      .toLowerCase();
-  }
-
-  function escapeHtml(s){
-    return String(s || '')
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#39;');
-  }
-
-  function nextDayISO(){
-    const d = new Date();
-    d.setHours(0,0,0,0);
-    d.setDate(d.getDate() + 1);
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  }
-
-  function formatDateIT(iso){
-    if(!iso) return '—';
-    const [y,m,d] = String(iso).split('-').map(Number);
-    return new Date(y, m-1, d).toLocaleDateString('it-IT', {
-      weekday:'long',
-      day:'2-digit',
-      month:'long',
-      year:'numeric'
-    });
-  }
-
-  function photoUrlForWorker(name, explicitUrl){
-    if(explicitUrl) return explicitUrl;
-    return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png`;
-  }
-
-  function jsStr(v){
-    return JSON.stringify(String(v || ''));
-  }
-
-  function allAssignedNames(){
-    const out = new Set();
-    Object.values(state.assignmentsBySite || {}).forEach(arr => {
-      (arr || []).forEach(name => out.add(String(name)));
-    });
-    return out;
-  }
-
-  function workerImage(url, name){
-    return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
-  }
-
-  function miniImage(url, name){
-    return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`;
-  }
-
-  function labelPriority(v){
-    if(String(v) === '1') return 'Urgente';
-    if(String(v) === '2') return 'Media';
-    return 'Minima';
-  }
-
-  function priorityClass(v){
-    if(String(v) === '1') return 'rosso';
-    if(String(v) === '2') return 'arancione';
-    return 'bianco';
-  }
-
-  function updateHeader(){
-    state.targetDate = nextDayISO();
-    $('#pageTitle').textContent = `🚚 Smistamento Operai — giorno ${formatDateIT(state.targetDate)}`;
-    $('#pageSubtitle').textContent = 'Pianificazione del giorno successivo. Le assegnazioni vengono lette e salvate sulla data di domani.';
-    badgeTarget.textContent = `Giorno operativo: ${formatDateIT(state.targetDate)}`;
-  }
-
-  function snapshotKey(targetDate){
-    return `smistamento_snapshot_${targetDate}`;
-  }
-
-  function saveSnapshot(){
-    try {
-      const payload = {
-        workers: state.workers,
-        sites: state.sites,
-        tasksBySite: state.tasksBySite,
-        assignmentsBySite: state.assignmentsBySite,
-        savedAt: Date.now()
-      };
-      localStorage.setItem(snapshotKey(state.targetDate), JSON.stringify(payload));
-    } catch(e) {}
-  }
-
-  function loadSnapshot(targetDate){
-    try {
-      const raw = localStorage.getItem(snapshotKey(targetDate));
-      if(!raw) return null;
-      const parsed = JSON.parse(raw);
-      if(!parsed || typeof parsed !== 'object') return null;
-      return parsed;
-    } catch(e) {
-      return null;
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smistamento Operai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --primary: hsl(210,100%,45%);
+      --primary-dark: hsl(210,100%,35%);
+      --text: hsl(210,15%,15%);
+      --text-light: hsl(210,10%,40%);
+      --muted: hsl(210,8%,50%);
+      --bg: hsl(210,25%,96%);
+      --card: #ffffff;
+      --border: hsl(210,20%,88%);
+      --border-strong: hsl(210,20%,75%);
+      --success: hsl(140,70%,40%);
+      --error: hsl(0,70%,50%);
+      --hover-bg: hsl(210,30%,98%);
+      --danger: #c00000;
+      --overlay: rgba(0,0,0,.5);
+      --urgent: #ffe1e1;
+      --urgent-border: #d40000;
+      --medium: #fff0d8;
+      --medium-border: #ff8a00;
+      --low: #ffffff;
+      --low-border: hsl(210,20%,82%);
+      --shadow: 0 2px 12px rgba(0,0,0,.06);
     }
-  }
 
-  function applyServerPayload(json){
-    state.workers = Array.isArray(json.workers)
-      ? json.workers.map(w => ({
-          name: String(w.name || '').trim(),
-          photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
-          role: String(w.role || '').trim()
-        })).filter(w => w.name)
-      : [];
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
 
-    state.sites = Array.isArray(json.sites)
-      ? json.sites.map(String).filter(Boolean)
-      : [];
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
 
-    state.tasksBySite = json.tasksBySite || {};
-    state.assignmentsBySite = json.assignmentsBySite || {};
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 26px 32px 40px;
+    }
 
-    state.sites.forEach(siteName => {
-      if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
-      if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
-    });
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
 
-    saveSnapshot();
-  }
+    .subtitle {
+      color: var(--text-light);
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
 
-  function applySnapshot(snapshot){
-    state.workers = Array.isArray(snapshot.workers) ? snapshot.workers : [];
-    state.sites = Array.isArray(snapshot.sites) ? snapshot.sites : [];
-    state.tasksBySite = snapshot.tasksBySite || {};
-    state.assignmentsBySite = snapshot.assignmentsBySite || {};
+    .control-panel,
+    .section-card,
+    .cantieri-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
 
-    state.sites.forEach(siteName => {
-      if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
-      if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
-    });
-  }
+    .control-panel { margin-bottom: 18px; }
+    .operai-panel { margin-bottom: 18px; }
 
-  async function apiGet(action, params = {}){
-    const qs = new URLSearchParams({ action, ...params });
-    const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache:'no-store' });
-    return await res.json();
-  }
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
 
-  async function apiPost(payload){
-    await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(payload)
-    });
-  }
+    .control-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-  function setStatus(msg, type='ok'){
-    statusEl.innerHTML = `<span class="${type}">${msg}</span>`;
-  }
+    .nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-  async function loadAll(forceServer = false){
-    updateHeader();
+    .nav a {
+      padding: 10px 18px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      transition: all .2s;
+    }
 
-    if(!forceServer){
-      const snap = loadSnapshot(state.targetDate);
-      if(snap){
-        applySnapshot(snap);
-        renderAll();
-        setStatus('⚡ Dati locali caricati. Allineo dal server...', 'ok');
+    .nav a:hover {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+
+    .nav a.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    button, input[type="text"], input[type="search"], textarea, select {
+      font: inherit;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      transition: all .2s;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    button.danger {
+      border-color: #f0b9b9;
+      color: #9f0000;
+      background: #fff7f7;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    input[type="search"],
+    input[type="text"],
+    textarea,
+    select {
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      font-size: 15px;
+      color: var(--text);
+      transition: border-color .2s;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    #status {
+      margin-top: 14px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .ok { color: var(--success); }
+    .error { color: var(--error); }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .section-note {
+      font-size: 13px;
+      color: var(--text-light);
+      font-weight: 700;
+    }
+
+    .workers-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .workers-grid {
+      display: grid;
+      grid-template-rows: repeat(2, auto);
+      grid-auto-flow: column;
+      grid-auto-columns: 300px;
+      gap: 14px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 2px 8px;
+      align-items: stretch;
+      scrollbar-width: thin;
+    }
+
+    .worker-chip {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      min-height: 116px;
+      border-radius: 14px;
+      border: 2px solid var(--border);
+      background: linear-gradient(to bottom, #fff, #fafafa);
+      transition: all .2s;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .worker-chip:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .worker-chip.dragging { opacity: .55; }
+
+    .worker-chip.assigned {
+      opacity: .42;
+      filter: grayscale(.25);
+      border-style: dashed;
+    }
+
+    .worker-avatar,
+    .mini-avatar {
+      object-fit: cover;
+      background: #edf3fa;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+
+    .worker-avatar {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      flex: 0 0 82px;
+    }
+
+    .mini-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+    }
+
+    .worker-meta {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .worker-name {
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--text);
+      word-break: break-word;
+      font-size: 19px;
+    }
+
+    .worker-sub {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    .worker-x {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(192,0,0,.9);
+      color: #fff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .worker-chip.assigned .worker-x { display: flex; }
+
+    .site-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .cantiere-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .site-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: linear-gradient(to bottom, #fff, #fcfdff);
+      box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      min-height: 260px;
+    }
+
+    .site-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .site-name {
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    .site-dropzone {
+      border: 2px dashed var(--border-strong);
+      border-radius: 14px;
+      background: var(--hover-bg);
+      padding: 10px;
+      min-height: 70px;
+      transition: all .2s;
+    }
+
+    .site-dropzone.over {
+      border-color: var(--primary);
+      background: #eef6ff;
+    }
+
+    .drop-hint {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+
+    .assigned-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .assigned-empty {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .assigned-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+
+    .assigned-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .assigned-name {
+      font-weight: 700;
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      border-radius: 10px;
+    }
+
+    .todo-form {
+      display: grid;
+      grid-template-columns: 1fr 165px auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 40px;
+    }
+
+    .todo-empty {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+      padding: 10px 0 4px;
+    }
+
+    .todo-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 12px;
+      border: 2px solid var(--low-border);
+      background: var(--low);
+    }
+
+    .todo-item.priority-rosso {
+      background: var(--urgent);
+      border-color: var(--urgent-border);
+    }
+
+    .todo-item.priority-arancione {
+      background: var(--medium);
+      border-color: var(--medium-border);
+    }
+
+    .todo-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .todo-text {
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.3;
+      white-space: pre-wrap;
+    }
+
+    .todo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-light);
+      font-weight: 700;
+    }
+
+    .todo-meta span {
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.7);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+
+    .priority-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      vertical-align: -1px;
+      margin-right: 6px;
+    }
+
+    .priority-dot.rosso { background: #d40000; }
+    .priority-dot.arancione { background: #ff8a00; }
+    .priority-dot.bianco { background: #fff; border: 1px solid #bbb; }
+
+    .todo-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 1000;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(720px, 92vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.22);
+      z-index: 1001;
+      padding: 24px;
+    }
+
+    .modal h3 {
+      margin: 0 0 18px;
+      font-size: 24px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .modal-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .modal-field.full { grid-column: 1 / -1; }
+
+    .modal-field label {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 2px solid var(--border);
+    }
+
+    @media (max-width: 1800px){
+      .cantiere-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 1500px){
+      .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 1120px){
+      .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px){
+      .container { padding: 18px; }
+      .todo-form,
+      .modal-grid { grid-template-columns: 1fr; }
+      .cantiere-grid { grid-template-columns: 1fr; }
+      .workers-grid {
+        grid-template-rows: none;
+        grid-auto-flow: row;
+        grid-auto-columns: unset;
+        grid-template-columns: 1fr;
+        overflow-x: visible;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="pageTitle">🚚 Smistamento Operai</h1>
+    <div class="subtitle" id="pageSubtitle">Pianificazione del giorno successivo</div>
+
+    <div class="control-panel">
+      <div class="control-row">
+        <div class="control-left">
+          <button id="btnReload" class="primary">Carica dati</button>
+          <button id="btnResetDay" class="danger">Reset giornata</button>
+          <span class="badge" id="badgeTarget">Giorno operativo: —</span>
+          <span class="badge" id="badgeStats">Operai assegnati: 0</span>
+        </div>
+
+        <div class="nav">
+          <a href="presenze.html">Presenze</a>
+          <a href="operaio.html">Analisi per Operaio</a>
+          <a href="cantiere.html">Analisi per Cantiere</a>
+          <a class="primary" href="smistamento.html">Smistamento</a>
+        </div>
+      </div>
+      <div id="status"></div>
+    </div>
+
+    <section class="section-card operai-panel">
+      <div class="section-title">
+        <h2>👷 Operai disponibili</h2>
+        <span class="section-note">Trascina sulle schede cantiere</span>
+      </div>
+
+      <div class="workers-toolbar">
+        <input type="search" id="workerSearch" placeholder="Cerca operaio..." />
+      </div>
+
+      <div class="workers-grid" id="workersGrid"></div>
+    </section>
+
+    <section class="cantieri-panel">
+      <div class="section-title">
+        <h2>🏗️ Cantieri e lavorazioni</h2>
+        <span class="section-note">Ogni card contiene operai assegnati + to do list</span>
+      </div>
+
+      <div class="site-toolbar">
+        <input type="search" id="siteSearch" placeholder="Cerca cantiere..." />
+        <div class="section-note">Le lavorazioni salvano automaticamente data creazione e data chiusura.</div>
+      </div>
+
+      <div class="cantiere-grid" id="cantiereGrid"></div>
+    </section>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="modalTodo">
+    <h3>✏️ Modifica lavorazione</h3>
+    <input type="hidden" id="editId" />
+    <input type="hidden" id="editSiteId" />
+
+    <div class="modal-grid">
+      <div class="modal-field full">
+        <label>Lavorazione</label>
+        <textarea id="editTaskText" placeholder="Descrizione lavorazione"></textarea>
+      </div>
+      <div class="modal-field">
+        <label>Priorità</label>
+        <select id="editPriority">
+          <option value="1">🔴 Urgente</option>
+          <option value="2">🟠 Media</option>
+          <option value="3">⚪ Minima</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Operai assegnati</label>
+        <input type="text" id="editWorkers" readonly />
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="btnCloseModal">Annulla</button>
+      <button id="btnSaveEdit" class="primary">Salva modifica</button>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
+    const GITHUB_OPERAI_BASE = "https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/";
+
+    const state = {
+      workers: [],
+      sites: [],
+      tasksBySite: {},
+      assignmentsBySite: {},
+      targetDate: null,
+      dragWorkerName: null
+    };
+
+    const $ = sel => document.querySelector(sel);
+    const workersGrid = $('#workersGrid');
+    const cantiereGrid = $('#cantiereGrid');
+    const statusEl = $('#status');
+    const badgeTarget = $('#badgeTarget');
+    const badgeStats = $('#badgeStats');
+    const workerSearch = $('#workerSearch');
+    const siteSearch = $('#siteSearch');
+    const overlay = $('#overlay');
+    const modalTodo = $('#modalTodo');
+
+    function pad(n){ return String(n).padStart(2,'0'); }
+
+    function normalize(s){
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'')
+        .trim()
+        .toLowerCase();
+    }
+
+    function escapeHtml(s){
+      return String(s || '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+    }
+
+    function nextDayISO(){
+      const d = new Date();
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() + 1);
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+
+    function formatDateIT(iso){
+      if(!iso) return '—';
+      const [y,m,d] = String(iso).split('-').map(Number);
+      return new Date(y, m-1, d).toLocaleDateString('it-IT', {
+        weekday:'long',
+        day:'2-digit',
+        month:'long',
+        year:'numeric'
+      });
+    }
+
+    function photoUrlForWorker(name, explicitUrl){
+      if(explicitUrl) return explicitUrl;
+      return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png`;
+    }
+
+    function jsStr(v){
+      return JSON.stringify(String(v || ''));
+    }
+
+    function allAssignedNames(){
+      const out = new Set();
+      Object.values(state.assignmentsBySite || {}).forEach(arr => {
+        (arr || []).forEach(name => out.add(String(name)));
+      });
+      return out;
+    }
+
+    function workerImage(url, name){
+      return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
+    }
+
+    function miniImage(url, name){
+      return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`;
+    }
+
+    function labelPriority(v){
+      if(String(v) === '1') return 'Urgente';
+      if(String(v) === '2') return 'Media';
+      return 'Minima';
+    }
+
+    function priorityClass(v){
+      if(String(v) === '1') return 'rosso';
+      if(String(v) === '2') return 'arancione';
+      return 'bianco';
+    }
+
+    function updateHeader(){
+      state.targetDate = nextDayISO();
+      $('#pageTitle').textContent = `🚚 Smistamento Operai — giorno ${formatDateIT(state.targetDate)}`;
+      $('#pageSubtitle').textContent = 'Pianificazione del giorno successivo. Le assegnazioni vengono lette e salvate sulla data di domani.';
+      badgeTarget.textContent = `Giorno operativo: ${formatDateIT(state.targetDate)}`;
+    }
+
+    function snapshotKey(targetDate){
+      return `smistamento_snapshot_${targetDate}`;
+    }
+
+    function saveSnapshot(){
+      try {
+        const payload = {
+          workers: state.workers,
+          sites: state.sites,
+          tasksBySite: state.tasksBySite,
+          assignmentsBySite: state.assignmentsBySite,
+          savedAt: Date.now()
+        };
+        localStorage.setItem(snapshotKey(state.targetDate), JSON.stringify(payload));
+      } catch(e) {}
+    }
+
+    function loadSnapshot(targetDate){
+      try {
+        const raw = localStorage.getItem(snapshotKey(targetDate));
+        if(!raw) return null;
+        const parsed = JSON.parse(raw);
+        if(!parsed || typeof parsed !== 'object') return null;
+        return parsed;
+      } catch(e) {
+        return null;
+      }
+    }
+
+    function applyServerPayload(json){
+      state.workers = Array.isArray(json.workers)
+        ? json.workers.map(w => ({
+            name: String(w.name || '').trim(),
+            photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
+            role: String(w.role || '').trim()
+          })).filter(w => w.name)
+        : [];
+
+      state.sites = Array.isArray(json.sites)
+        ? json.sites.map(String).filter(Boolean)
+        : [];
+
+      state.tasksBySite = json.tasksBySite || {};
+      state.assignmentsBySite = json.assignmentsBySite || {};
+
+      state.sites.forEach(siteName => {
+        if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
+        if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
+      });
+
+      saveSnapshot();
+    }
+
+    function applySnapshot(snapshot){
+      state.workers = Array.isArray(snapshot.workers) ? snapshot.workers : [];
+      state.sites = Array.isArray(snapshot.sites) ? snapshot.sites : [];
+      state.tasksBySite = snapshot.tasksBySite || {};
+      state.assignmentsBySite = snapshot.assignmentsBySite || {};
+
+      state.sites.forEach(siteName => {
+        if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
+        if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
+      });
+    }
+
+    async function apiGet(action, params = {}){
+      const qs = new URLSearchParams({ action, ...params });
+      const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache:'no-store' });
+      return await res.json();
+    }
+
+    async function apiPost(payload){
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload)
+      });
+    }
+
+    function setStatus(msg, type='ok'){
+      statusEl.innerHTML = `<span class="${type}">${msg}</span>`;
+    }
+
+    async function loadAll(forceServer = false){
+      updateHeader();
+
+      if(!forceServer){
+        const snap = loadSnapshot(state.targetDate);
+        if(snap){
+          applySnapshot(snap);
+          renderAll();
+          setStatus('⚡ Dati locali caricati. Allineo dal server...', 'ok');
+        } else {
+          setStatus('⏳ Caricamento smistamento...', 'ok');
+        }
       } else {
         setStatus('⏳ Caricamento smistamento...', 'ok');
       }
-    } else {
-      setStatus('⏳ Caricamento smistamento...', 'ok');
-    }
 
-    try {
-      const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
-      applyServerPayload(json);
-      renderAll();
-      setStatus('✓ Smistamento caricato.', 'ok');
-    } catch (err) {
-      console.error(err);
-      if(!state.sites.length && !state.workers.length){
-        setStatus('✗ Errore nel caricamento dei dati.', 'error');
-      } else {
-        setStatus('⚠️ Server lento o non raggiungibile. Sto usando i dati locali già presenti.', 'error');
+      try {
+        const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
+        applyServerPayload(json);
+        renderAll();
+        setStatus('✓ Smistamento caricato.', 'ok');
+      } catch (err) {
+        console.error(err);
+        if(!state.sites.length && !state.workers.length){
+          setStatus('✗ Errore nel caricamento dei dati.', 'error');
+        } else {
+          setStatus('⚠️ Server lento o non raggiungibile. Sto usando i dati locali già presenti.', 'error');
+        }
       }
     }
-  }
 
-  function renderWorkers(){
-    const q = normalize(workerSearch.value);
-    const assigned = allAssignedNames();
+    function renderWorkers(){
+      const q = normalize(workerSearch.value);
+      const assigned = allAssignedNames();
 
-    const list = state.workers
-      .filter(w => !q || normalize(w.name).includes(q))
-      .sort((a,b) => a.name.localeCompare(b.name, 'it'));
+      const list = state.workers
+        .filter(w => !q || normalize(w.name).includes(q))
+        .sort((a,b) => a.name.localeCompare(b.name, 'it'));
 
-    workersGrid.innerHTML = '';
+      workersGrid.innerHTML = '';
 
-    if(!list.length){
-      workersGrid.innerHTML = `<div class="muted">Nessun operaio trovato.</div>`;
-      return;
-    }
+      if(!list.length){
+        workersGrid.innerHTML = `<div class="muted">Nessun operaio trovato.</div>`;
+        return;
+      }
 
-    list.forEach(w => {
-      const isAssigned = assigned.has(w.name);
-      const div = document.createElement('div');
-      div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
-      div.draggable = true;
-      div.dataset.workerName = w.name;
+      list.forEach(w => {
+        const isAssigned = assigned.has(w.name);
+        const div = document.createElement('div');
+        div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
+        div.draggable = true;
+        div.dataset.workerName = w.name;
 
-      div.innerHTML = `
-        <div class="worker-x">✕</div>
-        ${workerImage(w.photoUrl, w.name)}
-        <div class="worker-meta">
-          <div class="worker-name">${escapeHtml(w.name)}</div>
-          <div class="worker-sub">${isAssigned ? 'Già assegnato' : 'Disponibile'}</div>
-        </div>
-      `;
+        div.innerHTML = `
+          <div class="worker-x">✕</div>
+          ${workerImage(w.photoUrl, w.name)}
+          <div class="worker-meta">
+            <div class="worker-name">${escapeHtml(w.name)}</div>
+            <div class="worker-sub">${isAssigned ? 'Già assegnato' : 'Disponibile'}</div>
+          </div>
+        `;
 
-      div.addEventListener('dragstart', () => {
-        state.dragWorkerName = w.name;
-        div.classList.add('dragging');
+        div.addEventListener('dragstart', () => {
+          state.dragWorkerName = w.name;
+          div.classList.add('dragging');
+        });
+
+        div.addEventListener('dragend', () => {
+          state.dragWorkerName = null;
+          div.classList.remove('dragging');
+        });
+
+        workersGrid.appendChild(div);
       });
 
-      div.addEventListener('dragend', () => {
-        state.dragWorkerName = null;
-        div.classList.remove('dragging');
-      });
-
-      workersGrid.appendChild(div);
-    });
-
-    badgeStats.textContent = `Operai assegnati: ${assigned.size}`;
-  }
-
-  function renderSites(){
-    const q = normalize(siteSearch.value);
-    const sites = state.sites.filter(name => !q || normalize(name).includes(q));
-
-    cantiereGrid.innerHTML = '';
-
-    if(!sites.length){
-      cantiereGrid.innerHTML = `<div class="muted">Nessun cantiere trovato.</div>`;
-      return;
+      badgeStats.textContent = `Operai assegnati: ${assigned.size}`;
     }
 
-    sites.forEach(siteName => {
-      const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
-      const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+    function renderSites(){
+      const q = normalize(siteSearch.value);
+      const sites = state.sites.filter(name => !q || normalize(name).includes(q));
 
-      const assignedHtml = assigned.length
-        ? assigned.map(name => {
-            const worker = state.workers.find(w => w.name === name) || {
-              name,
-              photoUrl: photoUrlForWorker(name)
-            };
+      cantiereGrid.innerHTML = '';
 
-            return `
-              <div class="assigned-item">
-                <div class="assigned-left">
-                  ${miniImage(worker.photoUrl, worker.name)}
-                  <div class="assigned-name">${escapeHtml(worker.name)}</div>
+      if(!sites.length){
+        cantiereGrid.innerHTML = `<div class="muted">Nessun cantiere trovato.</div>`;
+        return;
+      }
+
+      sites.forEach(siteName => {
+        const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
+        const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+
+        const assignedHtml = assigned.length
+          ? assigned.map(name => {
+              const worker = state.workers.find(w => w.name === name) || {
+                name,
+                photoUrl: photoUrlForWorker(name)
+              };
+
+              return `
+                <div class="assigned-item">
+                  <div class="assigned-left">
+                    ${miniImage(worker.photoUrl, worker.name)}
+                    <div class="assigned-name">${escapeHtml(worker.name)}</div>
+                  </div>
+                  <button class="icon-btn" title="Rimuovi assegnazione" onclick='removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(name)})'>✕</button>
                 </div>
-                <button class="icon-btn" title="Rimuovi assegnazione" onclick='removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(name)})'>✕</button>
-              </div>
-            `;
-          }).join('')
-        : `<div class="assigned-empty">Nessun operaio assegnato.</div>`;
+              `;
+            }).join('')
+          : `<div class="assigned-empty">Nessun operaio assegnato.</div>`;
 
-      const taskHtml = tasks.length
-        ? tasks.map(t => `
-            <div class="todo-item priority-${priorityClass(t.priority)}">
-              <div class="todo-top">
-                <div class="todo-text">${escapeHtml(t.text)}</div>
-                <div class="todo-actions">
-                  <button class="icon-btn" title="Modifica" onclick='openEditTask(${jsStr(siteName)}, ${jsStr(t.row)})'>✏️</button>
-                  <button class="icon-btn" title="Completa" onclick='closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
+        const taskHtml = tasks.length
+          ? tasks.map(t => `
+              <div class="todo-item priority-${priorityClass(t.priority)}">
+                <div class="todo-top">
+                  <div class="todo-text">${escapeHtml(t.text)}</div>
+                  <div class="todo-actions">
+                    <button class="icon-btn" title="Modifica" onclick='openEditTask(${jsStr(siteName)}, ${jsStr(t.row)})'>✏️</button>
+                    <button class="icon-btn" title="Completa" onclick='closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
+                  </div>
+                </div>
+                <div class="todo-meta">
+                  <span><span class="priority-dot ${priorityClass(t.priority)}"></span>${labelPriority(t.priority)}</span>
+                  <span>Creata: ${escapeHtml(t.createdAt || '')}</span>
+                  ${t.temp ? '<span>Da riallineare</span>' : ''}
                 </div>
               </div>
-              <div class="todo-meta">
-                <span><span class="priority-dot ${priorityClass(t.priority)}"></span>${labelPriority(t.priority)}</span>
-                <span>Creata: ${escapeHtml(t.createdAt || '')}</span>
-                ${t.temp ? '<span>Da riallineare</span>' : ''}
-              </div>
-            </div>
-          `).join('')
-        : `<div class="todo-empty">Nessuna lavorazione aperta.</div>`;
+            `).join('')
+          : `<div class="todo-empty">Nessuna lavorazione aperta.</div>`;
 
-      const card = document.createElement('div');
-      card.className = 'site-card';
-      card.innerHTML = `
-        <div class="site-head">
-          <div class="site-name">${escapeHtml(siteName)}</div>
-          <span class="badge">${tasks.length} lavorazioni</span>
-        </div>
+        const card = document.createElement('div');
+        card.className = 'site-card';
+        card.innerHTML = `
+          <div class="site-head">
+            <div class="site-name">${escapeHtml(siteName)}</div>
+            <span class="badge">${tasks.length} lavorazioni</span>
+          </div>
 
-        <div class="site-dropzone" data-site-name="${escapeHtml(siteName)}">
-          <div class="drop-hint">Trascina qui l'operaio</div>
-          <div class="assigned-list">${assignedHtml}</div>
-        </div>
+          <div class="site-dropzone" data-site-name="${escapeHtml(siteName)}">
+            <div class="drop-hint">Trascina qui l'operaio</div>
+            <div class="assigned-list">${assignedHtml}</div>
+          </div>
 
-        <div class="todo-form">
-          <textarea placeholder="Nuova lavorazione..." data-task-input="${escapeHtml(siteName)}"></textarea>
-          <select data-priority-input="${escapeHtml(siteName)}">
-            <option value="1">🔴 Urgente</option>
-            <option value="2">🟠 Media</option>
-            <option value="3">⚪ Minima</option>
-          </select>
-          <button class="primary" onclick='createTask(${jsStr(siteName)})'>Aggiungi</button>
-        </div>
+          <div class="todo-form">
+            <textarea placeholder="Nuova lavorazione..." data-task-input="${escapeHtml(siteName)}"></textarea>
+            <select data-priority-input="${escapeHtml(siteName)}">
+              <option value="1">🔴 Urgente</option>
+              <option value="2">🟠 Media</option>
+              <option value="3">⚪ Minima</option>
+            </select>
+            <button class="primary" onclick='createTask(${jsStr(siteName)})'>Aggiungi</button>
+          </div>
 
-        <div class="todo-list">${taskHtml}</div>
-      `;
+          <div class="todo-list">${taskHtml}</div>
+        `;
 
-      cantiereGrid.appendChild(card);
-    });
-
-    bindDropzones();
-  }
-
-  function bindDropzones(){
-    document.querySelectorAll('.site-dropzone').forEach(zone => {
-      zone.addEventListener('dragover', e => {
-        e.preventDefault();
-        zone.classList.add('over');
+        cantiereGrid.appendChild(card);
       });
 
-      zone.addEventListener('dragleave', () => {
-        zone.classList.remove('over');
+      bindDropzones();
+    }
+
+    function bindDropzones(){
+      document.querySelectorAll('.site-dropzone').forEach(zone => {
+        zone.addEventListener('dragover', e => {
+          e.preventDefault();
+          zone.classList.add('over');
+        });
+
+        zone.addEventListener('dragleave', () => {
+          zone.classList.remove('over');
+        });
+
+        zone.addEventListener('drop', async e => {
+          e.preventDefault();
+          zone.classList.remove('over');
+
+          const siteName = zone.dataset.siteName;
+          if(!siteName || !state.dragWorkerName) return;
+
+          await addWorkerToSite(state.dragWorkerName, siteName);
+        });
+      });
+    }
+
+    function renderAll(){
+      renderWorkers();
+      renderSites();
+    }
+
+    async function persistSiteWorkers(siteName, workers){
+      await apiPost({
+        action: 'setSiteWorkers',
+        targetDate: state.targetDate,
+        siteName,
+        workers
+      });
+    }
+
+    async function addWorkerToSite(workerName, siteName){
+      const current = JSON.parse(JSON.stringify(state.assignmentsBySite || {}));
+
+      const alreadyElsewhere = Object.entries(current).some(([site, arr]) => {
+        return site !== siteName && (arr || []).includes(workerName);
       });
 
-      zone.addEventListener('drop', async e => {
-        e.preventDefault();
-        zone.classList.remove('over');
+      if(alreadyElsewhere){
+        setStatus('⚠️ Questo operaio è già assegnato a un altro cantiere per il giorno selezionato.', 'error');
+        return;
+      }
 
-        const siteName = zone.dataset.siteName;
-        if(!siteName || !state.dragWorkerName) return;
+      current[siteName] = Array.isArray(current[siteName]) ? current[siteName] : [];
+      if(current[siteName].includes(workerName)) return;
 
-        await addWorkerToSite(state.dragWorkerName, siteName);
+      current[siteName].push(workerName);
+      current[siteName].sort((a,b) => a.localeCompare(b, 'it'));
+
+      state.assignmentsBySite = current;
+      saveSnapshot();
+      renderAll();
+
+      setStatus('⏳ Salvataggio assegnazione...', 'ok');
+      await persistSiteWorkers(siteName, current[siteName]);
+      setStatus('✓ Operaio assegnato.', 'ok');
+    }
+
+    async function removeWorkerFromSite(siteName, workerName){
+      const current = JSON.parse(JSON.stringify(state.assignmentsBySite || {}));
+      current[siteName] = (current[siteName] || []).filter(n => n !== workerName);
+
+      state.assignmentsBySite = current;
+      saveSnapshot();
+      renderAll();
+
+      setStatus('⏳ Rimozione assegnazione...', 'ok');
+      await persistSiteWorkers(siteName, current[siteName]);
+      setStatus('✓ Assegnazione rimossa.', 'ok');
+    }
+
+    async function createTask(siteName){
+      const txtEl = document.querySelector(`[data-task-input="${CSS.escape(siteName)}"]`);
+      const prEl = document.querySelector(`[data-priority-input="${CSS.escape(siteName)}"]`);
+      const text = (txtEl?.value || '').trim();
+      const priority = (prEl?.value || '3').trim();
+
+      if(!text){
+        setStatus('⚠️ Inserisci la lavorazione.', 'error');
+        return;
+      }
+
+      const fakeRow = `tmp_${Date.now()}`;
+
+      state.tasksBySite[siteName] = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+      state.tasksBySite[siteName].unshift({
+        row: fakeRow,
+        createdAt: new Date().toLocaleString('it-IT'),
+        text,
+        priority,
+        temp: true
       });
-    });
-  }
 
-  function renderAll(){
-    renderWorkers();
-    renderSites();
-  }
+      txtEl.value = '';
+      saveSnapshot();
+      renderSites();
 
-  async function persistSiteWorkers(siteName, workers){
-    await apiPost({
-      action: 'setSiteWorkers',
-      targetDate: state.targetDate,
-      siteName,
-      workers
-    });
-  }
+      setStatus('⏳ Salvataggio lavorazione...', 'ok');
+      await apiPost({
+        action: 'createTask',
+        siteName,
+        text,
+        priority
+      });
 
-  async function addWorkerToSite(workerName, siteName){
-    const current = JSON.parse(JSON.stringify(state.assignmentsBySite || {}));
-
-    const alreadyElsewhere = Object.entries(current).some(([site, arr]) => {
-      return site !== siteName && (arr || []).includes(workerName);
-    });
-
-    if(alreadyElsewhere){
-      setStatus('⚠️ Questo operaio è già assegnato a un altro cantiere per il giorno selezionato.', 'error');
-      return;
+      setStatus('✓ Lavorazione aggiunta. Premi "Carica dati" quando vuoi riallineare dal foglio.', 'ok');
     }
 
-    current[siteName] = Array.isArray(current[siteName]) ? current[siteName] : [];
-    if(current[siteName].includes(workerName)) return;
+    function openEditTask(siteName, row){
+      const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+      const task = arr.find(t => String(t.row) === String(row));
+      if(!task) return;
 
-    current[siteName].push(workerName);
-    current[siteName].sort((a,b) => a.localeCompare(b, 'it'));
+      if(task.temp){
+        setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
+        return;
+      }
 
-    state.assignmentsBySite = current;
-    saveSnapshot();
-    renderAll();
+      $('#editSiteId').value = siteName;
+      $('#editId').value = row;
+      $('#editTaskText').value = task.text || '';
+      $('#editPriority').value = String(task.priority || '3');
+      $('#editWorkers').value = (state.assignmentsBySite[siteName] || []).join(', ');
 
-    setStatus('⏳ Salvataggio assegnazione...', 'ok');
-    await persistSiteWorkers(siteName, current[siteName]);
-    setStatus('✓ Operaio assegnato.', 'ok');
-  }
-
-  async function removeWorkerFromSite(siteName, workerName){
-    const current = JSON.parse(JSON.stringify(state.assignmentsBySite || {}));
-    current[siteName] = (current[siteName] || []).filter(n => n !== workerName);
-
-    state.assignmentsBySite = current;
-    saveSnapshot();
-    renderAll();
-
-    setStatus('⏳ Rimozione assegnazione...', 'ok');
-    await persistSiteWorkers(siteName, current[siteName]);
-    setStatus('✓ Assegnazione rimossa.', 'ok');
-  }
-
-  async function createTask(siteName){
-    const txtEl = document.querySelector(`[data-task-input="${CSS.escape(siteName)}"]`);
-    const prEl = document.querySelector(`[data-priority-input="${CSS.escape(siteName)}"]`);
-    const text = (txtEl?.value || '').trim();
-    const priority = (prEl?.value || '3').trim();
-
-    if(!text){
-      setStatus('⚠️ Inserisci la lavorazione.', 'error');
-      return;
+      overlay.style.display = 'block';
+      modalTodo.style.display = 'block';
     }
 
-    const fakeRow = `tmp_${Date.now()}`;
+    function closeModal(){
+      overlay.style.display = 'none';
+      modalTodo.style.display = 'none';
+    }
 
-    state.tasksBySite[siteName] = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-    state.tasksBySite[siteName].unshift({
-      row: fakeRow,
-      createdAt: new Date().toLocaleString('it-IT'),
-      text,
-      priority,
-      temp: true
+    async function saveTaskEdit(){
+      const siteName = $('#editSiteId').value;
+      const row = String($('#editId').value || '');
+      const text = $('#editTaskText').value.trim();
+      const priority = $('#editPriority').value;
+
+      if(!siteName || !row || !text){
+        setStatus('⚠️ Dati lavorazione incompleti.', 'error');
+        return;
+      }
+
+      const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+      const task = arr.find(t => String(t.row) === String(row));
+      if(task){
+        task.text = text;
+        task.priority = priority;
+      }
+
+      closeModal();
+      saveSnapshot();
+      renderSites();
+
+      setStatus('⏳ Aggiornamento lavorazione...', 'ok');
+
+      await apiPost({
+        action: 'updateTask',
+        siteName,
+        row,
+        text,
+        priority
+      });
+
+      setStatus('✓ Lavorazione aggiornata.', 'ok');
+    }
+
+    async function closeTask(siteName, row){
+      const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+      const idx = arr.findIndex(t => String(t.row) === String(row));
+      if(idx < 0) return;
+
+      if(arr[idx].temp){
+        setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
+        return;
+      }
+
+      arr.splice(idx, 1);
+      state.tasksBySite[siteName] = arr;
+
+      saveSnapshot();
+      renderSites();
+
+      setStatus('⏳ Chiusura lavorazione...', 'ok');
+
+      await apiPost({
+        action: 'closeTask',
+        siteName,
+        row
+      });
+
+      setStatus('✓ Lavorazione chiusa.', 'ok');
+    }
+
+    workerSearch.addEventListener('input', renderWorkers);
+    siteSearch.addEventListener('input', renderSites);
+
+    $('#btnReload').addEventListener('click', () => loadAll(true));
+
+    $('#btnResetDay').addEventListener('click', async () => {
+      if(!confirm(`Confermi il reset assegnazioni del ${formatDateIT(state.targetDate)}?`)) return;
+
+      state.assignmentsBySite = {};
+      saveSnapshot();
+      renderAll();
+
+      setStatus('⏳ Reset assegnazioni...', 'ok');
+      await apiPost({
+        action:'resetSiteWorkers',
+        targetDate: state.targetDate
+      });
+      setStatus('✓ Giornata resettata.', 'ok');
     });
 
-    txtEl.value = '';
-    saveSnapshot();
-    renderSites();
+    $('#btnCloseModal').addEventListener('click', closeModal);
+    $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
+    overlay.addEventListener('click', closeModal);
 
-    setStatus('⏳ Salvataggio lavorazione...', 'ok');
-    await apiPost({
-      action: 'createTask',
-      siteName,
-      text,
-      priority
+    window.addEventListener('keydown', e => {
+      if(e.key === 'Escape') closeModal();
     });
 
-    setStatus('✓ Lavorazione aggiunta. Premi "Carica dati" quando vuoi riallineare dal foglio.', 'ok');
-  }
+    setInterval(() => {
+      const next = nextDayISO();
+      if(state.targetDate !== next){
+        updateHeader();
+        setStatus('ℹ️ È cambiato il giorno operativo. Premi "Carica dati" per riallineare.', 'ok');
+      }
+    }, 60 * 1000);
 
-  function openEditTask(siteName, row){
-    const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-    const task = arr.find(t => String(t.row) === String(row));
-    if(!task) return;
+    window.createTask = createTask;
+    window.openEditTask = openEditTask;
+    window.closeTask = closeTask;
+    window.removeWorkerFromSite = removeWorkerFromSite;
 
-    if(task.temp){
-      setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
-      return;
-    }
-
-    $('#editSiteId').value = siteName;
-    $('#editId').value = row;
-    $('#editTaskText').value = task.text || '';
-    $('#editPriority').value = String(task.priority || '3');
-    $('#editWorkers').value = (state.assignmentsBySite[siteName] || []).join(', ');
-
-    overlay.style.display = 'block';
-    modalTodo.style.display = 'block';
-  }
-
-  function closeModal(){
-    overlay.style.display = 'none';
-    modalTodo.style.display = 'none';
-  }
-
-  async function saveTaskEdit(){
-    const siteName = $('#editSiteId').value;
-    const row = String($('#editId').value || '');
-    const text = $('#editTaskText').value.trim();
-    const priority = $('#editPriority').value;
-
-    if(!siteName || !row || !text){
-      setStatus('⚠️ Dati lavorazione incompleti.', 'error');
-      return;
-    }
-
-    const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-    const task = arr.find(t => String(t.row) === String(row));
-    if(task){
-      task.text = text;
-      task.priority = priority;
-    }
-
-    closeModal();
-    saveSnapshot();
-    renderSites();
-
-    setStatus('⏳ Aggiornamento lavorazione...', 'ok');
-
-    await apiPost({
-      action: 'updateTask',
-      siteName,
-      row,
-      text,
-      priority
-    });
-
-    setStatus('✓ Lavorazione aggiornata.', 'ok');
-  }
-
-  async function closeTask(siteName, row){
-    const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-    const idx = arr.findIndex(t => String(t.row) === String(row));
-    if(idx < 0) return;
-
-    if(arr[idx].temp){
-      setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
-      return;
-    }
-
-    arr.splice(idx, 1);
-    state.tasksBySite[siteName] = arr;
-
-    saveSnapshot();
-    renderSites();
-
-    setStatus('⏳ Chiusura lavorazione...', 'ok');
-
-    await apiPost({
-      action: 'closeTask',
-      siteName,
-      row
-    });
-
-    setStatus('✓ Lavorazione chiusa.', 'ok');
-  }
-
-  workerSearch.addEventListener('input', renderWorkers);
-  siteSearch.addEventListener('input', renderSites);
-
-  $('#btnReload').addEventListener('click', () => loadAll(true));
-
-  $('#btnResetDay').addEventListener('click', async () => {
-    if(!confirm(`Confermi il reset assegnazioni del ${formatDateIT(state.targetDate)}?`)) return;
-
-    state.assignmentsBySite = {};
-    saveSnapshot();
-    renderAll();
-
-    setStatus('⏳ Reset assegnazioni...', 'ok');
-    await apiPost({
-      action:'resetSiteWorkers',
-      targetDate: state.targetDate
-    });
-    setStatus('✓ Giornata resettata.', 'ok');
-  });
-
-  $('#btnCloseModal').addEventListener('click', closeModal);
-  $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
-  overlay.addEventListener('click', closeModal);
-
-  window.addEventListener('keydown', e => {
-    if(e.key === 'Escape') closeModal();
-  });
-
-  setInterval(() => {
-    const next = nextDayISO();
-    if(state.targetDate !== next){
-      updateHeader();
-      setStatus('ℹ️ È cambiato il giorno operativo. Premi "Carica dati" per riallineare.', 'ok');
-    }
-  }, 60 * 1000);
-
-  window.createTask = createTask;
-  window.openEditTask = openEditTask;
-  window.closeTask = closeTask;
-  window.removeWorkerFromSite = removeWorkerFromSite;
-
-  loadAll(false);
-</script>
+    loadAll(false);
+  </script>
+</body>
+</html>
