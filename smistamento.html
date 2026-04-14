@@ -256,9 +256,9 @@
       position: relative;
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 14px;
-      min-height: 96px;
+      gap: 16px;
+      padding: 16px;
+      min-height: 116px;
       border-radius: 14px;
       border: 2px solid var(--border);
       background: linear-gradient(to bottom, #fff, #fafafa);
@@ -290,10 +290,10 @@
     }
 
     .worker-avatar {
-      width: 68px;
-      height: 68px;
+      width: 82px;
+      height: 82px;
       border-radius: 50%;
-      flex: 0 0 68px;
+      flex: 0 0 82px;
     }
 
     .mini-avatar {
@@ -314,11 +314,11 @@
       line-height: 1.2;
       color: var(--text);
       word-break: break-word;
-      font-size: 16px;
+      font-size: 19px;
     }
 
     .worker-sub {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--text-light);
     }
@@ -657,11 +657,11 @@
 
         <div class="workers-toolbar">
           <input type="search" id="workerSearch" placeholder="Cerca operaio..." />
-          <div class="section-note">Foto lette dalla cartella GitHub <strong>operai</strong>, con file nominato come il dipendente, ad esempio <strong>Mario Ronconi.png</strong>.</div>
+          
         </div>
 
         <div class="workers-grid" id="workersGrid"></div>
-        <div class="section-note" style="margin-top:10px;">Scorri orizzontalmente per vedere tutti gli operai.</div>
+        
       </section>
 
       <section class="section-card">
@@ -824,17 +824,33 @@
     async function loadAll(){
       updateHeader();
       setStatus('⏳ Caricamento smistamento...', 'ok');
-      try{
-        const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
-        state.workers = Array.isArray(json.workers) ? json.workers.map(w => ({
-          name: String(w.name || '').trim(),
-          photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
-          role: String(w.role || '').trim()
-        })).filter(w => w.name) : [];
 
-        state.sites = Array.isArray(json.sites) ? json.sites.map(String).filter(Boolean) : [];
+      try {
+        const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
+
+        state.workers = Array.isArray(json.workers)
+          ? json.workers.map(w => ({
+              name: String(w.name || '').trim(),
+              photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
+              role: String(w.role || '').trim()
+            })).filter(w => w.name)
+          : [];
+
+        state.sites = Array.isArray(json.sites)
+          ? json.sites.map(String).filter(Boolean)
+          : [];
+
         state.tasksBySite = json.tasksBySite || {};
         state.assignmentsBySite = json.assignmentsBySite || {};
+
+        state.sites.forEach(siteName => {
+          if(!Array.isArray(state.assignmentsBySite[siteName])) {
+            state.assignmentsBySite[siteName] = [];
+          }
+          if(!Array.isArray(state.tasksBySite[siteName])) {
+            state.tasksBySite[siteName] = [];
+          }
+        });
 
         renderAll();
         setStatus('✓ Smistamento caricato.', 'ok');
