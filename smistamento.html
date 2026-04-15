@@ -62,6 +62,7 @@
       flex: 0 0 auto;
       background: var(--bg);
       z-index: 20;
+      border-bottom: 1px solid rgba(0,0,0,.04);
     }
 
     .cantieri-scroll-area {
@@ -262,10 +263,7 @@
     }
 
     .workers-grid {
-      display: grid;
-      grid-template-rows: repeat(2, auto);
-      grid-auto-flow: column;
-      grid-auto-columns: 320px;
+      display: flex;
       gap: 14px;
       overflow-x: auto;
       overflow-y: auto;
@@ -273,6 +271,36 @@
       padding: 4px 2px 8px;
       align-items: stretch;
       scrollbar-width: thin;
+    }
+
+    .worker-group {
+      min-width: 240px;
+      max-width: 340px;
+      padding-right: 14px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .worker-group:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .worker-group-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      padding: 0 2px;
+    }
+
+    .worker-group-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .worker-chip {
@@ -344,6 +372,11 @@
       font-size: 15px;
       font-weight: 700;
       color: var(--text-light);
+    }
+
+    .worker-sub.assigned-site {
+      color: var(--primary-dark);
+      font-weight: 800;
     }
 
     .worker-x {
@@ -623,6 +656,118 @@
       gap: 8px;
     }
 
+    .compact-summary {
+      display: none;
+    }
+
+    .cantiere-grid.compact-mode .site-card {
+      min-height: 150px;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .cantiere-grid.compact-mode .todo-form,
+    .cantiere-grid.compact-mode .todo-list,
+    .cantiere-grid.compact-mode .todo-empty,
+    .cantiere-grid.compact-mode .todo-item,
+    .cantiere-grid.compact-mode .assigned-item {
+      display: none !important;
+    }
+
+    .cantiere-grid.compact-mode .site-head {
+      margin-bottom: 4px;
+    }
+
+    .cantiere-grid.compact-mode .site-name {
+      font-size: 17px;
+    }
+
+    .cantiere-grid.compact-mode .compact-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .compact-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .compact-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border);
+    }
+
+    .compact-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .compact-bar {
+      width: 100%;
+      height: 16px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #f2f4f7;
+      display: flex;
+    }
+
+    .compact-seg-white {
+      background: #ffffff;
+    }
+
+    .compact-seg-orange {
+      background: #ff8a00;
+    }
+
+    .compact-seg-red {
+      background: #d40000;
+    }
+
+    .compact-legend {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-light);
+      font-weight: 700;
+    }
+
+    .site-card.focused .todo-form,
+    .site-card.focused .todo-list {
+      display: grid !important;
+    }
+
+    .site-card.focused .todo-item,
+    .site-card.focused .assigned-item {
+      display: flex !important;
+    }
+
+    .site-card.focused .todo-empty {
+      display: block !important;
+    }
+
+    .site-card.focused .compact-summary {
+      display: none !important;
+    }
+
+    .site-card.focused {
+      min-height: 320px;
+    }
+
     .muted { color: var(--muted); }
 
     .overlay {
@@ -683,10 +828,6 @@
       border-top: 2px solid var(--border);
     }
 
-    @media (max-width: 1800px){
-      .cantiere-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    }
-
     @media (max-width: 1450px){
       .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
@@ -709,17 +850,29 @@
       }
 
       .container { padding: 18px; }
+
       .todo-form,
       .modal-grid { grid-template-columns: 1fr; }
+
       .cantiere-grid { grid-template-columns: 1fr; }
 
       .workers-grid {
-        grid-template-rows: none;
-        grid-auto-flow: row;
-        grid-auto-columns: unset;
-        grid-template-columns: 1fr;
-        overflow-x: visible;
+        flex-direction: column;
         max-height: none;
+        overflow-x: visible;
+      }
+
+      .worker-group {
+        min-width: 100%;
+        max-width: 100%;
+        border-right: none;
+        padding-right: 0;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+      }
+
+      .worker-group:last-child {
+        border-bottom: none;
       }
 
       .cantiere-grid.has-focus .site-card.focused {
@@ -774,7 +927,13 @@
       </div>
 
       <div class="site-toolbar">
-        <input type="search" id="siteSearch" placeholder="Cerca cantiere..." />
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <input type="search" id="siteSearch" placeholder="Cerca cantiere..." />
+          <select id="viewModeSelect">
+            <option value="expanded">Espandi</option>
+            <option value="compact">Contrai</option>
+          </select>
+        </div>
         <div class="section-note">Le lavorazioni salvano automaticamente data creazione e data chiusura.</div>
       </div>
 
@@ -827,7 +986,8 @@
       assignmentsBySite: {},
       targetDate: null,
       dragWorkerName: null,
-      focusedSiteName: null
+      focusedSiteName: null,
+      viewMode: 'expanded'
     };
 
     const $ = sel => document.querySelector(sel);
@@ -838,6 +998,7 @@
     const badgeStats = $('#badgeStats');
     const workerSearch = $('#workerSearch');
     const siteSearch = $('#siteSearch');
+    const viewModeSelect = $('#viewModeSelect');
     const overlay = $('#overlay');
     const modalTodo = $('#modalTodo');
 
@@ -895,6 +1056,46 @@
       return out;
     }
 
+    function findWorkerAssignedSite(workerName){
+      for (const [siteName, arr] of Object.entries(state.assignmentsBySite || {})) {
+        if ((arr || []).includes(workerName)) return siteName;
+      }
+      return '';
+    }
+
+    function buildWorkerGroups(){
+      const q = normalize(workerSearch.value);
+      const available = [];
+      const grouped = {};
+
+      state.workers
+        .filter(w => !q || normalize(w.name).includes(q))
+        .sort((a,b) => a.name.localeCompare(b.name, 'it'))
+        .forEach(w => {
+          const siteName = findWorkerAssignedSite(w.name);
+          if (!siteName) {
+            available.push(w);
+          } else {
+            if (!grouped[siteName]) grouped[siteName] = [];
+            grouped[siteName].push(w);
+          }
+        });
+
+      const ordered = [];
+
+      if (available.length) {
+        ordered.push({ title: 'Disponibili', workers: available, siteName: '' });
+      }
+
+      Object.keys(grouped)
+        .sort((a,b) => a.localeCompare(b, 'it'))
+        .forEach(siteName => {
+          ordered.push({ title: siteName, workers: grouped[siteName], siteName });
+        });
+
+      return ordered;
+    }
+
     function workerImage(url, name){
       return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
     }
@@ -913,6 +1114,30 @@
       if(String(v) === '1') return 'rosso';
       if(String(v) === '2') return 'arancione';
       return 'bianco';
+    }
+
+    function getCompactStats(tasks){
+      const total = tasks.length || 0;
+      let red = 0, orange = 0, white = 0;
+
+      tasks.forEach(t => {
+        const p = String(t.priority || '3');
+        if (p === '1') red++;
+        else if (p === '2') orange++;
+        else white++;
+      });
+
+      const prc = (n) => total ? (n / total) * 100 : 0;
+
+      return {
+        total,
+        red,
+        orange,
+        white,
+        redPct: prc(red),
+        orangePct: prc(orange),
+        whitePct: prc(white)
+      };
     }
 
     function updateHeader(){
@@ -1050,50 +1275,65 @@
     }
 
     function renderWorkers(){
-      const q = normalize(workerSearch.value);
-      const assigned = allAssignedNames();
-
-      const list = state.workers
-        .filter(w => !q || normalize(w.name).includes(q))
-        .sort((a,b) => a.name.localeCompare(b.name, 'it'));
-
+      const groups = buildWorkerGroups();
       workersGrid.innerHTML = '';
 
-      if(!list.length){
+      if(!groups.length){
         workersGrid.innerHTML = `<div class="muted">Nessun operaio trovato.</div>`;
         return;
       }
 
-      list.forEach(w => {
-        const isAssigned = assigned.has(w.name);
-        const div = document.createElement('div');
-        div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
-        div.draggable = true;
-        div.dataset.workerName = w.name;
+      groups.forEach(group => {
+        const g = document.createElement('div');
+        g.className = 'worker-group';
 
-        div.innerHTML = `
-          <div class="worker-x">✕</div>
-          ${workerImage(w.photoUrl, w.name)}
-          <div class="worker-meta">
-            <div class="worker-name">${escapeHtml(w.name)}</div>
-            <div class="worker-sub">${isAssigned ? 'Già assegnato' : 'Disponibile'}</div>
-          </div>
-        `;
+        const title = document.createElement('div');
+        title.className = 'worker-group-title';
+        title.textContent = group.title;
+        g.appendChild(title);
 
-        div.addEventListener('dragstart', () => {
-          state.dragWorkerName = w.name;
-          div.classList.add('dragging');
+        const items = document.createElement('div');
+        items.className = 'worker-group-items';
+
+        group.workers.forEach(w => {
+          const siteName = group.siteName || '';
+          const isAssigned = !!siteName;
+
+          const div = document.createElement('div');
+          div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
+          div.draggable = true;
+          div.dataset.workerName = w.name;
+
+          div.innerHTML = `
+            <div class="worker-x">✕</div>
+            ${workerImage(w.photoUrl, w.name)}
+            <div class="worker-meta">
+              <div class="worker-name">${escapeHtml(w.name)}</div>
+              <div class="worker-sub ${isAssigned ? 'assigned-site' : ''}">
+                ${isAssigned ? escapeHtml(siteName) : 'Disponibile'}
+              </div>
+            </div>
+          `;
+
+          div.addEventListener('dragstart', () => {
+            state.dragWorkerName = w.name;
+            div.classList.add('dragging');
+          });
+
+          div.addEventListener('dragend', () => {
+            state.dragWorkerName = null;
+            div.classList.remove('dragging');
+          });
+
+          items.appendChild(div);
         });
 
-        div.addEventListener('dragend', () => {
-          state.dragWorkerName = null;
-          div.classList.remove('dragging');
-        });
-
-        workersGrid.appendChild(div);
+        g.appendChild(items);
+        workersGrid.appendChild(g);
       });
 
-      badgeStats.textContent = `Operai assegnati: ${assigned.size}`;
+      const assignedCount = allAssignedNames().size;
+      badgeStats.textContent = `Operai assegnati: ${assignedCount}`;
     }
 
     function getCurrentMosaicCols(){
@@ -1123,6 +1363,7 @@
 
       cantiereGrid.innerHTML = '';
       cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
+      cantiereGrid.classList.toggle('compact-mode', state.viewMode === 'compact');
 
       if(!sites.length){
         cantiereGrid.innerHTML = `<div class="muted">Nessun cantiere trovato.</div>`;
@@ -1132,6 +1373,7 @@
       sites.forEach((siteName, index) => {
         const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
         const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+        const compactStats = getCompactStats(tasks);
 
         const assignedHtml = assigned.length
           ? assigned.map(name => {
@@ -1179,6 +1421,7 @@
         const card = document.createElement('div');
         card.className = `site-card ${mosaicClass} ${focusedClass}`;
         card.dataset.siteCardName = siteName;
+
         card.innerHTML = `
           <div class="site-head">
             <div class="site-head-left">
@@ -1187,6 +1430,25 @@
             </div>
             <div class="site-head-right">
               <button class="export-btn" onclick='event.stopPropagation(); exportSiteCard(${jsStr(siteName)})'>📄 Export</button>
+            </div>
+          </div>
+
+          <div class="compact-summary">
+            <div class="compact-topline">
+              <span>Lavorazioni</span>
+              <span class="compact-count">${compactStats.total}</span>
+            </div>
+            <div class="compact-bar-wrap">
+              <div class="compact-bar">
+                <div class="compact-seg-red" style="width:${compactStats.redPct}%;"></div>
+                <div class="compact-seg-orange" style="width:${compactStats.orangePct}%;"></div>
+                <div class="compact-seg-white" style="width:${compactStats.whitePct}%;"></div>
+              </div>
+              <div class="compact-legend">
+                <span>🔴 ${compactStats.red}</span>
+                <span>🟠 ${compactStats.orange}</span>
+                <span>⚪ ${compactStats.white}</span>
+              </div>
             </div>
           </div>
 
@@ -1209,7 +1471,7 @@
         `;
 
         card.addEventListener('click', (e) => {
-          if (e.target.closest('button, textarea, select, input, .site-dropzone')) return;
+          if (e.target.closest('button, textarea, select, input')) return;
           focusSiteCard(siteName);
         });
 
@@ -1439,16 +1701,34 @@
         clone.style.filter = 'none';
         clone.style.width = `${card.offsetWidth}px`;
 
+        const exportHeader = document.createElement('div');
+        exportHeader.style.marginBottom = '12px';
+        exportHeader.style.padding = '10px 12px';
+        exportHeader.style.border = '1px solid #d9e2ec';
+        exportHeader.style.borderRadius = '12px';
+        exportHeader.style.background = '#f8fbff';
+        exportHeader.style.fontFamily = 'Arial, sans-serif';
+        exportHeader.innerHTML = `
+          <div style="font-size:18px;font-weight:800;color:#1f2d3d;">Elenco prossime lavorazioni al ${formatDateIT(state.targetDate)}</div>
+          <div style="font-size:15px;font-weight:800;color:#1f2d3d;margin-top:6px;">${siteName}</div>
+        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.width = `${card.offsetWidth}px`;
+        wrapper.style.background = '#ffffff';
+        wrapper.appendChild(exportHeader);
+        wrapper.appendChild(clone);
+
         const holder = document.createElement('div');
         holder.style.position = 'absolute';
         holder.style.left = '-10000px';
         holder.style.top = '0';
         holder.style.width = `${card.offsetWidth}px`;
         holder.style.background = '#ffffff';
-        holder.appendChild(clone);
+        holder.appendChild(wrapper);
         document.body.appendChild(holder);
 
-        const canvas = await html2canvas(clone, {
+        const canvas = await html2canvas(wrapper, {
           scale: 2,
           backgroundColor: '#ffffff',
           useCORS: true,
@@ -1487,6 +1767,12 @@
 
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
+
+    viewModeSelect.addEventListener('change', () => {
+      state.viewMode = viewModeSelect.value || 'expanded';
+      clearFocusedCard();
+      renderSites();
+    });
 
     $('#btnReload').addEventListener('click', () => loadAll(true));
 
