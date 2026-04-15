@@ -1911,89 +1911,225 @@
       setStatus('✓ Lavorazione chiusa.', 'ok');
     }
 
-    async function exportSiteCard(siteName){
-      const card = Array.from(document.querySelectorAll('.site-card')).find(el => el.dataset.siteCardName === siteName);
-      if(!card){
-        setStatus('⚠️ Card non trovata per export.', 'error');
-        return;
-      }
+   async function exportSiteCard(siteName){
+  const card = Array.from(document.querySelectorAll('.site-card')).find(el => el.dataset.siteCardName === siteName);
+  if(!card){
+    setStatus('⚠️ Card non trovata per export.', 'error');
+    return;
+  }
 
-      try {
-        setStatus(`⏳ Export PDF di ${siteName}...`, 'ok');
+  try {
+    setStatus(`⏳ Export PDF di ${siteName}...`, 'ok');
 
-        const clone = card.cloneNode(true);
-        clone.classList.remove('focused-floating', 'card-drop-over');
-        clone.style.position = 'static';
-        clone.style.width = `${card.offsetWidth}px`;
-        clone.style.maxHeight = 'none';
-        clone.style.overflow = 'visible';
-        clone.style.transform = 'none';
-        clone.style.opacity = '1';
-        clone.style.filter = 'none';
+    const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
+    const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
 
-        const exportHeader = document.createElement('div');
-        exportHeader.style.marginBottom = '12px';
-        exportHeader.style.padding = '10px 12px';
-        exportHeader.style.border = '1px solid #d9e2ec';
-        exportHeader.style.borderRadius = '12px';
-        exportHeader.style.background = '#f8fbff';
-        exportHeader.style.fontFamily = 'Arial, sans-serif';
-        exportHeader.innerHTML = `
-          <div style="font-size:18px;font-weight:800;color:#1f2d3d;">Elenco prossime lavorazioni al ${formatDateIT(state.targetDate)}</div>
-          <div style="font-size:15px;font-weight:800;color:#1f2d3d;margin-top:6px;">${siteName}</div>
-        `;
+    const assignedHtml = assigned.length
+      ? assigned.map(name => {
+          const worker = state.workers.find(w => w.name === name) || {
+            name,
+            photoUrl: photoUrlForWorker(name)
+          };
+          return `
+            <span style="
+              display:inline-flex;
+              align-items:center;
+              gap:6px;
+              padding:6px 10px;
+              border:1px solid #d9e2ec;
+              border-radius:999px;
+              background:#ffffff;
+              font-size:12px;
+              font-weight:700;
+              color:#334155;
+            ">
+              <img src="${escapeHtml(worker.photoUrl)}"
+                   alt="${escapeHtml(worker.name)}"
+                   style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#dfe7f1;"
+                   onerror="this.onerror=null;this.src='https://via.placeholder.com/22?text=%F0%9F%91%B7'">
+              ${escapeHtml(worker.name)}
+            </span>
+          `;
+        }).join('')
+      : `<span style="font-size:12px;color:#64748b;font-style:italic;">Nessun operaio assegnato</span>`;
 
-        const wrapper = document.createElement('div');
-        wrapper.style.width = `${card.offsetWidth}px`;
-        wrapper.style.background = '#ffffff';
-        wrapper.appendChild(exportHeader);
-        wrapper.appendChild(clone);
+    const taskHtml = tasks.length
+      ? tasks.map(t => {
+          const pClass = priorityClass(t.priority);
+          let bg = '#ffffff';
+          let border = '#cbd5e1';
+          let dot = '#cbd5e1';
+          let label = 'Minima';
 
-        const holder = document.createElement('div');
-        holder.style.position = 'absolute';
-        holder.style.left = '-10000px';
-        holder.style.top = '0';
-        holder.style.width = `${card.offsetWidth}px`;
-        holder.style.background = '#ffffff';
-        holder.appendChild(wrapper);
-        document.body.appendChild(holder);
+          if (pClass === 'rosso') {
+            bg = '#ffe1e1';
+            border = '#d40000';
+            dot = '#d40000';
+            label = 'Urgente';
+          } else if (pClass === 'arancione') {
+            bg = '#fff0d8';
+            border = '#ff8a00';
+            dot = '#ff8a00';
+            label = 'Media';
+          }
 
-        const canvas = await html2canvas(wrapper, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          logging: false
-        });
+          return `
+            <div style="
+              border:2px solid ${border};
+              background:${bg};
+              border-radius:12px;
+              padding:10px 12px;
+              margin-bottom:10px;
+            ">
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:10px;
+              ">
+                <div style="
+                  font-size:14px;
+                  font-weight:800;
+                  line-height:1.35;
+                  color:#111827;
+                  white-space:pre-wrap;
+                ">${escapeHtml(t.text)}</div>
+              </div>
 
-        document.body.removeChild(holder);
+              <div style="
+                display:flex;
+                flex-wrap:wrap;
+                gap:6px;
+                margin-top:8px;
+              ">
+                <span style="
+                  display:inline-flex;
+                  align-items:center;
+                  gap:6px;
+                  padding:5px 8px;
+                  border-radius:999px;
+                  background:rgba(255,255,255,.8);
+                  border:1px solid rgba(0,0,0,.08);
+                  font-size:11px;
+                  font-weight:700;
+                  color:#475569;
+                ">
+                  <span style="
+                    width:10px;
+                    height:10px;
+                    border-radius:50%;
+                    display:inline-block;
+                    background:${dot};
+                    ${pClass === 'bianco' ? 'border:1px solid #bbb;' : ''}
+                  "></span>
+                  ${label}
+                </span>
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+                <span style="
+                  display:inline-flex;
+                  align-items:center;
+                  padding:5px 8px;
+                  border-radius:999px;
+                  background:rgba(255,255,255,.8);
+                  border:1px solid rgba(0,0,0,.08);
+                  font-size:11px;
+                  font-weight:700;
+                  color:#475569;
+                ">
+                  Creata: ${escapeHtml(t.createdAt || '')}
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('')
+      : `<div style="font-size:13px;color:#64748b;font-style:italic;">Nessuna lavorazione aperta.</div>`;
 
-        const pageW = pdf.internal.pageSize.getWidth();
-        const pageH = pdf.internal.pageSize.getHeight();
-        const margin = 18;
-        const availW = pageW - margin * 2;
-        const availH = pageH - margin * 2;
-        const ratio = Math.min(availW / canvas.width, availH / canvas.height);
+    const wrapper = document.createElement('div');
+    wrapper.style.width = '760px';
+    wrapper.style.background = '#ffffff';
+    wrapper.style.padding = '0';
+    wrapper.style.fontFamily = 'Arial, sans-serif';
+    wrapper.innerHTML = `
+      <div style="
+        margin-bottom:12px;
+        padding:10px 12px;
+        border:1px solid #d9e2ec;
+        border-radius:12px;
+        background:#f8fbff;
+      ">
+        <div style="font-size:18px;font-weight:800;color:#1f2d3d;">
+          Elenco prossime lavorazioni al ${formatDateIT(state.targetDate)}
+        </div>
+        <div style="font-size:15px;font-weight:800;color:#1f2d3d;margin-top:6px;">
+          ${escapeHtml(siteName)}
+        </div>
+      </div>
 
-        const w = canvas.width * ratio;
-        const h = canvas.height * ratio;
-        const x = margin + (availW - w) / 2;
-        const y = margin;
+      <div style="
+        margin-bottom:12px;
+        padding:10px 12px;
+        border:1px solid #d9e2ec;
+        border-radius:12px;
+        background:#ffffff;
+      ">
+        <div style="font-size:13px;font-weight:800;color:#334155;margin-bottom:8px;">
+          Operai coinvolti
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${assignedHtml}
+        </div>
+      </div>
 
-        const img = canvas.toDataURL('image/png');
-        pdf.addImage(img, 'PNG', x, y, w, h);
+      <div>
+        ${taskHtml}
+      </div>
+    `;
 
-        const safeName = siteName.replace(/[\\/:*?"<>|]+/g, '_');
-        pdf.save(`Smistamento_${safeName}_${state.targetDate}.pdf`);
+    const holder = document.createElement('div');
+    holder.style.position = 'absolute';
+    holder.style.left = '-10000px';
+    holder.style.top = '0';
+    holder.style.width = '760px';
+    holder.style.background = '#ffffff';
+    holder.appendChild(wrapper);
+    document.body.appendChild(holder);
 
-        setStatus('✓ PDF esportato: ' + siteName, 'ok');
-      } catch (err) {
-        console.error(err);
-        setStatus(`✗ Export PDF fallito: ${err.message}`, 'error');
-      }
-    }
+    const canvas = await html2canvas(wrapper, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false
+    });
+
+    document.body.removeChild(holder);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 18;
+    const availW = pageW - margin * 2;
+    const availH = pageH - margin * 2;
+    const ratio = Math.min(availW / canvas.width, availH / canvas.height);
+
+    const w = canvas.width * ratio;
+    const h = canvas.height * ratio;
+    const x = margin + (availW - w) / 2;
+    const y = margin;
+
+    const img = canvas.toDataURL('image/png');
+    pdf.addImage(img, 'PNG', x, y, w, h);
+
+    const safeName = siteName.replace(/[\\/:*?"<>|]+/g, '_');
+    pdf.save(`Smistamento_${safeName}_${state.targetDate}.pdf`);
+
+    setStatus('✓ PDF esportato: ' + siteName, 'ok');
+  } catch (err) {
+    console.error(err);
+    setStatus(`✗ Export PDF fallito: ${err.message}`, 'error');
+  }
+}
 
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
