@@ -298,7 +298,7 @@
     .worker-group-items {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
       align-items: stretch;
     }
 
@@ -307,10 +307,10 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 12px;
-      min-height: 74px;
-      width: calc(16.66% - 9px);
-      min-width: 170px;
+      padding: 10px 10px;
+      min-height: 70px;
+      width: calc(14.28% - 7px);
+      min-width: 145px;
       border-radius: 12px;
       border: 2px solid var(--border);
       background: linear-gradient(to bottom, #fff, #fafafa);
@@ -334,7 +334,8 @@
     }
 
     .worker-avatar,
-    .mini-avatar {
+    .mini-avatar,
+    .compact-worker-face {
       object-fit: cover;
       background: #edf3fa;
       border: 2px solid #fff;
@@ -342,10 +343,10 @@
     }
 
     .worker-avatar {
-      width: 48px;
-      height: 48px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      flex: 0 0 48px;
+      flex: 0 0 42px;
     }
 
     .mini-avatar {
@@ -358,15 +359,15 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
     }
 
     .worker-name {
       font-weight: 800;
-      line-height: 1.15;
+      line-height: 1.12;
       color: var(--text);
       word-break: break-word;
-      font-size: 14px;
+      font-size: 15px;
     }
 
     .worker-sub {
@@ -382,17 +383,17 @@
 
     .worker-x {
       position: absolute;
-      top: 6px;
-      left: 6px;
-      width: 20px;
-      height: 20px;
+      top: 5px;
+      left: 5px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: rgba(192,0,0,.9);
       color: #fff;
       display: none;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 900;
       line-height: 1;
     }
@@ -683,12 +684,12 @@
     }
 
     .cantiere-grid.compact-mode {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 
     .cantiere-grid.compact-mode .site-card {
-      min-height: 146px;
-      gap: 10px;
+      min-height: 156px;
+      gap: 8px;
       padding: 12px;
     }
 
@@ -710,26 +711,30 @@
     }
 
     .cantiere-grid.compact-mode .site-name {
-      font-size: 16px;
+      font-size: 15px;
     }
 
     .cantiere-grid.compact-mode .badge {
-      font-size: 12px;
-      padding: 7px 10px;
+      font-size: 11px;
+      padding: 6px 9px;
     }
 
     .cantiere-grid.compact-mode .compact-summary {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr;
+      gap: 8px 10px;
+      align-items: start;
+      min-height: 86px;
     }
 
     .compact-workers-bar {
+      grid-column: 1 / -1;
       min-height: 34px;
-      border-radius: 999px;
-      background: #1f2328;
-      border: 1px solid rgba(0,0,0,.18);
-      padding: 4px 8px;
+      border-radius: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 5px 6px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -739,7 +744,7 @@
     }
 
     .compact-workers-empty {
-      color: rgba(255,255,255,.65);
+      color: var(--muted);
       font-size: 11px;
       font-weight: 700;
       white-space: nowrap;
@@ -749,17 +754,34 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid rgba(255,255,255,.85);
-      background: #dfe7f1;
       flex: 0 0 24px;
+    }
+
+    .compact-left-half {
+      grid-column: 1;
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .compact-right-half {
+      grid-column: 2;
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 7px;
+      min-width: 0;
     }
 
     .compact-stats-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      justify-content: flex-start;
+      gap: 8px;
     }
 
     .compact-left-stats {
@@ -794,6 +816,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      width: 100%;
     }
 
     .compact-bar {
@@ -821,8 +844,8 @@
     .compact-legend {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
-      font-size: 13px;
+      gap: 8px;
+      font-size: 12px;
       color: var(--text-light);
       font-weight: 800;
     }
@@ -831,6 +854,32 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
+    }
+
+    .compact-workers-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .compact-workers-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .compact-worker-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 7px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.65);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-light);
     }
 
     .site-card.focused-floating .todo-form {
@@ -920,15 +969,15 @@
 
     @media (max-width: 1650px){
       .worker-chip {
-        width: calc(20% - 8px);
+        width: calc(16.66% - 7px);
       }
     }
 
     @media (max-width: 1450px){
       .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .cantiere-grid.compact-mode { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .cantiere-grid.compact-mode { grid-template-columns: repeat(5, minmax(0, 1fr)); }
       .worker-chip {
-        width: calc(25% - 8px);
+        width: calc(20% - 7px);
       }
     }
 
@@ -936,7 +985,7 @@
       .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .cantiere-grid.compact-mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .worker-chip {
-        width: calc(33.333% - 8px);
+        width: calc(25% - 7px);
       }
     }
 
@@ -976,6 +1025,17 @@
       .site-card.focused-floating {
         width: 94vw;
         max-height: 88vh;
+      }
+
+      .cantiere-grid.compact-mode .compact-summary {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+      }
+
+      .compact-left-half,
+      .compact-right-half {
+        grid-column: 1;
+        grid-row: auto;
       }
     }
   </style>
@@ -1456,8 +1516,8 @@
       if (state.viewMode === 'compact') {
         if (w <= 720) return 1;
         if (w <= 1120) return 3;
-        if (w <= 1450) return 4;
-        return 5;
+        if (w <= 1450) return 5;
+        return 6;
       }
       if (w <= 720) return 1;
       if (w <= 1120) return 2;
@@ -1503,7 +1563,7 @@
         const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
         const compactStats = getCompactStats(tasks);
 
-        const compactWorkersHtml = assigned.length
+        const compactWorkersFaces = assigned.length
           ? assigned.map(name => {
               const worker = state.workers.find(w => w.name === name) || {
                 name,
@@ -1511,7 +1571,17 @@
               };
               return `<img class="compact-worker-face" src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" title="${escapeHtml(worker.name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/24?text=%F0%9F%91%B7'">`;
             }).join('')
-          : `<span class="compact-workers-empty">Nessun operaio assegnato</span>`;
+          : `<span class="compact-workers-empty">Nessuno</span>`;
+
+        const compactWorkersPills = assigned.length
+          ? assigned.map(name => {
+              const worker = state.workers.find(w => w.name === name) || {
+                name,
+                photoUrl: photoUrlForWorker(name)
+              };
+              return `<span class="compact-worker-pill">${miniImage(worker.photoUrl, worker.name)} ${escapeHtml(worker.name)}</span>`;
+            }).join('')
+          : `<span class="compact-workers-empty">Nessuno</span>`;
 
         const assignedHtml = assigned.length
           ? assigned.map(name => {
@@ -1572,26 +1642,33 @@
           </div>
 
           <div class="compact-summary">
-            <div class="compact-workers-bar">${compactWorkersHtml}</div>
+            <div class="compact-workers-bar">${compactWorkersFaces}</div>
 
-            <div class="compact-stats-row">
-              <div class="compact-left-stats">
-                <span class="compact-label">Lavorazioni</span>
-                <span class="compact-count">${compactStats.total}</span>
+            <div class="compact-left-half">
+              <div class="compact-stats-row">
+                <div class="compact-left-stats">
+                  <span class="compact-label">Lavorazioni</span>
+                  <span class="compact-count">${compactStats.total}</span>
+                </div>
+              </div>
+
+              <div class="compact-bar-wrap">
+                <div class="compact-bar">
+                  <div class="compact-seg-red" style="width:${compactStats.redPct}%;"></div>
+                  <div class="compact-seg-orange" style="width:${compactStats.orangePct}%;"></div>
+                  <div class="compact-seg-white" style="width:${compactStats.whitePct}%;"></div>
+                </div>
+                <div class="compact-legend">
+                  <span>🔴 ${compactStats.red}</span>
+                  <span>🟠 ${compactStats.orange}</span>
+                  <span>⚪ ${compactStats.white}</span>
+                </div>
               </div>
             </div>
 
-            <div class="compact-bar-wrap">
-              <div class="compact-bar">
-                <div class="compact-seg-red" style="width:${compactStats.redPct}%;"></div>
-                <div class="compact-seg-orange" style="width:${compactStats.orangePct}%;"></div>
-                <div class="compact-seg-white" style="width:${compactStats.whitePct}%;"></div>
-              </div>
-              <div class="compact-legend">
-                <span>🔴 ${compactStats.red}</span>
-                <span>🟠 ${compactStats.orange}</span>
-                <span>⚪ ${compactStats.white}</span>
-              </div>
+            <div class="compact-right-half">
+              <div class="compact-workers-title">Operai coinvolti</div>
+              <div class="compact-workers-list">${compactWorkersPills}</div>
             </div>
           </div>
 
@@ -1911,7 +1988,7 @@
         const safeName = siteName.replace(/[\\/:*?"<>|]+/g, '_');
         pdf.save(`Smistamento_${safeName}_${state.targetDate}.pdf`);
 
-        setStatus(`✓ PDF esportato: ${siteName}`, 'ok');
+        setStatus('✓ PDF esportato: ' + siteName, 'ok');
       } catch (err) {
         console.error(err);
         setStatus(`✗ Export PDF fallito: ${err.message}`, 'error');
