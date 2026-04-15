@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -307,12 +306,12 @@
       position: relative;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      min-height: 88px;
-      width: calc(20% - 8px);
-      min-width: 210px;
-      border-radius: 14px;
+      gap: 10px;
+      padding: 10px 12px;
+      min-height: 74px;
+      width: calc(16.66% - 9px);
+      min-width: 170px;
+      border-radius: 12px;
       border: 2px solid var(--border);
       background: linear-gradient(to bottom, #fff, #fafafa);
       transition: all .2s;
@@ -343,10 +342,10 @@
     }
 
     .worker-avatar {
-      width: 62px;
-      height: 62px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      flex: 0 0 62px;
+      flex: 0 0 48px;
     }
 
     .mini-avatar {
@@ -364,14 +363,14 @@
 
     .worker-name {
       font-weight: 800;
-      line-height: 1.2;
+      line-height: 1.15;
       color: var(--text);
       word-break: break-word;
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .worker-sub {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-light);
     }
@@ -688,13 +687,14 @@
     }
 
     .cantiere-grid.compact-mode .site-card {
-      min-height: 122px;
-      gap: 8px;
+      min-height: 146px;
+      gap: 10px;
       padding: 12px;
     }
 
-    .cantiere-grid.compact-mode .site-dropzone {
-      display: none;
+    .cantiere-grid.compact-mode .site-dropzone,
+    .cantiere-grid.compact-mode .drop-hint {
+      display: none !important;
     }
 
     .cantiere-grid.compact-mode .todo-form,
@@ -724,26 +724,70 @@
       gap: 10px;
     }
 
-    .compact-topline {
+    .compact-workers-bar {
+      min-height: 34px;
+      border-radius: 999px;
+      background: #1f2328;
+      border: 1px solid rgba(0,0,0,.18);
+      padding: 4px 8px;
       display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+    }
+
+    .compact-workers-empty {
+      color: rgba(255,255,255,.65);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .compact-worker-face {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(255,255,255,.85);
+      background: #dfe7f1;
+      flex: 0 0 24px;
+    }
+
+    .compact-stats-row {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
+      gap: 10px;
+    }
+
+    .compact-left-stats {
+      display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 15px;
+      min-width: 0;
+    }
+
+    .compact-left-stats .compact-label {
+      font-size: 14px;
       font-weight: 800;
+      color: var(--text);
     }
 
     .compact-count {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 44px;
-      height: 34px;
+      min-width: 34px;
+      height: 30px;
       padding: 0 10px;
       border-radius: 999px;
-      background: var(--hover-bg);
+      background: #f4f6f8;
       border: 1px solid var(--border);
-      font-size: 15px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
     }
 
     .compact-bar-wrap {
@@ -754,7 +798,7 @@
 
     .compact-bar {
       width: 100%;
-      height: 20px;
+      height: 12px;
       border-radius: 999px;
       overflow: hidden;
       border: 1px solid var(--border);
@@ -777,15 +821,24 @@
     .compact-legend {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
+      gap: 10px;
       font-size: 13px;
       color: var(--text-light);
       font-weight: 800;
     }
 
-    .site-card.focused-floating .todo-form,
-    .site-card.focused-floating .todo-list {
+    .compact-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .site-card.focused-floating .todo-form {
       display: grid !important;
+    }
+
+    .site-card.focused-floating .todo-list {
+      display: flex !important;
     }
 
     .site-card.focused-floating .todo-item,
@@ -867,7 +920,7 @@
 
     @media (max-width: 1650px){
       .worker-chip {
-        width: calc(25% - 8px);
+        width: calc(20% - 8px);
       }
     }
 
@@ -875,7 +928,7 @@
       .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .cantiere-grid.compact-mode { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .worker-chip {
-        width: calc(33.333% - 8px);
+        width: calc(25% - 8px);
       }
     }
 
@@ -883,7 +936,7 @@
       .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .cantiere-grid.compact-mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .worker-chip {
-        width: calc(50% - 8px);
+        width: calc(33.333% - 8px);
       }
     }
 
@@ -916,7 +969,7 @@
       }
 
       .worker-chip {
-        width: 100%;
+        width: calc(50% - 6px);
         min-width: 0;
       }
 
@@ -1450,6 +1503,16 @@
         const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
         const compactStats = getCompactStats(tasks);
 
+        const compactWorkersHtml = assigned.length
+          ? assigned.map(name => {
+              const worker = state.workers.find(w => w.name === name) || {
+                name,
+                photoUrl: photoUrlForWorker(name)
+              };
+              return `<img class="compact-worker-face" src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" title="${escapeHtml(worker.name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/24?text=%F0%9F%91%B7'">`;
+            }).join('')
+          : `<span class="compact-workers-empty">Nessun operaio assegnato</span>`;
+
         const assignedHtml = assigned.length
           ? assigned.map(name => {
               const worker = state.workers.find(w => w.name === name) || {
@@ -1509,10 +1572,15 @@
           </div>
 
           <div class="compact-summary">
-            <div class="compact-topline">
-              <span>Lavorazioni</span>
-              <span class="compact-count">${compactStats.total}</span>
+            <div class="compact-workers-bar">${compactWorkersHtml}</div>
+
+            <div class="compact-stats-row">
+              <div class="compact-left-stats">
+                <span class="compact-label">Lavorazioni</span>
+                <span class="compact-count">${compactStats.total}</span>
+              </div>
             </div>
+
             <div class="compact-bar-wrap">
               <div class="compact-bar">
                 <div class="compact-seg-red" style="width:${compactStats.redPct}%;"></div>
