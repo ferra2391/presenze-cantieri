@@ -1,3 +1,21 @@
+Ecco il codice completo aggiornato con tutte le modifiche che hai chiesto:
+	•	operai disponibili e assegnati in formato orizzontale
+	•	niente colonne scomode per i disponibili
+	•	vista contrai più densa
+	•	in vista contratta la card intera è drag & drop
+	•	tolto lo spazio dedicato dropzone nella vista contratta
+	•	barra cromatica e testi compatti più leggibili
+	•	ordinamento card per:
+	1.	più urgenze rosse
+	2.	più urgenze arancioni
+	3.	più lavorazioni totali
+	4.	nome cantiere
+	•	focus card sempre centrato a schermo, senza tagli laterali
+	•	il drag & drop non apre più il focus
+	•	il focus si apre solo al click
+	•	export PDF con titolo:
+Elenco prossime lavorazioni al [data del giorno dopo]
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -47,14 +65,14 @@
     .container {
       max-width: 100%;
       margin: 0 auto;
-      padding: 18px 24px 18px;
+      padding: 16px 22px 16px;
     }
 
     .page-shell {
       height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       min-height: 0;
     }
 
@@ -85,7 +103,7 @@
       color: var(--text-light);
       font-size: 16px;
       font-weight: 600;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .control-panel,
@@ -94,25 +112,25 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 22px;
+      padding: 18px;
       box-shadow: var(--shadow);
     }
 
-    .control-panel { margin-bottom: 18px; }
+    .control-panel { margin-bottom: 14px; }
     .operai-panel { margin-bottom: 0; }
 
     .control-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       flex-wrap: wrap;
     }
 
     .control-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
@@ -123,13 +141,13 @@
     }
 
     .nav a {
-      padding: 10px 18px;
+      padding: 10px 16px;
       border: 2px solid var(--border);
       border-radius: 10px;
       background: var(--card);
       text-decoration: none;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 14px;
       color: var(--text);
       transition: all .2s;
     }
@@ -150,12 +168,12 @@
     }
 
     button {
-      padding: 10px 18px;
+      padding: 10px 16px;
       border: 2px solid var(--border);
       border-radius: 10px;
       background: var(--card);
       cursor: pointer;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--text);
       transition: all .2s;
@@ -191,11 +209,11 @@
     input[type="text"],
     textarea,
     select {
-      padding: 11px 14px;
+      padding: 10px 14px;
       border: 2px solid var(--border);
       border-radius: 10px;
       background: var(--card);
-      font-size: 16px;
+      font-size: 15px;
       color: var(--text);
       transition: border-color .2s;
     }
@@ -208,7 +226,7 @@
     }
 
     textarea {
-      min-height: 86px;
+      min-height: 84px;
       resize: vertical;
     }
 
@@ -216,18 +234,18 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 9px 12px;
+      padding: 8px 12px;
       border-radius: 999px;
       background: var(--hover-bg);
       border: 1px solid var(--border);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-light);
     }
 
     #status {
-      margin-top: 14px;
-      font-size: 15px;
+      margin-top: 12px;
+      font-size: 14px;
       font-weight: 700;
     }
 
@@ -239,18 +257,18 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       flex-wrap: wrap;
     }
 
     .section-title h2 {
       margin: 0;
-      font-size: 22px;
+      font-size: 21px;
       font-weight: 800;
     }
 
     .section-note {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-light);
       font-weight: 700;
     }
@@ -258,38 +276,36 @@
     .workers-toolbar {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
     .workers-grid {
       display: flex;
-      gap: 14px;
-      overflow-x: auto;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 300px;
       overflow-y: auto;
-      max-height: 280px;
-      padding: 4px 2px 8px;
-      align-items: stretch;
+      overflow-x: hidden;
+      padding-right: 4px;
       scrollbar-width: thin;
     }
 
     .worker-group {
-      min-width: 240px;
-      max-width: 340px;
-      padding-right: 14px;
-      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
     }
 
     .worker-group:last-child {
-      border-right: none;
-      padding-right: 0;
+      border-bottom: none;
+      padding-bottom: 0;
     }
 
     .worker-group-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       color: var(--text-light);
       text-transform: uppercase;
@@ -299,17 +315,20 @@
 
     .worker-group-items {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
       gap: 10px;
+      align-items: stretch;
     }
 
     .worker-chip {
       position: relative;
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 16px;
-      min-height: 116px;
+      gap: 12px;
+      padding: 12px 14px;
+      min-height: 88px;
+      width: calc(20% - 8px);
+      min-width: 210px;
       border-radius: 14px;
       border: 2px solid var(--border);
       background: linear-gradient(to bottom, #fff, #fafafa);
@@ -327,8 +346,8 @@
     .worker-chip.dragging { opacity: .55; }
 
     .worker-chip.assigned {
-      opacity: .42;
-      filter: grayscale(.25);
+      opacity: .46;
+      filter: grayscale(.18);
       border-style: dashed;
     }
 
@@ -341,15 +360,15 @@
     }
 
     .worker-avatar {
-      width: 82px;
-      height: 82px;
+      width: 62px;
+      height: 62px;
       border-radius: 50%;
-      flex: 0 0 82px;
+      flex: 0 0 62px;
     }
 
     .mini-avatar {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
     }
 
@@ -357,7 +376,7 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
     .worker-name {
@@ -365,11 +384,11 @@
       line-height: 1.2;
       color: var(--text);
       word-break: break-word;
-      font-size: 19px;
+      font-size: 16px;
     }
 
     .worker-sub {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-light);
     }
@@ -383,15 +402,15 @@
       position: absolute;
       top: 6px;
       left: 6px;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       background: rgba(192,0,0,.9);
       color: #fff;
       display: none;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 900;
       line-height: 1;
     }
@@ -404,26 +423,26 @@
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .cantiere-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
+      gap: 14px;
       align-items: start;
     }
 
     .site-card {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding: 16px;
+      gap: 10px;
+      padding: 14px;
       border-radius: 16px;
       border: 1px solid var(--border);
       background: linear-gradient(to bottom, #fff, #fcfdff);
       box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      min-height: 285px;
+      min-height: 270px;
       transition: transform .22s ease, box-shadow .22s ease, background .22s ease, border-color .22s ease, opacity .22s ease, filter .22s ease;
       position: relative;
       transform-origin: center center;
@@ -444,17 +463,37 @@
     }
 
     .cantiere-grid.has-focus .site-card {
-      opacity: .32;
-      filter: saturate(.75) blur(.2px);
+      opacity: .24;
+      filter: saturate(.72);
     }
 
-    .cantiere-grid.has-focus .site-card.focused {
-      opacity: 1;
-      filter: none;
-      transform: scale(1.3);
-      z-index: 50;
-      box-shadow: 0 18px 40px rgba(0,0,0,.18);
+    .site-card.focused-floating {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: min(980px, 88vw);
+      max-height: 86vh;
+      overflow-y: auto;
+      transform: translate(-50%, -50%);
+      z-index: 1200;
+      opacity: 1 !important;
+      filter: none !important;
+      box-shadow: 0 20px 48px rgba(0,0,0,.22);
       border-color: var(--primary);
+      background: #fff;
+    }
+
+    .focus-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.34);
+      backdrop-filter: blur(2px);
+      z-index: 1100;
+      display: none;
+    }
+
+    .focus-backdrop.show {
+      display: block;
     }
 
     .site-head {
@@ -481,7 +520,7 @@
     }
 
     .site-name {
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 800;
       line-height: 1.2;
       color: var(--text);
@@ -492,17 +531,18 @@
       border-radius: 14px;
       background: var(--hover-bg);
       padding: 10px;
-      min-height: 78px;
+      min-height: 74px;
       transition: all .2s;
     }
 
-    .site-dropzone.over {
+    .site-dropzone.over,
+    .site-card.card-drop-over {
       border-color: var(--primary);
       background: #eef6ff;
     }
 
     .drop-hint {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text-light);
       margin-bottom: 8px;
@@ -515,7 +555,7 @@
     }
 
     .assigned-empty {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--muted);
       font-style: italic;
     }
@@ -540,19 +580,19 @@
 
     .assigned-name {
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13px;
       word-break: break-word;
     }
 
     .icon-btn,
     .export-btn {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       padding: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 15px;
       border-radius: 10px;
       line-height: 1;
       flex: 0 0 auto;
@@ -560,15 +600,15 @@
 
     .export-btn {
       width: auto;
-      min-width: 96px;
+      min-width: 92px;
       padding: 0 12px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
     }
 
     .todo-form {
       display: grid;
-      grid-template-columns: 1fr 175px auto;
+      grid-template-columns: 1fr 165px auto;
       gap: 8px;
       align-items: start;
     }
@@ -581,7 +621,7 @@
     }
 
     .todo-empty {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--muted);
       font-style: italic;
       padding: 10px 0 4px;
@@ -615,7 +655,7 @@
     }
 
     .todo-text {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 800;
       line-height: 1.35;
       white-space: pre-wrap;
@@ -625,7 +665,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-light);
       font-weight: 700;
     }
@@ -660,10 +700,18 @@
       display: none;
     }
 
+    .cantiere-grid.compact-mode {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
     .cantiere-grid.compact-mode .site-card {
-      min-height: 150px;
+      min-height: 122px;
       gap: 8px;
       padding: 12px;
+    }
+
+    .cantiere-grid.compact-mode .site-dropzone {
+      display: none;
     }
 
     .cantiere-grid.compact-mode .todo-form,
@@ -675,11 +723,16 @@
     }
 
     .cantiere-grid.compact-mode .site-head {
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     .cantiere-grid.compact-mode .site-name {
-      font-size: 17px;
+      font-size: 16px;
+    }
+
+    .cantiere-grid.compact-mode .badge {
+      font-size: 12px;
+      padding: 7px 10px;
     }
 
     .cantiere-grid.compact-mode .compact-summary {
@@ -693,7 +746,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 800;
     }
 
@@ -701,23 +754,24 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 42px;
-      height: 32px;
+      min-width: 44px;
+      height: 34px;
       padding: 0 10px;
       border-radius: 999px;
       background: var(--hover-bg);
       border: 1px solid var(--border);
+      font-size: 15px;
     }
 
     .compact-bar-wrap {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .compact-bar {
       width: 100%;
-      height: 16px;
+      height: 20px;
       border-radius: 999px;
       overflow: hidden;
       border: 1px solid var(--border);
@@ -741,31 +795,31 @@
       display: flex;
       justify-content: space-between;
       gap: 8px;
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text-light);
-      font-weight: 700;
+      font-weight: 800;
     }
 
-    .site-card.focused .todo-form,
-    .site-card.focused .todo-list {
+    .site-card.focused-floating .todo-form,
+    .site-card.focused-floating .todo-list {
       display: grid !important;
     }
 
-    .site-card.focused .todo-item,
-    .site-card.focused .assigned-item {
+    .site-card.focused-floating .todo-item,
+    .site-card.focused-floating .assigned-item {
       display: flex !important;
     }
 
-    .site-card.focused .todo-empty {
+    .site-card.focused-floating .todo-empty {
       display: block !important;
     }
 
-    .site-card.focused .compact-summary {
+    .site-card.focused-floating .compact-summary {
       display: none !important;
     }
 
-    .site-card.focused {
-      min-height: 320px;
+    .site-card.focused-floating .site-dropzone {
+      display: block !important;
     }
 
     .muted { color: var(--muted); }
@@ -790,7 +844,7 @@
       background: var(--card);
       border-radius: 18px;
       box-shadow: 0 14px 40px rgba(0,0,0,.22);
-      z-index: 1001;
+      z-index: 1300;
       padding: 24px;
     }
 
@@ -828,12 +882,26 @@
       border-top: 2px solid var(--border);
     }
 
+    @media (max-width: 1650px){
+      .worker-chip {
+        width: calc(25% - 8px);
+      }
+    }
+
     @media (max-width: 1450px){
       .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .cantiere-grid.compact-mode { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .worker-chip {
+        width: calc(33.333% - 8px);
+      }
     }
 
     @media (max-width: 1120px){
       .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cantiere-grid.compact-mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .worker-chip {
+        width: calc(50% - 8px);
+      }
     }
 
     @media (max-width: 720px){
@@ -854,29 +922,24 @@
       .todo-form,
       .modal-grid { grid-template-columns: 1fr; }
 
-      .cantiere-grid { grid-template-columns: 1fr; }
+      .cantiere-grid,
+      .cantiere-grid.compact-mode {
+        grid-template-columns: 1fr;
+      }
 
       .workers-grid {
-        flex-direction: column;
         max-height: none;
-        overflow-x: visible;
+        overflow: visible;
       }
 
-      .worker-group {
-        min-width: 100%;
-        max-width: 100%;
-        border-right: none;
-        padding-right: 0;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 12px;
+      .worker-chip {
+        width: 100%;
+        min-width: 0;
       }
 
-      .worker-group:last-child {
-        border-bottom: none;
-      }
-
-      .cantiere-grid.has-focus .site-card.focused {
-        transform: scale(1.03);
+      .site-card.focused-floating {
+        width: 94vw;
+        max-height: 88vh;
       }
     }
   </style>
@@ -941,6 +1004,8 @@
     </section>
   </div>
 
+  <div class="focus-backdrop" id="focusBackdrop"></div>
+
   <div class="overlay" id="overlay"></div>
   <div class="modal" id="modalTodo">
     <h3>✏️ Modifica lavorazione</h3>
@@ -1001,6 +1066,7 @@
     const viewModeSelect = $('#viewModeSelect');
     const overlay = $('#overlay');
     const modalTodo = $('#modalTodo');
+    const focusBackdrop = $('#focusBackdrop');
 
     function pad(n){ return String(n).padStart(2,'0'); }
 
@@ -1138,6 +1204,19 @@
         orangePct: prc(orange),
         whitePct: prc(white)
       };
+    }
+
+    function compareSitesForDisplay(a, b){
+      const ta = Array.isArray(state.tasksBySite[a]) ? state.tasksBySite[a] : [];
+      const tb = Array.isArray(state.tasksBySite[b]) ? state.tasksBySite[b] : [];
+
+      const sa = getCompactStats(ta);
+      const sb = getCompactStats(tb);
+
+      if (sb.red !== sa.red) return sb.red - sa.red;
+      if (sb.orange !== sa.orange) return sb.orange - sa.orange;
+      if (sb.total !== sa.total) return sb.total - sa.total;
+      return a.localeCompare(b, 'it');
     }
 
     function updateHeader(){
@@ -1336,30 +1415,43 @@
       badgeStats.textContent = `Operai assegnati: ${assignedCount}`;
     }
 
-    function getCurrentMosaicCols(){
+    function getCurrentCols(){
       const w = window.innerWidth;
+      if (state.viewMode === 'compact') {
+        if (w <= 720) return 1;
+        if (w <= 1120) return 3;
+        if (w <= 1450) return 4;
+        return 5;
+      }
       if (w <= 720) return 1;
       if (w <= 1120) return 2;
       if (w <= 1450) return 3;
       return 4;
     }
 
-    function focusSiteCard(siteName){
+    function openFocus(siteName){
       state.focusedSiteName = siteName;
       renderSites();
+      focusBackdrop.classList.add('show');
+      document.body.style.overflow = 'hidden';
     }
 
-    function clearFocusedCard(){
+    function closeFocus(){
       if(state.focusedSiteName !== null){
         state.focusedSiteName = null;
         renderSites();
       }
+      focusBackdrop.classList.remove('show');
+      document.body.style.overflow = '';
     }
 
     function renderSites(){
       const q = normalize(siteSearch.value);
-      const sites = state.sites.filter(name => !q || normalize(name).includes(q));
-      const mosaicCols = getCurrentMosaicCols();
+      const sites = state.sites
+        .filter(name => !q || normalize(name).includes(q))
+        .sort(compareSitesForDisplay);
+
+      const cols = getCurrentCols();
 
       cantiereGrid.innerHTML = '';
       cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
@@ -1413,13 +1505,13 @@
             `).join('')
           : `<div class="todo-empty">Nessuna lavorazione aperta.</div>`;
 
-        const rowIndex = Math.floor(index / mosaicCols);
-        const colIndex = index % mosaicCols;
+        const rowIndex = Math.floor(index / cols);
+        const colIndex = index % cols;
         const mosaicClass = ((rowIndex + colIndex) % 2 === 0) ? 'mosaic-a' : 'mosaic-b';
-        const focusedClass = state.focusedSiteName === siteName ? 'focused' : '';
+        const isFocused = state.focusedSiteName === siteName;
 
         const card = document.createElement('div');
-        card.className = `site-card ${mosaicClass} ${focusedClass}`;
+        card.className = `site-card ${mosaicClass}${isFocused ? ' focused-floating' : ''}`;
         card.dataset.siteCardName = siteName;
 
         card.innerHTML = `
@@ -1472,7 +1564,7 @@
 
         card.addEventListener('click', (e) => {
           if (e.target.closest('button, textarea, select, input')) return;
-          focusSiteCard(siteName);
+          openFocus(siteName);
         });
 
         cantiereGrid.appendChild(card);
@@ -1482,25 +1574,32 @@
     }
 
     function bindDropzones(){
-      document.querySelectorAll('.site-dropzone').forEach(zone => {
-        zone.addEventListener('dragover', e => {
+      document.querySelectorAll('.site-card').forEach(card => {
+        const siteName = card.dataset.siteCardName;
+        const dropTarget = (state.viewMode === 'compact')
+          ? card
+          : card.querySelector('.site-dropzone');
+
+        if(!dropTarget || !siteName) return;
+
+        dropTarget.addEventListener('dragover', e => {
           e.preventDefault();
-          zone.classList.add('over');
+          dropTarget.classList.add('over');
+          if (dropTarget === card) card.classList.add('card-drop-over');
         });
 
-        zone.addEventListener('dragleave', () => {
-          zone.classList.remove('over');
+        dropTarget.addEventListener('dragleave', () => {
+          dropTarget.classList.remove('over');
+          if (dropTarget === card) card.classList.remove('card-drop-over');
         });
 
-        zone.addEventListener('drop', async e => {
+        dropTarget.addEventListener('drop', async e => {
           e.preventDefault();
           e.stopPropagation();
-          zone.classList.remove('over');
+          dropTarget.classList.remove('over');
+          if (dropTarget === card) card.classList.remove('card-drop-over');
 
-          const siteName = zone.dataset.siteName;
-          if(!siteName || !state.dragWorkerName) return;
-
-          focusSiteCard(siteName);
+          if(!state.dragWorkerName) return;
           await addWorkerToSite(state.dragWorkerName, siteName);
         });
       });
@@ -1695,11 +1794,14 @@
         setStatus(`⏳ Export PDF di ${siteName}...`, 'ok');
 
         const clone = card.cloneNode(true);
-        clone.classList.remove('focused');
+        clone.classList.remove('focused-floating', 'card-drop-over');
+        clone.style.position = 'static';
+        clone.style.width = `${card.offsetWidth}px`;
+        clone.style.maxHeight = 'none';
+        clone.style.overflow = 'visible';
         clone.style.transform = 'none';
         clone.style.opacity = '1';
         clone.style.filter = 'none';
-        clone.style.width = `${card.offsetWidth}px`;
 
         const exportHeader = document.createElement('div');
         exportHeader.style.marginBottom = '12px';
@@ -1770,7 +1872,7 @@
 
     viewModeSelect.addEventListener('change', () => {
       state.viewMode = viewModeSelect.value || 'expanded';
-      clearFocusedCard();
+      closeFocus();
       renderSites();
     });
 
@@ -1795,16 +1897,12 @@
     $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
     overlay.addEventListener('click', closeModal);
 
+    focusBackdrop.addEventListener('click', closeFocus);
+
     window.addEventListener('keydown', e => {
       if(e.key === 'Escape') {
         closeModal();
-        clearFocusedCard();
-      }
-    });
-
-    document.addEventListener('click', (e) => {
-      if(!e.target.closest('.site-card') && !e.target.closest('.modal')){
-        clearFocusedCard();
+        closeFocus();
       }
     });
 
