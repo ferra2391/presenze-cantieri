@@ -1657,26 +1657,40 @@
     }
 
     function renderSubPanel(){
-      const siteName = state.focusedSiteName;
-      if(!siteName){
-        subPanel.classList.remove('show');
-        return;
-      }
+  const siteName = state.focusedSiteName;
+  if(!siteName){
+    subPanel.classList.remove('show');
+    return;
+  }
 
-      subPanelSiteName.textContent = siteName;
-      const subs = Array.isArray(state.subBySite[siteName]) ? state.subBySite[siteName] : [];
+  subPanelSiteName.textContent = siteName;
 
-      if(!subs.length){
-        subList.innerHTML = `<div class="sub-empty">Nessun subappaltatore notificato.</div>`;
-      } else {
-        subList.innerHTML = subs.map(sub => `
-          <a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>
-        `).join('');
-      }
+  let subs = Array.isArray(state.subBySite[siteName]) ? state.subBySite[siteName] : [];
 
-      subFreeText.value = '';
-      subPanel.classList.add('show');
-    }
+  const seen = new Set();
+  subs = subs
+    .map(s => String(s || '').trim())
+    .filter(Boolean)
+    .filter(s => !/^NON MAPPATA\s*-/i.test(s))
+    .filter(s => {
+      const key = normalize(s);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => a.localeCompare(b, 'it'));
+
+  if(!subs.length){
+    subList.innerHTML = `<div class="sub-empty">Nessun subappaltatore notificato.</div>`;
+  } else {
+    subList.innerHTML = subs.map(sub => `
+      <a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>
+    `).join('');
+  }
+
+  subFreeText.value = '';
+  subPanel.classList.add('show');
+}
 
     function openFocus(siteName){
       state.focusedSiteName = siteName;
