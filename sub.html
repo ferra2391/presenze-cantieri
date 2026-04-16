@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Subappaltatori</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --primary: hsl(210,100%,45%);
+      --primary-dark: hsl(210,100%,35%);
+      --text: hsl(210,15%,15%);
+      --text-light: hsl(210,10%,40%);
+      --muted: hsl(210,8%,50%);
+      --bg: hsl(210,25%,96%);
+      --card: #ffffff;
+      --border: hsl(210,20%,88%);
+      --shadow: 0 2px 12px rgba(0,0,0,.06);
+      --hover-bg: hsl(210,30%,98%);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin-bottom: 18px;
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    .topbar,
+    .panel,
+    .sub-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .topbar,
+    .panel {
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .topbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav a {
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+      transition: all .2s;
+    }
+
+    .nav a:hover {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+
+    .nav a.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input, button {
+      font: inherit;
+    }
+
+    input[type="search"] {
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      min-width: 280px;
+    }
+
+    input[type="search"]:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    button {
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+
+    .info {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    #status {
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .ok { color: #188c44; }
+    .error { color: #c00000; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .sub-card {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 180px;
+    }
+
+    .sub-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .sub-name {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 38px;
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-light);
+    }
+
+    .site-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .site-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .site-chip:hover {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .highlight {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0,120,255,.08), var(--shadow);
+    }
+
+    @media (max-width: 1400px){
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 1024px){
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px){
+      .container { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      input[type="search"] { min-width: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📦 Subappaltatori</h1>
+    <div class="subtitle">Panoramica subappaltatori notificati e cantieri coinvolti.</div>
+
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="filters">
+          <input type="search" id="searchInput" placeholder="Cerca subappaltatore o cantiere..." />
+          <button id="btnReload">Carica dati</button>
+        </div>
+
+        <div class="nav">
+          <a href="presenze.html">Presenze</a>
+          <a href="operaio.html">Analisi per Operaio</a>
+          <a href="cantiere.html">Analisi per Cantiere</a>
+          <a href="smistamento.html">Smistamento</a>
+          <a class="primary" href="sub.html">Sub</a>
+        </div>
+      </div>
+
+      <div class="info" id="summaryInfo">—</div>
+      <div id="status"></div>
+    </div>
+
+    <div class="panel">
+      <div class="grid" id="subGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
+
+    const state = {
+      subBySite: {},
+      subMap: {},
+      selectedSub: ''
+    };
+
+    const $ = sel => document.querySelector(sel);
+    const grid = $('#subGrid');
+    const statusEl = $('#status');
+    const summaryInfo = $('#summaryInfo');
+    const searchInput = $('#searchInput');
+
+    function normalize(s){
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'')
+        .trim()
+        .toLowerCase();
+    }
+
+    function escapeHtml(s){
+      return String(s || '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+    }
+
+    function setStatus(msg, type='ok'){
+      statusEl.innerHTML = `<span class="${type}">${msg}</span>`;
+    }
+
+    async function apiGet(action, params = {}){
+      const qs = new URLSearchParams({ action, ...params });
+      const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache:'no-store' });
+      const text = await res.text();
+
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch(e) {
+        throw new Error(`Risposta non JSON dal GAS: ${text.slice(0, 200)}`);
+      }
+
+      if (!json.ok) {
+        throw new Error(json.error || 'Errore GAS sconosciuto');
+      }
+
+      return json;
+    }
+
+    function buildReverseMap(subBySite){
+      const out = {};
+      Object.entries(subBySite || {}).forEach(([siteName, subs]) => {
+        (subs || []).forEach(sub => {
+          const key = String(sub || '').trim();
+          if(!key) return;
+          if(!out[key]) out[key] = [];
+          out[key].push(siteName);
+        });
+      });
+
+      Object.keys(out).forEach(k => {
+        out[k] = Array.from(new Set(out[k])).sort((a,b) => a.localeCompare(b, 'it'));
+      });
+
+      return out;
+    }
+
+    function render(){
+      const q = normalize(searchInput.value);
+      const selected = normalize(state.selectedSub);
+
+      const entries = Object.entries(state.subMap)
+        .filter(([subName, sites]) => {
+          const subMatch = normalize(subName).includes(q);
+          const siteMatch = sites.some(s => normalize(s).includes(q));
+          return !q || subMatch || siteMatch;
+        })
+        .sort((a,b) => {
+          if (selected) {
+            const aSel = normalize(a[0]) === selected ? 1 : 0;
+            const bSel = normalize(b[0]) === selected ? 1 : 0;
+            if (bSel !== aSel) return bSel - aSel;
+          }
+          if (b[1].length !== a[1].length) return b[1].length - a[1].length;
+          return a[0].localeCompare(b[0], 'it');
+        });
+
+      summaryInfo.textContent = `${entries.length} subappaltatori visibili`;
+
+      if(!entries.length){
+        grid.innerHTML = `<div class="empty">Nessun subappaltatore trovato.</div>`;
+        return;
+      }
+
+      grid.innerHTML = entries.map(([subName, sites]) => {
+        const isSelected = selected && normalize(subName) === selected;
+        const chips = sites.map(site => `
+          <a class="site-chip" href="smistamento.html">${escapeHtml(site)}</a>
+        `).join('');
+
+        return `
+          <div class="sub-card ${isSelected ? 'highlight' : ''}">
+            <div class="sub-head">
+              <div class="sub-name">${escapeHtml(subName)}</div>
+              <div class="badge">${sites.length}</div>
+            </div>
+
+            <div class="info">Cantieri coinvolti</div>
+            <div class="site-list">
+              ${chips || `<span class="empty">Nessun cantiere</span>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadAll(){
+      setStatus('⏳ Caricamento subappaltatori...', 'ok');
+
+      try {
+        const json = await apiGet('getSubappaltatoriBySite');
+        state.subBySite = json.subappaltatoriBySite || {};
+        state.subMap = buildReverseMap(state.subBySite);
+        render();
+        setStatus('✓ Subappaltatori caricati.', 'ok');
+      } catch (err) {
+        console.error(err);
+        setStatus(`✗ ${err.message}`, 'error');
+      }
+    }
+
+    function initFromUrl(){
+      const url = new URL(window.location.href);
+      state.selectedSub = url.searchParams.get('sub') || '';
+      if(state.selectedSub) searchInput.value = state.selectedSub;
+    }
+
+    searchInput.addEventListener('input', render);
+    $('#btnReload').addEventListener('click', loadAll);
+
+    initFromUrl();
+    loadAll();
+  </script>
+</body>
+</html>
