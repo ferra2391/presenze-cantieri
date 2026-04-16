@@ -90,7 +90,8 @@
 
     .control-panel,
     .section-card,
-    .cantieri-panel {
+    .cantieri-panel,
+    .sub-panel {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -243,7 +244,8 @@
       flex-wrap: wrap;
     }
 
-    .section-title h2 {
+    .section-title h2,
+    .sub-panel h3 {
       margin: 0;
       font-size: 21px;
       font-weight: 800;
@@ -431,13 +433,8 @@
       transform-origin: center center;
     }
 
-    .site-card.mosaic-a {
-      background: linear-gradient(to bottom, #ffffff, #fcfdff);
-    }
-
-    .site-card.mosaic-b {
-      background: linear-gradient(to bottom, #f3f5f8, #eceff3);
-    }
+    .site-card.mosaic-a { background: linear-gradient(to bottom, #ffffff, #fcfdff); }
+    .site-card.mosaic-b { background: linear-gradient(to bottom, #f3f5f8, #eceff3); }
 
     .site-card:hover {
       transform: translateY(-2px);
@@ -453,8 +450,8 @@
     .site-card.focused-floating {
       position: fixed;
       top: 50%;
-      left: 50%;
-      width: min(980px, 88vw);
+      left: calc(50% - 240px);
+      width: min(760px, 56vw);
       max-height: 86vh;
       overflow-y: auto;
       transform: translate(-50%, -50%);
@@ -475,7 +472,21 @@
       display: none;
     }
 
-    .focus-backdrop.show {
+    .focus-backdrop.show { display: block; }
+
+    .sub-panel-floating {
+      position: fixed;
+      top: 50%;
+      left: calc(50% + 310px);
+      width: min(420px, 28vw);
+      max-height: 86vh;
+      overflow-y: auto;
+      transform: translate(-50%, -50%);
+      z-index: 1201;
+      display: none;
+    }
+
+    .sub-panel-floating.show {
       display: block;
     }
 
@@ -679,9 +690,7 @@
       gap: 8px;
     }
 
-    .compact-summary {
-      display: none;
-    }
+    .compact-summary { display: none; }
 
     .cantiere-grid.compact-mode {
       grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -829,17 +838,9 @@
       display: flex;
     }
 
-    .compact-seg-white {
-      background: #ffffff;
-    }
-
-    .compact-seg-orange {
-      background: #ff8a00;
-    }
-
-    .compact-seg-red {
-      background: #d40000;
-    }
+    .compact-seg-white { background: #ffffff; }
+    .compact-seg-orange { background: #ff8a00; }
+    .compact-seg-red { background: #d40000; }
 
     .compact-legend {
       display: flex;
@@ -907,6 +908,64 @@
       display: block !important;
     }
 
+    .sub-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .sub-link {
+      display: block;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      transition: all .2s;
+    }
+
+    .sub-link:hover {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
+
+    .sub-empty {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    .sub-box {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sub-box-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .sub-box-note {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .sub-send-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+    }
+
     .muted { color: var(--muted); }
 
     .overlay {
@@ -968,24 +1027,47 @@
     }
 
     @media (max-width: 1650px){
-      .worker-chip {
-        width: calc(16.66% - 7px);
+      .worker-chip { width: calc(16.66% - 7px); }
+      .site-card.focused-floating {
+        left: calc(50% - 200px);
+        width: min(720px, 54vw);
+      }
+      .sub-panel-floating {
+        left: calc(50% + 260px);
+        width: min(380px, 28vw);
       }
     }
 
     @media (max-width: 1450px){
       .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .cantiere-grid.compact-mode { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-      .worker-chip {
-        width: calc(20% - 7px);
+      .worker-chip { width: calc(20% - 7px); }
+      .site-card.focused-floating {
+        left: calc(50% - 170px);
+        width: min(680px, 52vw);
+      }
+      .sub-panel-floating {
+        left: calc(50% + 235px);
+        width: min(340px, 28vw);
       }
     }
 
     @media (max-width: 1120px){
       .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .cantiere-grid.compact-mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .worker-chip {
-        width: calc(25% - 7px);
+      .worker-chip { width: calc(25% - 7px); }
+
+      .site-card.focused-floating {
+        left: 50%;
+        top: 34%;
+        width: min(760px, 90vw);
+      }
+
+      .sub-panel-floating {
+        left: 50%;
+        top: 77%;
+        width: min(760px, 90vw);
+        max-height: 32vh;
       }
     }
 
@@ -1005,7 +1087,10 @@
       .container { padding: 18px; }
 
       .todo-form,
-      .modal-grid { grid-template-columns: 1fr; }
+      .modal-grid,
+      .sub-send-row {
+        grid-template-columns: 1fr;
+      }
 
       .cantiere-grid,
       .cantiere-grid.compact-mode {
@@ -1024,7 +1109,16 @@
 
       .site-card.focused-floating {
         width: 94vw;
-        max-height: 88vh;
+        max-height: 42vh;
+        top: 28%;
+        left: 50%;
+      }
+
+      .sub-panel-floating {
+        width: 94vw;
+        top: 73%;
+        left: 50%;
+        max-height: 28vh;
       }
 
       .cantiere-grid.compact-mode .compact-summary {
@@ -1102,6 +1196,22 @@
 
   <div class="focus-backdrop" id="focusBackdrop"></div>
 
+  <div class="sub-panel sub-panel-floating" id="subPanel">
+    <h3>Subappaltatori notificati</h3>
+    <div class="section-note" id="subPanelSiteName">—</div>
+
+    <div class="sub-list" id="subList"></div>
+
+    <div class="sub-box">
+      <div class="sub-box-title">Nuova ditta da notificare</div>
+      <div class="sub-box-note">Per ora è solo predisposizione funzione.</div>
+      <div class="sub-send-row">
+        <input type="text" id="subFreeText" placeholder="Scrivi nome ditta..." />
+        <button id="btnSubSend" class="primary">Invia</button>
+      </div>
+    </div>
+  </div>
+
   <div class="overlay" id="overlay"></div>
   <div class="modal" id="modalTodo">
     <h3>✏️ Modifica lavorazione</h3>
@@ -1145,6 +1255,7 @@
       sites: [],
       tasksBySite: {},
       assignmentsBySite: {},
+      subBySite: {},
       targetDate: null,
       dragWorkerName: null,
       focusedSiteName: null,
@@ -1163,6 +1274,11 @@
     const overlay = $('#overlay');
     const modalTodo = $('#modalTodo');
     const focusBackdrop = $('#focusBackdrop');
+    const subPanel = $('#subPanel');
+    const subList = $('#subList');
+    const subPanelSiteName = $('#subPanelSiteName');
+    const subFreeText = $('#subFreeText');
+    const btnSubSend = $('#btnSubSend');
 
     function pad(n){ return String(n).padStart(2,'0'); }
 
@@ -1305,7 +1421,6 @@
     function compareSitesForDisplay(a, b){
       const ta = Array.isArray(state.tasksBySite[a]) ? state.tasksBySite[a] : [];
       const tb = Array.isArray(state.tasksBySite[b]) ? state.tasksBySite[b] : [];
-
       const sa = getCompactStats(ta);
       const sb = getCompactStats(tb);
 
@@ -1333,6 +1448,7 @@
           sites: state.sites,
           tasksBySite: state.tasksBySite,
           assignmentsBySite: state.assignmentsBySite,
+          subBySite: state.subBySite,
           savedAt: Date.now()
         };
         localStorage.setItem(snapshotKey(state.targetDate), JSON.stringify(payload));
@@ -1366,10 +1482,12 @@
 
       state.tasksBySite = json.tasksBySite || {};
       state.assignmentsBySite = json.assignmentsBySite || {};
+      state.subBySite = json.subappaltatoriBySite || {};
 
       state.sites.forEach(siteName => {
         if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
         if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
+        if(!Array.isArray(state.subBySite[siteName])) state.subBySite[siteName] = [];
       });
 
       saveSnapshot();
@@ -1380,10 +1498,12 @@
       state.sites = Array.isArray(snapshot.sites) ? snapshot.sites : [];
       state.tasksBySite = snapshot.tasksBySite || {};
       state.assignmentsBySite = snapshot.assignmentsBySite || {};
+      state.subBySite = snapshot.subBySite || {};
 
       state.sites.forEach(siteName => {
         if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
         if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
+        if(!Array.isArray(state.subBySite[siteName])) state.subBySite[siteName] = [];
       });
     }
 
@@ -1525,9 +1645,32 @@
       return 4;
     }
 
+    function renderSubPanel(){
+      const siteName = state.focusedSiteName;
+      if(!siteName){
+        subPanel.classList.remove('show');
+        return;
+      }
+
+      subPanelSiteName.textContent = siteName;
+      const subs = Array.isArray(state.subBySite[siteName]) ? state.subBySite[siteName] : [];
+
+      if(!subs.length){
+        subList.innerHTML = `<div class="sub-empty">Nessun subappaltatore notificato.</div>`;
+      } else {
+        subList.innerHTML = subs.map(sub => `
+          <a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>
+        `).join('');
+      }
+
+      subFreeText.value = '';
+      subPanel.classList.add('show');
+    }
+
     function openFocus(siteName){
       state.focusedSiteName = siteName;
       renderSites();
+      renderSubPanel();
       focusBackdrop.classList.add('show');
       document.body.style.overflow = 'hidden';
     }
@@ -1537,6 +1680,7 @@
         state.focusedSiteName = null;
         renderSites();
       }
+      subPanel.classList.remove('show');
       focusBackdrop.classList.remove('show');
       document.body.style.overflow = '';
     }
@@ -1691,7 +1835,7 @@
         `;
 
         card.addEventListener('click', (e) => {
-          if (e.target.closest('button, textarea, select, input')) return;
+          if (e.target.closest('button, textarea, select, input, a')) return;
           openFocus(siteName);
         });
 
@@ -1736,6 +1880,7 @@
     function renderAll(){
       renderWorkers();
       renderSites();
+      if (state.focusedSiteName) renderSubPanel();
     }
 
     async function persistSiteWorkers(siteName, workers){
@@ -1911,225 +2056,121 @@
       setStatus('✓ Lavorazione chiusa.', 'ok');
     }
 
-   async function exportSiteCard(siteName){
-  const card = Array.from(document.querySelectorAll('.site-card')).find(el => el.dataset.siteCardName === siteName);
-  if(!card){
-    setStatus('⚠️ Card non trovata per export.', 'error');
-    return;
-  }
+    async function exportSiteCard(siteName){
+      const card = Array.from(document.querySelectorAll('.site-card')).find(el => el.dataset.siteCardName === siteName);
+      if(!card){
+        setStatus('⚠️ Card non trovata per export.', 'error');
+        return;
+      }
 
-  try {
-    setStatus(`⏳ Export PDF di ${siteName}...`, 'ok');
+      try {
+        setStatus(`⏳ Export PDF di ${siteName}...`, 'ok');
 
-    const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
-    const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
+        const clone = card.cloneNode(true);
+        clone.classList.remove('focused-floating', 'card-drop-over');
+        clone.style.position = 'static';
+        clone.style.width = `${card.offsetWidth}px`;
+        clone.style.maxHeight = 'none';
+        clone.style.overflow = 'visible';
+        clone.style.transform = 'none';
+        clone.style.opacity = '1';
+        clone.style.filter = 'none';
 
-    const assignedHtml = assigned.length
-      ? assigned.map(name => {
-          const worker = state.workers.find(w => w.name === name) || {
-            name,
-            photoUrl: photoUrlForWorker(name)
-          };
-          return `
-            <span style="
-              display:inline-flex;
-              align-items:center;
-              gap:6px;
-              padding:6px 10px;
-              border:1px solid #d9e2ec;
-              border-radius:999px;
-              background:#ffffff;
-              font-size:12px;
-              font-weight:700;
-              color:#334155;
-            ">
-              <img src="${escapeHtml(worker.photoUrl)}"
-                   alt="${escapeHtml(worker.name)}"
-                   style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#dfe7f1;"
-                   onerror="this.onerror=null;this.src='https://via.placeholder.com/22?text=%F0%9F%91%B7'">
-              ${escapeHtml(worker.name)}
-            </span>
-          `;
-        }).join('')
-      : `<span style="font-size:12px;color:#64748b;font-style:italic;">Nessun operaio assegnato</span>`;
+        clone.querySelectorAll('.site-dropzone, .todo-form, .compact-summary, .badge').forEach(el => {
+          if (el) el.remove();
+        });
 
-    const taskHtml = tasks.length
-      ? tasks.map(t => {
-          const pClass = priorityClass(t.priority);
-          let bg = '#ffffff';
-          let border = '#cbd5e1';
-          let dot = '#cbd5e1';
-          let label = 'Minima';
-
-          if (pClass === 'rosso') {
-            bg = '#ffe1e1';
-            border = '#d40000';
-            dot = '#d40000';
-            label = 'Urgente';
-          } else if (pClass === 'arancione') {
-            bg = '#fff0d8';
-            border = '#ff8a00';
-            dot = '#ff8a00';
-            label = 'Media';
-          }
-
-          return `
-            <div style="
-              border:2px solid ${border};
-              background:${bg};
-              border-radius:12px;
-              padding:10px 12px;
-              margin-bottom:10px;
-            ">
-              <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:flex-start;
-                gap:10px;
-              ">
-                <div style="
-                  font-size:14px;
-                  font-weight:800;
-                  line-height:1.35;
-                  color:#111827;
-                  white-space:pre-wrap;
-                ">${escapeHtml(t.text)}</div>
-              </div>
-
-              <div style="
-                display:flex;
-                flex-wrap:wrap;
-                gap:6px;
-                margin-top:8px;
-              ">
-                <span style="
-                  display:inline-flex;
-                  align-items:center;
-                  gap:6px;
-                  padding:5px 8px;
-                  border-radius:999px;
-                  background:rgba(255,255,255,.8);
-                  border:1px solid rgba(0,0,0,.08);
-                  font-size:11px;
-                  font-weight:700;
-                  color:#475569;
-                ">
-                  <span style="
-                    width:10px;
-                    height:10px;
-                    border-radius:50%;
-                    display:inline-block;
-                    background:${dot};
-                    ${pClass === 'bianco' ? 'border:1px solid #bbb;' : ''}
-                  "></span>
-                  ${label}
+        const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
+        const assignedHtml = assigned.length
+          ? assigned.map(name => {
+              const worker = state.workers.find(w => w.name === name) || {
+                name,
+                photoUrl: photoUrlForWorker(name)
+              };
+              return `
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d9e2ec;border-radius:999px;background:#ffffff;font-size:12px;font-weight:700;color:#334155;">
+                  <img src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#dfe7f1;" onerror="this.onerror=null;this.src='https://via.placeholder.com/22?text=%F0%9F%91%B7'">
+                  ${escapeHtml(worker.name)}
                 </span>
+              `;
+            }).join('')
+          : `<span style="font-size:12px;color:#64748b;font-style:italic;">Nessun operaio assegnato</span>`;
 
-                <span style="
-                  display:inline-flex;
-                  align-items:center;
-                  padding:5px 8px;
-                  border-radius:999px;
-                  background:rgba(255,255,255,.8);
-                  border:1px solid rgba(0,0,0,.08);
-                  font-size:11px;
-                  font-weight:700;
-                  color:#475569;
-                ">
-                  Creata: ${escapeHtml(t.createdAt || '')}
-                </span>
-              </div>
-            </div>
-          `;
-        }).join('')
-      : `<div style="font-size:13px;color:#64748b;font-style:italic;">Nessuna lavorazione aperta.</div>`;
+        const exportHeader = document.createElement('div');
+        exportHeader.style.marginBottom = '12px';
+        exportHeader.style.padding = '10px 12px';
+        exportHeader.style.border = '1px solid #d9e2ec';
+        exportHeader.style.borderRadius = '12px';
+        exportHeader.style.background = '#f8fbff';
+        exportHeader.style.fontFamily = 'Arial, sans-serif';
+        exportHeader.innerHTML = `
+          <div style="font-size:18px;font-weight:800;color:#1f2d3d;">Elenco prossime lavorazioni al ${formatDateIT(state.targetDate)}</div>
+          <div style="font-size:15px;font-weight:800;color:#1f2d3d;margin-top:6px;">${siteName}</div>
+        `;
 
-    const wrapper = document.createElement('div');
-    wrapper.style.width = '760px';
-    wrapper.style.background = '#ffffff';
-    wrapper.style.padding = '0';
-    wrapper.style.fontFamily = 'Arial, sans-serif';
-    wrapper.innerHTML = `
-      <div style="
-        margin-bottom:12px;
-        padding:10px 12px;
-        border:1px solid #d9e2ec;
-        border-radius:12px;
-        background:#f8fbff;
-      ">
-        <div style="font-size:18px;font-weight:800;color:#1f2d3d;">
-          Elenco prossime lavorazioni al ${formatDateIT(state.targetDate)}
-        </div>
-        <div style="font-size:15px;font-weight:800;color:#1f2d3d;margin-top:6px;">
-          ${escapeHtml(siteName)}
-        </div>
-      </div>
+        const assignedBox = document.createElement('div');
+        assignedBox.style.marginBottom = '12px';
+        assignedBox.style.padding = '10px 12px';
+        assignedBox.style.border = '1px solid #d9e2ec';
+        assignedBox.style.borderRadius = '12px';
+        assignedBox.style.background = '#ffffff';
+        assignedBox.innerHTML = `
+          <div style="font-size:13px;font-weight:800;color:#334155;margin-bottom:8px;">Operai coinvolti</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">${assignedHtml}</div>
+        `;
 
-      <div style="
-        margin-bottom:12px;
-        padding:10px 12px;
-        border:1px solid #d9e2ec;
-        border-radius:12px;
-        background:#ffffff;
-      ">
-        <div style="font-size:13px;font-weight:800;color:#334155;margin-bottom:8px;">
-          Operai coinvolti
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${assignedHtml}
-        </div>
-      </div>
+        const wrapper = document.createElement('div');
+        wrapper.style.width = `${card.offsetWidth}px`;
+        wrapper.style.background = '#ffffff';
+        wrapper.appendChild(exportHeader);
+        wrapper.appendChild(assignedBox);
+        wrapper.appendChild(clone);
 
-      <div>
-        ${taskHtml}
-      </div>
-    `;
+        const holder = document.createElement('div');
+        holder.style.position = 'absolute';
+        holder.style.left = '-10000px';
+        holder.style.top = '0';
+        holder.style.width = `${card.offsetWidth}px`;
+        holder.style.background = '#ffffff';
+        holder.appendChild(wrapper);
+        document.body.appendChild(holder);
 
-    const holder = document.createElement('div');
-    holder.style.position = 'absolute';
-    holder.style.left = '-10000px';
-    holder.style.top = '0';
-    holder.style.width = '760px';
-    holder.style.background = '#ffffff';
-    holder.appendChild(wrapper);
-    document.body.appendChild(holder);
+        const canvas = await html2canvas(wrapper, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          logging: false
+        });
 
-    const canvas = await html2canvas(wrapper, {
-      scale: 2,
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      logging: false
-    });
+        document.body.removeChild(holder);
 
-    document.body.removeChild(holder);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 18;
+        const availW = pageW - margin * 2;
+        const availH = pageH - margin * 2;
+        const ratio = Math.min(availW / canvas.width, availH / canvas.height);
 
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 18;
-    const availW = pageW - margin * 2;
-    const availH = pageH - margin * 2;
-    const ratio = Math.min(availW / canvas.width, availH / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        const x = margin + (availW - w) / 2;
+        const y = margin;
 
-    const w = canvas.width * ratio;
-    const h = canvas.height * ratio;
-    const x = margin + (availW - w) / 2;
-    const y = margin;
+        const img = canvas.toDataURL('image/png');
+        pdf.addImage(img, 'PNG', x, y, w, h);
 
-    const img = canvas.toDataURL('image/png');
-    pdf.addImage(img, 'PNG', x, y, w, h);
+        const safeName = siteName.replace(/[\\/:*?"<>|]+/g, '_');
+        pdf.save(`Smistamento_${safeName}_${state.targetDate}.pdf`);
 
-    const safeName = siteName.replace(/[\\/:*?"<>|]+/g, '_');
-    pdf.save(`Smistamento_${safeName}_${state.targetDate}.pdf`);
-
-    setStatus('✓ PDF esportato: ' + siteName, 'ok');
-  } catch (err) {
-    console.error(err);
-    setStatus(`✗ Export PDF fallito: ${err.message}`, 'error');
-  }
-}
+        setStatus('✓ PDF esportato: ' + siteName, 'ok');
+      } catch (err) {
+        console.error(err);
+        setStatus(`✗ Export PDF fallito: ${err.message}`, 'error');
+      }
+    }
 
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
@@ -2160,8 +2201,21 @@
     $('#btnCloseModal').addEventListener('click', closeModal);
     $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
     overlay.addEventListener('click', closeModal);
-
     focusBackdrop.addEventListener('click', closeFocus);
+
+    btnSubSend.addEventListener('click', () => {
+      const txt = (subFreeText.value || '').trim();
+      if(!state.focusedSiteName){
+        setStatus('⚠️ Nessun cantiere selezionato.', 'error');
+        return;
+      }
+      if(!txt){
+        setStatus('⚠️ Scrivi il nome della ditta.', 'error');
+        return;
+      }
+      setStatus(`✓ Predisposizione invio registrata per "${txt}" su ${state.focusedSiteName}. Indirizzo mail non ancora configurato.`, 'ok');
+      subFreeText.value = '';
+    });
 
     window.addEventListener('keydown', e => {
       if(e.key === 'Escape') {
@@ -2175,6 +2229,7 @@
       clearTimeout(resizeRenderTimer);
       resizeRenderTimer = setTimeout(() => {
         renderSites();
+        if (state.focusedSiteName) renderSubPanel();
       }, 120);
     });
 
