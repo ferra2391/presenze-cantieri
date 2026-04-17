@@ -375,7 +375,7 @@
       grid.innerHTML = entries.map(([subName, sites]) => {
         const isSelected = selected && normalize(subName) === selected;
         const chips = sites.map(site => `
-          <a class="site-chip" href="smistamento.html">${escapeHtml(site)}</a>
+          <a class="site-chip" href="smistamento.html?site=${encodeURIComponent(site)}">${escapeHtml(site)}</a>
         `).join('');
 
         return `
@@ -398,7 +398,7 @@
       setStatus('⏳ Caricamento subappaltatori...', 'ok');
 
       try {
-        const json = await apiGet('getSubappaltatoriBySite');
+        const json = await apiGet('initSmistamento', { targetDate: new Date().toISOString().slice(0, 10) });
         state.subBySite = json.subappaltatoriBySite || {};
         state.subMap = buildReverseMap(state.subBySite);
         render();
