@@ -327,6 +327,24 @@
       return json;
     }
 
+    // AGGIUNTA LA LOGICA DI CACHE
+    function getSnapshotKey() {
+      return `sub_snapshot_${new Date().toISOString().slice(0, 10)}`;
+    }
+
+    function saveSnapshot() {
+      try {
+        localStorage.setItem(getSnapshotKey(), JSON.stringify(state.subBySite));
+      } catch(e) {}
+    }
+
+    function loadSnapshot() {
+      try {
+        const raw = localStorage.getItem(getSnapshotKey());
+        return raw ? JSON.parse(raw) : null;
+      } catch(e) { return null; }
+    }
+
     function buildReverseMap(subBySite){
       const out = {};
       Object.entries(subBySite || {}).forEach(([siteName, subs]) => {
@@ -395,17 +413,34 @@
     }
 
     async function loadAll(){
-      setStatus('⏳ Caricamento subappaltatori...', 'ok');
+      // IMPLEMENTATO CARICAMENTO DA CACHE
+      const snap = loadSnapshot();
+      if (snap) {
+        state.subBySite = snap;
+        state.subMap = buildReverseMap(state.subBySite);
+        render();
+        setStatus('⚡ Dati locali caricati. Allineo dal server...', 'ok');
+      } else {
+        setStatus('⏳ Caricamento subappaltatori...', 'ok');
+      }
 
       try {
         const json = await apiGet('initSmistamento', { targetDate: new Date().toISOString().slice(0, 10) });
         state.subBySite = json.subappaltatoriBySite || {};
         state.subMap = buildReverseMap(state.subBySite);
+        
+        // SALVO LA NUOVA CACHE
+        saveSnapshot();
+        
         render();
         setStatus('✓ Subappaltatori caricati.', 'ok');
       } catch (err) {
         console.error(err);
-        setStatus(`✗ ${err.message}`, 'error');
+        if(!Object.keys(state.subMap).length) {
+          setStatus(`✗ ${err.message}`, 'error');
+        } else {
+          setStatus(`⚠️ Dati non aggiornati: ${err.message}`, 'error');
+        }
       }
     }
 
