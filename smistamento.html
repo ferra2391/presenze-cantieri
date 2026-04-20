@@ -452,9 +452,8 @@
     .site-card.focused-floating {
       position: fixed;
       top: 50%;
-      left: calc(50% - 310px);
-      width: min(760px, 58vw);
-      max-width: 760px;
+      left: calc(50% - 220px); /* Sposta la card cantiere leggermente a sinistra */
+      width: min(760px, 45vw);
       max-height: 86vh;
       overflow-y: auto;
       transform: translate(-50%, -50%);
@@ -480,11 +479,11 @@
     /* Pannelli Floating a destra */
     .sub-panel-floating {
       position: fixed;
-      top: 30%;
-      left: calc(50% + 255px);
+      top: 50%; /* Stessa altezza della card cantiere */
+      left: calc(50% + 240px); /* Subito a destra della card cantiere */
       width: min(340px, 24vw);
       max-width: 340px;
-      max-height: 40vh;
+      max-height: 86vh; /* Aumentata l'altezza massima */
       overflow-y: auto;
       transform: translate(-50%, -50%);
       z-index: 1201;
@@ -493,11 +492,11 @@
 
     .congruita-panel-floating {
       position: fixed;
-      top: 70%;
-      left: calc(50% + 255px);
+      top: 50%; /* Stessa altezza delle altre */
+      left: calc(50% + 590px); /* Subito a destra della card Subappaltatori */
       width: min(340px, 24vw);
       max-width: 340px;
-      max-height: 40vh;
+      max-height: 86vh;
       overflow-y: auto;
       transform: translate(-50%, -50%);
       z-index: 1201;
