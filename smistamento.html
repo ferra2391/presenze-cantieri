@@ -449,11 +449,12 @@
       filter: saturate(.72);
     }
 
+    /* --- PANNELLI IN FOCUS --- */
     .site-card.focused-floating {
       position: fixed;
       top: 50%;
-      left: calc(50% - 220px); /* Sposta la card cantiere leggermente a sinistra */
-      width: min(760px, 45vw);
+      left: calc(50% - 340px); /* Centro spostato a sinistra */
+      width: 700px;
       max-height: 86vh;
       overflow-y: auto;
       transform: translate(-50%, -50%);
@@ -465,25 +466,12 @@
       background: #fff;
     }
 
-    .focus-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.34);
-      backdrop-filter: blur(2px);
-      z-index: 1100;
-      display: none;
-    }
-
-    .focus-backdrop.show { display: block; }
-
-    /* Pannelli Floating a destra */
     .sub-panel-floating {
       position: fixed;
-      top: 50%; /* Stessa altezza della card cantiere */
-      left: calc(50% + 240px); /* Subito a destra della card cantiere */
-      width: min(340px, 24vw);
-      max-width: 340px;
-      max-height: 86vh; /* Aumentata l'altezza massima */
+      top: 50%;
+      left: calc(50% + 190px); /* Subito a destra della card principale */
+      width: 320px;
+      max-height: 86vh;
       overflow-y: auto;
       transform: translate(-50%, -50%);
       z-index: 1201;
@@ -492,10 +480,9 @@
 
     .congruita-panel-floating {
       position: fixed;
-      top: 50%; /* Stessa altezza delle altre */
-      left: calc(50% + 590px); /* Subito a destra della card Subappaltatori */
-      width: min(340px, 24vw);
-      max-width: 340px;
+      top: 50%;
+      left: calc(50% + 530px); /* Subito a destra dei subappaltatori */
+      width: 320px;
       max-height: 86vh;
       overflow-y: auto;
       transform: translate(-50%, -50%);
@@ -503,7 +490,8 @@
       display: none;
     }
 
-    .sub-panel-floating.show, .congruita-panel-floating.show {
+    .sub-panel-floating.show, 
+    .congruita-panel-floating.show {
       display: block;
     }
 
@@ -538,6 +526,17 @@
     .congruita-value.percentage {
       color: var(--primary);
     }
+
+    .focus-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.34);
+      backdrop-filter: blur(2px);
+      z-index: 1100;
+      display: none;
+    }
+
+    .focus-backdrop.show { display: block; }
 
     .site-head {
       display: flex;
@@ -1075,62 +1074,32 @@
       border-top: 2px solid var(--border);
     }
 
+    /* --- RESPONSIVE PER PANNELLI IN FOCUS --- */
     @media (max-width: 1650px){
       .worker-chip { width: calc(16.66% - 7px); }
-
-      .site-card.focused-floating {
-        left: calc(50% - 240px);
-        width: min(700px, 54vw);
-        max-width: 700px;
-      }
-
-      .sub-panel-floating, .congruita-panel-floating {
-        left: calc(50% + 250px);
-        width: min(320px, 24vw);
-        max-width: 320px;
-      }
+      .site-card.focused-floating { left: calc(50% - 295px); width: 560px; }
+      .sub-panel-floating { left: calc(50% + 140px); width: 280px; }
+      .congruita-panel-floating { left: calc(50% + 435px); width: 280px; }
     }
 
     @media (max-width: 1450px){
       .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .cantiere-grid.compact-mode { grid-template-columns: repeat(5, minmax(0, 1fr)); }
       .worker-chip { width: calc(20% - 7px); }
-
-      .site-card.focused-floating {
-        left: calc(50% - 180px);
-        width: min(640px, 50vw);
-        max-width: 640px;
-      }
-
-      .sub-panel-floating, .congruita-panel-floating {
-        left: calc(50% + 230px);
-        width: min(300px, 24vw);
-      }
+      .site-card.focused-floating { left: calc(50% - 270px); width: 480px; }
+      .sub-panel-floating { left: calc(50% + 110px); width: 260px; }
+      .congruita-panel-floating { left: calc(50% + 380px); width: 260px; }
     }
 
     @media (max-width: 1120px){
       .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .cantiere-grid.compact-mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .worker-chip { width: calc(25% - 7px); }
-
-      .site-card.focused-floating {
-        left: 50%;
-        top: 28%;
-        width: min(760px, 90vw);
-      }
-
-      .sub-panel-floating {
-        left: 25%;
-        top: 75%;
-        width: 48vw;
-        max-height: 32vh;
-      }
-      .congruita-panel-floating {
-        left: 75%;
-        top: 75%;
-        width: 48vw;
-        max-height: 32vh;
-      }
+      
+      /* Impiliamo le due card laterali una sopra l'altra */
+      .site-card.focused-floating { left: 38%; top: 50%; width: 55vw; }
+      .sub-panel-floating { left: 80%; top: 30%; width: 35vw; max-height: 40vh; }
+      .congruita-panel-floating { left: 80%; top: 75%; width: 35vw; max-height: 40vh; }
     }
 
     @media (max-width: 720px){
@@ -1143,24 +1112,10 @@
       .workers-grid { max-height: none; overflow: visible; }
       .worker-chip { width: calc(50% - 6px); min-width: 0; }
 
-      .site-card.focused-floating {
-        width: 94vw;
-        max-height: 35vh;
-        top: 22%;
-        left: 50%;
-      }
-      .sub-panel-floating {
-        width: 94vw;
-        top: 55%;
-        left: 50%;
-        max-height: 25vh;
-      }
-      .congruita-panel-floating {
-        width: 94vw;
-        top: 82%;
-        left: 50%;
-        max-height: 25vh;
-      }
+      /* Su mobile tutto centrato in colonna */
+      .site-card.focused-floating { left: 50%; top: 25%; width: 94vw; max-height: 40vh; }
+      .sub-panel-floating { left: 50%; top: 60%; width: 94vw; max-height: 25vh; }
+      .congruita-panel-floating { left: 50%; top: 85%; width: 94vw; max-height: 20vh; }
     }
   </style>
 </head>
@@ -1300,7 +1255,7 @@
       tasksBySite: {},
       assignmentsBySite: {},
       subBySite: {},
-      congruitaBySite: {}, // Nuova mappa per i dati congruità
+      congruitaBySite: {},
       targetDate: null,
       dragWorkerName: null,
       focusedSiteName: null,
@@ -1330,6 +1285,20 @@
     function pad(n){ return String(n).padStart(2,'0'); }
     function normalize(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
     function escapeHtml(s){ return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+    function formatPercentuale(val) {
+      if (!val) return '0%';
+      // Cambia la virgola in punto per permettere a JS di leggere il decimale
+      let numStr = String(val).replace(',', '.');
+      let num = parseFloat(numStr);
+      if (isNaN(num)) return val;
+      
+      // Moltiplica per 100
+      num = num * 100;
+      
+      // Arrotonda a massimo 2 decimali, rimette la virgola e aggiunge %
+      return parseFloat(num.toFixed(2)).toString().replace('.', ',') + '%';
+    }
 
     function nextDayISO(){
       const d = new Date();
@@ -1444,7 +1413,7 @@
       state.tasksBySite = json.tasksBySite || {};
       state.assignmentsBySite = json.assignmentsBySite || {};
       state.subBySite = json.subappaltatoriBySite || {};
-      state.congruitaBySite = json.congruitaBySite || {}; // Ricevuta dal server
+      state.congruitaBySite = json.congruitaBySite || {};
 
       state.sites.forEach(siteName => {
         if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
@@ -1529,17 +1498,21 @@
 
       // Render Subappaltatori
       subPanelSiteName.textContent = siteName;
-      const subs = state.subBySite[siteName] || [];
+      const subs = Array.isArray(state.subBySite[siteName]) ? state.subBySite[siteName] : [];
       subList.innerHTML = subs.length ? subs.map(sub => `<a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>`).join('') : `<div class="sub-empty">Nessun subappaltatore.</div>`;
       subPanel.classList.add('show');
 
-      // Render Congruità
+      // Render Congruità (con formattazione percentuali)
       congruitaSiteName.textContent = siteName;
-      const cong = state.congruitaBySite[siteName] || { attesa: '0', dichiarata: '0', pct: '0%', rapp: '0%' };
+      const cong = state.congruitaBySite[siteName] || { attesa: '0', dichiarata: '0', pct: '0', rapp: '0' };
+      
       $('#valMdoAttesa').textContent = cong.attesa || '0';
       $('#valMdoDichiarata').textContent = cong.dichiarata || '0';
-      $('#valPctCompl').textContent = cong.pct || '0%';
-      $('#valRappMdo').textContent = cong.rapp || '0%';
+      
+      // Trasforma "0,82" in "82%" ecc.
+      $('#valPctCompl').textContent = formatPercentuale(cong.pct);
+      $('#valRappMdo').textContent = formatPercentuale(cong.rapp);
+      
       congruitaPanel.classList.add('show');
     }
 
@@ -1625,6 +1598,68 @@
       await apiPost({ action: 'closeTask', siteName, row });
       await loadAll(true);
     }
+
+    // GESTIONE NUOVA DITTA SUBAPPALTATORE (Mail)
+    $('#btnSubSend').addEventListener('click', async () => {
+      const subFreeText = $('#subFreeText');
+      const txt = subFreeText.value.trim();
+      if (!txt) return;
+      if (!state.focusedSiteName) {
+        alert('Nessun cantiere selezionato.');
+        return;
+      }
+      
+      try {
+        $('#btnSubSend').disabled = true;
+        setStatus('Inviando richiesta per nuova ditta...', 'ok');
+        
+        await apiPost({
+          action: 'requestSubNotificationUpdate',
+          siteName: state.focusedSiteName,
+          companyName: txt,
+          targetDate: state.targetDate
+        });
+
+        setStatus(`✓ Richiesta inviata per "${txt}" sul cantiere ${state.focusedSiteName}.`, 'ok');
+        subFreeText.value = '';
+
+        alert(
+          'Invio riuscito.\n\n' +
+          'Richiesta aggiornata per:\n' +
+          '- Cantiere: ' + state.focusedSiteName + '\n' +
+          '- Ditta: ' + txt
+        );
+      } catch (err) {
+        console.error(err);
+        setStatus(`✗ Errore invio richiesta: ${err.message}`, 'error');
+        alert('Errore durante l’invio della mail:\n' + err.message);
+      } finally {
+        $('#btnSubSend').disabled = false;
+      }
+    });
+
+    window.addEventListener('keydown', e => {
+      if(e.key === 'Escape') {
+        closeFocus();
+      }
+    });
+
+    let resizeRenderTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeRenderTimer);
+      resizeRenderTimer = setTimeout(() => {
+        renderSites();
+        if (state.focusedSiteName) renderFloatingPanels();
+      }, 120);
+    });
+
+    setInterval(() => {
+      const next = nextDayISO();
+      if(state.targetDate !== next){
+        updateHeader();
+        setStatus('ℹ️ È cambiato il giorno operativo. Premi "Carica dati" per riallineare.', 'ok');
+      }
+    }, 60 * 1000);
 
     $('#btnReload').addEventListener('click', () => loadAll(true));
     focusBackdrop.addEventListener('click', closeFocus);
