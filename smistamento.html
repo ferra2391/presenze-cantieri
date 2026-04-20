@@ -453,7 +453,7 @@
     .site-card.focused-floating {
       position: fixed;
       top: 50%;
-      left: calc(50% - 340px); /* Centro spostato a sinistra */
+      left: calc(50% - 340px);
       width: 700px;
       max-height: 86vh;
       overflow-y: auto;
@@ -469,7 +469,7 @@
     .sub-panel-floating {
       position: fixed;
       top: 50%;
-      left: calc(50% + 190px); /* Subito a destra della card principale */
+      left: calc(50% + 190px);
       width: 320px;
       max-height: 86vh;
       overflow-y: auto;
@@ -481,7 +481,7 @@
     .congruita-panel-floating {
       position: fixed;
       top: 50%;
-      left: calc(50% + 530px); /* Subito a destra dei subappaltatori */
+      left: calc(50% + 530px);
       width: 320px;
       max-height: 86vh;
       overflow-y: auto;
@@ -525,6 +525,10 @@
 
     .congruita-value.percentage {
       color: var(--primary);
+    }
+    
+    .congruita-value.currency {
+      color: var(--success);
     }
 
     .focus-backdrop {
@@ -1096,7 +1100,6 @@
       .cantiere-grid.compact-mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .worker-chip { width: calc(25% - 7px); }
       
-      /* Impiliamo le due card laterali una sopra l'altra */
       .site-card.focused-floating { left: 38%; top: 50%; width: 55vw; }
       .sub-panel-floating { left: 80%; top: 30%; width: 35vw; max-height: 40vh; }
       .congruita-panel-floating { left: 80%; top: 75%; width: 35vw; max-height: 40vh; }
@@ -1112,7 +1115,6 @@
       .workers-grid { max-height: none; overflow: visible; }
       .worker-chip { width: calc(50% - 6px); min-width: 0; }
 
-      /* Su mobile tutto centrato in colonna */
       .site-card.focused-floating { left: 50%; top: 25%; width: 94vw; max-height: 40vh; }
       .sub-panel-floating { left: 50%; top: 60%; width: 94vw; max-height: 25vh; }
       .congruita-panel-floating { left: 50%; top: 85%; width: 94vw; max-height: 20vh; }
@@ -1196,11 +1198,11 @@
     <div class="congruita-data-grid" id="congruitaData">
       <div class="congruita-item">
         <div class="congruita-label">MDO Totale Attesa</div>
-        <div class="congruita-value" id="valMdoAttesa">—</div>
+        <div class="congruita-value currency" id="valMdoAttesa">—</div>
       </div>
       <div class="congruita-item">
         <div class="congruita-label">MDO Totale Dichiarata</div>
-        <div class="congruita-value" id="valMdoDichiarata">—</div>
+        <div class="congruita-value currency" id="valMdoDichiarata">—</div>
       </div>
       <div class="congruita-item">
         <div class="congruita-label">% Completamento</div>
@@ -1286,18 +1288,30 @@
     function normalize(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
     function escapeHtml(s){ return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
+    // Funzione per Percentuali
     function formatPercentuale(val) {
       if (!val) return '0%';
-      // Cambia la virgola in punto per permettere a JS di leggere il decimale
       let numStr = String(val).replace(',', '.');
       let num = parseFloat(numStr);
       if (isNaN(num)) return val;
       
-      // Moltiplica per 100
       num = num * 100;
-      
-      // Arrotonda a massimo 2 decimali, rimette la virgola e aggiunge %
       return parseFloat(num.toFixed(2)).toString().replace('.', ',') + '%';
+    }
+
+    // NUOVA: Funzione per Valuta in Euro
+    function formatValuta(val) {
+      if (!val || val === '-' || val === '') return '0,00 €';
+      // Rimuove la € se già presente, toglie i punti delle migliaia e converte la virgola in punto
+      let numStr = String(val).replace(/€/g, '').replace(/\./g, '').replace(',', '.').trim();
+      let num = parseFloat(numStr);
+      if (isNaN(num)) return val; // Fallback se non è parsabile
+      
+      // Formatta nativamente come valuta in italiano (es. 231.288,00 €)
+      return new Intl.NumberFormat('it-IT', { 
+        style: 'currency', 
+        currency: 'EUR' 
+      }).format(num);
     }
 
     function nextDayISO(){
@@ -1502,14 +1516,15 @@
       subList.innerHTML = subs.length ? subs.map(sub => `<a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>`).join('') : `<div class="sub-empty">Nessun subappaltatore.</div>`;
       subPanel.classList.add('show');
 
-      // Render Congruità (con formattazione percentuali)
+      // Render Congruità (Valuta e Percentuali)
       congruitaSiteName.textContent = siteName;
       const cong = state.congruitaBySite[siteName] || { attesa: '0', dichiarata: '0', pct: '0', rapp: '0' };
       
-      $('#valMdoAttesa').textContent = cong.attesa || '0';
-      $('#valMdoDichiarata').textContent = cong.dichiarata || '0';
+      // Valori monetari formatati
+      $('#valMdoAttesa').textContent = formatValuta(cong.attesa);
+      $('#valMdoDichiarata').textContent = formatValuta(cong.dichiarata);
       
-      // Trasforma "0,82" in "82%" ecc.
+      // Valori percentuali formatati
       $('#valPctCompl').textContent = formatPercentuale(cong.pct);
       $('#valRappMdo').textContent = formatPercentuale(cong.rapp);
       
@@ -1599,7 +1614,6 @@
       await loadAll(true);
     }
 
-    // GESTIONE NUOVA DITTA SUBAPPALTATORE (Mail)
     $('#btnSubSend').addEventListener('click', async () => {
       const subFreeText = $('#subFreeText');
       const txt = subFreeText.value.trim();
