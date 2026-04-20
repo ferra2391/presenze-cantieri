@@ -91,7 +91,8 @@
     .control-panel,
     .section-card,
     .cantieri-panel,
-    .sub-panel {
+    .sub-panel,
+    .congruita-panel {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -245,7 +246,8 @@
     }
 
     .section-title h2,
-    .sub-panel h3 {
+    .sub-panel h3,
+    .congruita-panel h3 {
       margin: 0;
       font-size: 21px;
       font-weight: 800;
@@ -450,7 +452,7 @@
     .site-card.focused-floating {
       position: fixed;
       top: 50%;
-      left: calc(50% - 210px);
+      left: calc(50% - 310px);
       width: min(760px, 58vw);
       max-width: 760px;
       max-height: 86vh;
@@ -475,21 +477,67 @@
 
     .focus-backdrop.show { display: block; }
 
+    /* Pannelli Floating a destra */
     .sub-panel-floating {
       position: fixed;
-      top: 50%;
-      left: calc(50% + 395px);
-      width: min(380px, 26vw);
-      max-width: 380px;
-      max-height: 86vh;
+      top: 30%;
+      left: calc(50% + 255px);
+      width: min(340px, 24vw);
+      max-width: 340px;
+      max-height: 40vh;
       overflow-y: auto;
       transform: translate(-50%, -50%);
       z-index: 1201;
       display: none;
     }
 
-    .sub-panel-floating.show {
+    .congruita-panel-floating {
+      position: fixed;
+      top: 70%;
+      left: calc(50% + 255px);
+      width: min(340px, 24vw);
+      max-width: 340px;
+      max-height: 40vh;
+      overflow-y: auto;
+      transform: translate(-50%, -50%);
+      z-index: 1201;
+      display: none;
+    }
+
+    .sub-panel-floating.show, .congruita-panel-floating.show {
       display: block;
+    }
+
+    .congruita-data-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .congruita-item {
+      padding: 10px;
+      border-radius: 10px;
+      background: #f8fbff;
+      border: 1px solid var(--border);
+    }
+
+    .congruita-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-light);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .congruita-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .congruita-value.percentage {
+      color: var(--primary);
     }
 
     .site-head {
@@ -1032,15 +1080,15 @@
       .worker-chip { width: calc(16.66% - 7px); }
 
       .site-card.focused-floating {
-        left: calc(50% - 185px);
+        left: calc(50% - 240px);
         width: min(700px, 54vw);
         max-width: 700px;
       }
 
-      .sub-panel-floating {
-        left: calc(50% + 345px);
-        width: min(340px, 24vw);
-        max-width: 340px;
+      .sub-panel-floating, .congruita-panel-floating {
+        left: calc(50% + 250px);
+        width: min(320px, 24vw);
+        max-width: 320px;
       }
     }
 
@@ -1050,15 +1098,14 @@
       .worker-chip { width: calc(20% - 7px); }
 
       .site-card.focused-floating {
-        left: calc(50% - 150px);
+        left: calc(50% - 180px);
         width: min(640px, 50vw);
         max-width: 640px;
       }
 
-      .sub-panel-floating {
-        left: calc(50% + 300px);
-        width: min(320px, 24vw);
-        max-width: 320px;
+      .sub-panel-floating, .congruita-panel-floating {
+        left: calc(50% + 230px);
+        width: min(300px, 24vw);
       }
     }
 
@@ -1069,77 +1116,51 @@
 
       .site-card.focused-floating {
         left: 50%;
-        top: 34%;
+        top: 28%;
         width: min(760px, 90vw);
       }
 
       .sub-panel-floating {
-        left: 50%;
-        top: 77%;
-        width: min(760px, 90vw);
+        left: 25%;
+        top: 75%;
+        width: 48vw;
+        max-height: 32vh;
+      }
+      .congruita-panel-floating {
+        left: 75%;
+        top: 75%;
+        width: 48vw;
         max-height: 32vh;
       }
     }
 
     @media (max-width: 720px){
-      html, body {
-        overflow: auto;
-      }
-
-      .page-shell {
-        height: auto;
-      }
-
-      .cantieri-scroll-area {
-        overflow: visible;
-      }
-
+      html, body { overflow: auto; }
+      .page-shell { height: auto; }
+      .cantieri-scroll-area { overflow: visible; }
       .container { padding: 18px; }
-
-      .todo-form,
-      .modal-grid,
-      .sub-send-row {
-        grid-template-columns: 1fr;
-      }
-
-      .cantiere-grid,
-      .cantiere-grid.compact-mode {
-        grid-template-columns: 1fr;
-      }
-
-      .workers-grid {
-        max-height: none;
-        overflow: visible;
-      }
-
-      .worker-chip {
-        width: calc(50% - 6px);
-        min-width: 0;
-      }
+      .todo-form, .modal-grid, .sub-send-row { grid-template-columns: 1fr; }
+      .cantiere-grid, .cantiere-grid.compact-mode { grid-template-columns: 1fr; }
+      .workers-grid { max-height: none; overflow: visible; }
+      .worker-chip { width: calc(50% - 6px); min-width: 0; }
 
       .site-card.focused-floating {
         width: 94vw;
-        max-height: 42vh;
-        top: 28%;
+        max-height: 35vh;
+        top: 22%;
         left: 50%;
       }
-
       .sub-panel-floating {
         width: 94vw;
-        top: 73%;
+        top: 55%;
         left: 50%;
-        max-height: 28vh;
+        max-height: 25vh;
       }
-
-      .cantiere-grid.compact-mode .compact-summary {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-      }
-
-      .compact-left-half,
-      .compact-right-half {
-        grid-column: 1;
-        grid-row: auto;
+      .congruita-panel-floating {
+        width: 94vw;
+        top: 82%;
+        left: 50%;
+        max-height: 25vh;
       }
     }
   </style>
@@ -1175,11 +1196,9 @@
           <h2>👷 Operai disponibili</h2>
           <span class="section-note">Trascina sulle schede cantiere</span>
         </div>
-
         <div class="workers-toolbar">
           <input type="search" id="workerSearch" placeholder="Cerca operaio..." />
         </div>
-
         <div class="workers-grid" id="workersGrid"></div>
       </section>
     </div>
@@ -1189,7 +1208,6 @@
         <h2>🏗️ Cantieri e lavorazioni</h2>
         <span class="section-note">Ogni card contiene operai assegnati + to do list</span>
       </div>
-
       <div class="site-toolbar">
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
           <input type="search" id="siteSearch" placeholder="Cerca cantiere..." />
@@ -1198,9 +1216,7 @@
             <option value="compact">Contrai</option>
           </select>
         </div>
-        <div class="section-note">Le lavorazioni salvano automaticamente data creazione e data chiusura.</div>
       </div>
-
       <div class="cantiere-grid" id="cantiereGrid"></div>
     </section>
   </div>
@@ -1210,15 +1226,35 @@
   <div class="sub-panel sub-panel-floating" id="subPanel">
     <h3>Subappaltatori notificati</h3>
     <div class="section-note" id="subPanelSiteName">—</div>
-
     <div class="sub-list" id="subList"></div>
-
     <div class="sub-box">
       <div class="sub-box-title">Nuova ditta da notificare</div>
-      <div class="sub-box-note">Invia richiesta aggiornamento notifica preliminare.</div>
       <div class="sub-send-row">
         <input type="text" id="subFreeText" placeholder="Scrivi nome ditta..." />
         <button id="btnSubSend" class="primary">Invia</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="congruita-panel congruita-panel-floating" id="congruitaPanel">
+    <h3>Congruità Cantiere</h3>
+    <div class="section-note" id="congruitaSiteName">—</div>
+    <div class="congruita-data-grid" id="congruitaData">
+      <div class="congruita-item">
+        <div class="congruita-label">MDO Totale Attesa</div>
+        <div class="congruita-value" id="valMdoAttesa">—</div>
+      </div>
+      <div class="congruita-item">
+        <div class="congruita-label">MDO Totale Dichiarata</div>
+        <div class="congruita-value" id="valMdoDichiarata">—</div>
+      </div>
+      <div class="congruita-item">
+        <div class="congruita-label">% Completamento</div>
+        <div class="congruita-value percentage" id="valPctCompl">—</div>
+      </div>
+      <div class="congruita-item">
+        <div class="congruita-label">Rapp. % MDO airlogic/TOT</div>
+        <div class="congruita-value percentage" id="valRappMdo">—</div>
       </div>
     </div>
   </div>
@@ -1228,7 +1264,6 @@
     <h3>✏️ Modifica lavorazione</h3>
     <input type="hidden" id="editId" />
     <input type="hidden" id="editSiteId" />
-
     <div class="modal-grid">
       <div class="modal-field full">
         <label>Lavorazione</label>
@@ -1247,7 +1282,6 @@
         <input type="text" id="editWorkers" readonly />
       </div>
     </div>
-
     <div class="modal-actions">
       <button id="btnCloseModal">Annulla</button>
       <button id="btnSaveEdit" class="primary">Salva modifica</button>
@@ -1267,6 +1301,7 @@
       tasksBySite: {},
       assignmentsBySite: {},
       subBySite: {},
+      congruitaBySite: {}, // Nuova mappa per i dati congruità
       targetDate: null,
       dragWorkerName: null,
       focusedSiteName: null,
@@ -1285,30 +1320,17 @@
     const overlay = $('#overlay');
     const modalTodo = $('#modalTodo');
     const focusBackdrop = $('#focusBackdrop');
+    
     const subPanel = $('#subPanel');
     const subList = $('#subList');
     const subPanelSiteName = $('#subPanelSiteName');
-    const subFreeText = $('#subFreeText');
-    const btnSubSend = $('#btnSubSend');
+    
+    const congruitaPanel = $('#congruitaPanel');
+    const congruitaSiteName = $('#congruitaSiteName');
 
     function pad(n){ return String(n).padStart(2,'0'); }
-
-    function normalize(s){
-      return String(s || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g,'')
-        .trim()
-        .toLowerCase();
-    }
-
-    function escapeHtml(s){
-      return String(s || '')
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;')
-        .replace(/'/g,'&#39;');
-    }
+    function normalize(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
+    function escapeHtml(s){ return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
     function nextDayISO(){
       const d = new Date();
@@ -1320,12 +1342,7 @@
     function formatDateIT(iso){
       if(!iso) return '—';
       const [y,m,d] = String(iso).split('-').map(Number);
-      return new Date(y, m-1, d).toLocaleDateString('it-IT', {
-        weekday:'long',
-        day:'2-digit',
-        month:'long',
-        year:'numeric'
-      });
+      return new Date(y, m-1, d).toLocaleDateString('it-IT', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
     }
 
     function photoUrlForWorker(name, explicitUrl){
@@ -1333,15 +1350,11 @@
       return `${GITHUB_OPERAI_BASE}${encodeURIComponent(String(name || '').trim())}.png`;
     }
 
-    function jsStr(v){
-      return JSON.stringify(String(v || ''));
-    }
+    function jsStr(v){ return JSON.stringify(String(v || '')); }
 
     function allAssignedNames(){
       const out = new Set();
-      Object.values(state.assignmentsBySite || {}).forEach(arr => {
-        (arr || []).forEach(name => out.add(String(name)));
-      });
+      Object.values(state.assignmentsBySite || {}).forEach(arr => { (arr || []).forEach(name => out.add(String(name))); });
       return out;
     }
 
@@ -1356,77 +1369,32 @@
       const q = normalize(workerSearch.value);
       const available = [];
       const grouped = {};
-
-      state.workers
-        .filter(w => !q || normalize(w.name).includes(q))
-        .sort((a,b) => a.name.localeCompare(b.name, 'it'))
-        .forEach(w => {
-          const siteName = findWorkerAssignedSite(w.name);
-          if (!siteName) {
-            available.push(w);
-          } else {
-            if (!grouped[siteName]) grouped[siteName] = [];
-            grouped[siteName].push(w);
-          }
-        });
-
+      state.workers.filter(w => !q || normalize(w.name).includes(q)).sort((a,b) => a.name.localeCompare(b.name, 'it')).forEach(w => {
+        const siteName = findWorkerAssignedSite(w.name);
+        if (!siteName) available.push(w);
+        else {
+          if (!grouped[siteName]) grouped[siteName] = [];
+          grouped[siteName].push(w);
+        }
+      });
       const ordered = [];
-
-      if (available.length) {
-        ordered.push({ title: 'Disponibili', workers: available, siteName: '' });
-      }
-
-      Object.keys(grouped)
-        .sort((a,b) => a.localeCompare(b, 'it'))
-        .forEach(siteName => {
-          ordered.push({ title: siteName, workers: grouped[siteName], siteName });
-        });
-
+      if (available.length) ordered.push({ title: 'Disponibili', workers: available, siteName: '' });
+      Object.keys(grouped).sort((a,b) => a.localeCompare(b, 'it')).forEach(siteName => { ordered.push({ title: siteName, workers: grouped[siteName], siteName }); });
       return ordered;
     }
 
-    function workerImage(url, name){
-      return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
-    }
+    function workerImage(url, name){ return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`; }
+    function miniImage(url, name){ return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`; }
 
-    function miniImage(url, name){
-      return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`;
-    }
-
-    function labelPriority(v){
-      if(String(v) === '1') return 'Urgente';
-      if(String(v) === '2') return 'Media';
-      return 'Minima';
-    }
-
-    function priorityClass(v){
-      if(String(v) === '1') return 'rosso';
-      if(String(v) === '2') return 'arancione';
-      return 'bianco';
-    }
+    function labelPriority(v){ if(String(v) === '1') return 'Urgente'; if(String(v) === '2') return 'Media'; return 'Minima'; }
+    function priorityClass(v){ if(String(v) === '1') return 'rosso'; if(String(v) === '2') return 'arancione'; return 'bianco'; }
 
     function getCompactStats(tasks){
       const total = tasks.length || 0;
       let red = 0, orange = 0, white = 0;
-
-      tasks.forEach(t => {
-        const p = String(t.priority || '3');
-        if (p === '1') red++;
-        else if (p === '2') orange++;
-        else white++;
-      });
-
+      tasks.forEach(t => { const p = String(t.priority || '3'); if (p === '1') red++; else if (p === '2') orange++; else white++; });
       const prc = (n) => total ? (n / total) * 100 : 0;
-
-      return {
-        total,
-        red,
-        orange,
-        white,
-        redPct: prc(red),
-        orangePct: prc(orange),
-        whitePct: prc(white)
-      };
+      return { total, red, orange, white, redPct: prc(red), orangePct: prc(orange), whitePct: prc(white) };
     }
 
     function compareSitesForDisplay(a, b){
@@ -1434,7 +1402,6 @@
       const tb = Array.isArray(state.tasksBySite[b]) ? state.tasksBySite[b] : [];
       const sa = getCompactStats(ta);
       const sb = getCompactStats(tb);
-
       if (sb.red !== sa.red) return sb.red - sa.red;
       if (sb.orange !== sa.orange) return sb.orange - sa.orange;
       if (sb.total !== sa.total) return sb.total - sa.total;
@@ -1444,13 +1411,10 @@
     function updateHeader(){
       state.targetDate = nextDayISO();
       $('#pageTitle').textContent = `🚚 Smistamento Operai — giorno ${formatDateIT(state.targetDate)}`;
-      $('#pageSubtitle').textContent = 'Pianificazione del giorno successivo. Le assegnazioni vengono lette e salvate sulla data di domani.';
       badgeTarget.textContent = `Giorno operativo: ${formatDateIT(state.targetDate)}`;
     }
 
-    function snapshotKey(targetDate){
-      return `smistamento_snapshot_${targetDate}`;
-    }
+    function snapshotKey(targetDate){ return `smistamento_snapshot_${targetDate}`; }
 
     function saveSnapshot(){
       try {
@@ -1460,6 +1424,7 @@
           tasksBySite: state.tasksBySite,
           assignmentsBySite: state.assignmentsBySite,
           subBySite: state.subBySite,
+          congruitaBySite: state.congruitaBySite,
           savedAt: Date.now()
         };
         localStorage.setItem(snapshotKey(state.targetDate), JSON.stringify(payload));
@@ -1470,842 +1435,203 @@
       try {
         const raw = localStorage.getItem(snapshotKey(targetDate));
         if(!raw) return null;
-        const parsed = JSON.parse(raw);
-        if(!parsed || typeof parsed !== 'object') return null;
-        return parsed;
-      } catch(e) {
-        return null;
-      }
+        return JSON.parse(raw);
+      } catch(e) { return null; }
     }
 
     function applyServerPayload(json){
-      state.workers = Array.isArray(json.workers)
-        ? json.workers.map(w => ({
-            name: String(w.name || '').trim(),
-            photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
-            role: String(w.role || '').trim()
-          })).filter(w => w.name)
-        : [];
-
-      state.sites = Array.isArray(json.sites)
-        ? json.sites.map(String).filter(Boolean)
-        : [];
-
+      state.workers = Array.isArray(json.workers) ? json.workers.map(w => ({ name: String(w.name || '').trim(), photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''), role: String(w.role || '').trim() })).filter(w => w.name) : [];
+      state.sites = Array.isArray(json.sites) ? json.sites.map(String).filter(Boolean) : [];
       state.tasksBySite = json.tasksBySite || {};
       state.assignmentsBySite = json.assignmentsBySite || {};
       state.subBySite = json.subappaltatoriBySite || {};
+      state.congruitaBySite = json.congruitaBySite || {}; // Ricevuta dal server
 
       state.sites.forEach(siteName => {
         if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
         if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
         if(!Array.isArray(state.subBySite[siteName])) state.subBySite[siteName] = [];
       });
-
       saveSnapshot();
-    }
-
-    function applySnapshot(snapshot){
-      state.workers = Array.isArray(snapshot.workers) ? snapshot.workers : [];
-      state.sites = Array.isArray(snapshot.sites) ? snapshot.sites : [];
-      state.tasksBySite = snapshot.tasksBySite || {};
-      state.assignmentsBySite = snapshot.assignmentsBySite || {};
-      state.subBySite = snapshot.subBySite || {};
-
-      state.sites.forEach(siteName => {
-        if(!Array.isArray(state.assignmentsBySite[siteName])) state.assignmentsBySite[siteName] = [];
-        if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
-        if(!Array.isArray(state.subBySite[siteName])) state.subBySite[siteName] = [];
-      });
     }
 
     async function apiGet(action, params = {}){
       const qs = new URLSearchParams({ action, ...params });
       const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache:'no-store' });
-      const text = await res.text();
-
-      let json;
-      try {
-        json = JSON.parse(text);
-      } catch(e) {
-        throw new Error(`Risposta non JSON dal GAS: ${text.slice(0, 200)}`);
-      }
-
-      if (!json.ok) {
-        throw new Error(json.error || 'Errore GAS sconosciuto');
-      }
-
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || 'Errore GAS');
       return json;
     }
 
     async function apiPost(payload){
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const text = await res.text();
-
-      let json;
-      try {
-        json = JSON.parse(text);
-      } catch(e) {
-        throw new Error('Risposta non valida dal server');
-      }
-
-      if (!json.ok) {
-        throw new Error(json.error || 'Errore server');
-      }
-
+      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || 'Errore server');
       return json;
     }
 
-    function setStatus(msg, type='ok'){
-      statusEl.innerHTML = `<span class="${type}">${msg}</span>`;
-    }
+    function setStatus(msg, type='ok'){ statusEl.innerHTML = `<span class="${type}">${msg}</span>`; }
 
     async function loadAll(forceServer = false){
       updateHeader();
-
       if(!forceServer){
         const snap = loadSnapshot(state.targetDate);
         if(snap){
-          applySnapshot(snap);
+          state.workers = snap.workers || [];
+          state.sites = snap.sites || [];
+          state.tasksBySite = snap.tasksBySite || {};
+          state.assignmentsBySite = snap.assignmentsBySite || {};
+          state.subBySite = snap.subBySite || {};
+          state.congruitaBySite = snap.congruitaBySite || {};
           renderAll();
-          setStatus('⚡ Dati locali caricati. Allineo dal server...', 'ok');
-        } else {
-          setStatus('⏳ Caricamento smistamento...', 'ok');
         }
-      } else {
-        setStatus('⏳ Caricamento smistamento...', 'ok');
       }
-
       try {
         const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
         applyServerPayload(json);
         renderAll();
-        setStatus('✓ Smistamento caricato.', 'ok');
-      } catch (err) {
-        console.error(err);
-        if(!state.sites.length && !state.workers.length){
-          setStatus(`✗ ${err.message}`, 'error');
-        } else {
-          setStatus(`⚠️ ${err.message}`, 'error');
-        }
-      }
+        setStatus('✓ Dati aggiornati.', 'ok');
+      } catch (err) { setStatus(`✗ ${err.message}`, 'error'); }
     }
 
     function renderWorkers(){
       const groups = buildWorkerGroups();
       workersGrid.innerHTML = '';
-
-      if(!groups.length){
-        workersGrid.innerHTML = `<div class="muted">Nessun operaio trovato.</div>`;
-        return;
-      }
-
       groups.forEach(group => {
         const g = document.createElement('div');
         g.className = 'worker-group';
-
-        const title = document.createElement('div');
-        title.className = 'worker-group-title';
-        title.textContent = group.title;
-        g.appendChild(title);
-
+        g.innerHTML = `<div class="worker-group-title">${group.title}</div>`;
         const items = document.createElement('div');
         items.className = 'worker-group-items';
-
         group.workers.forEach(w => {
           const siteName = group.siteName || '';
           const isAssigned = !!siteName;
-
           const div = document.createElement('div');
           div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
           div.draggable = true;
-          div.dataset.workerName = w.name;
-
-          div.innerHTML = `
-            <div class="worker-x">✕</div>
-            ${workerImage(w.photoUrl, w.name)}
-            <div class="worker-meta">
-              <div class="worker-name">${escapeHtml(w.name)}</div>
-              <div class="worker-sub ${isAssigned ? 'assigned-site' : ''}">
-                ${isAssigned ? escapeHtml(siteName) : 'Disponibile'}
-              </div>
-            </div>
-          `;
-
-          div.addEventListener('dragstart', () => {
-            state.dragWorkerName = w.name;
-            div.classList.add('dragging');
-          });
-
-          div.addEventListener('dragend', () => {
-            state.dragWorkerName = null;
-            div.classList.remove('dragging');
-          });
-
+          div.innerHTML = `<div class="worker-x">✕</div>${workerImage(w.photoUrl, w.name)}<div class="worker-meta"><div class="worker-name">${escapeHtml(w.name)}</div><div class="worker-sub ${isAssigned ? 'assigned-site' : ''}">${isAssigned ? escapeHtml(siteName) : 'Disponibile'}</div></div>`;
+          div.addEventListener('dragstart', () => { state.dragWorkerName = w.name; div.classList.add('dragging'); });
+          div.addEventListener('dragend', () => { state.dragWorkerName = null; div.classList.remove('dragging'); });
           items.appendChild(div);
         });
-
         g.appendChild(items);
         workersGrid.appendChild(g);
       });
-
-      const assignedCount = allAssignedNames().size;
-      badgeStats.textContent = `Operai assegnati: ${assignedCount}`;
+      badgeStats.textContent = `Operai assegnati: ${allAssignedNames().size}`;
     }
 
-    function getCurrentCols(){
-      const w = window.innerWidth;
-      if (state.viewMode === 'compact') {
-        if (w <= 720) return 1;
-        if (w <= 1120) return 3;
-        if (w <= 1450) return 5;
-        return 6;
-      }
-      if (w <= 720) return 1;
-      if (w <= 1120) return 2;
-      if (w <= 1450) return 3;
-      return 4;
-    }
-
-    function renderSubPanel(){
+    function renderFloatingPanels(){
       const siteName = state.focusedSiteName;
       if(!siteName){
         subPanel.classList.remove('show');
+        congruitaPanel.classList.remove('show');
         return;
       }
 
+      // Render Subappaltatori
       subPanelSiteName.textContent = siteName;
-      const subs = Array.isArray(state.subBySite[siteName]) ? state.subBySite[siteName] : [];
-
-      if(!subs.length){
-        subList.innerHTML = `<div class="sub-empty">Nessun subappaltatore notificato.</div>`;
-      } else {
-        subList.innerHTML = subs.map(sub => `
-          <a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>
-        `).join('');
-      }
-
+      const subs = state.subBySite[siteName] || [];
+      subList.innerHTML = subs.length ? subs.map(sub => `<a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>`).join('') : `<div class="sub-empty">Nessun subappaltatore.</div>`;
       subPanel.classList.add('show');
+
+      // Render Congruità
+      congruitaSiteName.textContent = siteName;
+      const cong = state.congruitaBySite[siteName] || { attesa: '0', dichiarata: '0', pct: '0%', rapp: '0%' };
+      $('#valMdoAttesa').textContent = cong.attesa || '0';
+      $('#valMdoDichiarata').textContent = cong.dichiarata || '0';
+      $('#valPctCompl').textContent = cong.pct || '0%';
+      $('#valRappMdo').textContent = cong.rapp || '0%';
+      congruitaPanel.classList.add('show');
     }
 
     function openFocus(siteName){
       state.focusedSiteName = siteName;
       renderSites();
-      renderSubPanel();
+      renderFloatingPanels();
       focusBackdrop.classList.add('show');
       document.body.style.overflow = 'hidden';
     }
 
     function closeFocus(){
-      if(state.focusedSiteName !== null){
-        state.focusedSiteName = null;
-        renderSites();
-      }
+      state.focusedSiteName = null;
+      renderSites();
       subPanel.classList.remove('show');
+      congruitaPanel.classList.remove('show');
       focusBackdrop.classList.remove('show');
       document.body.style.overflow = '';
     }
 
     function renderSites(){
       const q = normalize(siteSearch.value);
-      const sites = state.sites
-        .filter(name => !q || normalize(name).includes(q))
-        .sort(compareSitesForDisplay);
-
-      const cols = getCurrentCols();
-
+      const sites = state.sites.filter(name => !q || normalize(name).includes(q)).sort(compareSitesForDisplay);
       cantiereGrid.innerHTML = '';
       cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
       cantiereGrid.classList.toggle('compact-mode', state.viewMode === 'compact');
 
-      if(!sites.length){
-        cantiereGrid.innerHTML = `<div class="muted">Nessun cantiere trovato.</div>`;
-        return;
-      }
-
       sites.forEach((siteName, index) => {
-        const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
-        const tasks = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-        const compactStats = getCompactStats(tasks);
-
-        const compactWorkersFaces = assigned.length
-          ? assigned.map(name => {
-              const worker = state.workers.find(w => w.name === name) || {
-                name,
-                photoUrl: photoUrlForWorker(name)
-              };
-              return `<img class="compact-worker-face" src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" title="${escapeHtml(worker.name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/24?text=%F0%9F%91%B7'">`;
-            }).join('')
-          : `<span class="compact-workers-empty">Nessuno</span>`;
-
-        const compactWorkersPills = assigned.length
-          ? assigned.map(name => {
-              const worker = state.workers.find(w => w.name === name) || {
-                name,
-                photoUrl: photoUrlForWorker(name)
-              };
-              return `<span class="compact-worker-pill">${miniImage(worker.photoUrl, worker.name)} ${escapeHtml(worker.name)}</span>`;
-            }).join('')
-          : `<span class="compact-workers-empty">Nessuno</span>`;
-
-        const assignedHtml = assigned.length
-          ? assigned.map(name => {
-              const worker = state.workers.find(w => w.name === name) || {
-                name,
-                photoUrl: photoUrlForWorker(name)
-              };
-
-              return `
-                <div class="assigned-item">
-                  <div class="assigned-left">
-                    ${miniImage(worker.photoUrl, worker.name)}
-                    <div class="assigned-name">${escapeHtml(worker.name)}</div>
-                  </div>
-                  <button class="icon-btn" title="Rimuovi assegnazione" onclick='event.stopPropagation(); removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(name)})'>✕</button>
-                </div>
-              `;
-            }).join('')
-          : `<div class="assigned-empty">Nessun operaio assegnato.</div>`;
-
-        const taskHtml = tasks.length
-          ? tasks.map(t => `
-              <div class="todo-item priority-${priorityClass(t.priority)}">
-                <div class="todo-top">
-                  <div class="todo-text">${escapeHtml(t.text)}</div>
-                  <div class="todo-actions">
-                    <button class="icon-btn" title="Modifica" onclick='event.stopPropagation(); openEditTask(${jsStr(siteName)}, ${jsStr(t.row)})'>✏️</button>
-                    <button class="icon-btn" title="Completa" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
-                  </div>
-                </div>
-                <div class="todo-meta">
-                  <span><span class="priority-dot ${priorityClass(t.priority)}"></span>${labelPriority(t.priority)}</span>
-                  <span>Creata: ${escapeHtml(t.createdAt || '')}</span>
-                  ${t.temp ? '<span>Da riallineare</span>' : ''}
-                </div>
-              </div>
-            `).join('')
-          : `<div class="todo-empty">Nessuna lavorazione aperta.</div>`;
-
-        const rowIndex = Math.floor(index / cols);
-        const colIndex = index % cols;
-        const mosaicClass = ((rowIndex + colIndex) % 2 === 0) ? 'mosaic-a' : 'mosaic-b';
+        const assigned = state.assignmentsBySite[siteName] || [];
+        const tasks = state.tasksBySite[siteName] || [];
         const isFocused = state.focusedSiteName === siteName;
-
+        
         const card = document.createElement('div');
-        card.className = `site-card ${mosaicClass}${isFocused ? ' focused-floating' : ''}`;
-        card.dataset.siteCardName = siteName;
-
+        card.className = `site-card ${isFocused ? ' focused-floating' : ''}`;
         card.innerHTML = `
           <div class="site-head">
             <div class="site-head-left">
               <div class="site-name">${escapeHtml(siteName)}</div>
               <span class="badge">${tasks.length} lavorazioni</span>
             </div>
-            <div class="site-head-right">
-              <button class="export-btn" onclick='event.stopPropagation(); exportSiteCard(${jsStr(siteName)})'>📄 Export</button>
-            </div>
+            <div class="site-head-right"><button class="export-btn" onclick='event.stopPropagation(); exportSiteCard(${jsStr(siteName)})'>📄 Export</button></div>
           </div>
-
-          <div class="compact-summary">
-            <div class="compact-workers-bar">${compactWorkersFaces}</div>
-
-            <div class="compact-left-half">
-              <div class="compact-stats-row">
-                <div class="compact-left-stats">
-                  <span class="compact-label">Lavorazioni</span>
-                  <span class="compact-count">${compactStats.total}</span>
-                </div>
-              </div>
-
-              <div class="compact-bar-wrap">
-                <div class="compact-bar">
-                  <div class="compact-seg-red" style="width:${compactStats.redPct}%;"></div>
-                  <div class="compact-seg-orange" style="width:${compactStats.orangePct}%;"></div>
-                  <div class="compact-seg-white" style="width:${compactStats.whitePct}%;"></div>
-                </div>
-                <div class="compact-legend">
-                  <span>🔴 ${compactStats.red}</span>
-                  <span>🟠 ${compactStats.orange}</span>
-                  <span>⚪ ${compactStats.white}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="compact-right-half">
-              <div class="compact-workers-title">Operai coinvolti</div>
-              <div class="compact-workers-list">${compactWorkersPills}</div>
-            </div>
+          <div class="site-dropzone">
+            <div class="assigned-list">${assigned.length ? assigned.map(n => `<div class="assigned-item"><div class="assigned-left"><div class="assigned-name">${escapeHtml(n)}</div></div><button class="icon-btn" onclick='event.stopPropagation(); removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(n)})'>✕</button></div>`).join('') : '<div class="assigned-empty">Nessuno.</div>'}</div>
           </div>
-
-          <div class="site-dropzone" data-site-name="${escapeHtml(siteName)}">
-            <div class="drop-hint">Trascina qui l'operaio</div>
-            <div class="assigned-list">${assignedHtml}</div>
-          </div>
-
           <div class="todo-form">
             <textarea placeholder="Nuova lavorazione..." data-task-input="${escapeHtml(siteName)}"></textarea>
-            <select data-priority-input="${escapeHtml(siteName)}">
-              <option value="1">🔴 Urgente</option>
-              <option value="2">🟠 Media</option>
-              <option value="3">⚪ Minima</option>
-            </select>
-            <button class="primary" onclick='event.stopPropagation(); createTask(${jsStr(siteName)})'>Aggiungi</button>
+            <select data-priority-input="${escapeHtml(siteName)}"><option value="1">🔴 Urgente</option><option value="2">🟠 Media</option><option value="3">⚪ Minima</option></select>
+            <button class="primary" onclick='event.stopPropagation(); createTask(${jsStr(siteName)})'>Vai</button>
           </div>
-
-          <div class="todo-list">${taskHtml}</div>
+          <div class="todo-list">${tasks.map(t => `<div class="todo-item priority-${priorityClass(t.priority)}"><div class="todo-top"><div class="todo-text">${escapeHtml(t.text)}</div><div class="todo-actions"><button class="icon-btn" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button></div></div></div>`).join('')}</div>
         `;
-
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('button, textarea, select, input, a')) return;
-          openFocus(siteName);
-        });
-
+        card.addEventListener('click', () => openFocus(siteName));
         cantiereGrid.appendChild(card);
       });
-
-      bindDropzones();
     }
 
-    function bindDropzones(){
-      document.querySelectorAll('.site-card').forEach(card => {
-        const siteName = card.dataset.siteCardName;
-        const dropTarget = (state.viewMode === 'compact')
-          ? card
-          : card.querySelector('.site-dropzone');
-
-        if(!dropTarget || !siteName) return;
-
-        dropTarget.addEventListener('dragover', e => {
-          e.preventDefault();
-          dropTarget.classList.add('over');
-          if (dropTarget === card) card.classList.add('card-drop-over');
-        });
-
-        dropTarget.addEventListener('dragleave', () => {
-          dropTarget.classList.remove('over');
-          if (dropTarget === card) card.classList.remove('card-drop-over');
-        });
-
-        dropTarget.addEventListener('drop', async e => {
-          e.preventDefault();
-          e.stopPropagation();
-          dropTarget.classList.remove('over');
-          if (dropTarget === card) card.classList.remove('card-drop-over');
-
-          if(!state.dragWorkerName) return;
-          await addWorkerToSite(state.dragWorkerName, siteName);
-        });
-      });
-    }
-
-    function renderAll(){
-      renderWorkers();
-      renderSites();
-      if (state.focusedSiteName) renderSubPanel();
-    }
-
-    async function persistSiteWorkers(siteName, workers){
-      await apiPost({
-        action: 'setSiteWorkers',
-        targetDate: state.targetDate,
-        siteName,
-        workers
-      });
-    }
+    function renderAll(){ renderWorkers(); renderSites(); if(state.focusedSiteName) renderFloatingPanels(); }
 
     async function addWorkerToSite(workerName, siteName){
-      const current = JSON.parse(JSON.stringify(state.assignmentsBySite || {}));
-
-      const alreadyElsewhere = Object.entries(current).some(([site, arr]) => {
-        return site !== siteName && (arr || []).includes(workerName);
-      });
-
-      if(alreadyElsewhere){
-        setStatus('⚠️ Questo operaio è già assegnato a un altro cantiere per il giorno selezionato.', 'error');
-        return;
-      }
-
-      current[siteName] = Array.isArray(current[siteName]) ? current[siteName] : [];
-      if(current[siteName].includes(workerName)) return;
-
-      current[siteName].push(workerName);
-      current[siteName].sort((a,b) => a.localeCompare(b, 'it'));
-
-      state.assignmentsBySite = current;
-      saveSnapshot();
+      if(findWorkerAssignedSite(workerName)) return setStatus('⚠️ Operaio già impegnato.', 'error');
+      state.assignmentsBySite[siteName].push(workerName);
       renderAll();
-
-      setStatus('⏳ Salvataggio assegnazione...', 'ok');
-      await persistSiteWorkers(siteName, current[siteName]);
-      setStatus('✓ Operaio assegnato.', 'ok');
+      await apiPost({ action: 'setSiteWorkers', targetDate: state.targetDate, siteName, workers: state.assignmentsBySite[siteName] });
+      setStatus('✓ Assegnato.', 'ok');
     }
 
     async function removeWorkerFromSite(siteName, workerName){
-      const current = JSON.parse(JSON.stringify(state.assignmentsBySite || {}));
-      current[siteName] = (current[siteName] || []).filter(n => n !== workerName);
-
-      state.assignmentsBySite = current;
-      saveSnapshot();
+      state.assignmentsBySite[siteName] = state.assignmentsBySite[siteName].filter(n => n !== workerName);
       renderAll();
-
-      setStatus('⏳ Rimozione assegnazione...', 'ok');
-      await persistSiteWorkers(siteName, current[siteName]);
-      setStatus('✓ Assegnazione rimossa.', 'ok');
+      await apiPost({ action: 'setSiteWorkers', targetDate: state.targetDate, siteName, workers: state.assignmentsBySite[siteName] });
     }
 
     async function createTask(siteName){
-      const txtEl = document.querySelector(`[data-task-input="${CSS.escape(siteName)}"]`);
-      const prEl = document.querySelector(`[data-priority-input="${CSS.escape(siteName)}"]`);
-      const text = (txtEl?.value || '').trim();
-      const priority = (prEl?.value || '3').trim();
-
-      if(!text){
-        setStatus('⚠️ Inserisci la lavorazione.', 'error');
-        return;
-      }
-
-      const fakeRow = `tmp_${Date.now()}`;
-
-      state.tasksBySite[siteName] = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-      state.tasksBySite[siteName].unshift({
-        row: fakeRow,
-        createdAt: new Date().toLocaleString('it-IT'),
-        text,
-        priority,
-        temp: true
-      });
-
-      txtEl.value = '';
-      saveSnapshot();
-      renderSites();
-
-      setStatus('⏳ Salvataggio lavorazione...', 'ok');
-      await apiPost({
-        action: 'createTask',
-        siteName,
-        text,
-        priority
-      });
-
+      const txt = document.querySelector(`[data-task-input="${CSS.escape(siteName)}"]`).value.trim();
+      const pr = document.querySelector(`[data-priority-input="${CSS.escape(siteName)}"]`).value;
+      if(!txt) return;
+      await apiPost({ action: 'createTask', siteName, text: txt, priority: pr });
       await loadAll(true);
-      setStatus('✓ Lavorazione aggiunta.', 'ok');
-    }
-
-    function openEditTask(siteName, row){
-      const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-      const task = arr.find(t => String(t.row) === String(row));
-      if(!task) return;
-
-      if(task.temp){
-        setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
-        return;
-      }
-
-      $('#editSiteId').value = siteName;
-      $('#editId').value = row;
-      $('#editTaskText').value = task.text || '';
-      $('#editPriority').value = String(task.priority || '3');
-      $('#editWorkers').value = (state.assignmentsBySite[siteName] || []).join(', ');
-
-      overlay.style.display = 'block';
-      modalTodo.style.display = 'block';
-    }
-
-    function closeModal(){
-      overlay.style.display = 'none';
-      modalTodo.style.display = 'none';
-    }
-
-    async function saveTaskEdit(){
-      const siteName = $('#editSiteId').value;
-      const row = String($('#editId').value || '');
-      const text = $('#editTaskText').value.trim();
-      const priority = $('#editPriority').value;
-
-      if(!siteName || !row || !text){
-        setStatus('⚠️ Dati lavorazione incompleti.', 'error');
-        return;
-      }
-
-      const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-      const task = arr.find(t => String(t.row) === String(row));
-      if(task){
-        task.text = text;
-        task.priority = priority;
-      }
-
-      closeModal();
-      saveSnapshot();
-      renderSites();
-
-      setStatus('⏳ Aggiornamento lavorazione...', 'ok');
-
-      await apiPost({
-        action: 'updateTask',
-        siteName,
-        row,
-        text,
-        priority
-      });
-
-      await loadAll(true);
-      setStatus('✓ Lavorazione aggiornata.', 'ok');
     }
 
     async function closeTask(siteName, row){
-      const arr = Array.isArray(state.tasksBySite[siteName]) ? state.tasksBySite[siteName] : [];
-      const idx = arr.findIndex(t => String(t.row) === String(row));
-      if(idx < 0) return;
-
-      if(arr[idx].temp){
-        setStatus('⚠️ Questa lavorazione è appena stata creata. Premi prima "Carica dati" per riallineare il foglio.', 'error');
-        return;
-      }
-
-      arr.splice(idx, 1);
-      state.tasksBySite[siteName] = arr;
-
-      saveSnapshot();
-      renderSites();
-
-      setStatus('⏳ Chiusura lavorazione...', 'ok');
-
-      await apiPost({
-        action: 'closeTask',
-        siteName,
-        row
-      });
-
+      await apiPost({ action: 'closeTask', siteName, row });
       await loadAll(true);
-      setStatus('✓ Lavorazione chiusa.', 'ok');
     }
-
-    async function exportSiteCard(siteName){
-      const card = Array.from(document.querySelectorAll('.site-card')).find(el => el.dataset.siteCardName === siteName);
-      if(!card){
-        setStatus('⚠️ Card non trovata per export.', 'error');
-        return;
-      }
-
-      try {
-        setStatus(`⏳ Export PDF di ${siteName}...`, 'ok');
-
-        const clone = card.cloneNode(true);
-        clone.classList.remove('focused-floating', 'card-drop-over');
-        clone.style.position = 'static';
-        clone.style.width = `${card.offsetWidth}px`;
-        clone.style.maxHeight = 'none';
-        clone.style.overflow = 'visible';
-        clone.style.transform = 'none';
-        clone.style.opacity = '1';
-        clone.style.filter = 'none';
-
-        clone.querySelectorAll('.site-dropzone, .todo-form, .compact-summary, .badge').forEach(el => {
-          if (el) el.remove();
-        });
-
-        const assigned = Array.isArray(state.assignmentsBySite[siteName]) ? state.assignmentsBySite[siteName] : [];
-        const assignedHtml = assigned.length
-          ? assigned.map(name => {
-              const worker = state.workers.find(w => w.name === name) || {
-                name,
-                photoUrl: photoUrlForWorker(name)
-              };
-              return `
-                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d9e2ec;border-radius:999px;background:#ffffff;font-size:12px;font-weight:700;color:#334155;">
-                  <img src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#dfe7f1;" onerror="this.onerror=null;this.src='https://via.placeholder.com/22?text=%F0%9F%91%B7'">
-                  ${escapeHtml(worker.name)}
-                </span>
-              `;
-            }).join('')
-          : `<span style="font-size:12px;color:#64748b;font-style:italic;">Nessun operaio assegnato</span>`;
-
-        const exportHeader = document.createElement('div');
-        exportHeader.style.marginBottom = '12px';
-        exportHeader.style.padding = '10px 12px';
-        exportHeader.style.border = '1px solid #d9e2ec';
-        exportHeader.style.borderRadius = '12px';
-        exportHeader.style.background = '#f8fbff';
-        exportHeader.style.fontFamily = 'Arial, sans-serif';
-        exportHeader.innerHTML = `
-          <div style="font-size:18px;font-weight:800;color:#1f2d3d;">Elenco prossime lavorazioni al ${formatDateIT(state.targetDate)}</div>
-          <div style="font-size:15px;font-weight:800;color:#1f2d3d;margin-top:6px;">${siteName}</div>
-        `;
-
-        const assignedBox = document.createElement('div');
-        assignedBox.style.marginBottom = '12px';
-        assignedBox.style.padding = '10px 12px';
-        assignedBox.style.border = '1px solid #d9e2ec';
-        assignedBox.style.borderRadius = '12px';
-        assignedBox.style.background = '#ffffff';
-        assignedBox.innerHTML = `
-          <div style="font-size:13px;font-weight:800;color:#334155;margin-bottom:8px;">Operai coinvolti</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;">${assignedHtml}</div>
-        `;
-
-        const wrapper = document.createElement('div');
-        wrapper.style.width = `${card.offsetWidth}px`;
-        wrapper.style.background = '#ffffff';
-        wrapper.appendChild(exportHeader);
-        wrapper.appendChild(assignedBox);
-        wrapper.appendChild(clone);
-
-        const holder = document.createElement('div');
-        holder.style.position = 'absolute';
-        holder.style.left = '-10000px';
-        holder.style.top = '0';
-        holder.style.width = `${card.offsetWidth}px`;
-        holder.style.background = '#ffffff';
-        holder.appendChild(wrapper);
-        document.body.appendChild(holder);
-
-        const canvas = await html2canvas(wrapper, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          logging: false
-        });
-
-        document.body.removeChild(holder);
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-
-        const pageW = pdf.internal.pageSize.getWidth();
-        const pageH = pdf.internal.pageSize.getHeight();
-        const margin = 18;
-        const availW = pageW - margin * 2;
-        const availH = pageH - margin * 2;
-        const ratio = Math.min(availW / canvas.width, availH / canvas.height);
-
-        const w = canvas.width * ratio;
-        const h = canvas.height * ratio;
-        const x = margin + (availW - w) / 2;
-        const y = margin;
-
-        const img = canvas.toDataURL('image/png');
-        pdf.addImage(img, 'PNG', x, y, w, h);
-
-        const safeName = siteName.replace(/[\\/:*?"<>|]+/g, '_');
-        pdf.save(`Smistamento_${safeName}_${state.targetDate}.pdf`);
-
-        setStatus('✓ PDF esportato: ' + siteName, 'ok');
-      } catch (err) {
-        console.error(err);
-        setStatus(`✗ Export PDF fallito: ${err.message}`, 'error');
-      }
-    }
-
-    workerSearch.addEventListener('input', renderWorkers);
-    siteSearch.addEventListener('input', renderSites);
-
-    viewModeSelect.addEventListener('change', () => {
-      state.viewMode = viewModeSelect.value || 'expanded';
-      closeFocus();
-      renderSites();
-    });
 
     $('#btnReload').addEventListener('click', () => loadAll(true));
-
-    $('#btnResetDay').addEventListener('click', async () => {
-      if(!confirm(`Confermi il reset assegnazioni del ${formatDateIT(state.targetDate)}?`)) return;
-
-      state.assignmentsBySite = {};
-      saveSnapshot();
-      renderAll();
-
-      setStatus('⏳ Reset assegnazioni...', 'ok');
-      await apiPost({
-        action:'resetSiteWorkers',
-        targetDate: state.targetDate
-      });
-
-      await loadAll(true);
-      setStatus('✓ Giornata resettata.', 'ok');
-    });
-
-    $('#btnCloseModal').addEventListener('click', closeModal);
-    $('#btnSaveEdit').addEventListener('click', saveTaskEdit);
-    overlay.addEventListener('click', closeModal);
     focusBackdrop.addEventListener('click', closeFocus);
-
-    btnSubSend.addEventListener('click', async () => {
-  const txt = (subFreeText.value || '').trim();
-
-  if(!state.focusedSiteName){
-    setStatus('⚠️ Nessun cantiere selezionato.', 'error');
-    return;
-  }
-
-  if(!txt){
-    setStatus('⚠️ Scrivi il nome della ditta.', 'error');
-    return;
-  }
-
-  try {
-    btnSubSend.disabled = true;
-    setStatus('⏳ Invio richiesta aggiornamento notifica preliminare...', 'ok');
-
-    await apiPost({
-      action: 'requestSubNotificationUpdate',
-      siteName: state.focusedSiteName,
-      companyName: txt,
-      targetDate: state.targetDate
-    });
-
-    setStatus(`✓ Richiesta inviata per "${txt}" sul cantiere ${state.focusedSiteName}.`, 'ok');
-    subFreeText.value = '';
-
-    alert(
-      'Invio riuscito.\n\n' +
-      'Richiesta aggiornata per:\n' +
-      '- Cantiere: ' + state.focusedSiteName + '\n' +
-      '- Ditta: ' + txt
-    );
-  } catch (err) {
-    console.error(err);
-    setStatus(`✗ Errore invio richiesta: ${err.message}`, 'error');
-    alert('Errore durante l’invio della mail:\n' + err.message);
-  } finally {
-    btnSubSend.disabled = false;
-  }
-});
-
-    window.addEventListener('keydown', e => {
-      if(e.key === 'Escape') {
-        closeModal();
-        closeFocus();
-      }
-    });
-
-    let resizeRenderTimer = null;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeRenderTimer);
-      resizeRenderTimer = setTimeout(() => {
-        renderSites();
-        if (state.focusedSiteName) renderSubPanel();
-      }, 120);
-    });
-
-    setInterval(() => {
-      const next = nextDayISO();
-      if(state.targetDate !== next){
-        updateHeader();
-        setStatus('ℹ️ È cambiato il giorno operativo. Premi "Carica dati" per riallineare.', 'ok');
-      }
-    }, 60 * 1000);
-
-    window.createTask = createTask;
-    window.openEditTask = openEditTask;
-    window.closeTask = closeTask;
-    window.removeWorkerFromSite = removeWorkerFromSite;
-    window.exportSiteCard = exportSiteCard;
+    workerSearch.addEventListener('input', renderWorkers);
+    siteSearch.addEventListener('input', renderSites);
+    viewModeSelect.addEventListener('change', () => { state.viewMode = viewModeSelect.value; renderSites(); });
 
     loadAll(false);
   </script>
