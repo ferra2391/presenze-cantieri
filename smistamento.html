@@ -2236,35 +2236,46 @@
     focusBackdrop.addEventListener('click', closeFocus);
 
     btnSubSend.addEventListener('click', async () => {
-      const txt = (subFreeText.value || '').trim();
+  const txt = (subFreeText.value || '').trim();
 
-      if(!state.focusedSiteName){
-        setStatus('⚠️ Nessun cantiere selezionato.', 'error');
-        return;
-      }
+  if(!state.focusedSiteName){
+    setStatus('⚠️ Nessun cantiere selezionato.', 'error');
+    return;
+  }
 
-      if(!txt){
-        setStatus('⚠️ Scrivi il nome della ditta.', 'error');
-        return;
-      }
+  if(!txt){
+    setStatus('⚠️ Scrivi il nome della ditta.', 'error');
+    return;
+  }
 
-      try {
-        setStatus('⏳ Invio richiesta aggiornamento notifica preliminare...', 'ok');
+  try {
+    btnSubSend.disabled = true;
+    setStatus('⏳ Invio richiesta aggiornamento notifica preliminare...', 'ok');
 
-        await apiPost({
-          action: 'requestSubNotificationUpdate',
-          siteName: state.focusedSiteName,
-          companyName: txt,
-          targetDate: state.targetDate
-        });
-
-        setStatus(`✓ Richiesta inviata per "${txt}" sul cantiere ${state.focusedSiteName}.`, 'ok');
-        subFreeText.value = '';
-      } catch (err) {
-        console.error(err);
-        setStatus(`✗ Errore invio richiesta: ${err.message}`, 'error');
-      }
+    await apiPost({
+      action: 'requestSubNotificationUpdate',
+      siteName: state.focusedSiteName,
+      companyName: txt,
+      targetDate: state.targetDate
     });
+
+    setStatus(`✓ Richiesta inviata per "${txt}" sul cantiere ${state.focusedSiteName}.`, 'ok');
+    subFreeText.value = '';
+
+    alert(
+      'Invio riuscito.\n\n' +
+      'Richiesta aggiornata per:\n' +
+      '- Cantiere: ' + state.focusedSiteName + '\n' +
+      '- Ditta: ' + txt
+    );
+  } catch (err) {
+    console.error(err);
+    setStatus(`✗ Errore invio richiesta: ${err.message}`, 'error');
+    alert('Errore durante l’invio della mail:\n' + err.message);
+  } finally {
+    btnSubSend.disabled = false;
+  }
+});
 
     window.addEventListener('keydown', e => {
       if(e.key === 'Escape') {
