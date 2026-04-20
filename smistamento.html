@@ -447,7 +447,7 @@
       filter: saturate(.72);
     }
 
-   .site-card.focused-floating {
+    .site-card.focused-floating {
       position: fixed;
       top: 50%;
       left: calc(50% - 210px);
@@ -475,7 +475,7 @@
 
     .focus-backdrop.show { display: block; }
 
-   .sub-panel-floating {
+    .sub-panel-floating {
       position: fixed;
       top: 50%;
       left: calc(50% + 395px);
@@ -1215,7 +1215,7 @@
 
     <div class="sub-box">
       <div class="sub-box-title">Nuova ditta da notificare</div>
-      <div class="sub-box-note">Per ora è solo predisposizione funzione.</div>
+      <div class="sub-box-note">Invia richiesta aggiornamento notifica preliminare.</div>
       <div class="sub-send-row">
         <input type="text" id="subFreeText" placeholder="Scrivi nome ditta..." />
         <button id="btnSubSend" class="primary">Invia</button>
@@ -1254,8 +1254,8 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
@@ -1385,14 +1385,12 @@
       return ordered;
     }
 
-    // AGGIUNTO LOADING="LAZY" QUI
     function workerImage(url, name){
-      return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
+      return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
     }
 
-    // AGGIUNTO LOADING="LAZY" QUI
     function miniImage(url, name){
-      return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`;
+      return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`;
     }
 
     function labelPriority(v){
@@ -1540,11 +1538,28 @@
     }
 
     async function apiPost(payload){
-      await fetch(GAS_URL, {
+      const res = await fetch(GAS_URL, {
         method: 'POST',
-        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
         body: JSON.stringify(payload)
       });
+
+      const text = await res.text();
+
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch(e) {
+        throw new Error('Risposta non valida dal server');
+      }
+
+      if (!json.ok) {
+        throw new Error(json.error || 'Errore server');
+      }
+
+      return json;
     }
 
     function setStatus(msg, type='ok'){
@@ -1666,21 +1681,7 @@
       }
 
       subPanelSiteName.textContent = siteName;
-
-      let subs = Array.isArray(state.subBySite[siteName]) ? state.subBySite[siteName] : [];
-
-      const seen = new Set();
-      subs = subs
-        .map(s => String(s || '').trim())
-        .filter(Boolean)
-        .filter(s => !/^NON MAPPATA\s*-/i.test(s))
-        .filter(s => {
-          const key = normalize(s);
-          if (!key || seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        })
-        .sort((a, b) => a.localeCompare(b, 'it'));
+      const subs = Array.isArray(state.subBySite[siteName]) ? state.subBySite[siteName] : [];
 
       if(!subs.length){
         subList.innerHTML = `<div class="sub-empty">Nessun subappaltatore notificato.</div>`;
@@ -1690,7 +1691,6 @@
         `).join('');
       }
 
-      subFreeText.value = '';
       subPanel.classList.add('show');
     }
 
@@ -1740,8 +1740,7 @@
                 name,
                 photoUrl: photoUrlForWorker(name)
               };
-              // AGGIUNTO LOADING="LAZY" QUI
-              return `<img class="compact-worker-face" src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" title="${escapeHtml(worker.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/24?text=%F0%9F%91%B7'">`;
+              return `<img class="compact-worker-face" src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" title="${escapeHtml(worker.name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/24?text=%F0%9F%91%B7'">`;
             }).join('')
           : `<span class="compact-workers-empty">Nessuno</span>`;
 
@@ -1994,7 +1993,8 @@
         priority
       });
 
-      setStatus('✓ Lavorazione aggiunta. Premi "Carica dati" quando vuoi riallineare dal foglio.', 'ok');
+      await loadAll(true);
+      setStatus('✓ Lavorazione aggiunta.', 'ok');
     }
 
     function openEditTask(siteName, row){
@@ -2054,6 +2054,7 @@
         priority
       });
 
+      await loadAll(true);
       setStatus('✓ Lavorazione aggiornata.', 'ok');
     }
 
@@ -2081,6 +2082,7 @@
         row
       });
 
+      await loadAll(true);
       setStatus('✓ Lavorazione chiusa.', 'ok');
     }
 
@@ -2115,10 +2117,9 @@
                 name,
                 photoUrl: photoUrlForWorker(name)
               };
-              // AGGIUNTO LOADING="LAZY" QUI
               return `
                 <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d9e2ec;border-radius:999px;background:#ffffff;font-size:12px;font-weight:700;color:#334155;">
-                  <img src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" loading="lazy" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#dfe7f1;" onerror="this.onerror=null;this.src='https://via.placeholder.com/22?text=%F0%9F%91%B7'">
+                  <img src="${escapeHtml(worker.photoUrl)}" alt="${escapeHtml(worker.name)}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#dfe7f1;" onerror="this.onerror=null;this.src='https://via.placeholder.com/22?text=%F0%9F%91%B7'">
                   ${escapeHtml(worker.name)}
                 </span>
               `;
@@ -2224,6 +2225,8 @@
         action:'resetSiteWorkers',
         targetDate: state.targetDate
       });
+
+      await loadAll(true);
       setStatus('✓ Giornata resettata.', 'ok');
     });
 
@@ -2232,18 +2235,35 @@
     overlay.addEventListener('click', closeModal);
     focusBackdrop.addEventListener('click', closeFocus);
 
-    btnSubSend.addEventListener('click', () => {
+    btnSubSend.addEventListener('click', async () => {
       const txt = (subFreeText.value || '').trim();
+
       if(!state.focusedSiteName){
         setStatus('⚠️ Nessun cantiere selezionato.', 'error');
         return;
       }
+
       if(!txt){
         setStatus('⚠️ Scrivi il nome della ditta.', 'error');
         return;
       }
-      setStatus(`✓ Predisposizione invio registrata per "${txt}" su ${state.focusedSiteName}. Indirizzo mail non ancora configurato.`, 'ok');
-      subFreeText.value = '';
+
+      try {
+        setStatus('⏳ Invio richiesta aggiornamento notifica preliminare...', 'ok');
+
+        await apiPost({
+          action: 'requestSubNotificationUpdate',
+          siteName: state.focusedSiteName,
+          companyName: txt,
+          targetDate: state.targetDate
+        });
+
+        setStatus(`✓ Richiesta inviata per "${txt}" sul cantiere ${state.focusedSiteName}.`, 'ok');
+        subFreeText.value = '';
+      } catch (err) {
+        console.error(err);
+        setStatus(`✗ Errore invio richiesta: ${err.message}`, 'error');
+      }
     });
 
     window.addEventListener('keydown', e => {
