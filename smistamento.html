@@ -1660,7 +1660,7 @@
       await apiPost({ action: 'setSiteWorkers', targetDate: state.targetDate, siteName, workers: state.assignmentsBySite[siteName] });
     }
 
-    async function createTask(siteName){
+   async function createTask(siteName){
   const txtEl = Array.from(document.querySelectorAll('[data-task-input]'))
     .find(el => el.getAttribute('data-task-input') === siteName);
 
@@ -1672,60 +1672,73 @@
   const txt = txtEl.value.trim();
   const pr = prEl.value;
 
-  if(!txt) return;
+  if (!txt) return;
 
-  await apiPost({
-    action: 'createTask',
-    siteName,
+  if (!Array.isArray(state.tasksBySite[siteName])) {
+    state.tasksBySite[siteName] = [];
+  }
+
+  // anteprima immediata in pagina
+  const tempRow = `tmp_${Date.now()}`;
+  state.tasksBySite[siteName].unshift({
+    row: tempRow,
     text: txt,
     priority: pr
   });
 
-  await loadAll(true);
+  txtEl.value = '';
+  prEl.value = '1';
+
+  renderSites();
+  if (state.focusedSiteName) renderFloatingPanels();
+  setStatus('✓ Lavorazione aggiunta.', 'ok');
+
+  try {
+    await apiPost({
+      action: 'createTask',
+      targetDate: state.targetDate,
+      siteName,
+      text: txt,
+      priority: pr
+    });
+
+    await loadAll(true);
+  } catch (err) {
+    // rollback se il server fallisce
+    state.tasksBySite[siteName] = state.tasksBySite[siteName]
+      .filter(t => t.row !== tempRow);
+
+    renderSites();
+    if (state.focusedSiteName) renderFloatingPanels();
+    setStatus(`✗ Errore salvataggio lavorazione: ${err.message}`, 'error');
+  }
 }
 
-    async function closeTask(siteName, row){
-      await apiPost({ action: 'closeTask', siteName, row });
-      await loadAll(true);
-    }
+async function closeTask(siteName, row){
+  if (!Array.isArray(state.tasksBySite[siteName])) return;
 
-    $('#btnSubSend').addEventListener('click', async () => {
-      const subFreeText = $('#subFreeText');
-      const txt = subFreeText.value.trim();
-      if (!txt) return;
-      if (!state.focusedSiteName) {
-        alert('Nessun cantiere selezionato.');
-        return;
-      }
-      
-      try {
-        $('#btnSubSend').disabled = true;
-        setStatus('Inviando richiesta per nuova ditta...', 'ok');
-        
-        await apiPost({
-          action: 'requestSubNotificationUpdate',
-          siteName: state.focusedSiteName,
-          companyName: txt,
-          targetDate: state.targetDate
-        });
+  const oldTasks = [...state.tasksBySite[siteName]];
+  state.tasksBySite[siteName] = state.tasksBySite[siteName].filter(t => String(t.row) !== String(row));
 
-        setStatus(`✓ Richiesta inviata per "${txt}" sul cantiere ${state.focusedSiteName}.`, 'ok');
-        subFreeText.value = '';
+  renderSites();
+  if (state.focusedSiteName) renderFloatingPanels();
 
-        alert(
-          'Invio riuscito.\n\n' +
-          'Richiesta aggiornata per:\n' +
-          '- Cantiere: ' + state.focusedSiteName + '\n' +
-          '- Ditta: ' + txt
-        );
-      } catch (err) {
-        console.error(err);
-        setStatus(`✗ Errore invio richiesta: ${err.message}`, 'error');
-        alert('Errore durante l’invio della mail:\n' + err.message);
-      } finally {
-        $('#btnSubSend').disabled = false;
-      }
+  try {
+    await apiPost({
+      action: 'closeTask',
+      targetDate: state.targetDate,
+      siteName,
+      row
     });
+
+    await loadAll(true);
+  } catch (err) {
+    state.tasksBySite[siteName] = oldTasks;
+    renderSites();
+    if (state.focusedSiteName) renderFloatingPanels();
+    setStatus(`✗ Errore chiusura lavorazione: ${err.message}`, 'error');
+  }
+}
 
     window.addEventListener('keydown', e => {
       if(e.key === 'Escape') {
