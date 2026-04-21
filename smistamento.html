@@ -1532,12 +1532,13 @@
     }
 
     function openFocus(siteName){
-      state.focusedSiteName = siteName;
-      renderSites();
-      renderFloatingPanels();
-      focusBackdrop.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    }
+  if (state.focusedSiteName === siteName) return;
+  state.focusedSiteName = siteName;
+  renderSites();
+  renderFloatingPanels();
+  focusBackdrop.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
 
     function closeFocus(){
       state.focusedSiteName = null;
@@ -1549,41 +1550,99 @@
     }
 
     function renderSites(){
-      const q = normalize(siteSearch.value);
-      const sites = state.sites.filter(name => !q || normalize(name).includes(q)).sort(compareSitesForDisplay);
-      cantiereGrid.innerHTML = '';
-      cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
-      cantiereGrid.classList.toggle('compact-mode', state.viewMode === 'compact');
+  const q = normalize(siteSearch.value);
+  const sites = state.sites
+    .filter(name => !q || normalize(name).includes(q))
+    .sort(compareSitesForDisplay);
 
-      sites.forEach((siteName, index) => {
-        const assigned = state.assignmentsBySite[siteName] || [];
-        const tasks = state.tasksBySite[siteName] || [];
-        const isFocused = state.focusedSiteName === siteName;
-        
-        const card = document.createElement('div');
-        card.className = `site-card ${isFocused ? ' focused-floating' : ''}`;
-        card.innerHTML = `
-          <div class="site-head">
-            <div class="site-head-left">
-              <div class="site-name">${escapeHtml(siteName)}</div>
-              <span class="badge">${tasks.length} lavorazioni</span>
+  cantiereGrid.innerHTML = '';
+  cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
+  cantiereGrid.classList.toggle('compact-mode', state.viewMode === 'compact');
+
+  sites.forEach((siteName, index) => {
+    const assigned = state.assignmentsBySite[siteName] || [];
+    const tasks = state.tasksBySite[siteName] || [];
+    const isFocused = state.focusedSiteName === siteName;
+
+    const card = document.createElement('div');
+    card.className = `site-card ${isFocused ? ' focused-floating' : ''}`;
+    card.innerHTML = `
+      <div class="site-head">
+        <div class="site-head-left">
+          <div class="site-name">${escapeHtml(siteName)}</div>
+          <span class="badge">${tasks.length} lavorazioni</span>
+        </div>
+        <div class="site-head-right">
+          <button class="export-btn" onclick='event.stopPropagation(); exportSiteCard(${jsStr(siteName)})'>📄 Export</button>
+        </div>
+      </div>
+
+      <div class="site-dropzone">
+        <div class="assigned-list">
+          ${
+            assigned.length
+              ? assigned.map(n => `
+                  <div class="assigned-item">
+                    <div class="assigned-left">
+                      <div class="assigned-name">${escapeHtml(n)}</div>
+                    </div>
+                    <button class="icon-btn" onclick='event.stopPropagation(); removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(n)})'>✕</button>
+                  </div>
+                `).join('')
+              : '<div class="assigned-empty">Nessuno.</div>'
+          }
+        </div>
+      </div>
+
+      <div class="todo-form">
+        <textarea
+          placeholder="Nuova lavorazione..."
+          data-task-input="${escapeHtml(siteName)}"
+        ></textarea>
+
+        <select data-priority-input="${escapeHtml(siteName)}">
+          <option value="1">🔴 Urgente</option>
+          <option value="2">🟠 Media</option>
+          <option value="3">⚪ Minima</option>
+        </select>
+
+        <button class="primary" onclick='event.stopPropagation(); createTask(${jsStr(siteName)})'>Vai</button>
+      </div>
+
+      <div class="todo-list">
+        ${
+          tasks.map(t => `
+            <div class="todo-item priority-${priorityClass(t.priority)}">
+              <div class="todo-top">
+                <div class="todo-text">${escapeHtml(t.text)}</div>
+                <div class="todo-actions">
+                  <button class="icon-btn" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
+                </div>
+              </div>
             </div>
-            <div class="site-head-right"><button class="export-btn" onclick='event.stopPropagation(); exportSiteCard(${jsStr(siteName)})'>📄 Export</button></div>
-          </div>
-          <div class="site-dropzone">
-            <div class="assigned-list">${assigned.length ? assigned.map(n => `<div class="assigned-item"><div class="assigned-left"><div class="assigned-name">${escapeHtml(n)}</div></div><button class="icon-btn" onclick='event.stopPropagation(); removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(n)})'>✕</button></div>`).join('') : '<div class="assigned-empty">Nessuno.</div>'}</div>
-          </div>
-          <div class="todo-form">
-            <textarea placeholder="Nuova lavorazione..." data-task-input="${escapeHtml(siteName)}"></textarea>
-            <select data-priority-input="${escapeHtml(siteName)}"><option value="1">🔴 Urgente</option><option value="2">🟠 Media</option><option value="3">⚪ Minima</option></select>
-            <button class="primary" onclick='event.stopPropagation(); createTask(${jsStr(siteName)})'>Vai</button>
-          </div>
-          <div class="todo-list">${tasks.map(t => `<div class="todo-item priority-${priorityClass(t.priority)}"><div class="todo-top"><div class="todo-text">${escapeHtml(t.text)}</div><div class="todo-actions"><button class="icon-btn" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button></div></div></div>`).join('')}</div>
-        `;
-        card.addEventListener('click', () => openFocus(siteName));
-        cantiereGrid.appendChild(card);
-      });
-    }
+          `).join('')
+        }
+      </div>
+    `;
+
+    // Click sulla card: apre il focus SOLO se non hai cliccato su elementi interattivi
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('textarea, input, select, button, a')) return;
+      if (state.focusedSiteName !== siteName) {
+        openFocus(siteName);
+      }
+    });
+
+    // Blocca la propagazione sugli elementi interattivi
+    card.querySelectorAll('textarea, input, select, button, a').forEach(el => {
+      el.addEventListener('click', e => e.stopPropagation());
+      el.addEventListener('mousedown', e => e.stopPropagation());
+      el.addEventListener('dblclick', e => e.stopPropagation());
+    });
+
+    cantiereGrid.appendChild(card);
+  });
+}
 
     function renderAll(){ renderWorkers(); renderSites(); if(state.focusedSiteName) renderFloatingPanels(); }
 
@@ -1602,12 +1661,28 @@
     }
 
     async function createTask(siteName){
-      const txt = document.querySelector(`[data-task-input="${CSS.escape(siteName)}"]`).value.trim();
-      const pr = document.querySelector(`[data-priority-input="${CSS.escape(siteName)}"]`).value;
-      if(!txt) return;
-      await apiPost({ action: 'createTask', siteName, text: txt, priority: pr });
-      await loadAll(true);
-    }
+  const txtEl = Array.from(document.querySelectorAll('[data-task-input]'))
+    .find(el => el.getAttribute('data-task-input') === siteName);
+
+  const prEl = Array.from(document.querySelectorAll('[data-priority-input]'))
+    .find(el => el.getAttribute('data-priority-input') === siteName);
+
+  if (!txtEl || !prEl) return;
+
+  const txt = txtEl.value.trim();
+  const pr = prEl.value;
+
+  if(!txt) return;
+
+  await apiPost({
+    action: 'createTask',
+    siteName,
+    text: txt,
+    priority: pr
+  });
+
+  await loadAll(true);
+}
 
     async function closeTask(siteName, row){
       await apiPost({ action: 'closeTask', siteName, row });
