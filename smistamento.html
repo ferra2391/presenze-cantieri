@@ -525,6 +525,63 @@
     .congruita-value.percentage { color: var(--primary); }
     .congruita-value.currency { color: var(--success); }
 
+    .sub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.sub-link {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  transition: all .2s;
+}
+
+.sub-link:hover {
+  border-color: var(--primary);
+  background: var(--hover-bg);
+}
+
+.sub-empty {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.sub-box {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sub-box-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.sub-send-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: start;
+}
+    
     .focus-backdrop {
       position: fixed;
       inset: 0;
@@ -796,18 +853,18 @@
 
   <div class="focus-backdrop" id="focusBackdrop"></div>
 
-  <div class="sub-panel sub-panel-floating" id="subPanel">
-    <h3>Subappaltatori notificati</h3>
-    <div class="section-note" id="subPanelSiteName">—</div>
-    <div class="sub-list" id="subList"></div>
-    <div class="sub-box">
-      <div class="sub-box-title">Nuova ditta da notificare</div>
-      <div class="sub-send-row">
-        <input type="text" id="subFreeText" placeholder="Scrivi nome ditta..." />
-        <button id="btnSubSend" class="primary">Invia</button>
-      </div>
+<div class="sub-panel sub-panel-floating" id="subPanel">
+  <h3>Subappaltatori notificati</h3>
+  <div class="section-note" id="subPanelSiteName">—</div>
+  <div class="sub-list" id="subList"></div>
+  <div class="sub-box">
+    <div class="sub-box-title">Nuova ditta da notificare</div>
+    <div class="sub-send-row">
+      <input type="text" id="subFreeText" placeholder="Scrivi nome ditta..." />
+      <button id="btnSubSend" class="primary">Invia</button>
     </div>
   </div>
+</div>
 
   <div class="congruita-panel congruita-panel-floating" id="congruitaPanel">
     <h3>Congruità Cantiere</h3>
