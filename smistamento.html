@@ -581,13 +581,6 @@
       background: #eef6ff;
     }
 
-    .drop-hint {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-light);
-      margin-bottom: 8px;
-    }
-
     .assigned-list {
       display: flex;
       flex-direction: column;
@@ -701,369 +694,10 @@
       white-space: pre-wrap;
     }
 
-    .todo-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: 11px;
-      color: var(--text-light);
-      font-weight: 700;
-    }
-
-    .todo-meta span {
-      padding: 5px 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.7);
-      border: 1px solid rgba(0,0,0,.08);
-    }
-
-    .priority-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-      vertical-align: -1px;
-      margin-right: 6px;
-    }
-
-    .priority-dot.rosso { background: #d40000; }
-    .priority-dot.arancione { background: #ff8a00; }
-    .priority-dot.bianco { background: #fff; border: 1px solid #bbb; }
-
     .todo-actions {
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-    }
-
-    .compact-summary { display: none; }
-
-    .cantiere-grid.compact-mode {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
-
-    .cantiere-grid.compact-mode .site-card {
-      min-height: 156px;
-      gap: 8px;
-      padding: 12px;
-    }
-
-    .cantiere-grid.compact-mode .site-dropzone,
-    .cantiere-grid.compact-mode .drop-hint {
-      display: none !important;
-    }
-
-    .cantiere-grid.compact-mode .todo-form,
-    .cantiere-grid.compact-mode .todo-list,
-    .cantiere-grid.compact-mode .todo-empty,
-    .cantiere-grid.compact-mode .todo-item,
-    .cantiere-grid.compact-mode .assigned-item {
-      display: none !important;
-    }
-
-    .cantiere-grid.compact-mode .site-head {
-      margin-bottom: 2px;
-    }
-
-    .cantiere-grid.compact-mode .site-name {
-      font-size: 15px;
-    }
-
-    .cantiere-grid.compact-mode .badge {
-      font-size: 11px;
-      padding: 6px 9px;
-    }
-
-    .cantiere-grid.compact-mode .compact-summary {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto 1fr;
-      gap: 8px 10px;
-      align-items: start;
-      min-height: 86px;
-    }
-
-    .compact-workers-bar {
-      grid-column: 1 / -1;
-      min-height: 34px;
-      border-radius: 12px;
-      background: transparent;
-      border: 1px solid var(--border);
-      padding: 5px 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: thin;
-    }
-
-    .compact-workers-empty {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .compact-worker-face {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      flex: 0 0 24px;
-    }
-
-    .compact-left-half {
-      grid-column: 1;
-      grid-row: 2;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      gap: 7px;
-      min-width: 0;
-    }
-
-    .compact-right-half {
-      grid-column: 2;
-      grid-row: 2;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      gap: 7px;
-      min-width: 0;
-    }
-
-    .compact-stats-row {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 8px;
-    }
-
-    .compact-left-stats {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .compact-left-stats .compact-label {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .compact-count {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 34px;
-      height: 30px;
-      padding: 0 10px;
-      border-radius: 999px;
-      background: #f4f6f8;
-      border: 1px solid var(--border);
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .compact-bar-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-    }
-
-    .compact-bar {
-      width: 100%;
-      height: 12px;
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: #f2f4f7;
-      display: flex;
-    }
-
-    .compact-seg-white { background: #ffffff; }
-    .compact-seg-orange { background: #ff8a00; }
-    .compact-seg-red { background: #d40000; }
-
-    .compact-legend {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--text-light);
-      font-weight: 800;
-    }
-
-    .compact-legend span {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .compact-workers-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .compact-workers-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .compact-worker-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 7px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: rgba(255,255,255,.65);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-light);
-    }
-
-    .site-card.focused-floating .todo-form {
-      display: grid !important;
-    }
-
-    .site-card.focused-floating .todo-list {
-      display: flex !important;
-    }
-
-    .site-card.focused-floating .todo-item,
-    .site-card.focused-floating .assigned-item {
-      display: flex !important;
-    }
-
-    .site-card.focused-floating .todo-empty {
-      display: block !important;
-    }
-
-    .site-card.focused-floating .compact-summary {
-      display: none !important;
-    }
-
-    .site-card.focused-floating .site-dropzone {
-      display: block !important;
-    }
-
-    .sub-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .sub-link {
-      display: block;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fff;
-      text-decoration: none;
-      color: var(--text);
-      font-weight: 700;
-      transition: all .2s;
-    }
-
-    .sub-link:hover {
-      border-color: var(--primary);
-      background: var(--hover-bg);
-    }
-
-    .sub-empty {
-      color: var(--muted);
-      font-style: italic;
-      font-size: 14px;
-    }
-
-    .sub-box {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .sub-box-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .sub-send-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: start;
-    }
-
-    .muted { color: var(--muted); }
-
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: var(--overlay);
-      z-index: 1000;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(720px, 92vw);
-      max-height: 90vh;
-      overflow: auto;
-      background: var(--card);
-      border-radius: 18px;
-      box-shadow: 0 14px 40px rgba(0,0,0,.22);
-      z-index: 1300;
-      padding: 24px;
-    }
-
-    .modal h3 {
-      margin: 0 0 18px;
-      font-size: 24px;
-    }
-
-    .modal-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .modal-field {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .modal-field.full { grid-column: 1 / -1; }
-
-    .modal-field label {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 18px;
-      padding-top: 16px;
-      border-top: 2px solid var(--border);
     }
 
     @media (max-width: 1650px){
@@ -1075,7 +709,6 @@
 
     @media (max-width: 1450px){
       .cantiere-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .cantiere-grid.compact-mode { grid-template-columns: repeat(5, minmax(0, 1fr)); }
       .worker-chip { width: calc(20% - 7px); }
       .site-card.focused-floating { left: calc(50% - 270px); width: 480px; }
       .sub-panel-floating { left: calc(50% + 110px); width: 260px; }
@@ -1084,9 +717,7 @@
 
     @media (max-width: 1120px){
       .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .cantiere-grid.compact-mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .worker-chip { width: calc(25% - 7px); }
-
       .site-card.focused-floating { left: 38%; top: 50%; width: 55vw; }
       .sub-panel-floating { left: 80%; top: 30%; width: 35vw; max-height: 40vh; }
       .congruita-panel-floating { left: 80%; top: 75%; width: 35vw; max-height: 40vh; }
@@ -1097,11 +728,10 @@
       .page-shell { height: auto; }
       .cantieri-scroll-area { overflow: visible; }
       .container { padding: 18px; }
-      .todo-form, .modal-grid, .sub-send-row { grid-template-columns: 1fr; }
-      .cantiere-grid, .cantiere-grid.compact-mode { grid-template-columns: 1fr; }
+      .todo-form, .sub-send-row { grid-template-columns: 1fr; }
+      .cantiere-grid { grid-template-columns: 1fr; }
       .workers-grid { max-height: none; overflow: visible; }
       .worker-chip { width: calc(50% - 6px); min-width: 0; }
-
       .site-card.focused-floating { left: 50%; top: 25%; width: 94vw; max-height: 40vh; }
       .sub-panel-floating { left: 50%; top: 60%; width: 94vw; max-height: 25vh; }
       .congruita-panel-floating { left: 50%; top: 85%; width: 94vw; max-height: 20vh; }
@@ -1202,38 +832,6 @@
     </div>
   </div>
 
-  <div class="overlay" id="overlay"></div>
-  <div class="modal" id="modalTodo">
-    <h3>✏️ Modifica lavorazione</h3>
-    <input type="hidden" id="editId" />
-    <input type="hidden" id="editSiteId" />
-    <div class="modal-grid">
-      <div class="modal-field full">
-        <label>Lavorazione</label>
-        <textarea id="editTaskText" placeholder="Descrizione lavorazione"></textarea>
-      </div>
-      <div class="modal-field">
-        <label>Priorità</label>
-        <select id="editPriority">
-          <option value="1">🔴 Urgente</option>
-          <option value="2">🟠 Media</option>
-          <option value="3">⚪ Minima</option>
-        </select>
-      </div>
-      <div class="modal-field">
-        <label>Operai assegnati</label>
-        <input type="text" id="editWorkers" readonly />
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button id="btnCloseModal">Annulla</button>
-      <button id="btnSaveEdit" class="primary">Salva modifica</button>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyXTjr_-xYZ5ipKbcj2-PjGb_fqmr9ty2XT0HL241_-CK3fzk0Wj56IJXJKG3f2_FC4Gw/exec";
     const GITHUB_OPERAI_BASE = "https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/";
@@ -1260,8 +858,6 @@
     const workerSearch = $('#workerSearch');
     const siteSearch = $('#siteSearch');
     const viewModeSelect = $('#viewModeSelect');
-    const overlay = $('#overlay');
-    const modalTodo = $('#modalTodo');
     const focusBackdrop = $('#focusBackdrop');
 
     const subPanel = $('#subPanel');
@@ -1370,16 +966,6 @@
       return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
     }
 
-    function miniImage(url, name){
-      return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`;
-    }
-
-    function labelPriority(v){
-      if(String(v) === '1') return 'Urgente';
-      if(String(v) === '2') return 'Media';
-      return 'Minima';
-    }
-
     function priorityClass(v){
       if(String(v) === '1') return 'rosso';
       if(String(v) === '2') return 'arancione';
@@ -1469,13 +1055,13 @@
 
     async function apiGet(action, params = {}){
       const qs = new URLSearchParams({ action, ...params });
-      const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache: 'no-store' });
+      const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache:'no-store' });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'Errore GAS');
       return json;
     }
 
-    async function apiPost(payload){
+    async function apiPostJson(payload){
       const res = await fetch(GAS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1484,6 +1070,15 @@
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'Errore server');
       return json;
+    }
+
+    async function apiPostNoCors(payload){
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload)
+      });
+      return { ok: true };
     }
 
     function setStatus(msg, type='ok'){
@@ -1608,7 +1203,6 @@
 
       cantiereGrid.innerHTML = '';
       cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
-      cantiereGrid.classList.toggle('compact-mode', state.viewMode === 'compact');
 
       sites.forEach(siteName => {
         const assigned = state.assignmentsBySite[siteName] || [];
@@ -1673,15 +1267,7 @@
 
         card.addEventListener('click', (e) => {
           if (e.target.closest('textarea, input, select, button, a')) return;
-          if (state.focusedSiteName !== siteName) {
-            openFocus(siteName);
-          }
-        });
-
-        card.querySelectorAll('textarea, input, select, button, a').forEach(el => {
-          el.addEventListener('click', e => e.stopPropagation());
-          el.addEventListener('mousedown', e => e.stopPropagation());
-          el.addEventListener('dblclick', e => e.stopPropagation());
+          if (state.focusedSiteName !== siteName) openFocus(siteName);
         });
 
         cantiereGrid.appendChild(card);
@@ -1694,45 +1280,30 @@
       if(state.focusedSiteName) renderFloatingPanels();
     }
 
-    async function addWorkerToSite(workerName, siteName){
-      if(findWorkerAssignedSite(workerName)) {
-        return setStatus('⚠️ Operaio già impegnato.', 'error');
-      }
-      state.assignmentsBySite[siteName].push(workerName);
-      renderAll();
-      await apiPost({ action: 'setSiteWorkers', targetDate: state.targetDate, siteName, workers: state.assignmentsBySite[siteName] });
-      setStatus('✓ Assegnato.', 'ok');
-    }
-
     async function removeWorkerFromSite(siteName, workerName){
       state.assignmentsBySite[siteName] = state.assignmentsBySite[siteName].filter(n => n !== workerName);
       renderAll();
-      await apiPost({ action: 'setSiteWorkers', targetDate: state.targetDate, siteName, workers: state.assignmentsBySite[siteName] });
+      await apiPostJson({
+        action: 'setSiteWorkers',
+        targetDate: state.targetDate,
+        siteName,
+        workers: state.assignmentsBySite[siteName]
+      });
     }
 
     async function createTask(siteName){
-      const txtEl = Array.from(document.querySelectorAll('[data-task-input]'))
-        .find(el => el.getAttribute('data-task-input') === siteName);
-      const prEl = Array.from(document.querySelectorAll('[data-priority-input]'))
-        .find(el => el.getAttribute('data-priority-input') === siteName);
-
+      const txtEl = Array.from(document.querySelectorAll('[data-task-input]')).find(el => el.getAttribute('data-task-input') === siteName);
+      const prEl = Array.from(document.querySelectorAll('[data-priority-input]')).find(el => el.getAttribute('data-priority-input') === siteName);
       if (!txtEl || !prEl) return;
 
       const txt = txtEl.value.trim();
       const pr = prEl.value;
-
       if (!txt) return;
 
-      if (!Array.isArray(state.tasksBySite[siteName])) {
-        state.tasksBySite[siteName] = [];
-      }
+      if (!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
 
       const tempRow = `tmp_${Date.now()}`;
-      state.tasksBySite[siteName].unshift({
-        row: tempRow,
-        text: txt,
-        priority: pr
-      });
+      state.tasksBySite[siteName].unshift({ row: tempRow, text: txt, priority: pr });
 
       txtEl.value = '';
       prEl.value = '1';
@@ -1742,14 +1313,13 @@
       setStatus('✓ Lavorazione aggiunta.', 'ok');
 
       try {
-        await apiPost({
+        await apiPostJson({
           action: 'createTask',
           targetDate: state.targetDate,
           siteName,
           text: txt,
           priority: pr
         });
-
         await loadAll(true);
       } catch (err) {
         state.tasksBySite[siteName] = state.tasksBySite[siteName].filter(t => t.row !== tempRow);
@@ -1769,13 +1339,12 @@
       if (state.focusedSiteName) renderFloatingPanels();
 
       try {
-        await apiPost({
+        await apiPostJson({
           action: 'closeTask',
           targetDate: state.targetDate,
           siteName,
           row
         });
-
         await loadAll(true);
       } catch (err) {
         state.tasksBySite[siteName] = oldTasks;
@@ -1804,7 +1373,7 @@
       setStatus('⏳ Invio richiesta aggiornamento notifica preliminare...', 'ok');
 
       try {
-        await apiPost({
+        await apiPostNoCors({
           action: 'requestSubNotificationUpdate',
           siteName: siteName,
           companyName: companyName,
@@ -1812,7 +1381,7 @@
         });
 
         subFreeText.value = '';
-        setStatus('✓ Richiesta inviata con successo.', 'ok');
+        setStatus('✓ Richiesta inviata.', 'ok');
         alert(`Richiesta inviata per il cantiere "${siteName}"\nDitta: ${companyName}`);
       } catch (err) {
         console.error(err);
@@ -1826,23 +1395,6 @@
     window.addEventListener('keydown', e => {
       if(e.key === 'Escape') closeFocus();
     });
-
-    let resizeRenderTimer = null;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeRenderTimer);
-      resizeRenderTimer = setTimeout(() => {
-        renderSites();
-        if (state.focusedSiteName) renderFloatingPanels();
-      }, 120);
-    });
-
-    setInterval(() => {
-      const next = nextDayISO();
-      if(state.targetDate !== next){
-        updateHeader();
-        setStatus('ℹ️ È cambiato il giorno operativo. Premi "Carica dati" per riallineare.', 'ok');
-      }
-    }, 60 * 1000);
 
     $('#btnReload').addEventListener('click', () => loadAll(true));
     focusBackdrop.addEventListener('click', closeFocus);
