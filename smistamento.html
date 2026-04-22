@@ -449,7 +449,6 @@
       filter: saturate(.72);
     }
 
-    /* --- PANNELLI IN FOCUS --- */
     .site-card.focused-floating {
       position: fixed;
       top: 50%;
@@ -490,7 +489,7 @@
       display: none;
     }
 
-    .sub-panel-floating.show, 
+    .sub-panel-floating.show,
     .congruita-panel-floating.show {
       display: block;
     }
@@ -523,13 +522,8 @@
       color: var(--text);
     }
 
-    .congruita-value.percentage {
-      color: var(--primary);
-    }
-    
-    .congruita-value.currency {
-      color: var(--success);
-    }
+    .congruita-value.percentage { color: var(--primary); }
+    .congruita-value.currency { color: var(--success); }
 
     .focus-backdrop {
       position: fixed;
@@ -1005,12 +999,6 @@
       color: var(--text);
     }
 
-    .sub-box-note {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
     .sub-send-row {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -1078,7 +1066,6 @@
       border-top: 2px solid var(--border);
     }
 
-    /* --- RESPONSIVE PER PANNELLI IN FOCUS --- */
     @media (max-width: 1650px){
       .worker-chip { width: calc(16.66% - 7px); }
       .site-card.focused-floating { left: calc(50% - 295px); width: 560px; }
@@ -1099,7 +1086,7 @@
       .cantiere-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .cantiere-grid.compact-mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .worker-chip { width: calc(25% - 7px); }
-      
+
       .site-card.focused-floating { left: 38%; top: 50%; width: 55vw; }
       .sub-panel-floating { left: 80%; top: 30%; width: 35vw; max-height: 40vh; }
       .congruita-panel-floating { left: 80%; top: 75%; width: 35vw; max-height: 40vh; }
@@ -1276,11 +1263,13 @@
     const overlay = $('#overlay');
     const modalTodo = $('#modalTodo');
     const focusBackdrop = $('#focusBackdrop');
-    
+
     const subPanel = $('#subPanel');
     const subList = $('#subList');
     const subPanelSiteName = $('#subPanelSiteName');
-    
+    const subFreeText = $('#subFreeText');
+    const btnSubSend = $('#btnSubSend');
+
     const congruitaPanel = $('#congruitaPanel');
     const congruitaSiteName = $('#congruitaSiteName');
 
@@ -1288,29 +1277,23 @@
     function normalize(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
     function escapeHtml(s){ return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-    // Funzione per Percentuali
     function formatPercentuale(val) {
       if (!val) return '0%';
       let numStr = String(val).replace(',', '.');
       let num = parseFloat(numStr);
-      if (isNaN(num)) return val;
-      
+      if (isNaN(num)) return String(val);
       num = num * 100;
       return parseFloat(num.toFixed(2)).toString().replace('.', ',') + '%';
     }
 
-    // NUOVA: Funzione per Valuta in Euro
     function formatValuta(val) {
       if (!val || val === '-' || val === '') return '0,00 €';
-      // Rimuove la € se già presente, toglie i punti delle migliaia e converte la virgola in punto
       let numStr = String(val).replace(/€/g, '').replace(/\./g, '').replace(',', '.').trim();
       let num = parseFloat(numStr);
-      if (isNaN(num)) return val; // Fallback se non è parsabile
-      
-      // Formatta nativamente come valuta in italiano (es. 231.288,00 €)
-      return new Intl.NumberFormat('it-IT', { 
-        style: 'currency', 
-        currency: 'EUR' 
+      if (isNaN(num)) return String(val);
+      return new Intl.NumberFormat('it-IT', {
+        style: 'currency',
+        currency: 'EUR'
       }).format(num);
     }
 
@@ -1324,7 +1307,12 @@
     function formatDateIT(iso){
       if(!iso) return '—';
       const [y,m,d] = String(iso).split('-').map(Number);
-      return new Date(y, m-1, d).toLocaleDateString('it-IT', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+      return new Date(y, m-1, d).toLocaleDateString('it-IT', {
+        weekday:'long',
+        day:'2-digit',
+        month:'long',
+        year:'numeric'
+      });
     }
 
     function photoUrlForWorker(name, explicitUrl){
@@ -1336,7 +1324,9 @@
 
     function allAssignedNames(){
       const out = new Set();
-      Object.values(state.assignmentsBySite || {}).forEach(arr => { (arr || []).forEach(name => out.add(String(name))); });
+      Object.values(state.assignmentsBySite || {}).forEach(arr => {
+        (arr || []).forEach(name => out.add(String(name)));
+      });
       return out;
     }
 
@@ -1351,30 +1341,60 @@
       const q = normalize(workerSearch.value);
       const available = [];
       const grouped = {};
-      state.workers.filter(w => !q || normalize(w.name).includes(q)).sort((a,b) => a.name.localeCompare(b.name, 'it')).forEach(w => {
-        const siteName = findWorkerAssignedSite(w.name);
-        if (!siteName) available.push(w);
-        else {
-          if (!grouped[siteName]) grouped[siteName] = [];
-          grouped[siteName].push(w);
-        }
-      });
+
+      state.workers
+        .filter(w => !q || normalize(w.name).includes(q))
+        .sort((a,b) => a.name.localeCompare(b.name, 'it'))
+        .forEach(w => {
+          const siteName = findWorkerAssignedSite(w.name);
+          if (!siteName) available.push(w);
+          else {
+            if (!grouped[siteName]) grouped[siteName] = [];
+            grouped[siteName].push(w);
+          }
+        });
+
       const ordered = [];
       if (available.length) ordered.push({ title: 'Disponibili', workers: available, siteName: '' });
-      Object.keys(grouped).sort((a,b) => a.localeCompare(b, 'it')).forEach(siteName => { ordered.push({ title: siteName, workers: grouped[siteName], siteName }); });
+
+      Object.keys(grouped)
+        .sort((a,b) => a.localeCompare(b, 'it'))
+        .forEach(siteName => {
+          ordered.push({ title: siteName, workers: grouped[siteName], siteName });
+        });
+
       return ordered;
     }
 
-    function workerImage(url, name){ return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`; }
-    function miniImage(url, name){ return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`; }
+    function workerImage(url, name){
+      return `<img class="worker-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/90?text=%F0%9F%91%B7'">`;
+    }
 
-    function labelPriority(v){ if(String(v) === '1') return 'Urgente'; if(String(v) === '2') return 'Media'; return 'Minima'; }
-    function priorityClass(v){ if(String(v) === '1') return 'rosso'; if(String(v) === '2') return 'arancione'; return 'bianco'; }
+    function miniImage(url, name){
+      return `<img class="mini-avatar" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/40?text=%F0%9F%91%B7'">`;
+    }
+
+    function labelPriority(v){
+      if(String(v) === '1') return 'Urgente';
+      if(String(v) === '2') return 'Media';
+      return 'Minima';
+    }
+
+    function priorityClass(v){
+      if(String(v) === '1') return 'rosso';
+      if(String(v) === '2') return 'arancione';
+      return 'bianco';
+    }
 
     function getCompactStats(tasks){
       const total = tasks.length || 0;
       let red = 0, orange = 0, white = 0;
-      tasks.forEach(t => { const p = String(t.priority || '3'); if (p === '1') red++; else if (p === '2') orange++; else white++; });
+      tasks.forEach(t => {
+        const p = String(t.priority || '3');
+        if (p === '1') red++;
+        else if (p === '2') orange++;
+        else white++;
+      });
       const prc = (n) => total ? (n / total) * 100 : 0;
       return { total, red, orange, white, redPct: prc(red), orangePct: prc(orange), whitePct: prc(white) };
     }
@@ -1418,11 +1438,20 @@
         const raw = localStorage.getItem(snapshotKey(targetDate));
         if(!raw) return null;
         return JSON.parse(raw);
-      } catch(e) { return null; }
+      } catch(e) {
+        return null;
+      }
     }
 
     function applyServerPayload(json){
-      state.workers = Array.isArray(json.workers) ? json.workers.map(w => ({ name: String(w.name || '').trim(), photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''), role: String(w.role || '').trim() })).filter(w => w.name) : [];
+      state.workers = Array.isArray(json.workers)
+        ? json.workers.map(w => ({
+            name: String(w.name || '').trim(),
+            photoUrl: photoUrlForWorker(w.name, w.photoUrl || ''),
+            role: String(w.role || '').trim()
+          })).filter(w => w.name)
+        : [];
+
       state.sites = Array.isArray(json.sites) ? json.sites.map(String).filter(Boolean) : [];
       state.tasksBySite = json.tasksBySite || {};
       state.assignmentsBySite = json.assignmentsBySite || {};
@@ -1434,28 +1463,36 @@
         if(!Array.isArray(state.tasksBySite[siteName])) state.tasksBySite[siteName] = [];
         if(!Array.isArray(state.subBySite[siteName])) state.subBySite[siteName] = [];
       });
+
       saveSnapshot();
     }
 
     async function apiGet(action, params = {}){
       const qs = new URLSearchParams({ action, ...params });
-      const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache:'no-store' });
+      const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache: 'no-store' });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'Errore GAS');
       return json;
     }
 
     async function apiPost(payload){
-      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'Errore server');
       return json;
     }
 
-    function setStatus(msg, type='ok'){ statusEl.innerHTML = `<span class="${type}">${msg}</span>`; }
+    function setStatus(msg, type='ok'){
+      statusEl.innerHTML = `<span class="${type}">${msg}</span>`;
+    }
 
     async function loadAll(forceServer = false){
       updateHeader();
+
       if(!forceServer){
         const snap = loadSnapshot(state.targetDate);
         if(snap){
@@ -1468,37 +1505,54 @@
           renderAll();
         }
       }
+
       try {
         const json = await apiGet('initSmistamento', { targetDate: state.targetDate });
         applyServerPayload(json);
         renderAll();
         setStatus('✓ Dati aggiornati.', 'ok');
-      } catch (err) { setStatus(`✗ ${err.message}`, 'error'); }
+      } catch (err) {
+        setStatus(`✗ ${err.message}`, 'error');
+      }
     }
 
     function renderWorkers(){
       const groups = buildWorkerGroups();
       workersGrid.innerHTML = '';
+
       groups.forEach(group => {
         const g = document.createElement('div');
         g.className = 'worker-group';
         g.innerHTML = `<div class="worker-group-title">${group.title}</div>`;
+
         const items = document.createElement('div');
         items.className = 'worker-group-items';
+
         group.workers.forEach(w => {
           const siteName = group.siteName || '';
           const isAssigned = !!siteName;
           const div = document.createElement('div');
           div.className = `worker-chip${isAssigned ? ' assigned' : ''}`;
           div.draggable = true;
-          div.innerHTML = `<div class="worker-x">✕</div>${workerImage(w.photoUrl, w.name)}<div class="worker-meta"><div class="worker-name">${escapeHtml(w.name)}</div><div class="worker-sub ${isAssigned ? 'assigned-site' : ''}">${isAssigned ? escapeHtml(siteName) : 'Disponibile'}</div></div>`;
+          div.innerHTML = `
+            <div class="worker-x">✕</div>
+            ${workerImage(w.photoUrl, w.name)}
+            <div class="worker-meta">
+              <div class="worker-name">${escapeHtml(w.name)}</div>
+              <div class="worker-sub ${isAssigned ? 'assigned-site' : ''}">
+                ${isAssigned ? escapeHtml(siteName) : 'Disponibile'}
+              </div>
+            </div>
+          `;
           div.addEventListener('dragstart', () => { state.dragWorkerName = w.name; div.classList.add('dragging'); });
           div.addEventListener('dragend', () => { state.dragWorkerName = null; div.classList.remove('dragging'); });
           items.appendChild(div);
         });
+
         g.appendChild(items);
         workersGrid.appendChild(g);
       });
+
       badgeStats.textContent = `Operai assegnati: ${allAssignedNames().size}`;
     }
 
@@ -1510,35 +1564,32 @@
         return;
       }
 
-      // Render Subappaltatori
       subPanelSiteName.textContent = siteName;
       const subs = Array.isArray(state.subBySite[siteName]) ? state.subBySite[siteName] : [];
-      subList.innerHTML = subs.length ? subs.map(sub => `<a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>`).join('') : `<div class="sub-empty">Nessun subappaltatore.</div>`;
+      subList.innerHTML = subs.length
+        ? subs.map(sub => `<a class="sub-link" href="sub.html?sub=${encodeURIComponent(sub)}">${escapeHtml(sub)}</a>`).join('')
+        : `<div class="sub-empty">Nessun subappaltatore.</div>`;
       subPanel.classList.add('show');
 
-      // Render Congruità (Valuta e Percentuali)
       congruitaSiteName.textContent = siteName;
       const cong = state.congruitaBySite[siteName] || { attesa: '0', dichiarata: '0', pct: '0', rapp: '0' };
-      
-      // Valori monetari formatati
+
       $('#valMdoAttesa').textContent = formatValuta(cong.attesa);
       $('#valMdoDichiarata').textContent = formatValuta(cong.dichiarata);
-      
-      // Valori percentuali formatati
       $('#valPctCompl').textContent = formatPercentuale(cong.pct);
       $('#valRappMdo').textContent = formatPercentuale(cong.rapp);
-      
+
       congruitaPanel.classList.add('show');
     }
 
     function openFocus(siteName){
-  if (state.focusedSiteName === siteName) return;
-  state.focusedSiteName = siteName;
-  renderSites();
-  renderFloatingPanels();
-  focusBackdrop.classList.add('show');
-  document.body.style.overflow = 'hidden';
-}
+      if (state.focusedSiteName === siteName) return;
+      state.focusedSiteName = siteName;
+      renderSites();
+      renderFloatingPanels();
+      focusBackdrop.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
 
     function closeFocus(){
       state.focusedSiteName = null;
@@ -1550,104 +1601,103 @@
     }
 
     function renderSites(){
-  const q = normalize(siteSearch.value);
-  const sites = state.sites
-    .filter(name => !q || normalize(name).includes(q))
-    .sort(compareSitesForDisplay);
+      const q = normalize(siteSearch.value);
+      const sites = state.sites
+        .filter(name => !q || normalize(name).includes(q))
+        .sort(compareSitesForDisplay);
 
-  cantiereGrid.innerHTML = '';
-  cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
-  cantiereGrid.classList.toggle('compact-mode', state.viewMode === 'compact');
+      cantiereGrid.innerHTML = '';
+      cantiereGrid.classList.toggle('has-focus', !!state.focusedSiteName);
+      cantiereGrid.classList.toggle('compact-mode', state.viewMode === 'compact');
 
-  sites.forEach((siteName, index) => {
-    const assigned = state.assignmentsBySite[siteName] || [];
-    const tasks = state.tasksBySite[siteName] || [];
-    const isFocused = state.focusedSiteName === siteName;
+      sites.forEach(siteName => {
+        const assigned = state.assignmentsBySite[siteName] || [];
+        const tasks = state.tasksBySite[siteName] || [];
+        const isFocused = state.focusedSiteName === siteName;
 
-    const card = document.createElement('div');
-    card.className = `site-card ${isFocused ? ' focused-floating' : ''}`;
-    card.innerHTML = `
-      <div class="site-head">
-        <div class="site-head-left">
-          <div class="site-name">${escapeHtml(siteName)}</div>
-          <span class="badge">${tasks.length} lavorazioni</span>
-        </div>
-        <div class="site-head-right">
-          <button class="export-btn" onclick='event.stopPropagation(); exportSiteCard(${jsStr(siteName)})'>📄 Export</button>
-        </div>
-      </div>
-
-      <div class="site-dropzone">
-        <div class="assigned-list">
-          ${
-            assigned.length
-              ? assigned.map(n => `
-                  <div class="assigned-item">
-                    <div class="assigned-left">
-                      <div class="assigned-name">${escapeHtml(n)}</div>
-                    </div>
-                    <button class="icon-btn" onclick='event.stopPropagation(); removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(n)})'>✕</button>
-                  </div>
-                `).join('')
-              : '<div class="assigned-empty">Nessuno.</div>'
-          }
-        </div>
-      </div>
-
-      <div class="todo-form">
-        <textarea
-          placeholder="Nuova lavorazione..."
-          data-task-input="${escapeHtml(siteName)}"
-        ></textarea>
-
-        <select data-priority-input="${escapeHtml(siteName)}">
-          <option value="1">🔴 Urgente</option>
-          <option value="2">🟠 Media</option>
-          <option value="3">⚪ Minima</option>
-        </select>
-
-        <button class="primary" onclick='event.stopPropagation(); createTask(${jsStr(siteName)})'>Vai</button>
-      </div>
-
-      <div class="todo-list">
-        ${
-          tasks.map(t => `
-            <div class="todo-item priority-${priorityClass(t.priority)}">
-              <div class="todo-top">
-                <div class="todo-text">${escapeHtml(t.text)}</div>
-                <div class="todo-actions">
-                  <button class="icon-btn" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
-                </div>
-              </div>
+        const card = document.createElement('div');
+        card.className = `site-card ${isFocused ? ' focused-floating' : ''}`;
+        card.innerHTML = `
+          <div class="site-head">
+            <div class="site-head-left">
+              <div class="site-name">${escapeHtml(siteName)}</div>
+              <span class="badge">${tasks.length} lavorazioni</span>
             </div>
-          `).join('')
-        }
-      </div>
-    `;
+            <div class="site-head-right">
+              <button class="export-btn" onclick='event.stopPropagation(); exportSiteCard(${jsStr(siteName)})'>📄 Export</button>
+            </div>
+          </div>
 
-    // Click sulla card: apre il focus SOLO se non hai cliccato su elementi interattivi
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('textarea, input, select, button, a')) return;
-      if (state.focusedSiteName !== siteName) {
-        openFocus(siteName);
-      }
-    });
+          <div class="site-dropzone">
+            <div class="assigned-list">
+              ${
+                assigned.length
+                  ? assigned.map(n => `
+                      <div class="assigned-item">
+                        <div class="assigned-left">
+                          <div class="assigned-name">${escapeHtml(n)}</div>
+                        </div>
+                        <button class="icon-btn" onclick='event.stopPropagation(); removeWorkerFromSite(${jsStr(siteName)}, ${jsStr(n)})'>✕</button>
+                      </div>
+                    `).join('')
+                  : '<div class="assigned-empty">Nessuno.</div>'
+              }
+            </div>
+          </div>
 
-    // Blocca la propagazione sugli elementi interattivi
-    card.querySelectorAll('textarea, input, select, button, a').forEach(el => {
-      el.addEventListener('click', e => e.stopPropagation());
-      el.addEventListener('mousedown', e => e.stopPropagation());
-      el.addEventListener('dblclick', e => e.stopPropagation());
-    });
+          <div class="todo-form">
+            <textarea placeholder="Nuova lavorazione..." data-task-input="${escapeHtml(siteName)}"></textarea>
+            <select data-priority-input="${escapeHtml(siteName)}">
+              <option value="1">🔴 Urgente</option>
+              <option value="2">🟠 Media</option>
+              <option value="3">⚪ Minima</option>
+            </select>
+            <button class="primary" onclick='event.stopPropagation(); createTask(${jsStr(siteName)})'>Vai</button>
+          </div>
 
-    cantiereGrid.appendChild(card);
-  });
-}
+          <div class="todo-list">
+            ${
+              tasks.map(t => `
+                <div class="todo-item priority-${priorityClass(t.priority)}">
+                  <div class="todo-top">
+                    <div class="todo-text">${escapeHtml(t.text)}</div>
+                    <div class="todo-actions">
+                      <button class="icon-btn" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+        `;
 
-    function renderAll(){ renderWorkers(); renderSites(); if(state.focusedSiteName) renderFloatingPanels(); }
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('textarea, input, select, button, a')) return;
+          if (state.focusedSiteName !== siteName) {
+            openFocus(siteName);
+          }
+        });
+
+        card.querySelectorAll('textarea, input, select, button, a').forEach(el => {
+          el.addEventListener('click', e => e.stopPropagation());
+          el.addEventListener('mousedown', e => e.stopPropagation());
+          el.addEventListener('dblclick', e => e.stopPropagation());
+        });
+
+        cantiereGrid.appendChild(card);
+      });
+    }
+
+    function renderAll(){
+      renderWorkers();
+      renderSites();
+      if(state.focusedSiteName) renderFloatingPanels();
+    }
 
     async function addWorkerToSite(workerName, siteName){
-      if(findWorkerAssignedSite(workerName)) return setStatus('⚠️ Operaio già impegnato.', 'error');
+      if(findWorkerAssignedSite(workerName)) {
+        return setStatus('⚠️ Operaio già impegnato.', 'error');
+      }
       state.assignmentsBySite[siteName].push(workerName);
       renderAll();
       await apiPost({ action: 'setSiteWorkers', targetDate: state.targetDate, siteName, workers: state.assignmentsBySite[siteName] });
@@ -1660,90 +1710,121 @@
       await apiPost({ action: 'setSiteWorkers', targetDate: state.targetDate, siteName, workers: state.assignmentsBySite[siteName] });
     }
 
-   async function createTask(siteName){
-  const txtEl = Array.from(document.querySelectorAll('[data-task-input]'))
-    .find(el => el.getAttribute('data-task-input') === siteName);
+    async function createTask(siteName){
+      const txtEl = Array.from(document.querySelectorAll('[data-task-input]'))
+        .find(el => el.getAttribute('data-task-input') === siteName);
+      const prEl = Array.from(document.querySelectorAll('[data-priority-input]'))
+        .find(el => el.getAttribute('data-priority-input') === siteName);
 
-  const prEl = Array.from(document.querySelectorAll('[data-priority-input]'))
-    .find(el => el.getAttribute('data-priority-input') === siteName);
+      if (!txtEl || !prEl) return;
 
-  if (!txtEl || !prEl) return;
+      const txt = txtEl.value.trim();
+      const pr = prEl.value;
 
-  const txt = txtEl.value.trim();
-  const pr = prEl.value;
+      if (!txt) return;
 
-  if (!txt) return;
+      if (!Array.isArray(state.tasksBySite[siteName])) {
+        state.tasksBySite[siteName] = [];
+      }
 
-  if (!Array.isArray(state.tasksBySite[siteName])) {
-    state.tasksBySite[siteName] = [];
-  }
+      const tempRow = `tmp_${Date.now()}`;
+      state.tasksBySite[siteName].unshift({
+        row: tempRow,
+        text: txt,
+        priority: pr
+      });
 
-  // anteprima immediata in pagina
-  const tempRow = `tmp_${Date.now()}`;
-  state.tasksBySite[siteName].unshift({
-    row: tempRow,
-    text: txt,
-    priority: pr
-  });
+      txtEl.value = '';
+      prEl.value = '1';
 
-  txtEl.value = '';
-  prEl.value = '1';
+      renderSites();
+      if (state.focusedSiteName) renderFloatingPanels();
+      setStatus('✓ Lavorazione aggiunta.', 'ok');
 
-  renderSites();
-  if (state.focusedSiteName) renderFloatingPanels();
-  setStatus('✓ Lavorazione aggiunta.', 'ok');
+      try {
+        await apiPost({
+          action: 'createTask',
+          targetDate: state.targetDate,
+          siteName,
+          text: txt,
+          priority: pr
+        });
 
-  try {
-    await apiPost({
-      action: 'createTask',
-      targetDate: state.targetDate,
-      siteName,
-      text: txt,
-      priority: pr
-    });
+        await loadAll(true);
+      } catch (err) {
+        state.tasksBySite[siteName] = state.tasksBySite[siteName].filter(t => t.row !== tempRow);
+        renderSites();
+        if (state.focusedSiteName) renderFloatingPanels();
+        setStatus(`✗ Errore salvataggio lavorazione: ${err.message}`, 'error');
+      }
+    }
 
-    await loadAll(true);
-  } catch (err) {
-    // rollback se il server fallisce
-    state.tasksBySite[siteName] = state.tasksBySite[siteName]
-      .filter(t => t.row !== tempRow);
+    async function closeTask(siteName, row){
+      if (!Array.isArray(state.tasksBySite[siteName])) return;
 
-    renderSites();
-    if (state.focusedSiteName) renderFloatingPanels();
-    setStatus(`✗ Errore salvataggio lavorazione: ${err.message}`, 'error');
-  }
-}
+      const oldTasks = [...state.tasksBySite[siteName]];
+      state.tasksBySite[siteName] = state.tasksBySite[siteName].filter(t => String(t.row) !== String(row));
 
-async function closeTask(siteName, row){
-  if (!Array.isArray(state.tasksBySite[siteName])) return;
+      renderSites();
+      if (state.focusedSiteName) renderFloatingPanels();
 
-  const oldTasks = [...state.tasksBySite[siteName]];
-  state.tasksBySite[siteName] = state.tasksBySite[siteName].filter(t => String(t.row) !== String(row));
+      try {
+        await apiPost({
+          action: 'closeTask',
+          targetDate: state.targetDate,
+          siteName,
+          row
+        });
 
-  renderSites();
-  if (state.focusedSiteName) renderFloatingPanels();
+        await loadAll(true);
+      } catch (err) {
+        state.tasksBySite[siteName] = oldTasks;
+        renderSites();
+        if (state.focusedSiteName) renderFloatingPanels();
+        setStatus(`✗ Errore chiusura lavorazione: ${err.message}`, 'error');
+      }
+    }
 
-  try {
-    await apiPost({
-      action: 'closeTask',
-      targetDate: state.targetDate,
-      siteName,
-      row
-    });
+    async function requestSubNotificationUpdate() {
+      const siteName = state.focusedSiteName;
+      const companyName = (subFreeText.value || '').trim();
 
-    await loadAll(true);
-  } catch (err) {
-    state.tasksBySite[siteName] = oldTasks;
-    renderSites();
-    if (state.focusedSiteName) renderFloatingPanels();
-    setStatus(`✗ Errore chiusura lavorazione: ${err.message}`, 'error');
-  }
-}
+      if (!siteName) {
+        setStatus('✗ Nessun cantiere selezionato.', 'error');
+        return;
+      }
+
+      if (!companyName) {
+        setStatus('✗ Scrivi il nome della ditta da notificare.', 'error');
+        subFreeText.focus();
+        return;
+      }
+
+      btnSubSend.disabled = true;
+      setStatus('⏳ Invio richiesta aggiornamento notifica preliminare...', 'ok');
+
+      try {
+        await apiPost({
+          action: 'requestSubNotificationUpdate',
+          siteName: siteName,
+          companyName: companyName,
+          targetDate: state.targetDate
+        });
+
+        subFreeText.value = '';
+        setStatus('✓ Richiesta inviata con successo.', 'ok');
+        alert(`Richiesta inviata per il cantiere "${siteName}"\nDitta: ${companyName}`);
+      } catch (err) {
+        console.error(err);
+        setStatus(`✗ ${err.message}`, 'error');
+        alert(`Errore invio richiesta:\n${err.message}`);
+      } finally {
+        btnSubSend.disabled = false;
+      }
+    }
 
     window.addEventListener('keydown', e => {
-      if(e.key === 'Escape') {
-        closeFocus();
-      }
+      if(e.key === 'Escape') closeFocus();
     });
 
     let resizeRenderTimer = null;
@@ -1767,7 +1848,23 @@ async function closeTask(siteName, row){
     focusBackdrop.addEventListener('click', closeFocus);
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
-    viewModeSelect.addEventListener('change', () => { state.viewMode = viewModeSelect.value; renderSites(); });
+    viewModeSelect.addEventListener('change', () => {
+      state.viewMode = viewModeSelect.value;
+      renderSites();
+    });
+
+    btnSubSend.addEventListener('click', (e) => {
+      e.stopPropagation();
+      requestSubNotificationUpdate();
+    });
+
+    subFreeText.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        requestSubNotificationUpdate();
+      }
+    });
 
     loadAll(false);
   </script>
