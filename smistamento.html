@@ -526,62 +526,62 @@
     .congruita-value.currency { color: var(--success); }
 
     .sub-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
-}
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
 
-.sub-link {
-  display: block;
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  text-decoration: none;
-  color: var(--text);
-  font-weight: 700;
-  line-height: 1.35;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  transition: all .2s;
-}
+    .sub-link {
+      display: block;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      line-height: 1.35;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      transition: all .2s;
+    }
 
-.sub-link:hover {
-  border-color: var(--primary);
-  background: var(--hover-bg);
-}
+    .sub-link:hover {
+      border-color: var(--primary);
+      background: var(--hover-bg);
+    }
 
-.sub-empty {
-  color: var(--muted);
-  font-style: italic;
-  font-size: 14px;
-}
+    .sub-empty {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 14px;
+    }
 
-.sub-box {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+    .sub-box {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-.sub-box-title {
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--text);
-}
+    .sub-box-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+    }
 
-.sub-send-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-  align-items: start;
-}
-    
+    .sub-send-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+    }
+
     .focus-backdrop {
       position: fixed;
       inset: 0;
@@ -633,7 +633,8 @@
     }
 
     .site-dropzone.over,
-    .site-card.card-drop-over {
+    .site-card.card-drop-over,
+    .workers-grid.drop-over {
       border-color: var(--primary);
       background: #eef6ff;
     }
@@ -853,18 +854,18 @@
 
   <div class="focus-backdrop" id="focusBackdrop"></div>
 
-<div class="sub-panel sub-panel-floating" id="subPanel">
-  <h3>Subappaltatori notificati</h3>
-  <div class="section-note" id="subPanelSiteName">—</div>
-  <div class="sub-list" id="subList"></div>
-  <div class="sub-box">
-    <div class="sub-box-title">Nuova ditta da notificare</div>
-    <div class="sub-send-row">
-      <input type="text" id="subFreeText" placeholder="Nome ditta e lavorazione" />
-      <button id="btnSubSend" class="primary">Invia</button>
+  <div class="sub-panel sub-panel-floating" id="subPanel">
+    <h3>Subappaltatori notificati</h3>
+    <div class="section-note" id="subPanelSiteName">—</div>
+    <div class="sub-list" id="subList"></div>
+    <div class="sub-box">
+      <div class="sub-box-title">Nuova ditta da notificare</div>
+      <div class="sub-send-row">
+        <input type="text" id="subFreeText" placeholder="Nome ditta e lavorazione" />
+        <button id="btnSubSend" class="primary">Invia</button>
+      </div>
     </div>
   </div>
-</div>
 
   <div class="congruita-panel congruita-panel-floating" id="congruitaPanel">
     <h3>Congruità Cantiere</h3>
@@ -931,19 +932,49 @@
     function escapeHtml(s){ return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
     function formatPercentuale(val) {
-      if (!val) return '0%';
-      let numStr = String(val).replace(',', '.');
+      const raw = String(val == null ? '' : val).trim();
+      if (!raw) return '0%';
+
+      if (raw.includes('%')) {
+        return raw;
+      }
+
+      let numStr = raw;
+      const hasComma = numStr.includes(',');
+      const hasDot = numStr.includes('.');
+
+      if (hasComma && hasDot) {
+        numStr = numStr.replace(/\./g, '').replace(',', '.');
+      } else if (hasComma) {
+        numStr = numStr.replace(',', '.');
+      }
+
       let num = parseFloat(numStr);
-      if (isNaN(num)) return String(val);
-      num = num * 100;
+      if (isNaN(num)) return raw;
+
+      if (Math.abs(num) <= 1) num = num * 100;
+
       return parseFloat(num.toFixed(2)).toString().replace('.', ',') + '%';
     }
 
     function formatValuta(val) {
-      if (!val || val === '-' || val === '') return '0,00 €';
-      let numStr = String(val).replace(/€/g, '').replace(/\./g, '').replace(',', '.').trim();
-      let num = parseFloat(numStr);
-      if (isNaN(num)) return String(val);
+      const raw = String(val == null ? '' : val).trim();
+      if (!raw || raw === '-') return '0,00 €';
+
+      let numStr = raw.replace(/€/g, '').trim();
+
+      const hasComma = numStr.includes(',');
+      const hasDot = numStr.includes('.');
+
+      if (hasComma && hasDot) {
+        numStr = numStr.replace(/\./g, '').replace(',', '.');
+      } else if (hasComma) {
+        numStr = numStr.replace(',', '.');
+      }
+
+      const num = parseFloat(numStr);
+      if (isNaN(num)) return raw;
+
       return new Intl.NumberFormat('it-IT', {
         style: 'currency',
         currency: 'EUR'
@@ -1113,29 +1144,53 @@
     async function apiGet(action, params = {}){
       const qs = new URLSearchParams({ action, ...params });
       const res = await fetch(`${GAS_URL}?${qs.toString()}`, { cache:'no-store' });
-      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const text = await res.text();
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Risposta server non valida');
+      }
+
       if (!json.ok) throw new Error(json.error || 'Errore GAS');
       return json;
     }
 
-    async function apiPostJson(payload){
+    async function apiPostForm(payload){
+      const body = new URLSearchParams();
+
+      Object.entries(payload || {}).forEach(([key, value]) => {
+        if (Array.isArray(value) || (value && typeof value === 'object')) {
+          body.append(key, JSON.stringify(value));
+        } else {
+          body.append(key, value == null ? '' : String(value));
+        }
+      });
+
       const res = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body
       });
-      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const text = await res.text();
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Risposta server non valida');
+      }
+
       if (!json.ok) throw new Error(json.error || 'Errore server');
       return json;
-    }
-
-    async function apiPostNoCors(payload){
-      await fetch(GAS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(payload)
-      });
-      return { ok: true };
     }
 
     function setStatus(msg, type='ok'){
@@ -1196,8 +1251,14 @@
               </div>
             </div>
           `;
-          div.addEventListener('dragstart', () => { state.dragWorkerName = w.name; div.classList.add('dragging'); });
-          div.addEventListener('dragend', () => { state.dragWorkerName = null; div.classList.remove('dragging'); });
+          div.addEventListener('dragstart', () => {
+            state.dragWorkerName = w.name;
+            div.classList.add('dragging');
+          });
+          div.addEventListener('dragend', () => {
+            state.dragWorkerName = null;
+            div.classList.remove('dragging');
+          });
           items.appendChild(div);
         });
 
@@ -1308,19 +1369,39 @@
 
           <div class="todo-list">
             ${
-              tasks.map(t => `
-                <div class="todo-item priority-${priorityClass(t.priority)}">
-                  <div class="todo-top">
-                    <div class="todo-text">${escapeHtml(t.text)}</div>
-                    <div class="todo-actions">
-                      <button class="icon-btn" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
+              tasks.length
+                ? tasks.map(t => `
+                    <div class="todo-item priority-${priorityClass(t.priority)}">
+                      <div class="todo-top">
+                        <div class="todo-text">${escapeHtml(t.text)}</div>
+                        <div class="todo-actions">
+                          <button class="icon-btn" onclick='event.stopPropagation(); closeTask(${jsStr(siteName)}, ${jsStr(t.row)})'>🗑️</button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              `).join('')
+                  `).join('')
+                : '<div class="todo-empty">Nessuna lavorazione aperta.</div>'
             }
           </div>
         `;
+
+        const dropzone = card.querySelector('.site-dropzone');
+        dropzone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropzone.classList.add('over');
+          card.classList.add('card-drop-over');
+        });
+        dropzone.addEventListener('dragleave', () => {
+          dropzone.classList.remove('over');
+          card.classList.remove('card-drop-over');
+        });
+        dropzone.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('over');
+          card.classList.remove('card-drop-over');
+          if (!state.dragWorkerName) return;
+          await assignWorkerToSite(siteName, state.dragWorkerName);
+        });
 
         card.addEventListener('click', (e) => {
           if (e.target.closest('textarea, input, select, button, a')) return;
@@ -1337,15 +1418,80 @@
       if(state.focusedSiteName) renderFloatingPanels();
     }
 
-    async function removeWorkerFromSite(siteName, workerName){
-      state.assignmentsBySite[siteName] = state.assignmentsBySite[siteName].filter(n => n !== workerName);
+    async function persistSites(siteNames){
+      const unique = Array.from(new Set((siteNames || []).filter(Boolean)));
+      for (const siteName of unique) {
+        await apiPostForm({
+          action: 'setSiteWorkers',
+          targetDate: state.targetDate,
+          siteName,
+          workers: state.assignmentsBySite[siteName] || []
+        });
+      }
+    }
+
+    async function assignWorkerToSite(siteName, workerName){
+      const previousSite = findWorkerAssignedSite(workerName);
+      if (previousSite === siteName) return;
+
+      if (previousSite) {
+        state.assignmentsBySite[previousSite] = (state.assignmentsBySite[previousSite] || []).filter(n => n !== workerName);
+      }
+
+      if (!Array.isArray(state.assignmentsBySite[siteName])) {
+        state.assignmentsBySite[siteName] = [];
+      }
+
+      if (!state.assignmentsBySite[siteName].includes(workerName)) {
+        state.assignmentsBySite[siteName].push(workerName);
+        state.assignmentsBySite[siteName].sort((a,b) => a.localeCompare(b, 'it'));
+      }
+
       renderAll();
-      await apiPostJson({
-        action: 'setSiteWorkers',
-        targetDate: state.targetDate,
-        siteName,
-        workers: state.assignmentsBySite[siteName]
+
+      try {
+        await persistSites([previousSite, siteName]);
+        setStatus(`✓ ${workerName} assegnato a ${siteName}.`, 'ok');
+      } catch (err) {
+        setStatus(`✗ ${err.message}`, 'error');
+        await loadAll(true);
+      }
+    }
+
+    async function removeWorkerFromSite(siteName, workerName){
+      state.assignmentsBySite[siteName] = (state.assignmentsBySite[siteName] || []).filter(n => n !== workerName);
+      renderAll();
+
+      try {
+        await persistSites([siteName]);
+        setStatus('✓ Operaio rimosso dal cantiere.', 'ok');
+      } catch (err) {
+        setStatus(`✗ ${err.message}`, 'error');
+        await loadAll(true);
+      }
+    }
+
+    async function resetDayAssignments(){
+      if (!confirm(`Confermi il reset di tutte le assegnazioni per il giorno ${formatDateIT(state.targetDate)}?`)) {
+        return;
+      }
+
+      Object.keys(state.assignmentsBySite).forEach(siteName => {
+        state.assignmentsBySite[siteName] = [];
       });
+      renderAll();
+
+      try {
+        await apiPostForm({
+          action: 'resetSiteWorkers',
+          targetDate: state.targetDate
+        });
+        setStatus('✓ Assegnazioni giornata azzerate.', 'ok');
+        await loadAll(true);
+      } catch (err) {
+        setStatus(`✗ ${err.message}`, 'error');
+        await loadAll(true);
+      }
     }
 
     async function createTask(siteName){
@@ -1370,7 +1516,7 @@
       setStatus('✓ Lavorazione aggiunta.', 'ok');
 
       try {
-        await apiPostJson({
+        await apiPostForm({
           action: 'createTask',
           targetDate: state.targetDate,
           siteName,
@@ -1396,7 +1542,7 @@
       if (state.focusedSiteName) renderFloatingPanels();
 
       try {
-        await apiPostJson({
+        await apiPostForm({
           action: 'closeTask',
           targetDate: state.targetDate,
           siteName,
@@ -1430,7 +1576,7 @@
       setStatus('⏳ Invio richiesta aggiornamento notifica preliminare...', 'ok');
 
       try {
-        await apiPostNoCors({
+        await apiPostForm({
           action: 'requestSubNotificationUpdate',
           siteName: siteName,
           companyName: companyName,
@@ -1449,11 +1595,22 @@
       }
     }
 
+    function exportSiteCard(siteName){
+      alert(`Export non ancora implementato per: ${siteName}`);
+    }
+
+    window.removeWorkerFromSite = removeWorkerFromSite;
+    window.createTask = createTask;
+    window.closeTask = closeTask;
+    window.exportSiteCard = exportSiteCard;
+
     window.addEventListener('keydown', e => {
       if(e.key === 'Escape') closeFocus();
     });
 
     $('#btnReload').addEventListener('click', () => loadAll(true));
+    $('#btnResetDay').addEventListener('click', resetDayAssignments);
+
     focusBackdrop.addEventListener('click', closeFocus);
     workerSearch.addEventListener('input', renderWorkers);
     siteSearch.addEventListener('input', renderSites);
@@ -1473,6 +1630,24 @@
         e.stopPropagation();
         requestSubNotificationUpdate();
       }
+    });
+
+    workersGrid.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      workersGrid.classList.add('drop-over');
+    });
+
+    workersGrid.addEventListener('dragleave', () => {
+      workersGrid.classList.remove('drop-over');
+    });
+
+    workersGrid.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      workersGrid.classList.remove('drop-over');
+      if (!state.dragWorkerName) return;
+      const previousSite = findWorkerAssignedSite(state.dragWorkerName);
+      if (!previousSite) return;
+      await removeWorkerFromSite(previousSite, state.dragWorkerName);
     });
 
     loadAll(false);
