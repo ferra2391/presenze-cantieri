@@ -389,6 +389,8 @@
         <div class="preview-row"><span>Cantiere</span><span id="previewSite">-</span></div>
         <div class="preview-row"><span>Lavorazione</span><span id="previewWork">-</span></div>
         <div class="preview-row"><span>Note</span><span id="previewNotes">-</span></div>
+        <div class="preview-row"><span>Mezzo</span><span id="previewMezzo">-</span></div>
+        <div class="preview-row"><span>Ruolo mezzo</span><span id="previewRuoloMezzo">-</span></div>
         <div class="preview-actions">
           <button class="btn btn-success" onclick="confirmRepeat()">✓ Usa questo</button>
           <button class="btn btn-secondary" onclick="cancelRepeat()">✗ Annulla</button>
@@ -498,10 +500,28 @@
     <!-- Pagina 4: RIEPILOGO -->
     <div class="view" id="page4">
       <div class="card">
+        <div class="card-title"><span>🚚</span><span>Mezzo di trasporto usato</span></div>
+        <div class="input-group">
+          <span class="input-icon">🚗</span>
+          <select id="mezzoSelect" onchange="updateSummary()">
+            <option value="">— Seleziona mezzo —</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <span class="input-icon">🧭</span>
+          <select id="ruoloMezzoSelect" onchange="updateSummary()">
+            <option value="">— Guidatore o Passeggero —</option>
+            <option value="Guidatore">Guidatore</option>
+            <option value="Passeggero">Passeggero</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-title"><span>🗒️</span><span>Note (facoltative)</span></div>
         <div class="input-group">
           <span class="input-icon">✏️</span>
-          <textarea id="notesInput" placeholder="Aggiungi eventuali note..." oninput="updateSummary"></textarea>
+          <textarea id="notesInput" placeholder="Aggiungi eventuali note..." oninput="updateSummary()"></textarea>
         </div>
       </div>
 
@@ -509,6 +529,8 @@
         <div class="card-title"><span>📋</span><span>Riepilogo</span></div>
         <div class="preview-row"><span>Data</span><span id="summaryDate">-</span></div>
         <div class="preview-row"><span>Orario</span><span id="summaryTime">—</span></div>
+        <div class="preview-row"><span>Mezzo</span><span id="summaryMezzo">-</span></div>
+        <div class="preview-row"><span>Ruolo mezzo</span><span id="summaryRuoloMezzo">-</span></div>
         <div class="preview-row" style="display:block;border:none;padding-top:8px">
           <div style="margin-bottom:6px;color:#e2e8f0;font-weight:800">Cantieri & lavorazioni</div>
           <div class="summary-works" id="summaryWorks"></div>
@@ -546,6 +568,7 @@
   let selectedDate = new Date();
   let currentPage = 1;
   let SITE_OPTIONS = [];
+  let MEZZI_OPTIONS = [];
   let workState = [];
   let LAST_PRESENZE = [];
   let ABSENT_MODE = false;
@@ -858,6 +881,46 @@
     if (!workState.length) workState=[newWorkItem()];
     renderWorkItems();
   }
+
+  async function loadMezzi(){
+    try{
+      const rows = await (await fetch(OS_BASE+'Mezzi', {cache:'no-store'})).json();
+      MEZZI_OPTIONS = rows.map(r => {
+        const mezzo = String(r.Mezzo || '').trim();
+        const targa = String(r.Targa || '').trim();
+        const tipologia = String(r.Tipologia || '').trim();
+        const label = [mezzo, targa].filter(Boolean).join(' - ');
+        return { mezzo, targa, tipologia, label };
+      }).filter(x => x.label);
+    }catch(e){
+      console.error('loadMezzi error', e);
+      MEZZI_OPTIONS = [];
+    }
+    renderMezziSelect();
+  }
+
+  function renderMezziSelect(){
+    const sel = document.getElementById('mezzoSelect');
+    if(!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '';
+
+    const empty = document.createElement('option');
+    empty.value = '';
+    empty.textContent = '— Seleziona mezzo —';
+    sel.appendChild(empty);
+
+    MEZZI_OPTIONS.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.label;
+      opt.textContent = m.tipologia ? `${m.label} (${m.tipologia})` : m.label;
+      sel.appendChild(opt);
+    });
+
+    if(current && [...sel.options].some(o => o.value === current)){
+      sel.value = current;
+    }
+  }
   function renderWorkItems(){
     const wrap=document.getElementById('workItems'); wrap.innerHTML='';
     workState.forEach((it,idx)=>{
@@ -897,6 +960,8 @@
         lavorazione: r["Lavorazione"]||'',
         ore: r["Ore"]||'',
         orari: r["Orari"]||'',
+        mezzo: r["Mezzo"] || '',
+        ruoloMezzo: r["Tipologia Guidatore"] || r["Ruolo mezzo"] || r["Guidatore/Passeggero"] || '',
         nome: String(r["Nome Operaio"]||'')
       })).filter(x=>x.nome.toLowerCase()===target && !isNaN(x.dataPresenza)).sort((a,b)=>b.dataPresenza-a.dataPresenza);
     }catch(e){
@@ -987,6 +1052,12 @@
   /* ====== SUMMARY ====== */
   function updateSummary(){
     document.getElementById('summaryDate').textContent = fmtHuman(selectedDate);
+
+    const mezzoUsato = (document.getElementById('mezzoSelect')?.value || '').trim();
+    const ruoloMezzo = (document.getElementById('ruoloMezzoSelect')?.value || '').trim();
+    document.getElementById('summaryMezzo').textContent = mezzoUsato || '-';
+    document.getElementById('summaryRuoloMezzo').textContent = ruoloMezzo || '-';
+
     const worksBox=document.getElementById('summaryWorks'); worksBox.innerHTML='';
 
     if(ABSENT_MODE){
@@ -1046,6 +1117,8 @@
     document.getElementById('previewSite').textContent = found.cantiere || '-';
     document.getElementById('previewWork').textContent = found.lavorazione || '-';
     document.getElementById('previewNotes').textContent = '-';
+    document.getElementById('previewMezzo').textContent = found.mezzo || '-';
+    document.getElementById('previewRuoloMezzo').textContent = found.ruoloMezzo || '-';
     document.getElementById('previewCard').classList.add('show');
     document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -1089,6 +1162,9 @@
       workState[0].siteSelect=''; 
       workState[0].work = PREVIEW_DATA.lavorazione || ''; 
     }
+
+    if (document.getElementById('mezzoSelect')) document.getElementById('mezzoSelect').value = PREVIEW_DATA.mezzo || '';
+    if (document.getElementById('ruoloMezzoSelect')) document.getElementById('ruoloMezzoSelect').value = PREVIEW_DATA.ruoloMezzo || '';
 
     renderWorkItems();
     updateTimes();
@@ -1218,6 +1294,13 @@
 
     const overlay = document.getElementById('successOverlay');
     const notes = (document.getElementById('notesInput').value||'').trim();
+    const mezzoUsato = (document.getElementById('mezzoSelect')?.value || '').trim();
+    const ruoloMezzo = (document.getElementById('ruoloMezzoSelect')?.value || '').trim();
+
+    if(!ABSENT_MODE && (!mezzoUsato || !ruoloMezzo)){
+      alert('⚠️ CAMPI OBBLIGATORI\n\nSe non sei assente devi indicare:\n• Mezzo di trasporto usato\n• Guidatore o Passeggero');
+      return;
+    }
 
     if (isToday(selectedDate)) {
       const missingDays = checkMissingWorkdays();
@@ -1249,7 +1332,9 @@
           cantiere:"ASSENTE", 
           lavorazione:"ASSENTE", 
           ore:0, 
-          note: notes 
+          note: notes,
+          mezzo: '',
+          ruoloMezzo: ''
         });
       }
     }else{
@@ -1294,7 +1379,9 @@
             cantiere:w.cantiere, 
             lavorazione:w.lavorazione, 
             ore:Number(quota.toFixed(2)), 
-            note: notes 
+            note: notes,
+            mezzo: mezzoUsato,
+            ruoloMezzo: ruoloMezzo 
           });
         }
       }
@@ -1339,6 +1426,7 @@
     populateTimeSelects();
     initDateSelector();
     await loadCantieri();
+    await loadMezzi();
     await loadPresenze();
     await renderMonthList();
     await updateDateIndicators();
