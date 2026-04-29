@@ -555,7 +555,7 @@
   /* ====== CONFIG ====== */
   const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
   const OS_BASE  = `https://opensheet.elk.sh/${SHEET_ID}/`;
-  const L0URL    = "https://script.google.com/macros/s/AKfycbzkoOTRh6QEy0X_AYvF5bkqj6e_W5AsOkteuc4P99YGF8wBMzeHWGdxyh4UQ-hRqTAX/exec";
+  const L0URL    = "https://script.google.com/macros/s/AKfycbz048Vl_WKsdbXixmOo6w5QdYLE0yOi2Ta4EOtwjge_edHCfP4nlHMJV5-OgSNSDb2R/exec";
 
   /* ====== STATE ====== */
   let AUTH = { user:null, nome:null, ruolo:null };
@@ -961,7 +961,7 @@
         ore: r["Ore"]||'',
         orari: r["Orari"]||'',
         mezzo: r["Mezzo"] || '',
-        ruoloMezzo: r["Tipologia Guidatore"] || r["Ruolo mezzo"] || r["Guidatore/Passeggero"] || '',
+        ruoloMezzo: r["Ruolo"] || r["Tipologia Guidatore"] || r["Ruolo mezzo"] || r["Guidatore/Passeggero"] || '',
         nome: String(r["Nome Operaio"]||'')
       })).filter(x=>x.nome.toLowerCase()===target && !isNaN(x.dataPresenza)).sort((a,b)=>b.dataPresenza-a.dataPresenza);
     }catch(e){
