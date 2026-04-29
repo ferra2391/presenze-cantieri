@@ -605,6 +605,17 @@
     return new Date(s);
   }
   function isAdmin(){ return String(AUTH.ruolo||'').trim().toLowerCase()==='amministratore'; }
+  function getRuoloCompilazione(){
+  if (isAdmin() && ADMIN_SELECTED) {
+    return String(SELECTED_RUOLO || '').trim().toLowerCase();
+  }
+
+  return String(AUTH.ruolo || '').trim().toLowerCase();
+}
+
+function isTecnico(){
+  return getRuoloCompilazione() === 'tecnico';
+}
   function isToday(d){ const t=new Date(); t.setHours(0,0,0,0); return sameYMD(d,t); }
 
   /* ====== BLOCCO PRECEDENTE GIORNO LAVORATIVO ====== */
@@ -1192,10 +1203,10 @@
     if(!isAdmin()) return;
     const select = document.getElementById('operaioSelect');
     select.innerHTML = '<option value="">— Seleziona —</option>';
-    const operaiSub = (ALL_CRED_ROWS||[]).filter(r => {
-      const ruolo = String(r.Ruolo||'').trim().toLowerCase();
-      return ruolo === 'operaio' || ruolo === 'sub';
-    });
+const operaiSub = (ALL_CRED_ROWS||[]).filter(r => {
+  const ruolo = String(r.Ruolo||'').trim().toLowerCase();
+  return ruolo === 'operaio' || ruolo === 'sub' || ruolo === 'tecnico';
+});
     if(!operaiSub.length){
       select.innerHTML = '<option value="">Nessun operaio/sub trovato</option>';
     }else{
@@ -1297,10 +1308,10 @@
     const mezzoUsato = (document.getElementById('mezzoSelect')?.value || '').trim();
     const ruoloMezzo = (document.getElementById('ruoloMezzoSelect')?.value || '').trim();
 
-    if(!ABSENT_MODE && (!mezzoUsato || !ruoloMezzo)){
-      alert('⚠️ CAMPI OBBLIGATORI\n\nSe non sei assente devi indicare:\n• Mezzo di trasporto usato\n• Guidatore o Passeggero');
-      return;
-    }
+    if(!ABSENT_MODE && !isTecnico() && (!mezzoUsato || !ruoloMezzo)){
+  alert('⚠️ CAMPI OBBLIGATORI\n\nSe non sei assente devi indicare:\n• Mezzo di trasporto usato\n• Guidatore o Passeggero');
+  return;
+}
 
     if (isToday(selectedDate)) {
       const missingDays = checkMissingWorkdays();
