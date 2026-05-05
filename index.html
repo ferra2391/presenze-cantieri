@@ -382,7 +382,6 @@
         </div>
       </div>
 
-      <!-- Preview "Ripeti ieri" -->
       <div class="card preview-card" id="previewCard">
         <div class="card-title"><span>⚡</span><span>Ripeti ieri (registrazione per OGGI)</span></div>
         <div class="preview-row"><span>Data che verrà registrata</span><span id="previewDate">-</span></div>
@@ -399,7 +398,6 @@
         </div>
       </div>
 
-      <!-- Card selezione operaio (SOLO ADMIN) -->
       <div class="card preview-card" id="selectOperaioCard">
         <div class="card-title"><span>👥</span><span>Seleziona operaio o subappaltatore</span></div>
         <div class="input-group">
@@ -433,7 +431,6 @@
     <div class="view" id="page2">
       <div class="card">
         <div class="card-title"><span>⏰</span><span>Orario di lavoro</span></div>
-        
         <div style="text-align:center;margin-bottom:12px;color:var(--text-secondary);font-size:13px;font-weight:700;">
           💡 Disattiva un turno se non lavori in quel momento
         </div>
@@ -544,12 +541,10 @@
 </div>
 
 <script>
-  /* ====== CONFIG ====== */
   const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
   const OS_BASE  = `https://opensheet.elk.sh/${SHEET_ID}/`;
   const L0URL    = "https://script.google.com/macros/s/AKfycbz048Vl_WKsdbXixmOo6w5QdYLE0yOi2Ta4EOtwjge_edHCfP4nlHMJV5-OgSNSDb2R/exec";
 
-  /* ====== STATE ====== */
   let AUTH = { user:null, nome:null, ruolo:null };
   let ALL_CRED_ROWS = [];
   let ACTIVE_NOME = null;
@@ -570,10 +565,8 @@
   
   let MORNING_ENABLED = true;
   let AFTERNOON_ENABLED = true;
-
   let LOCK_OTHER_DAYS = false;
 
-  /* ====== UTILS ====== */
   const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
 
   function pad2(n){return String(n).padStart(2,'0');}
@@ -634,8 +627,9 @@
     return String(AUTH.ruolo || '').trim().toLowerCase();
   }
 
-  function isTecnico(){
-    return getRuoloCompilazione() === 'tecnico';
+  function isMezzoFacoltativo(){
+    const ruolo = getRuoloCompilazione();
+    return ruolo === 'tecnico' || ruolo === 'sub' || ruolo === 'amministratore';
   }
 
   function isToday(d){ 
@@ -644,7 +638,6 @@
     return sameYMD(d,t); 
   }
 
-  /* ====== BLOCCO PRECEDENTE GIORNO LAVORATIVO ====== */
   function isWorkingDay(d){
     const w = d.getDay();
     return w >= 1 && w <= 5 && !isItalianHoliday(d);
@@ -668,7 +661,6 @@
     return !hasPresenceOnDate(prev);
   }
 
-  /* ====== BLOCCO ALTRI GIORNI DURANTE RIPETI IERI ====== */
   function lockOtherDaysExceptToday(lock = true){
     LOCK_OTHER_DAYS = !!lock;
     const today = new Date(); 
@@ -690,7 +682,6 @@
     });
   }
 
-  /* ====== TOGGLE TURNI ====== */
   function toggleMorning(){
     MORNING_ENABLED = document.getElementById('morningCheck').checked;
     updateShiftUI();
@@ -716,7 +707,6 @@
     document.getElementById('pEnd').disabled = !AFTERNOON_ENABLED;
   }
 
-  /* ====== GENERA OPZIONI ORARI ====== */
   function generateTimeOptions(minHour, maxHour) {
     const options = [];
     for(let h = minHour; h <= maxHour; h++) {
@@ -746,7 +736,6 @@
     pEnd.value = '17:00';
   }
 
-  /* ====== LOGIN ====== */
   async function handleLogin(){
     const btn = document.getElementById('loginBtn');
     const errBox = document.getElementById('loginError');
@@ -824,7 +813,6 @@
     document.getElementById('appContainer').style.display='block'; 
   }
 
-  /* ====== NAV ====== */
   function setStep(p){
     document.querySelectorAll('.step').forEach((el,i)=> el.classList.toggle('active', i<=p-1));
     currentPage=p;
@@ -842,7 +830,6 @@
     nextPage(p); 
   }
 
-  /* ====== DATE SELECTOR ====== */
   function initDateSelector(){
     const cont = document.getElementById('dateSelector'); 
     cont.innerHTML='';
@@ -927,7 +914,6 @@
     updateRepeatBtnState();
   }
 
-  /* ====== ASSENTE ====== */
   function toggleAssente(){ 
     ABSENT_MODE=!ABSENT_MODE; 
     updateAssenteChip(); 
@@ -938,7 +924,6 @@
     document.getElementById('assenteChip').classList.toggle('active', ABSENT_MODE); 
   }
 
-  /* ====== BLOCCO IMMEDIATO IN PAGINA 1 ====== */
   function goFromPage1(){
     const now = new Date(); 
     now.setHours(0,0,0,0);
@@ -970,7 +955,6 @@
     ABSENT_MODE ? (updateSummary(), nextPage(4)) : nextPage(2);
   }
 
-  /* ====== ORARI ====== */
   function updateTimes(){
     const ms=document.getElementById('mStart').value;
     const me=document.getElementById('mEnd').value;
@@ -990,7 +974,6 @@
     updateSummary();
   }
 
-  /* ====== CANTIERI ====== */
   function newWorkItem(){ 
     return {id:crypto.randomUUID(), siteSelect:'', work:''}; 
   }
@@ -1072,7 +1055,6 @@
     updateSummary(); 
   }
 
-  /* ====== MEZZI / TRATTE ====== */
   function newTrattaItem(){
     return {
       id: crypto.randomUUID(),
@@ -1226,15 +1208,14 @@
       return false;
     }
 
-    if (!isTecnico() && tratteComplete.length === 0) {
-      alert('⚠️ CAMPI OBBLIGATORI\n\nSe non sei assente devi indicare almeno una tratta con:\n• Mezzo di trasporto usato\n• Guidatore o Passeggero');
+    if (!isMezzoFacoltativo() && tratteComplete.length === 0) {
+      alert('⚠️ MEZZO OBBLIGATORIO\n\nPer gli operai devi indicare almeno una tratta con:\n• Mezzo di trasporto usato\n• Guidatore o Passeggero');
       return false;
     }
 
     return true;
   }
 
-  /* ====== PRESENZE ====== */
   async function loadPresenze(){
     try{
       const rows = await (await fetch(OS_BASE+'Presenze',{cache:'no-store'})).json();
@@ -1277,7 +1258,6 @@
     }
   }
 
-  /* ====== PRESENZE MESE ====== */
   function setupMonthToggle(){
     const btn   = document.getElementById('monthToggle');
     const list  = document.getElementById('monthList');
@@ -1369,7 +1349,6 @@
     }
   }
 
-  /* ====== SUMMARY ====== */
   function updateSummary(){
     const summaryDate = document.getElementById('summaryDate');
     if (!summaryDate) return;
@@ -1439,7 +1418,6 @@
     document.getElementById('summaryNotes').textContent = note || '-';
   }
 
-  /* ====== RIPETI IERI ====== */
   async function repeatYesterday(){
     if(!isToday(selectedDate)){
       alert('"Ripeti ieri" è disponibile solo quando stai compilando OGGI.');
@@ -1563,7 +1541,6 @@
     lockOtherDaysExceptToday(false); 
   }
 
-  /* ====== ADMIN UI ====== */
   function showAdminUI(){
     if(!isAdmin()) return;
 
@@ -1696,7 +1673,6 @@
     alert('Selezione operaio annullata.');
   }
 
-  /* ====== CONTROLLA GIORNI MANCANTI ====== */
   function checkMissingWorkdays(){
     const missing = [];
 
@@ -1735,7 +1711,6 @@
     return missing;
   }
 
-  /* ====== SUBMIT ====== */
   async function submitPresence(){
     if (mustBlockForPreviousWorkingDay(selectedDate)){
       const prev = previousWorkingDay(selectedDate);
@@ -1773,7 +1748,8 @@
     const USERID = isAdminActing ? "Admin" : (AUTH.user||"");
     const NOME_OPERAIO = isAdminActing ? ADMIN_SELECTED : (AUTH.nome||AUTH.user||"");
 
-    const isSub = SELECTED_RUOLO === 'sub';
+    const ruoloCompilazione = getRuoloCompilazione();
+    const isSub = ruoloCompilazione === 'sub';
     const numRighe = isSub ? NUM_LAVORATORI : 1;
 
     const payloads = [];
@@ -1784,7 +1760,8 @@
           dataISO: fmtISO(selectedDate), 
           orari: "-", 
           operaio: NOME_OPERAIO, 
-          user: USERID, 
+          user: USERID,
+          ruoloCompilazione: ruoloCompilazione,
           cantiere:"ASSENTE", 
           lavorazione:"ASSENTE", 
           ore:0, 
@@ -1844,7 +1821,8 @@
             dataISO: fmtISO(selectedDate), 
             orari: orariStr, 
             operaio: NOME_OPERAIO, 
-            user: USERID, 
+            user: USERID,
+            ruoloCompilazione: ruoloCompilazione,
             cantiere:w.cantiere, 
             lavorazione:w.lavorazione, 
             ore:Number(quota.toFixed(2)), 
@@ -1885,7 +1863,6 @@
     nextPage(1);
   }
 
-  /* ====== INIT ====== */
   document.addEventListener('DOMContentLoaded', ()=>{
     showLogin();
 
@@ -1927,7 +1904,6 @@
     lockOtherDaysExceptToday(false);
   }
 
-  /* ====== ESPORTA FUNZIONI GLOBALI ====== */
   window.handleLogin = handleLogin;
   window.handleLogout = handleLogout;
   window.nextPage = nextPage;
