@@ -438,7 +438,7 @@ input:-webkit-autofill:active {
       <button class="gbtn" onclick="startFlow('absent')">
         <div class="gi">⊘</div><b>Assente</b><span>Salva subito</span>
       </button>
-      <button class="gbtn" onclick="showScreen('s-history')">
+      <button class="gbtn" onclick="openHistory()">
         <div class="gi">📅</div><b>Storico</b><span>Ultime presenze</span>
       </button>
     </div>
@@ -1252,12 +1252,10 @@ async function loadHistory(){
   renderRecent(data||[], document.getElementById('history-list'));
 }
 
-// Patch screen change to load history
-const _origShow=window.showScreen;
-window.showScreen=function(id){
-  if(id==='s-history') loadHistory();
-  showScreen(id);
-};
+function openHistory(){
+  loadHistory();
+  showScreen('s-history');
+}
 
 // ═══════════════════════════════════════════
 // KEYBOARD
