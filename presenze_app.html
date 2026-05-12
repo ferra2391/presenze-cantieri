@@ -365,6 +365,17 @@ body{min-height:100vh;background:radial-gradient(1000px 500px at -5% -5%,rgba(25
 .toast.show{transform:translateX(-50%) translateY(0)}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* Fix autofill browser background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #141418 inset !important;
+  -webkit-text-fill-color: #fafafa !important;
+  caret-color: #fafafa;
+  transition: background-color 9999s ease-in-out 0s;
+}
 </style>
 </head>
 <body>
@@ -669,7 +680,13 @@ async function doLogin(){
   btn.disabled=true; btn.innerHTML='<span class="spin"></span> Accesso...';
   try{
     const {data,error}=await sb.from('utenti').select('id,user_code,nome,cognome,ruolo').eq('user_code',u).eq('password',p).eq('attivo',true).single();
-    if(error||!data){err.textContent='Credenziali non valide';err.style.display='block';return;}
+    if(error){
+      if(error.code==='PGRST116') { err.textContent='Credenziali non valide'; }
+      else if(error.message?.includes('column') && error.message?.includes('password')) { err.textContent='Errore config: esegui lo SQL delle password su Supabase'; }
+      else { err.textContent='Errore: '+error.message; }
+      err.style.display='block'; return;
+    }
+    if(!data){err.textContent='Credenziali non valide';err.style.display='block';return;}
     AUTH=data;
     document.getElementById('s-login').style.display='none';
     document.getElementById('APP-INNER').style.display='block';
