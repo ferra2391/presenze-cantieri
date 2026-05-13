@@ -551,6 +551,32 @@ text-align:center;
 
 <script>
 // ============================================================
+// ERROR CATCHER GLOBALE
+// Se qualcosa si rompe, lo mostra a video invece di morire silenziosamente
+// ============================================================
+(function() {
+  function showErr(msg) {
+    let box = document.getElementById('__errbox');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = '__errbox';
+      box.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;z-index:99999;background:#dc2626;color:#fff;padding:14px;border-radius:10px;font-family:monospace;font-size:12px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:50vh;overflow:auto;';
+      document.body.appendChild(box);
+    }
+    box.innerHTML += '<div style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.2);">⚠ ' + msg + '</div>';
+  }
+  window.addEventListener('error', e => {
+    showErr((e.message || 'Errore') + ' · ' + (e.filename||'').split('/').pop() + ':' + (e.lineno||'?'));
+  });
+  window.addEventListener('unhandledrejection', e => {
+    showErr('Promise rejection: ' + (e.reason?.message || e.reason || 'sconosciuto'));
+  });
+  window.__showErr = showErr;
+})();
+</script>
+
+<script>
+// ============================================================
 // SUPABASE CLIENT
 // ============================================================
 const SB_URL = 'https://usfpzdxvcexxzraxpjtu.supabase.co';
