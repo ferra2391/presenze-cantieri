@@ -679,6 +679,18 @@ function previousWorkday(d) {
   return x;
 }
 function sameDay(a,b){ return fmtISO(a) === fmtISO(b); }
+function startOfWeekMonday(d) {
+  const x = normalizeDate(d);
+  const dow = x.getDay();
+  const delta = dow === 0 ? -6 : 1 - dow;
+  x.setDate(x.getDate() + delta);
+  return x;
+}
+function mondayPreviousWeek(d) {
+  const x = startOfWeekMonday(d);
+  x.setDate(x.getDate() - 7);
+  return x;
+}
 function getTarget() { return TARGET || AUTH; }
 function showToast(msg, type='warn') {
   const box = $('toast');
@@ -943,34 +955,67 @@ async function loadHistory() {
   const target = getTarget();
   if (!target) return;
 
-  const from = new Date(); from.setDate(from.getDate() - 14);
-  const y = previousWorkday(new Date());
+  const basis = normalizeDate(SEL_DATE || new Date());
+  const from = mondayPreviousWeek(basis);
+  const y = previousWorkday(basis);
   const yIso = fmtISO(y);
   HISTORY = { allRows: [], rows: [], byDate: {}, time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null };
 
-  try {
-    const { data } = await sb.from('presenze')
-      .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente')
+  async function fetchPresenze(fromDate, limitFallback=false) {
+    const baseSelect = 'id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente,cantieri(nome)';
+    let q = sb.from('presenze')
+      .select(baseSelect)
       .eq('utente_id', target.id)
-      .gte('data_presenza', fmtISO(from))
+      .lt('data_presenza', fmtISO(basis))
+      .gte('data_presenza', fmtISO(fromDate))
       .order('data_presenza', { ascending: false });
+    if (limitFallback) q = q.limit(30);
+    let { data, error } = await q;
 
-    const allRows = data || [];
+    // Se la relazione Supabase cantieri(nome) non è configurata, riprova senza join.
+    if (error) {
+      let q2 = sb.from('presenze')
+        .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente')
+        .eq('utente_id', target.id)
+        .lt('data_presenza', fmtISO(basis))
+        .gte('data_presenza', fmtISO(fromDate))
+        .order('data_presenza', { ascending: false });
+      if (limitFallback) q2 = q2.limit(30);
+      const r2 = await q2;
+      data = r2.data || [];
+    }
+    return data || [];
+  }
+
+  try {
+    let allRows = await fetchPresenze(from, false);
+
+    // Fallback: se dal lunedì della settimana precedente non c'è nulla, usa gli ultimi 60 giorni.
+    // Serve per non lasciare vuote le card suggerimenti quando l'operaio ha poco storico recente.
+    if (!allRows.length) {
+      const f2 = new Date(basis); f2.setDate(f2.getDate() - 60);
+      allRows = await fetchPresenze(f2, true);
+    }
+
     HISTORY.allRows = allRows;
     HISTORY.byDate = groupRowsByDate(allRows);
     const rows = allRows.filter(r => !r.is_assente);
     HISTORY.rows = rows;
 
-    const yRow = rows.find(r => r.data_presenza === yIso) || rows[0];
-    if (yRow) {
-      const c = CANTIERI.find(x => String(x.id) === String(yRow.cantiere_id));
-      HISTORY.yesterdaySite = c ? { id: c.id, nome: c.nome, lavorazione: yRow.lavorazione || '' } : null;
-      if (!SUGG?.ultima_presenza) SUGG.ultima_presenza = yRow;
-    }
+    const getSiteObj = r => {
+      if (!r) return null;
+      const cLocal = CANTIERI.find(x => String(x.id) === String(r.cantiere_id));
+      const nome = cLocal?.nome || r.cantieri?.nome || '';
+      return nome ? { id: r.cantiere_id, nome, lavorazione: r.lavorazione || '' } : null;
+    };
+
+    const yRow = rows.find(r => r.data_presenza === yIso);
+    HISTORY.yesterdaySite = getSiteObj(yRow);
+    if (yRow && !SUGG?.ultima_presenza) SUGG.ultima_presenza = yRow;
 
     const topSite = modeBy(rows, r => {
-      const c = CANTIERI.find(x => String(x.id) === String(r.cantiere_id));
-      return c ? { key: String(c.id), id: c.id, nome: c.nome } : null;
+      const site = getSiteObj(r);
+      return site ? { key: String(site.id), id: site.id, nome: site.nome } : null;
     });
     HISTORY.topSite = topSite;
 
@@ -983,23 +1028,28 @@ async function loadHistory() {
       const p = parseTimePreset(r);
       return p?.label ? { key: p.label, ...p } : null;
     });
-    HISTORY.time = topTime || (SUGG?.ultima_presenza ? { ...parseTimePreset(SUGG.ultima_presenza), freq: 1, key: parseTimePreset(SUGG.ultima_presenza)?.label } : null);
+    const lastTime = rows[0] ? parseTimePreset(rows[0]) : null;
+    HISTORY.time = topTime || (lastTime?.label ? { ...lastTime, freq: 1, key: lastTime.label } : null);
 
     const ids = rows.map(r => r.id).filter(Boolean);
     if (ids.length) {
       const { data: trData } = await sb.from('presenza_tratte')
-        .select('presenza_id,mezzo_id,ruolo,mezzi(id,descrizione,targa)')
-        .in('presenza_id', ids)
-        .eq('ruolo', 'Guidatore');
+        .select('presenza_id,mezzo_id,ruolo')
+        .in('presenza_id', ids);
+
       const dateByPres = new Map(rows.map(r => [String(r.id), r.data_presenza]));
-      const tr = trData || [];
-      const yTr = tr.find(x => dateByPres.get(String(x.presenza_id)) === yIso) || tr[0];
-      if (yTr) HISTORY.yesterdayVehicle = { id: yTr.mezzo_id, desc: `${yTr.mezzi?.descrizione || ''}${yTr.mezzi?.targa ? ' ('+yTr.mezzi.targa+')' : ''}`.trim() };
+      const tr = (trData || []).filter(x => String(x.ruolo || '').toLowerCase() === 'guidatore');
+      const vehicleObj = x => {
+        const m = MEZZI.find(mm => String(mm.id) === String(x.mezzo_id));
+        if (!m && !x.mezzo_id) return null;
+        const desc = m ? `${m.descrizione || ''}${m.targa ? ' ('+m.targa+')' : ''}`.trim() : String(x.mezzo_id || 'Mezzo');
+        return { id: x.mezzo_id, desc };
+      };
+      const yTr = tr.find(x => dateByPres.get(String(x.presenza_id)) === yIso);
+      HISTORY.yesterdayVehicle = vehicleObj(yTr);
       const topV = modeBy(tr, x => {
-        const id = x.mezzo_id;
-        if (!id) return null;
-        const desc = `${x.mezzi?.descrizione || ''}${x.mezzi?.targa ? ' ('+x.mezzi.targa+')' : ''}`.trim();
-        return { key: String(id), id, desc };
+        const v = vehicleObj(x);
+        return v ? { key: String(v.id), id: v.id, desc: v.desc } : null;
       });
       HISTORY.topVehicle = topV;
     }
@@ -1010,12 +1060,23 @@ async function loadHistory() {
 
 async function loadPresMap() {
   const target = TARGET || AUTH;
-  const from = new Date(); from.setDate(from.getDate() - 90);
-  const { data } = await sb.from('presenze')
-    .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente')
+  const from = new Date(); from.setDate(from.getDate() - 120);
+
+  let { data, error } = await sb.from('presenze')
+    .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente,cantieri(nome)')
     .eq('utente_id', target.id)
     .gte('data_presenza', fmtISO(from))
     .order('data_presenza', { ascending: false });
+
+  // Fallback se la relazione cantieri(nome) non è esposta in Supabase.
+  if (error) {
+    const r2 = await sb.from('presenze')
+      .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente')
+      .eq('utente_id', target.id)
+      .gte('data_presenza', fmtISO(from))
+      .order('data_presenza', { ascending: false });
+    data = r2.data || [];
+  }
 
   DATE_PRES_MAP = {};
   PRES_DETAIL_MAP = {};
@@ -1133,9 +1194,10 @@ function renderMonthList() {
       ? '<div class="mi-entry"><span class="badge-missing">ASSENTE</span><span class="mi-lav">Nessuna lavorazione</span></div>'
       : rows.map(r => {
           const c = CANTIERI.find(x => String(x.id) === String(r.cantiere_id));
+          const cNome = c?.nome || r.cantieri?.nome || 'Cantiere non trovato';
           const ore = Number(r.ore || 0);
           return `<div class="mi-entry" style="margin-bottom:6px;">
-            <div class="mi-cant" style="text-align:left;">${esc(c?.nome || 'Cantiere non trovato')}</div>
+            <div class="mi-cant" style="text-align:left;">${esc(cNome)}</div>
             <div class="mi-lav">${esc(r.lavorazione || '-')}</div>
             <div class="mi-orari" style="text-align:left;color:#fde68a;font-weight:900;">${ore.toFixed(1)}h · ${esc(r.orari_display || '')}</div>
           </div>`;
@@ -1163,7 +1225,21 @@ function showPage(n) {
   steps.forEach((s, i) => s.classList.toggle('active', i + 1 === n));
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (n === 2) applySuggestedTime();
-  if (n === 4) updateSummary();
+  if (n === 3) renderWorkItems();
+  if (n === 4) { renderTrattaItems(); updateSummary(); }
+}
+
+function firstMissingWorkdayFromPreviousMonday(selectedDate) {
+  const today = normalizeDate(new Date());
+  const selected = normalizeDate(selectedDate);
+  const start = mondayPreviousWeek(selected);
+  const end = previousWorkday(selected);
+  for (let d = new Date(start); d <= end && d <= today; d.setDate(d.getDate() + 1)) {
+    if (isWeekendDate(d)) continue;
+    const iso = fmtISO(d);
+    if (!DATE_PRES_MAP[iso]) return new Date(d);
+  }
+  return null;
 }
 
 function checkDateRules() {
@@ -1172,19 +1248,21 @@ function checkDateRules() {
   const iso = fmtISO(s);
   if (s > today) { showToast('Non puoi compilare una data nel futuro', 'danger'); return false; }
   if (DATE_PRES_MAP[iso]) { showToast('Presenza già registrata per questa data', 'warn'); return false; }
-  if (sameDay(s, today)) {
-    const prev = previousWorkday(today);
-    const prevIso = fmtISO(prev);
-    if (!DATE_PRES_MAP[prevIso]) {
-      showToast(`Manca la presenza del giorno lavorativo precedente (${fmtFull(prev)}). Prima compila quella.`, 'danger');
-      return false;
-    }
+
+  const missing = firstMissingWorkdayFromPreviousMonday(s);
+  if (missing) {
+    showToast(`Manca una presenza dal controllo settimanale: ${fmtFull(missing)}. Compila prima quella.`, 'danger');
+    return false;
   }
   return true;
 }
 
-function goFromPage1() {
+async function goFromPage1() {
   if (!checkDateRules()) return;
+  await loadHistory();
+  renderWorkItems();
+  renderTrattaItems();
+  applySuggestedTime._appliedKey = null;
   if (IS_ASSENTE) {
     showPage(4);
     return;
@@ -1311,23 +1389,37 @@ function applySuggestedTime() {
   const pNote = $('afternoonSuggestNote');
 
   if (!HISTORY?.time?.label) {
-    if (box) box.style.display = 'none';
+    if (box) {
+      box.style.display = 'block';
+      box.innerHTML = `<b>✨ Orario suggerito</b><br><span>Nessuno storico orari trovato su Supabase dal lunedì della settimana precedente. Puoi compilare manualmente.</span>`;
+    }
     if (mNote) mNote.style.display = 'none';
     if (pNote) pNote.style.display = 'none';
     return;
   }
 
   const targetId = getTarget()?.id || 'self';
-  if (!applySuggestedTime._doneFor || applySuggestedTime._doneFor !== targetId) {
-    applySuggestedTime._doneFor = targetId;
-    applyTimePreset(HISTORY.time);
-    return;
+  const key = `${targetId}|${HISTORY.time.label}`;
+  if (applySuggestedTime._appliedKey !== key) {
+    applySuggestedTime._appliedKey = key;
+    const preset = { ...HISTORY.time };
+    MORNING_ON = !!(preset.mS && preset.mE);
+    AFTERNOON_ON = !!(preset.pS && preset.pE);
+    if (preset.mS) setSelectValue('mStart', preset.mS);
+    if (preset.mE) setSelectValue('mEnd', preset.mE);
+    if (preset.pS) setSelectValue('pStart', preset.pS);
+    if (preset.pE) setSelectValue('pEnd', preset.pE);
+    if ($('morningCheck')) $('morningCheck').checked = MORNING_ON;
+    if ($('afternoonCheck')) $('afternoonCheck').checked = AFTERNOON_ON;
+    if ($('morningSlot')) $('morningSlot').classList.toggle('disabled', !MORNING_ON);
+    if ($('afternoonSlot')) $('afternoonSlot').classList.toggle('disabled', !AFTERNOON_ON);
+    updateTimes();
   }
 
   const freq = HISTORY.time.freq || 1;
   if (box) {
     box.style.display = 'block';
-    box.innerHTML = `<b>✨ Orario suggerito</b><br><span>Orario sottostante suggerito perché lavorato ${freq} volte negli ultimi giorni: ${esc(HISTORY.time.label)}. Puoi modificarlo dai selettori.</span>`;
+    box.innerHTML = `<b>✨ Orario suggerito</b><br><span>Orario sottostante già impostato perché lavorato ${freq} volte dal lunedì della settimana precedente: ${esc(HISTORY.time.label)}. Puoi comunque modificarlo.</span>`;
   }
   if (mNote) {
     mNote.style.display = MORNING_ON ? 'block' : 'none';
@@ -1365,11 +1457,11 @@ function renderWorkItems() {
           ${WORK_ITEMS.length > 1 ? `<button onclick="removeWorkItem(${i})" style="background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;">✕ Rimuovi</button>` : ''}
         </div>
         ${suggestions.length ? `<div class="suggestion-panel">
-          <div class="suggestion-title">⭐ Suggerimenti cantiere</div>
+          <div class="suggestion-title">⭐ Suggerimenti cantiere da Supabase</div>
           <div class="suggestion-buttons">
             ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickWork(${i}, '${s.id}', '${esc(s.nome)}', '${esc(s.lavorazione || '')}')">${esc(s.nome)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
           </div>
-        </div>` : ''}
+        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">⭐ Suggerimenti cantiere da Supabase</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico cantiere trovato dal lunedì della settimana precedente.</div></div>`}
         <div class="input-group">
           <span class="input-icon">🏗️</span>
           <select onchange="setWorkCantiere(${i}, this.value, this.options[this.selectedIndex].text)">${opts}</select>
@@ -1441,11 +1533,11 @@ function renderTrattaItems() {
           ${TRATTA_ITEMS.length > 1 ? `<button onclick="removeTrattaItem(${i})" style="background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;">✕ Rimuovi</button>` : ''}
         </div>
         ${suggestions.length ? `<div class="suggestion-panel">
-          <div class="suggestion-title">🚚 Suggerimenti mezzo</div>
+          <div class="suggestion-title">🚚 Suggerimenti mezzo da Supabase</div>
           <div class="suggestion-buttons">
             ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickTratta(${i}, '${s.id}', '${esc(s.desc)}')">${esc(s.desc)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
           </div>
-        </div>` : ''}
+        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">🚚 Suggerimenti mezzo da Supabase</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico mezzo guidato trovato dal lunedì della settimana precedente.</div></div>`}
         <div class="input-group">
           <span class="input-icon">🚛</span>
           <select onchange="setTrattaMezzo(${i}, this.value, this.options[this.selectedIndex].text)">${optsMezzo}</select>
@@ -1613,6 +1705,7 @@ async function confirmSelectOperaio() {
   closeSelectOperaio();
   setPhotoForUser(TARGET);
   await Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]);
+  applySuggestedTime._appliedKey = null;
   renderDateSelector();
   renderMonthList();
 }
@@ -1623,6 +1716,7 @@ function clearSelectedOperaio() {
   $('clearOpBtn').style.display = 'none';
   setPhotoForUser(AUTH);
   Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]).then(() => {
+    applySuggestedTime._appliedKey = null;
     renderDateSelector();
     renderMonthList();
   });
@@ -1748,6 +1842,7 @@ function onSaveOK(msg) {
   initWorkItems();
   initTrattaItems();
   Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]).then(() => {
+    applySuggestedTime._appliedKey = null;
     renderDateSelector();
     renderMonthList();
     updateAssenteChip();
