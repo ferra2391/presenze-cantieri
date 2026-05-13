@@ -338,6 +338,41 @@
   .summary-work { padding:10px 12px; margin-bottom:8px; background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.05)); border:2px solid var(--border); border-radius:12px; transition:all .3s ease; }
   .summary-work:hover { transform: translateX(4px); border-color:rgba(255,255,255,.25); }
   .summary-work:last-child { margin-bottom:0; }
+
+
+  /* === PATCH V2 - UX DATABASE === */
+  .header-main{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:96px;}
+  .header-left{min-width:0;}
+  .worker-photo-wrap{width:128px;height:128px;min-width:128px;border-radius:28px;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.35);box-shadow:0 12px 36px rgba(0,0,0,.28);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .worker-photo-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+  .worker-photo-fallback{font-size:44px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35);}
+  @media(max-width:520px){.worker-photo-wrap{width:104px;height:104px;min-width:104px;border-radius:24px}.header h1{font-size:21px}}
+
+  .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:9999;width:min(440px,calc(100% - 24px));background:rgba(15,23,42,.96);border:2px solid var(--border);border-radius:16px;padding:13px 15px;color:#fff;font-weight:850;box-shadow:0 16px 40px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:all .18s ease;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.success{border-color:rgba(16,185,129,.75);background:linear-gradient(135deg,rgba(16,185,129,.26),rgba(15,23,42,.96));}
+  .toast.warn{border-color:rgba(251,191,36,.75);background:linear-gradient(135deg,rgba(251,191,36,.24),rgba(15,23,42,.96));}
+  .toast.danger{border-color:rgba(239,68,68,.8);background:linear-gradient(135deg,rgba(239,68,68,.26),rgba(15,23,42,.96));}
+
+  .month-list{display:flex;max-height:0;overflow:hidden;transition:max-height .24s ease;}
+  .month-list.open{display:flex;max-height:520px;overflow:auto;}
+
+  .suggestion-panel{margin:12px 0 8px;padding:12px;border-radius:16px;background:linear-gradient(135deg,rgba(251,191,36,.13),rgba(99,102,241,.13));border:2px solid rgba(255,255,255,.16);box-shadow:0 6px 22px rgba(0,0,0,.25);}
+  .suggestion-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#fde68a;margin-bottom:8px;}
+  .suggestion-buttons{display:grid;grid-template-columns:1fr;gap:8px;}
+  .suggestion-btn{border:none;border-radius:14px;padding:11px 12px;background:linear-gradient(135deg,rgba(255,107,53,.9),rgba(99,102,241,.86));color:#fff;font-family:inherit;font-size:13px;font-weight:900;text-align:left;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:all .18s ease;}
+  .suggestion-btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.32);}
+  .suggestion-btn small{display:block;margin-top:3px;color:rgba(255,255,255,.82);font-size:10px;font-weight:800;}
+
+  .time-suggestion{margin-bottom:14px;padding:12px;border-radius:16px;border:2px solid rgba(251,191,36,.32);background:linear-gradient(135deg,rgba(251,191,36,.14),rgba(255,107,53,.10));}
+  .time-suggestion-main{display:flex;justify-content:space-between;gap:10px;align-items:center;}
+  .time-suggestion b{font-size:13px;}
+  .time-suggestion span{font-size:12px;color:var(--text-secondary);font-weight:700;}
+  .mini-btn{border:none;border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.14);color:#fff;font-family:inherit;font-weight:900;cursor:pointer;border:1px solid rgba(255,255,255,.22);}
+  .mini-btn:hover{background:rgba(255,255,255,.24)}
+
+  .split-note{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);font-size:12px;color:var(--text-secondary);font-weight:750;line-height:1.35;}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -359,10 +394,18 @@
   <div class="topbar"><button class="logout-btn" onclick="handleLogout()">Esci</button></div>
 
   <div class="header">
-    <h1>⚡ Presenze Cantiere</h1>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <div class="user-badge"><span>👷</span><span id="userName">-</span></div>
-      <div class="user-badge" id="compilingForBadge" style="display:none;background:rgba(251,191,36,.35)"><span>📝</span><span id="compilingFor">-</span></div>
+    <div class="header-main">
+      <div class="header-left">
+        <h1>⚡ Presenze Cantiere</h1>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <div class="user-badge"><span>👷</span><span id="userName">-</span></div>
+          <div class="user-badge" id="compilingForBadge" style="display:none;background:rgba(251,191,36,.35)"><span>📝</span><span id="compilingFor">-</span></div>
+        </div>
+      </div>
+      <div class="worker-photo-wrap" id="workerPhotoWrap">
+        <img id="workerPhoto" alt="Foto operaio" style="display:none" />
+        <div id="workerPhotoFallback" class="worker-photo-fallback">👷</div>
+      </div>
     </div>
   </div>
 
@@ -435,6 +478,7 @@
         <div style="text-align:center;margin-bottom:12px;color:var(--text-secondary);font-size:13px;font-weight:700;">
           💡 Disattiva un turno se non lavori in quel momento
         </div>
+        <div id="timeSuggestion" class="time-suggestion" style="display:none"></div>
 
         <div class="time-picker">
           <div class="time-slot morning" id="morningSlot">
@@ -490,6 +534,7 @@
         <div class="card-title"><span>🏗️</span><span>Cantieri</span></div>
         <div id="workItems"></div>
         <button class="chip" id="addWorkBtn" onclick="addWorkItem()" style="width:100%;margin-top:10px">+ Aggiungi cantiere (max 3)</button>
+        <div class="split-note" id="splitNote">Se inserisci più cantieri, le ore vengono ripartite automaticamente. L'eventuale resto viene assegnato all'ultimo cantiere.</div>
       </div>
       <div class="btn-group">
         <button class="btn btn-secondary" onclick="prevPage(2)">← Indietro</button>
@@ -536,6 +581,8 @@
     </div>
   </div>
 </div>
+
+<div id="toast" class="toast"></div>
 
 <div class="success-overlay" id="successOverlay">
   <div class="card"><h2>✨ Presenza registrata!</h2></div>
@@ -586,6 +633,7 @@ let MEZZI = [];           // [{id, descrizione, targa, tipologia}]
 let UTENTI = [];          // tutti gli utenti (solo per admin/sub)
 let ASSENTE_ID = null;    // id del cantiere "ASSENTE"
 let SUGG = {};            // suggerimenti smart
+let HISTORY = { rows: [], time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null }; // storico locale
 
 let CUR_PAGE = 1;
 let SEL_DATE = new Date();   // data selezionata
@@ -619,6 +667,104 @@ function esc(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<
 function isOperaio() { return ((TARGET||AUTH)?.ruolo) === 'Operaio'; }
 function isAdmin() { return AUTH?.ruolo === 'Amministratore'; }
 function isSub() { return AUTH?.ruolo === 'Sub'; }
+
+function normalizeDate(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function isWeekendDate(d) { const dow = d.getDay(); return dow === 0 || dow === 6; }
+function previousWorkday(d) {
+  const x = normalizeDate(d);
+  do { x.setDate(x.getDate() - 1); } while (isWeekendDate(x));
+  return x;
+}
+function sameDay(a,b){ return fmtISO(a) === fmtISO(b); }
+function getTarget() { return TARGET || AUTH; }
+function showToast(msg, type='warn') {
+  const box = $('toast');
+  if (!box) { alert(msg); return; }
+  box.className = `toast ${type}`;
+  box.textContent = msg;
+  box.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => box.classList.remove('show'), 2600);
+}
+function setPhotoForUser(user) {
+  const img = $('workerPhoto');
+  const fb = $('workerPhotoFallback');
+  if (!img || !fb || !user) return;
+  const base = 'https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/';
+  const full = `${user.nome || ''} ${user.cognome || ''}`.trim();
+  const clean = s => String(s||'').trim().replace(/\\+/g,'-').replace(/\s+/g,'-');
+  const names = [
+    user.user_code,
+    clean(full),
+    clean(full).toLowerCase(),
+    clean(user.nome),
+    clean(user.nome).toLowerCase()
+  ].filter(Boolean);
+  const exts = ['jpg','jpeg','png','webp'];
+  const urls = [];
+  names.forEach(n => exts.forEach(ext => urls.push(`${base}${encodeURIComponent(n)}.${ext}`)));
+  let idx = 0;
+  fb.textContent = (user.nome ? user.nome[0] : '👷').toUpperCase();
+  img.style.display = 'none';
+  fb.style.display = 'block';
+  img.onerror = () => {
+    idx++;
+    if (idx < urls.length) img.src = urls[idx];
+    else { img.style.display = 'none'; fb.style.display = 'block'; }
+  };
+  img.onload = () => { img.style.display = 'block'; fb.style.display = 'none'; };
+  if (urls.length) img.src = urls[0];
+}
+function setSelectValue(id, val) { const el = $(id); if (el && val) el.value = val; }
+function applyTimePreset(preset) {
+  if (!preset) return;
+  MORNING_ON = !!(preset.mS && preset.mE);
+  AFTERNOON_ON = !!(preset.pS && preset.pE);
+  if (preset.mS) setSelectValue('mStart', preset.mS);
+  if (preset.mE) setSelectValue('mEnd', preset.mE);
+  if (preset.pS) setSelectValue('pStart', preset.pS);
+  if (preset.pE) setSelectValue('pEnd', preset.pE);
+  $('morningCheck').checked = MORNING_ON;
+  $('afternoonCheck').checked = AFTERNOON_ON;
+  $('morningSlot').classList.toggle('disabled', !MORNING_ON);
+  $('afternoonSlot').classList.toggle('disabled', !AFTERNOON_ON);
+  applySuggestedTime();
+  updateTimes();
+}
+function parseTimePreset(row) {
+  if (!row) return null;
+  let mS = row.ora_inizio_mattina || null;
+  let mE = row.ora_fine_mattina || null;
+  let pS = row.ora_inizio_pomeriggio || null;
+  let pE = row.ora_fine_pomeriggio || null;
+  const display = row.orari_display || row.orari || '';
+  const parts = display.split(/\s*\+\s*/);
+  const parseR = s => { const m = String(s||'').match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/); return m ? [m[1],m[2]] : null; };
+  if ((!mS || !mE) && parts[0]) { const r = parseR(parts[0]); if (r) { mS = r[0]; mE = r[1]; } }
+  if ((!pS || !pE) && parts[1]) { const r = parseR(parts[1]); if (r) { pS = r[0]; pE = r[1]; } }
+  return { mS, mE, pS, pE, label: [mS&&mE ? `${mS}-${mE}` : '', pS&&pE ? `${pS}-${pE}` : ''].filter(Boolean).join(' + ') };
+}
+function modeBy(rows, keyFn) {
+  const m = new Map();
+  rows.forEach(r => {
+    const k = keyFn(r);
+    if (!k) return;
+    const cur = m.get(k.key) || { ...k, freq: 0 };
+    cur.freq += 1;
+    m.set(k.key, cur);
+  });
+  return [...m.values()].sort((a,b) => b.freq - a.freq)[0] || null;
+}
+function splitHoursSmart(total, count) {
+  if (count <= 1) return [Number(total.toFixed(2))];
+  const step = 0.5;
+  const base = Math.floor((total / count) / step) * step;
+  const arr = Array(count).fill(Number(base.toFixed(2)));
+  const used = base * (count - 1);
+  arr[count - 1] = Number((total - used).toFixed(2));
+  return arr;
+}
+
 
 // ============================================================
 // LOGIN
@@ -667,6 +813,7 @@ function handleLogout() {
 async function postLogin() {
   const fullname = AUTH.nome + (AUTH.cognome ? ' ' + AUTH.cognome : '');
   $('userName').textContent = fullname;
+  setPhotoForUser(AUTH);
 
   // Mostra bottoni admin-only
   if (isAdmin() || isSub()) {
@@ -677,6 +824,7 @@ async function postLogin() {
   populateTimeSelects();
   await Promise.all([loadCantieri(), loadMezzi(), loadUtenti()]);
   await loadSuggerimenti();
+  await loadHistory();
   await loadPresMap();
   renderDateSelector();
   renderMonthList();
@@ -715,6 +863,60 @@ async function loadSuggerimenti() {
   } catch (e) { SUGG = {}; }
 }
 
+
+async function loadHistory() {
+  const target = getTarget();
+  if (!target) return;
+  const from = new Date(); from.setDate(from.getDate() - 14);
+  const y = previousWorkday(new Date());
+  HISTORY = { rows: [], time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null };
+  try {
+    const { data } = await sb.from('presenze')
+      .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente')
+      .eq('utente_id', target.id)
+      .gte('data_presenza', fmtISO(from))
+      .order('data_presenza', { ascending: false });
+    const rows = (data || []).filter(r => !r.is_assente);
+    HISTORY.rows = rows;
+    const weekRows = rows.filter(r => new Date(r.data_presenza) >= from);
+    const yRow = rows.find(r => r.data_presenza === fmtISO(y));
+    if (yRow) {
+      const c = CANTIERI.find(x => String(x.id) === String(yRow.cantiere_id));
+      HISTORY.yesterdaySite = c ? { id: c.id, nome: c.nome, lavorazione: yRow.lavorazione || '' } : null;
+      if (!SUGG?.ultima_presenza) SUGG.ultima_presenza = yRow;
+    }
+    const topSite = modeBy(weekRows, r => {
+      const c = CANTIERI.find(x => String(x.id) === String(r.cantiere_id));
+      return c ? { key: String(c.id), id: c.id, nome: c.nome } : null;
+    });
+    HISTORY.topSite = topSite;
+    const topTime = modeBy(weekRows, r => {
+      const p = parseTimePreset(r);
+      return p?.label ? { key: p.label, ...p } : null;
+    });
+    HISTORY.time = topTime;
+  } catch(e) { console.warn('loadHistory presenze', e); }
+
+  try {
+    const { data } = await sb.from('presenza_tratte')
+      .select('mezzo_id,ruolo,mezzi(id,descrizione,targa),presenze!inner(id,data_presenza,utente_id)')
+      .eq('ruolo','Guidatore')
+      .eq('presenze.utente_id', target.id)
+      .gte('presenze.data_presenza', fmtISO(from));
+    const tr = data || [];
+    const yIso = fmtISO(y);
+    const yTr = tr.find(x => x.presenze?.data_presenza === yIso);
+    if (yTr) HISTORY.yesterdayVehicle = { id: yTr.mezzo_id, desc: `${yTr.mezzi?.descrizione || ''}${yTr.mezzi?.targa ? ' ('+yTr.mezzi.targa+')' : ''}`.trim() };
+    const topV = modeBy(tr, x => {
+      const id = x.mezzo_id;
+      if (!id) return null;
+      const desc = `${x.mezzi?.descrizione || ''}${x.mezzi?.targa ? ' ('+x.mezzi.targa+')' : ''}`.trim();
+      return { key: String(id), id, desc };
+    });
+    HISTORY.topVehicle = topV;
+  } catch(e) { console.warn('loadHistory tratte', e); }
+}
+
 async function loadPresMap() {
   const target = TARGET || AUTH;
   const from = new Date(); from.setDate(from.getDate() - 90);
@@ -734,21 +936,28 @@ async function loadPresMap() {
 function renderDateSelector() {
   const cont = $('dateSelector');
   cont.innerHTML = '';
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = normalizeDate(new Date());
+  const currentMonday = new Date(today);
+  const dow = currentMonday.getDay();
+  const deltaToMonday = (dow === 0 ? -6 : 1 - dow);
+  currentMonday.setDate(currentMonday.getDate() + deltaToMonday);
+  const start = new Date(currentMonday); start.setDate(currentMonday.getDate() - 7);
 
-  for (let i = -7; i <= 2; i++) {
-    const d = new Date(today); d.setDate(today.getDate() + i);
+  for (let i = 0; i < 21; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
     const iso = fmtISO(d);
     const dow = d.getDay();
     const isWeekend = (dow === 0 || dow === 6);
-    const isToday = (i === 0);
-    const isSel = (fmtISO(SEL_DATE) === iso);
+    const isToday = sameDay(d, today);
+    const isSel = fmtISO(SEL_DATE) === iso;
+    const isFuture = d > today;
 
     const cell = document.createElement('div');
     cell.className = 'date-day';
     if (isWeekend) cell.classList.add('weekend');
     if (isToday) cell.classList.add('today');
     if (isSel) cell.classList.add('selected');
+    if (isFuture) cell.classList.add('future');
 
     const state = DATE_PRES_MAP[iso];
     if (state === 'pres') cell.classList.add('has-pres');
@@ -761,44 +970,50 @@ function renderDateSelector() {
       <span class="day-month">${MONTH_SHORT[d.getMonth()]}</span>
       <span class="corner-flag"></span>
     `;
-    cell.onclick = () => { SEL_DATE = new Date(d); IS_ASSENTE = false; updateAssenteChip(); renderDateSelector(); updateRepeatBtn(); };
+    cell.onclick = () => {
+      SEL_DATE = new Date(d);
+      IS_ASSENTE = false;
+      updateAssenteChip();
+      renderDateSelector();
+      updateRepeatBtn();
+    };
     cont.appendChild(cell);
   }
-  const sel = cont.querySelector('.selected');
-  if (sel) sel.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+  updateRepeatBtn();
 }
 
 function updateRepeatBtn() {
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = normalizeDate(new Date());
   const isToday = fmtISO(SEL_DATE) === fmtISO(today);
-  $('repeatBtn').disabled = !isToday;
+  const ok = isToday && !!SUGG?.ultima_presenza;
+  const btn = $('repeatBtn');
+  if (!btn) return;
+  btn.disabled = !ok;
+  btn.title = ok ? 'Ripeti l’ultima presenza disponibile' : 'Disponibile solo se esiste una presenza precedente';
 }
 
 // ============================================================
 // MONTH LIST
 // ============================================================
 let MONTH_OPEN = false;
-const monthToggleBtn = function() {
+function monthToggleBtn() {
   MONTH_OPEN = !MONTH_OPEN;
-  $('monthList').style.maxHeight = MONTH_OPEN ? '500px' : '0';
-  $('monthList').style.overflow = MONTH_OPEN ? 'auto' : 'hidden';
+  const list = $('monthList');
+  list.classList.toggle('open', MONTH_OPEN);
   $('monthArrow').textContent = MONTH_OPEN ? '▲' : '▼';
-};
+}
 
 function renderMonthList() {
-  // Attiva toggle
-  $('monthToggle').onclick = monthToggleBtn;
-  $('monthList').style.maxHeight = '0';
-  $('monthList').style.overflow = 'hidden';
-  $('monthList').style.transition = 'max-height .3s ease';
+  const btn = $('monthToggle');
+  if (btn) btn.onclick = monthToggleBtn;
+  MONTH_OPEN = false;
+  const list = $('monthList');
+  list.classList.remove('open');
+  $('monthArrow').textContent = '▼';
 
-  // Costruisci lista presenze del mese corrente
-  const target = TARGET || AUTH;
   const now = new Date();
   $('monthTitle').textContent = `📆 Presenze di ${MONTH_LONG[now.getMonth()]}`;
 
-  const list = $('monthList');
-  // Filtra DATE_PRES_MAP per mese corrente
   const items = Object.entries(DATE_PRES_MAP)
     .filter(([iso]) => {
       const d = new Date(iso);
@@ -816,9 +1031,9 @@ function renderMonthList() {
     const label = `${DAY_SHORT[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
     const stLabel = st === 'pres' ? '✓ Presente' : '✕ Assente';
     const stColor = st === 'pres' ? 'var(--success)' : 'var(--danger)';
-    return `<div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;">
-      <span style="font-weight:700">${label}</span>
-      <span style="color:${stColor};font-weight:800">${stLabel}</span>
+    return `<div class="month-item" style="font-size:13px;">
+      <span style="font-weight:800">${label}</span>
+      <span style="color:${stColor};font-weight:900">${stLabel}</span>
     </div>`;
   }).join('');
 }
@@ -836,26 +1051,48 @@ function showPage(n) {
   const steps = document.querySelectorAll('.step-indicator .step');
   steps.forEach((s, i) => s.classList.toggle('active', i + 1 === n));
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (n === 2) applySuggestedTime();
   if (n === 4) updateSummary();
 }
 
-function goFromPage1() {
-  if (IS_ASSENTE) {
-    // assente: salva subito senza passare per altre pagine
-    submitPresence();
-    return;
+function checkDateRules() {
+  const today = normalizeDate(new Date());
+  const s = normalizeDate(SEL_DATE);
+  const iso = fmtISO(s);
+  if (s > today) { showToast('Non puoi compilare una data nel futuro', 'danger'); return false; }
+  if (DATE_PRES_MAP[iso]) { showToast('Presenza già registrata per questa data', 'warn'); return false; }
+  if (sameDay(s, today)) {
+    const prev = previousWorkday(today);
+    const prevIso = fmtISO(prev);
+    if (!DATE_PRES_MAP[prevIso]) {
+      showToast(`Manca la presenza del giorno lavorativo precedente (${fmtFull(prev)}). Prima compila quella.`, 'danger');
+      return false;
+    }
   }
-  // Verifica data non futura
-  const today = new Date(); today.setHours(0,0,0,0);
-  const s = new Date(SEL_DATE); s.setHours(0,0,0,0);
-  if (s > today) {
-    alert('Non puoi compilare una data nel futuro');
+  return true;
+}
+
+function goFromPage1() {
+  if (!checkDateRules()) return;
+  if (IS_ASSENTE) {
+    showPage(4);
     return;
   }
   showPage(2);
 }
 
-function nextPage(n) { showPage(n); }
+function nextPage(n) {
+  if (CUR_PAGE === 2 && n === 3) {
+    const t = getTimeData();
+    if (t.ore <= 0) { showToast('Imposta almeno un turno di lavoro', 'danger'); return; }
+  }
+  if (CUR_PAGE === 3 && n === 4) {
+    const works = WORK_ITEMS.filter(w => w.cantiere_id && w.lavorazione?.trim());
+    if (!works.length) { showToast('Inserisci almeno un cantiere con lavorazione', 'danger'); return; }
+    if (WORK_ITEMS.some(w => !w.cantiere_id || !w.lavorazione?.trim())) { showToast('Completa o rimuovi i cantieri vuoti', 'danger'); return; }
+  }
+  showPage(n);
+}
 function prevPage(n) { showPage(n); }
 
 // ============================================================
@@ -945,6 +1182,22 @@ function getTimeData() {
   };
 }
 
+
+function applySuggestedTime() {
+  const box = $('timeSuggestion');
+  if (!box) return;
+  if (!HISTORY?.time?.label) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = `<div class="time-suggestion-main">
+    <div><b>✨ Orario suggerito</b><br><span>${esc(HISTORY.time.label)} · usato ${HISTORY.time.freq || 1} volte negli ultimi giorni lavorati</span></div>
+    <button type="button" class="mini-btn" onclick="applyTimePreset(HISTORY.time)">Usa</button>
+  </div>`;
+  if (!applySuggestedTime._doneFor || applySuggestedTime._doneFor !== getTarget()?.id) {
+    applySuggestedTime._doneFor = getTarget()?.id;
+    applyTimePreset(HISTORY.time);
+  }
+}
+
 // ============================================================
 // WORK ITEMS (cantieri + lavorazioni)
 // ============================================================
@@ -956,26 +1209,30 @@ function initWorkItems() {
 function renderWorkItems() {
   const cont = $('workItems');
   if (!cont) return;
-  const sugg = (SUGG?.top_cantieri || []).slice(0, 4);
 
   cont.innerHTML = WORK_ITEMS.map((w, i) => {
     const opts = ['<option value="">— Seleziona cantiere —</option>']
-      .concat(CANTIERI.map(c => `<option value="${c.id}" ${c.id===w.cantiere_id?'selected':''}>${esc(c.nome)}</option>`))
+      .concat(CANTIERI.map(c => `<option value="${c.id}" ${String(c.id)===String(w.cantiere_id)?'selected':''}>${esc(c.nome)}</option>`))
       .join('');
+    const suggestions = [];
+    if (HISTORY.yesterdaySite) suggestions.push({ label: 'Cantiere di ieri', ...HISTORY.yesterdaySite });
+    if (HISTORY.topSite && (!HISTORY.yesterdaySite || String(HISTORY.topSite.id) !== String(HISTORY.yesterdaySite.id))) suggestions.push({ label: 'Più frequente ultima settimana', id: HISTORY.topSite.id, nome: HISTORY.topSite.nome, lavorazione: '' , freq: HISTORY.topSite.freq });
     return `
       <div class="card" style="margin-bottom:10px;padding:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <b style="color:var(--primary);font-size:13px;">CANTIERE ${i+1}</b>
           ${WORK_ITEMS.length > 1 ? `<button onclick="removeWorkItem(${i})" style="background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;">✕ Rimuovi</button>` : ''}
         </div>
+        ${suggestions.length ? `<div class="suggestion-panel">
+          <div class="suggestion-title">⭐ Suggerimenti cantiere</div>
+          <div class="suggestion-buttons">
+            ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickWork(${i}, '${s.id}', '${esc(s.nome)}', '${esc(s.lavorazione || '')}')">${esc(s.nome)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
+          </div>
+        </div>` : ''}
         <div class="input-group">
           <span class="input-icon">🏗️</span>
           <select onchange="setWorkCantiere(${i}, this.value, this.options[this.selectedIndex].text)">${opts}</select>
         </div>
-        ${!w.cantiere_id && sugg.length ? `
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:-4px;margin-bottom:10px;">
-            ${sugg.map(s => `<button type="button" onclick="quickPickWork(${i}, '${s.id}', '${esc(s.nome)}')" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:var(--secondary-light);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;">${esc(s.nome)} <span style="opacity:.6">${s.freq}×</span></button>`).join('')}
-          </div>` : ''}
         <div class="input-group" style="margin-bottom:0;">
           <span class="input-icon">📝</span>
           <textarea placeholder="Descrivi la lavorazione svolta..." rows="2" oninput="WORK_ITEMS[${i}].lavorazione = this.value">${esc(w.lavorazione)}</textarea>
@@ -1002,9 +1259,10 @@ function setWorkCantiere(i, id, nome) {
   WORK_ITEMS[i].cantiere_nome = id ? nome : '';
   renderWorkItems();
 }
-function quickPickWork(i, id, nome) {
+function quickPickWork(i, id, nome, lavorazione='') {
   WORK_ITEMS[i].cantiere_id = id;
   WORK_ITEMS[i].cantiere_nome = nome;
+  if (lavorazione && !WORK_ITEMS[i].lavorazione) WORK_ITEMS[i].lavorazione = lavorazione;
   renderWorkItems();
 }
 
@@ -1019,19 +1277,34 @@ function initTrattaItems() {
 function renderTrattaItems() {
   const cont = $('mezziItems');
   if (!cont) return;
+  if (IS_ASSENTE) {
+    cont.innerHTML = '<div style="padding:12px;color:var(--text-secondary);font-weight:800;text-align:center;">Assenza selezionata: nessun mezzo richiesto.</div>';
+    const btn = $('addTrattaBtn'); if (btn) btn.style.display = 'none';
+    return;
+  }
+  const btn = $('addTrattaBtn'); if (btn) btn.style.display = 'block';
   cont.innerHTML = TRATTA_ITEMS.map((t, i) => {
     const optsMezzo = ['<option value="">— Seleziona mezzo —</option>']
-      .concat(MEZZI.map(m => `<option value="${m.id}" ${m.id===t.mezzo_id?'selected':''}>${esc(m.descrizione)} (${esc(m.targa||'')})</option>`))
+      .concat(MEZZI.map(m => `<option value="${m.id}" ${String(m.id)===String(t.mezzo_id)?'selected':''}>${esc(m.descrizione)} (${esc(m.targa||'')})</option>`))
       .join('');
     const optsRuolo = ['<option value="">— Ruolo —</option>',
       `<option value="Guidatore" ${t.ruolo==='Guidatore'?'selected':''}>🚗 Guidatore</option>`,
       `<option value="Passeggero" ${t.ruolo==='Passeggero'?'selected':''}>🧑 Passeggero</option>`].join('');
+    const suggestions = [];
+    if (HISTORY.yesterdayVehicle) suggestions.push({ label:'Mezzo guidato ieri', ...HISTORY.yesterdayVehicle });
+    if (HISTORY.topVehicle && (!HISTORY.yesterdayVehicle || String(HISTORY.topVehicle.id)!==String(HISTORY.yesterdayVehicle.id))) suggestions.push({ label:'Più guidato ultima settimana', id:HISTORY.topVehicle.id, desc:HISTORY.topVehicle.desc, freq:HISTORY.topVehicle.freq });
     return `
       <div class="card" style="margin-bottom:10px;padding:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <b style="color:var(--secondary-light);font-size:13px;">TRATTA ${i+1}</b>
           ${TRATTA_ITEMS.length > 1 ? `<button onclick="removeTrattaItem(${i})" style="background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;">✕ Rimuovi</button>` : ''}
         </div>
+        ${suggestions.length ? `<div class="suggestion-panel">
+          <div class="suggestion-title">🚚 Suggerimenti mezzo</div>
+          <div class="suggestion-buttons">
+            ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickTratta(${i}, '${s.id}', '${esc(s.desc)}')">${esc(s.desc)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
+          </div>
+        </div>` : ''}
         <div class="input-group">
           <span class="input-icon">🚛</span>
           <select onchange="setTrattaMezzo(${i}, this.value, this.options[this.selectedIndex].text)">${optsMezzo}</select>
@@ -1043,8 +1316,8 @@ function renderTrattaItems() {
       </div>
     `;
   }).join('');
-  const btn = $('addTrattaBtn');
-  if (btn) btn.disabled = TRATTA_ITEMS.length >= 3;
+  const addBtn = $('addTrattaBtn');
+  if (addBtn) addBtn.disabled = TRATTA_ITEMS.length >= 3;
 }
 
 function addTrattaItem() {
@@ -1059,9 +1332,18 @@ function removeTrattaItem(i) {
 function setTrattaMezzo(i, id, desc) {
   TRATTA_ITEMS[i].mezzo_id = id || null;
   TRATTA_ITEMS[i].mezzo_desc = id ? desc : '';
+  updateSummary();
 }
 function setTrattaRuolo(i, r) {
   TRATTA_ITEMS[i].ruolo = r;
+  updateSummary();
+}
+function quickPickTratta(i, id, desc) {
+  TRATTA_ITEMS[i].mezzo_id = id;
+  TRATTA_ITEMS[i].mezzo_desc = desc;
+  TRATTA_ITEMS[i].ruolo = 'Guidatore';
+  renderTrattaItems();
+  updateSummary();
 }
 
 // ============================================================
@@ -1070,12 +1352,24 @@ function setTrattaRuolo(i, r) {
 function updateSummary() {
   $('summaryDate').textContent = fmtFull(SEL_DATE);
   const t = getTimeData();
+  if (IS_ASSENTE) {
+    $('summaryTime').textContent = 'Assente';
+    $('summaryHours').textContent = '0.0h';
+    $('summaryMezzo').textContent = '-';
+    $('summaryRuoloMezzo').textContent = '-';
+    $('summaryWorks').innerHTML = '<div class="summary-work">🚫 <b>ASSENTE</b> — Nessuna lavorazione</div>';
+    const noteA = $('notesInput')?.value || '';
+    $('summaryNotes').textContent = noteA || '-';
+    renderTrattaItems();
+    return;
+  }
   $('summaryTime').textContent = t.orari || '—';
   $('summaryHours').textContent = t.ore.toFixed(1) + 'h';
 
   const w = WORK_ITEMS.filter(x => x.cantiere_id && x.lavorazione?.trim());
+  const splits = splitHoursSmart(t.ore, Math.max(1, w.length));
   $('summaryWorks').innerHTML = w.length
-    ? w.map(x => `<div class="summary-work">📍 <b>${esc(x.cantiere_nome)}</b> — ${esc(x.lavorazione)}</div>`).join('')
+    ? w.map((x,idx) => `<div class="summary-work">📍 <b>${esc(x.cantiere_nome)}</b> — ${esc(x.lavorazione)}<br><span style="color:var(--accent);font-weight:900;font-size:12px;">Ore attribuite: ${splits[idx].toFixed(1)}h</span></div>`).join('')
     : '<div style="color:var(--text-secondary);font-size:13px;">Nessun cantiere</div>';
 
   const tr = TRATTA_ITEMS.filter(x => x.mezzo_id && x.ruolo);
@@ -1176,7 +1470,8 @@ async function confirmSelectOperaio() {
   $('compilingForBadge').style.display = 'inline-flex';
   $('clearOpBtn').style.display = 'inline-flex';
   closeSelectOperaio();
-  await Promise.all([loadSuggerimenti(), loadPresMap()]);
+  setPhotoForUser(TARGET);
+  await Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]);
   renderDateSelector();
   renderMonthList();
 }
@@ -1185,7 +1480,8 @@ function clearSelectedOperaio() {
   TARGET = null; NUM_LAVORATORI = 1;
   $('compilingForBadge').style.display = 'none';
   $('clearOpBtn').style.display = 'none';
-  Promise.all([loadSuggerimenti(), loadPresMap()]).then(() => {
+  setPhotoForUser(AUTH);
+  Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]).then(() => {
     renderDateSelector();
     renderMonthList();
   });
@@ -1201,6 +1497,7 @@ function openGestioneCantieri() {
 async function submitPresence() {
   const target = TARGET || AUTH;
   const dataISO = fmtISO(SEL_DATE);
+  if (DATE_PRES_MAP[dataISO]) { showToast('Presenza già registrata per questa data', 'warn'); return; }
 
   // === CASO ASSENTE ===
   if (IS_ASSENTE) {
@@ -1236,14 +1533,15 @@ async function submitPresence() {
   const tratteValid = TRATTA_ITEMS.filter(x => x.mezzo_id && x.ruolo);
   const tratteIncomplete = TRATTA_ITEMS.some(x => (x.mezzo_id && !x.ruolo) || (!x.mezzo_id && x.ruolo));
   if (tratteIncomplete) { alert('Tratta incompleta: ogni tratta deve avere sia MEZZO che RUOLO'); return; }
-  if (isOperaio() && !tratteValid.length) { alert('Mezzo obbligatorio per gli operai'); return; }
+  if (!tratteValid.length) { showToast('Mezzo obbligatorio: inserisci almeno una tratta con ruolo', 'danger'); return; }
 
   const note = ($('notesInput')?.value || '').trim();
-  const oreSplit = parseFloat((t.ore / works.length).toFixed(2));
+  const oreSplits = splitHoursSmart(t.ore, works.length);
 
   try {
     const inserted = [];
-    for (const w of works) {
+    for (let wi = 0; wi < works.length; wi++) {
+      const w = works[wi];
       const row = {
         data_presenza: dataISO,
         utente_id: target.id,
@@ -1254,7 +1552,7 @@ async function submitPresence() {
         ora_inizio_pomeriggio: t.pS,
         ora_fine_pomeriggio: t.pE,
         orari_display: t.orari,
-        ore: works.length === 1 ? t.ore : oreSplit,
+        ore: oreSplits[wi],
         is_assente: false,
         note: note || null,
         inserted_by_id: AUTH.id !== target.id ? AUTH.id : null,
@@ -1286,23 +1584,16 @@ function handleSaveError(e) {
   console.error('Save error:', e);
   const msg = e?.message || JSON.stringify(e) || 'errore sconosciuto';
   if (msg.includes('idx_presenze_no_dup') || msg.includes('duplicate key'))
-    alert('⚠ Presenza già registrata per questa data e cantiere');
+    showToast('Presenza già registrata per questa data', 'warn');
   else if (msg.includes('row-level security'))
-    alert('Errore permessi DB. Contatta l\'amministratore.');
+    showToast('Errore permessi DB. Contatta l\'amministratore.', 'danger');
   else
-    alert('Errore durante il salvataggio:\n' + msg.slice(0, 200));
+    showToast('Errore durante il salvataggio: ' + msg.slice(0, 200), 'danger');
 }
 
 function onSaveOK(msg) {
-  // Mostra overlay successo
-  const ov = $('successOverlay');
-  if (ov) {
-    ov.style.display = 'flex';
-    setTimeout(() => { ov.style.display = 'none'; }, 1800);
-  } else {
-    alert('✓ ' + msg);
-  }
-  // Reset
+  showToast('✓ ' + msg, 'success');
+  // Reset immediato, senza pause artificiali
   SEL_DATE = new Date();
   IS_ASSENTE = false;
   if ($('notesInput')) $('notesInput').value = '';
@@ -1315,8 +1606,7 @@ function onSaveOK(msg) {
   updateTimes();
   initWorkItems();
   initTrattaItems();
-  // Ricarica dati
-  Promise.all([loadSuggerimenti(), loadPresMap()]).then(() => {
+  Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]).then(() => {
     renderDateSelector();
     renderMonthList();
     updateAssenteChip();
