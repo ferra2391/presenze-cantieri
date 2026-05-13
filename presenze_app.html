@@ -348,11 +348,11 @@
   .worker-photo-fallback{font-size:44px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35);}
   @media(max-width:520px){.worker-photo-wrap{width:104px;height:104px;min-width:104px;border-radius:24px}.header h1{font-size:21px}}
 
-  .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:9999;width:min(440px,calc(100% - 24px));background:rgba(15,23,42,.96);border:2px solid var(--border);border-radius:16px;padding:13px 15px;color:#fff;font-weight:850;box-shadow:0 16px 40px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:all .18s ease;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-  .toast.success{border-color:rgba(16,185,129,.75);background:linear-gradient(135deg,rgba(16,185,129,.26),rgba(15,23,42,.96));}
-  .toast.warn{border-color:rgba(251,191,36,.75);background:linear-gradient(135deg,rgba(251,191,36,.24),rgba(15,23,42,.96));}
-  .toast.danger{border-color:rgba(239,68,68,.8);background:linear-gradient(135deg,rgba(239,68,68,.26),rgba(15,23,42,.96));}
+  .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.96);z-index:9999;width:min(460px,calc(100% - 24px));background:#111827;border:3px solid #fbbf24;border-radius:18px;padding:18px 20px;color:#fff;font-weight:950;font-size:15px;line-height:1.35;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.75);opacity:0;pointer-events:none;transition:all .18s ease;}
+  .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .toast.success{border-color:#10b981;background:#064e3b;}
+  .toast.warn{border-color:#fbbf24;background:#78350f;}
+  .toast.danger{border-color:#ef4444;background:#7f1d1d;}
 
   .month-list{display:flex;max-height:0;overflow:hidden;transition:max-height .24s ease;}
   .month-list.open{display:flex;max-height:520px;overflow:auto;}
@@ -415,7 +415,7 @@
     <!-- Pagina 1: DATA -->
     <div class="view active" id="page1">
       <div class="card">
-        <div class="card-title"><span>📅</span><span>Seleziona la data</span></div>
+        <div class="card-title"><span>📅</span><span id="dateCardTitle">Seleziona la data</span></div>
         <div class="date-selector" id="dateSelector"></div>
         <div class="date-actions">
           <button id="repeatBtn" class="chip" onclick="repeatYesterday()" disabled title="Disponibile solo per la data di oggi">↻ Ripeti ieri</button>
@@ -534,7 +534,6 @@
         <div class="card-title"><span>🏗️</span><span>Cantieri</span></div>
         <div id="workItems"></div>
         <button class="chip" id="addWorkBtn" onclick="addWorkItem()" style="width:100%;margin-top:10px">+ Aggiungi cantiere (max 3)</button>
-        <div class="split-note" id="splitNote">Se inserisci più cantieri, le ore vengono ripartite automaticamente. L'eventuale resto viene assegnato all'ultimo cantiere.</div>
       </div>
       <div class="btn-group">
         <button class="btn btn-secondary" onclick="prevPage(2)">← Indietro</button>
@@ -575,7 +574,7 @@
       </div>
 
       <div class="btn-group">
-        <button class="btn btn-secondary" onclick="prevPage(3)">← Indietro</button>
+        <button class="btn btn-secondary" onclick="backFromSummary()">← Indietro</button>
         <button class="btn btn-success" onclick="submitPresence()">✓ Conferma</button>
       </div>
     </div>
@@ -633,7 +632,7 @@ let MEZZI = [];           // [{id, descrizione, targa, tipologia}]
 let UTENTI = [];          // tutti gli utenti (solo per admin/sub)
 let ASSENTE_ID = null;    // id del cantiere "ASSENTE"
 let SUGG = {};            // suggerimenti smart
-let HISTORY = { rows: [], time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null }; // storico locale
+let HISTORY = { allRows: [], rows: [], byDate: {}, time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null }; // storico locale
 
 let CUR_PAGE = 1;
 let SEL_DATE = new Date();   // data selezionata
@@ -684,35 +683,107 @@ function showToast(msg, type='warn') {
   box.textContent = msg;
   box.classList.add('show');
   clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => box.classList.remove('show'), 2600);
+  showToast._t = setTimeout(() => box.classList.remove('show'), 4000);
 }
+function photoFileNameForUser(user) {
+  // Mappa esplicita sui file realmente presenti in GitHub /operai
+  // Serve perché nel DB alcuni cognomi/nome file non coincidono al 100%.
+  const byCode = {
+    eddi: 'Edoardo Dignani.png',
+    maro: 'Mario Ronconi.png',
+    otot: 'Otello Otelli.png',
+    gent: 'Gentian.png',
+    kero: 'Kevin Ronconi.png',
+    ahaz: 'Ahmed Azrikem.png',
+    pata: 'Pasquale Tarantino.png',
+    maac: 'Samir Achlih.png',
+    siha: 'Harjinder Sing.png',
+    paim: 'Paolo Impellizzeri.png',
+    maez: 'Maja Ebuka Matthew Ezigbo.png',
+    gigr: 'Gianmario Grilli.png',
+    stam: 'Stefano Sampaolo.png',
+    staq: 'Stefano Aquilini.png',
+    mata: 'Massimo Tarantino.png',
+    emma: 'Emanuele Massucci.png',
+    dafe: 'Davide Ferrarini.png',
+    adbax: 'Abdelaziz Aqriqeb.png',
+    maru: 'Matteo Russo.png'
+  };
+  const code = String(user?.user_code || '').trim().toLowerCase();
+  return byCode[code] || '';
+}
+
 function setPhotoForUser(user) {
   const img = $('workerPhoto');
   const fb = $('workerPhotoFallback');
   if (!img || !fb || !user) return;
-  const base = 'https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/';
+
+  // Su GitHub Pages il percorso giusto è questo, non /tree/main/operai.
+  const bases = [
+    'https://ferra2391.github.io/presenze-cantieri/operai/',
+    'https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/'
+  ];
+
   const full = `${user.nome || ''} ${user.cognome || ''}`.trim();
-  const clean = s => String(s||'').trim().replace(/\\+/g,'-').replace(/\s+/g,'-');
-  const names = [
-    user.user_code,
-    clean(full),
-    clean(full).toLowerCase(),
-    clean(user.nome),
-    clean(user.nome).toLowerCase()
+  const first = String(user.nome || '').trim();
+  const code = String(user.user_code || '').trim();
+  const mapped = photoFileNameForUser(user);
+
+  const noAccents = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const titleLike = s => String(s || '').trim().replace(/\s+/g, ' ');
+  const slugDash = s => noAccents(s).trim().replace(/\s+/g, '-');
+  const slugUnd = s => noAccents(s).trim().replace(/\s+/g, '_');
+
+  const baseNames = [
+    mapped.replace(/\.(png|jpg|jpeg|webp)$/i, ''),
+    full,                         // esempio: Emanuele Massucci.png
+    titleLike(full),
+    slugDash(full),               // esempio: Emanuele-Massucci.png
+    slugDash(full).toLowerCase(),
+    slugUnd(full),                // esempio: Emanuele_Massucci.png
+    slugUnd(full).toLowerCase(),
+    first,
+    slugDash(first),
+    slugDash(first).toLowerCase(),
+    code,
+    code.toLowerCase()
   ].filter(Boolean);
-  const exts = ['jpg','jpeg','png','webp'];
+
+  const unique = arr => [...new Set(arr.filter(Boolean))];
+  const exts = ['png','PNG','jpg','JPG','jpeg','JPEG','webp','WEBP'];
   const urls = [];
-  names.forEach(n => exts.forEach(ext => urls.push(`${base}${encodeURIComponent(n)}.${ext}`)));
+
+  // Prima prova il file mappato esatto, con spazi codificati in %20.
+  if (mapped) {
+    bases.forEach(base => urls.push(base + encodeURIComponent(mapped)));
+  }
+
+  unique(baseNames).forEach(name => {
+    exts.forEach(ext => {
+      bases.forEach(base => urls.push(`${base}${encodeURIComponent(name)}.${ext}`));
+    });
+  });
+
   let idx = 0;
   fb.textContent = (user.nome ? user.nome[0] : '👷').toUpperCase();
+  img.removeAttribute('src');
   img.style.display = 'none';
   fb.style.display = 'block';
+
   img.onerror = () => {
     idx++;
-    if (idx < urls.length) img.src = urls[idx];
-    else { img.style.display = 'none'; fb.style.display = 'block'; }
+    if (idx < urls.length) {
+      img.src = urls[idx];
+    } else {
+      img.style.display = 'none';
+      fb.style.display = 'block';
+    }
   };
-  img.onload = () => { img.style.display = 'block'; fb.style.display = 'none'; };
+  img.onload = () => {
+    img.style.display = 'block';
+    fb.style.display = 'none';
+  };
+
   if (urls.length) img.src = urls[0];
 }
 function setSelectValue(id, val) { const el = $(id); if (el && val) el.value = val; }
@@ -869,14 +940,17 @@ async function loadHistory() {
   if (!target) return;
   const from = new Date(); from.setDate(from.getDate() - 14);
   const y = previousWorkday(new Date());
-  HISTORY = { rows: [], time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null };
+  HISTORY = { allRows: [], rows: [], byDate: {}, time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null };
   try {
     const { data } = await sb.from('presenze')
       .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente')
       .eq('utente_id', target.id)
       .gte('data_presenza', fmtISO(from))
       .order('data_presenza', { ascending: false });
-    const rows = (data || []).filter(r => !r.is_assente);
+    const allRows = data || [];
+    HISTORY.allRows = allRows;
+    HISTORY.byDate = groupRowsByDate(allRows);
+    const rows = allRows.filter(r => !r.is_assente);
     HISTORY.rows = rows;
     const weekRows = rows.filter(r => new Date(r.data_presenza) >= from);
     const yRow = rows.find(r => r.data_presenza === fmtISO(y));
@@ -937,6 +1011,8 @@ function renderDateSelector() {
   const cont = $('dateSelector');
   cont.innerHTML = '';
   const today = normalizeDate(new Date());
+  const title = $('dateCardTitle');
+  if (title) title.textContent = `Seleziona la data - Mese ${MONTH_LONG[SEL_DATE.getMonth()].toUpperCase()}`;
   const currentMonday = new Date(today);
   const dow = currentMonday.getDay();
   const deltaToMonday = (dow === 0 ? -6 : 1 - dow);
@@ -967,7 +1043,6 @@ function renderDateSelector() {
     cell.innerHTML = `
       <span class="day-name">${DAY_SHORT[dow]}</span>
       <span class="day-num">${d.getDate()}</span>
-      <span class="day-month">${MONTH_SHORT[d.getMonth()]}</span>
       <span class="corner-flag"></span>
     `;
     cell.onclick = () => {
