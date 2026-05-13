@@ -956,74 +956,149 @@ async function loadHistory() {
   if (!target) return;
 
   const basis = normalizeDate(SEL_DATE || new Date());
-  const from = mondayPreviousWeek(basis);
   const y = previousWorkday(basis);
   const yIso = fmtISO(y);
-  HISTORY = { allRows: [], rows: [], byDate: {}, time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null };
+  const mondayPrev = mondayPreviousWeek(basis);
+
+  HISTORY = {
+    allRows: [], rows: [], byDate: {}, time: null,
+    yesterdaySite: null, topSite: null,
+    yesterdayVehicle: null, topVehicle: null,
+    meta: { from: fmtISO(mondayPrev), fallback60: false, tratteError: null, presenzeError: null, rowsCount: 0 }
+  };
+
+  const siteNameById = id => {
+    const c = CANTIERI.find(x => String(x.id) === String(id));
+    return c?.nome || '';
+  };
+
+  const rowToSite = r => {
+    if (!r || !r.cantiere_id) return null;
+    const nome = siteNameById(r.cantiere_id) || r.cantieri?.nome || `Cantiere ${String(r.cantiere_id).slice(0,8)}`;
+    return { id: r.cantiere_id, nome, lavorazione: r.lavorazione || '' };
+  };
 
   async function fetchPresenze(fromDate, limitFallback=false) {
-    const baseSelect = 'id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente,cantieri(nome)';
+    // Prima provo la query con relazione cantieri(nome), poi fallback diretto.
+    const selectJoin = 'id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente,created_at,cantieri(nome)';
     let q = sb.from('presenze')
-      .select(baseSelect)
+      .select(selectJoin)
       .eq('utente_id', target.id)
       .lt('data_presenza', fmtISO(basis))
       .gte('data_presenza', fmtISO(fromDate))
-      .order('data_presenza', { ascending: false });
-    if (limitFallback) q = q.limit(30);
+      .order('data_presenza', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (limitFallback) q = q.limit(120);
     let { data, error } = await q;
 
-    // Se la relazione Supabase cantieri(nome) non è configurata, riprova senza join.
     if (error) {
+      HISTORY.meta.presenzeError = error.message || String(error);
       let q2 = sb.from('presenze')
-        .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente')
+        .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente,created_at')
         .eq('utente_id', target.id)
         .lt('data_presenza', fmtISO(basis))
         .gte('data_presenza', fmtISO(fromDate))
-        .order('data_presenza', { ascending: false });
-      if (limitFallback) q2 = q2.limit(30);
+        .order('data_presenza', { ascending: false })
+        .order('created_at', { ascending: false });
+      if (limitFallback) q2 = q2.limit(120);
       const r2 = await q2;
       data = r2.data || [];
+      if (r2.error) HISTORY.meta.presenzeError = r2.error.message || String(r2.error);
     }
     return data || [];
   }
 
-  try {
-    let allRows = await fetchPresenze(from, false);
+  function isDriverRole(role) {
+    const s = String(role || '').toLowerCase().trim();
+    return s === 'guidatore' || s === 'driver' || s.includes('guid');
+  }
 
-    // Fallback: se dal lunedì della settimana precedente non c'è nulla, usa gli ultimi 60 giorni.
-    // Serve per non lasciare vuote le card suggerimenti quando l'operaio ha poco storico recente.
+  function vehicleFromJoinedRow(x) {
+    if (!x) return null;
+    let m = null;
+    if (x.mezzi) m = Array.isArray(x.mezzi) ? x.mezzi[0] : x.mezzi;
+    if (!m) m = MEZZI.find(mm => String(mm.id) === String(x.mezzo_id));
+    if (!m && !x.mezzo_id) return null;
+    const desc = m
+      ? `${m.descrizione || ''}${m.targa ? ' (' + m.targa + ')' : ''}`.trim()
+      : String(x.mezzo_id || 'Mezzo');
+    return { id: x.mezzo_id || m?.id, desc };
+  }
+
+  async function fetchTratteJoin(fromDate) {
+    const { data, error } = await sb.from('presenza_tratte')
+      .select('presenza_id,mezzo_id,ruolo,mezzi(id,descrizione,targa),presenze!inner(id,data_presenza,utente_id,is_assente)')
+      .eq('presenze.utente_id', target.id)
+      .eq('presenze.is_assente', false)
+      .lt('presenze.data_presenza', fmtISO(basis))
+      .gte('presenze.data_presenza', fmtISO(fromDate));
+
+    if (error) {
+      HISTORY.meta.tratteError = error.message || String(error);
+      return null;
+    }
+    return data || [];
+  }
+
+  async function fetchTratteFallback(rows) {
+    const ids = rows.map(r => r.id).filter(Boolean);
+    if (!ids.length) return [];
+    const { data, error } = await sb.from('presenza_tratte')
+      .select('presenza_id,mezzo_id,ruolo')
+      .in('presenza_id', ids);
+    if (error) {
+      HISTORY.meta.tratteError = error.message || String(error);
+      return [];
+    }
+    const dateByPres = new Map(rows.map(r => [String(r.id), r.data_presenza]));
+    return (data || []).map(x => ({ ...x, presenze: { data_presenza: dateByPres.get(String(x.presenza_id)) } }));
+  }
+
+  try {
+    let allRows = await fetchPresenze(mondayPrev, false);
+
+    // Suggerimenti: se non ci sono presenze dal lunedì della settimana precedente,
+    // allargo agli ultimi 60 giorni SOLO per suggerire, non per i blocchi di compilazione.
     if (!allRows.length) {
-      const f2 = new Date(basis); f2.setDate(f2.getDate() - 60);
-      allRows = await fetchPresenze(f2, true);
+      const from60 = new Date(basis);
+      from60.setDate(from60.getDate() - 60);
+      HISTORY.meta.from = fmtISO(from60);
+      HISTORY.meta.fallback60 = true;
+      allRows = await fetchPresenze(from60, true);
     }
 
     HISTORY.allRows = allRows;
     HISTORY.byDate = groupRowsByDate(allRows);
     const rows = allRows.filter(r => !r.is_assente);
     HISTORY.rows = rows;
+    HISTORY.meta.rowsCount = rows.length;
 
-    const getSiteObj = r => {
-      if (!r) return null;
-      const cLocal = CANTIERI.find(x => String(x.id) === String(r.cantiere_id));
-      const nome = cLocal?.nome || r.cantieri?.nome || '';
-      return nome ? { id: r.cantiere_id, nome, lavorazione: r.lavorazione || '' } : null;
-    };
+    // Cantiere giorno lavorativo precedente.
+    const yRows = rows.filter(r => r.data_presenza === yIso);
+    HISTORY.yesterdaySite = rowToSite(yRows[0]);
+    if (yRows[0] && !SUGG?.ultima_presenza) SUGG.ultima_presenza = yRows[0];
 
-    const yRow = rows.find(r => r.data_presenza === yIso);
-    HISTORY.yesterdaySite = getSiteObj(yRow);
-    if (yRow && !SUGG?.ultima_presenza) SUGG.ultima_presenza = yRow;
-
-    const topSite = modeBy(rows, r => {
-      const site = getSiteObj(r);
+    // Cantiere più frequente: prima ultimi 7 giorni reali prima della data selezionata,
+    // poi fallback a tutto lo storico caricato.
+    const from7 = new Date(basis);
+    from7.setDate(from7.getDate() - 7);
+    const rows7 = rows.filter(r => {
+      const d = normalizeDate(new Date(r.data_presenza));
+      return d >= from7 && d < basis;
+    });
+    const rowsForSite = rows7.length ? rows7 : rows;
+    HISTORY.topSite = modeBy(rowsForSite, r => {
+      const site = rowToSite(r);
       return site ? { key: String(site.id), id: site.id, nome: site.nome } : null;
     });
-    HISTORY.topSite = topSite;
 
+    // Ultimo fallback dalla RPC vecchia, se esiste ancora.
     if (!HISTORY.topSite && SUGG?.top_cantieri?.length) {
       const s = SUGG.top_cantieri[0];
       HISTORY.topSite = { id: s.id, nome: s.nome, freq: s.freq || 1 };
     }
 
+    // Orario più frequente.
     const topTime = modeBy(rows, r => {
       const p = parseTimePreset(r);
       return p?.label ? { key: p.label, ...p } : null;
@@ -1031,29 +1106,23 @@ async function loadHistory() {
     const lastTime = rows[0] ? parseTimePreset(rows[0]) : null;
     HISTORY.time = topTime || (lastTime?.label ? { ...lastTime, freq: 1, key: lastTime.label } : null);
 
-    const ids = rows.map(r => r.id).filter(Boolean);
-    if (ids.length) {
-      const { data: trData } = await sb.from('presenza_tratte')
-        .select('presenza_id,mezzo_id,ruolo')
-        .in('presenza_id', ids);
+    // Mezzi: prima join diretta, poi fallback su ID presenze.
+    let trAll = await fetchTratteJoin(HISTORY.meta.fallback60 ? new Date(HISTORY.meta.from) : mondayPrev);
+    if (!trAll) trAll = await fetchTratteFallback(rows);
+    const trDrivers = (trAll || []).filter(x => isDriverRole(x.ruolo));
 
-      const dateByPres = new Map(rows.map(r => [String(r.id), r.data_presenza]));
-      const tr = (trData || []).filter(x => String(x.ruolo || '').toLowerCase() === 'guidatore');
-      const vehicleObj = x => {
-        const m = MEZZI.find(mm => String(mm.id) === String(x.mezzo_id));
-        if (!m && !x.mezzo_id) return null;
-        const desc = m ? `${m.descrizione || ''}${m.targa ? ' ('+m.targa+')' : ''}`.trim() : String(x.mezzo_id || 'Mezzo');
-        return { id: x.mezzo_id, desc };
-      };
-      const yTr = tr.find(x => dateByPres.get(String(x.presenza_id)) === yIso);
-      HISTORY.yesterdayVehicle = vehicleObj(yTr);
-      const topV = modeBy(tr, x => {
-        const v = vehicleObj(x);
-        return v ? { key: String(v.id), id: v.id, desc: v.desc } : null;
-      });
-      HISTORY.topVehicle = topV;
-    }
+    const yTr = trDrivers.find(x => {
+      const p = Array.isArray(x.presenze) ? x.presenze[0] : x.presenze;
+      return p?.data_presenza === yIso;
+    });
+    HISTORY.yesterdayVehicle = vehicleFromJoinedRow(yTr);
+
+    HISTORY.topVehicle = modeBy(trDrivers, x => {
+      const v = vehicleFromJoinedRow(x);
+      return v ? { key: String(v.id), id: v.id, desc: v.desc } : null;
+    });
   } catch(e) {
+    HISTORY.meta.presenzeError = HISTORY.meta.presenzeError || (e?.message || String(e));
     console.warn('loadHistory', e);
   }
 }
@@ -1461,7 +1530,7 @@ function renderWorkItems() {
           <div class="suggestion-buttons">
             ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickWork(${i}, '${s.id}', '${esc(s.nome)}', '${esc(s.lavorazione || '')}')">${esc(s.nome)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
           </div>
-        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">⭐ Suggerimenti cantiere da Supabase</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico cantiere trovato dal lunedì della settimana precedente.</div></div>`}
+        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">⭐ Suggerimenti cantiere da Supabase</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico cantiere trovato su Supabase per questo utente nel periodo caricato. Controlla che in presenze ci siano righe con lo stesso utente_id.</div></div>`}
         <div class="input-group">
           <span class="input-icon">🏗️</span>
           <select onchange="setWorkCantiere(${i}, this.value, this.options[this.selectedIndex].text)">${opts}</select>
@@ -1537,7 +1606,7 @@ function renderTrattaItems() {
           <div class="suggestion-buttons">
             ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickTratta(${i}, '${s.id}', '${esc(s.desc)}')">${esc(s.desc)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
           </div>
-        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">🚚 Suggerimenti mezzo da Supabase</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico mezzo guidato trovato dal lunedì della settimana precedente.</div></div>`}
+        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">🚚 Suggerimenti mezzo da Supabase</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico mezzo guidato trovato su Supabase. Se hai appena registrato una tratta, controlla che in presenza_tratte il ruolo sia Guidatore e che la SELECT sia permessa dalle policy RLS.</div></div>`}
         <div class="input-group">
           <span class="input-icon">🚛</span>
           <select onchange="setTrattaMezzo(${i}, this.value, this.options[this.selectedIndex].text)">${optsMezzo}</select>
