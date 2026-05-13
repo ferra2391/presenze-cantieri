@@ -667,7 +667,7 @@ function diffH(a, b) {
   return Math.max(0, (h2*60+m2 - h1*60 - m1) / 60);
 }
 function esc(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
-function isOperaio() { return ((TARGET||AUTH)?.ruolo) === 'Operaio'; }
+function isOperaio() { const r = (TARGET||AUTH)?.ruolo; return r === 'Operaio' || r === 'Tecnico'; }
 function isAdmin() { return AUTH?.ruolo === 'Amministratore'; }
 function isSub() { return AUTH?.ruolo === 'Sub'; }
 
@@ -945,9 +945,10 @@ async function loadUtenti() {
 async function loadSuggerimenti() {
   const target = TARGET || AUTH;
   try {
-    const { data } = await sb.rpc('get_suggerimenti_operaio', { p_user_code: target.user_code });
+    const { data, error } = await sb.rpc('get_suggerimenti_operaio', { p_user_code: target.user_code });
+    if (error) { console.error('loadSuggerimenti RPC error:', error); SUGG = {}; return; }
     SUGG = data || {};
-  } catch (e) { SUGG = {}; }
+  } catch (e) { console.error('loadSuggerimenti exception:', e); SUGG = {}; }
 }
 
 
@@ -1068,7 +1069,6 @@ async function loadHistory() {
     }
 
     HISTORY.allRows = allRows;
-    HISTORY.byDate = groupRowsByDate(allRows);
     const rows = allRows.filter(r => !r.is_assente);
     HISTORY.rows = rows;
     HISTORY.meta.rowsCount = rows.length;
@@ -1123,7 +1123,7 @@ async function loadHistory() {
     });
   } catch(e) {
     HISTORY.meta.presenzeError = HISTORY.meta.presenzeError || (e?.message || String(e));
-    console.warn('loadHistory', e);
+    console.error('loadHistory exception:', e);
   }
 }
 
