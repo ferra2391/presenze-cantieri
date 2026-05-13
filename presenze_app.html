@@ -368,6 +368,7 @@
   .time-suggestion-main{display:flex;justify-content:space-between;gap:10px;align-items:center;}
   .time-suggestion b{font-size:13px;}
   .time-suggestion span{font-size:12px;color:var(--text-secondary);font-weight:700;}
+  .slot-suggest-note{margin-top:4px;padding:5px 8px;border-radius:999px;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.25);font-size:9px;font-weight:900;line-height:1.25;text-align:center;color:#fde68a;box-shadow:0 3px 10px rgba(0,0,0,.25);}
   .mini-btn{border:none;border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.14);color:#fff;font-family:inherit;font-weight:900;cursor:pointer;border:1px solid rgba(255,255,255,.22);}
   .mini-btn:hover{background:rgba(255,255,255,.24)}
 
@@ -490,6 +491,7 @@
             <div class="slot-inner">
               <div class="slot-time" id="morningText">08:00 - 12:00</div>
               <div class="slot-hours" id="morningHours">4.0 h</div>
+              <div class="slot-suggest-note" id="morningSuggestNote" style="display:none"></div>
               <div class="time-selects">
                 <select id="mStart" onchange="updateTimes()"></select>
                 <span class="time-separator">-</span>
@@ -507,6 +509,7 @@
             <div class="slot-inner">
               <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
               <div class="slot-hours" id="afternoonHours">4.0 h</div>
+              <div class="slot-suggest-note" id="afternoonSuggestNote" style="display:none"></div>
               <div class="time-selects">
                 <select id="pStart" onchange="updateTimes()"></select>
                 <span class="time-separator">-</span>
@@ -638,6 +641,7 @@ let CUR_PAGE = 1;
 let SEL_DATE = new Date();   // data selezionata
 let IS_ASSENTE = false;
 let DATE_PRES_MAP = {};      // { 'YYYY-MM-DD': 'pres'|'abs' }
+let PRES_DETAIL_MAP = {};    // { 'YYYY-MM-DD': [righe presenze con ore/cantiere/lavorazione] }
 
 // Form state
 let MORNING_ON = true;
@@ -938,69 +942,88 @@ async function loadSuggerimenti() {
 async function loadHistory() {
   const target = getTarget();
   if (!target) return;
+
   const from = new Date(); from.setDate(from.getDate() - 14);
   const y = previousWorkday(new Date());
+  const yIso = fmtISO(y);
   HISTORY = { allRows: [], rows: [], byDate: {}, time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null };
+
   try {
     const { data } = await sb.from('presenze')
       .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente')
       .eq('utente_id', target.id)
       .gte('data_presenza', fmtISO(from))
       .order('data_presenza', { ascending: false });
+
     const allRows = data || [];
     HISTORY.allRows = allRows;
     HISTORY.byDate = groupRowsByDate(allRows);
     const rows = allRows.filter(r => !r.is_assente);
     HISTORY.rows = rows;
-    const weekRows = rows.filter(r => new Date(r.data_presenza) >= from);
-    const yRow = rows.find(r => r.data_presenza === fmtISO(y));
+
+    const yRow = rows.find(r => r.data_presenza === yIso) || rows[0];
     if (yRow) {
       const c = CANTIERI.find(x => String(x.id) === String(yRow.cantiere_id));
       HISTORY.yesterdaySite = c ? { id: c.id, nome: c.nome, lavorazione: yRow.lavorazione || '' } : null;
       if (!SUGG?.ultima_presenza) SUGG.ultima_presenza = yRow;
     }
-    const topSite = modeBy(weekRows, r => {
+
+    const topSite = modeBy(rows, r => {
       const c = CANTIERI.find(x => String(x.id) === String(r.cantiere_id));
       return c ? { key: String(c.id), id: c.id, nome: c.nome } : null;
     });
     HISTORY.topSite = topSite;
-    const topTime = modeBy(weekRows, r => {
+
+    if (!HISTORY.topSite && SUGG?.top_cantieri?.length) {
+      const s = SUGG.top_cantieri[0];
+      HISTORY.topSite = { id: s.id, nome: s.nome, freq: s.freq || 1 };
+    }
+
+    const topTime = modeBy(rows, r => {
       const p = parseTimePreset(r);
       return p?.label ? { key: p.label, ...p } : null;
     });
-    HISTORY.time = topTime;
-  } catch(e) { console.warn('loadHistory presenze', e); }
+    HISTORY.time = topTime || (SUGG?.ultima_presenza ? { ...parseTimePreset(SUGG.ultima_presenza), freq: 1, key: parseTimePreset(SUGG.ultima_presenza)?.label } : null);
 
-  try {
-    const { data } = await sb.from('presenza_tratte')
-      .select('mezzo_id,ruolo,mezzi(id,descrizione,targa),presenze!inner(id,data_presenza,utente_id)')
-      .eq('ruolo','Guidatore')
-      .eq('presenze.utente_id', target.id)
-      .gte('presenze.data_presenza', fmtISO(from));
-    const tr = data || [];
-    const yIso = fmtISO(y);
-    const yTr = tr.find(x => x.presenze?.data_presenza === yIso);
-    if (yTr) HISTORY.yesterdayVehicle = { id: yTr.mezzo_id, desc: `${yTr.mezzi?.descrizione || ''}${yTr.mezzi?.targa ? ' ('+yTr.mezzi.targa+')' : ''}`.trim() };
-    const topV = modeBy(tr, x => {
-      const id = x.mezzo_id;
-      if (!id) return null;
-      const desc = `${x.mezzi?.descrizione || ''}${x.mezzi?.targa ? ' ('+x.mezzi.targa+')' : ''}`.trim();
-      return { key: String(id), id, desc };
-    });
-    HISTORY.topVehicle = topV;
-  } catch(e) { console.warn('loadHistory tratte', e); }
+    const ids = rows.map(r => r.id).filter(Boolean);
+    if (ids.length) {
+      const { data: trData } = await sb.from('presenza_tratte')
+        .select('presenza_id,mezzo_id,ruolo,mezzi(id,descrizione,targa)')
+        .in('presenza_id', ids)
+        .eq('ruolo', 'Guidatore');
+      const dateByPres = new Map(rows.map(r => [String(r.id), r.data_presenza]));
+      const tr = trData || [];
+      const yTr = tr.find(x => dateByPres.get(String(x.presenza_id)) === yIso) || tr[0];
+      if (yTr) HISTORY.yesterdayVehicle = { id: yTr.mezzo_id, desc: `${yTr.mezzi?.descrizione || ''}${yTr.mezzi?.targa ? ' ('+yTr.mezzi.targa+')' : ''}`.trim() };
+      const topV = modeBy(tr, x => {
+        const id = x.mezzo_id;
+        if (!id) return null;
+        const desc = `${x.mezzi?.descrizione || ''}${x.mezzi?.targa ? ' ('+x.mezzi.targa+')' : ''}`.trim();
+        return { key: String(id), id, desc };
+      });
+      HISTORY.topVehicle = topV;
+    }
+  } catch(e) {
+    console.warn('loadHistory', e);
+  }
 }
 
 async function loadPresMap() {
   const target = TARGET || AUTH;
   const from = new Date(); from.setDate(from.getDate() - 90);
   const { data } = await sb.from('presenze')
-    .select('data_presenza,is_assente')
+    .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente')
     .eq('utente_id', target.id)
-    .gte('data_presenza', fmtISO(from));
+    .gte('data_presenza', fmtISO(from))
+    .order('data_presenza', { ascending: false });
+
   DATE_PRES_MAP = {};
+  PRES_DETAIL_MAP = {};
   (data || []).forEach(r => {
-    DATE_PRES_MAP[r.data_presenza] = r.is_assente ? 'abs' : 'pres';
+    const iso = r.data_presenza;
+    DATE_PRES_MAP[iso] = r.is_assente ? 'abs' : 'pres';
+    if (!PRES_DETAIL_MAP[iso]) PRES_DETAIL_MAP[iso] = [];
+    PRES_DETAIL_MAP[iso].push(r);
   });
 }
 
@@ -1089,7 +1112,7 @@ function renderMonthList() {
   const now = new Date();
   $('monthTitle').textContent = `📆 Presenze di ${MONTH_LONG[now.getMonth()]}`;
 
-  const items = Object.entries(DATE_PRES_MAP)
+  const items = Object.entries(PRES_DETAIL_MAP)
     .filter(([iso]) => {
       const d = new Date(iso);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -1101,14 +1124,27 @@ function renderMonthList() {
     return;
   }
 
-  list.innerHTML = items.map(([iso, st]) => {
+  list.innerHTML = items.map(([iso, rows]) => {
     const d = new Date(iso);
     const label = `${DAY_SHORT[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
-    const stLabel = st === 'pres' ? '✓ Presente' : '✕ Assente';
-    const stColor = st === 'pres' ? 'var(--success)' : 'var(--danger)';
-    return `<div class="month-item" style="font-size:13px;">
-      <span style="font-weight:800">${label}</span>
-      <span style="color:${stColor};font-weight:900">${stLabel}</span>
+    const first = rows[0] || {};
+    const isAbs = rows.some(r => r.is_assente);
+    const body = isAbs
+      ? '<div class="mi-entry"><span class="badge-missing">ASSENTE</span><span class="mi-lav">Nessuna lavorazione</span></div>'
+      : rows.map(r => {
+          const c = CANTIERI.find(x => String(x.id) === String(r.cantiere_id));
+          const ore = Number(r.ore || 0);
+          return `<div class="mi-entry" style="margin-bottom:6px;">
+            <div class="mi-cant" style="text-align:left;">${esc(c?.nome || 'Cantiere non trovato')}</div>
+            <div class="mi-lav">${esc(r.lavorazione || '-')}</div>
+            <div class="mi-orari" style="text-align:left;color:#fde68a;font-weight:900;">${ore.toFixed(1)}h · ${esc(r.orari_display || '')}</div>
+          </div>`;
+        }).join('');
+    return `<div class="month-item" style="align-items:flex-start;">
+      <div class="mi-left">
+        <div class="mi-date">${label}</div>
+        <div class="mi-main">${body}</div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1169,6 +1205,17 @@ function nextPage(n) {
   showPage(n);
 }
 function prevPage(n) { showPage(n); }
+
+function backFromSummary() {
+  if (IS_ASSENTE) {
+    IS_ASSENTE = false;
+    updateAssenteChip();
+    initTrattaItems();
+    showPage(1);
+    return;
+  }
+  showPage(3);
+}
 
 // ============================================================
 // TOGGLE ASSENTE
@@ -1260,16 +1307,35 @@ function getTimeData() {
 
 function applySuggestedTime() {
   const box = $('timeSuggestion');
-  if (!box) return;
-  if (!HISTORY?.time?.label) { box.style.display = 'none'; return; }
-  box.style.display = 'block';
-  box.innerHTML = `<div class="time-suggestion-main">
-    <div><b>✨ Orario suggerito</b><br><span>${esc(HISTORY.time.label)} · usato ${HISTORY.time.freq || 1} volte negli ultimi giorni lavorati</span></div>
-    <button type="button" class="mini-btn" onclick="applyTimePreset(HISTORY.time)">Usa</button>
-  </div>`;
-  if (!applySuggestedTime._doneFor || applySuggestedTime._doneFor !== getTarget()?.id) {
-    applySuggestedTime._doneFor = getTarget()?.id;
+  const mNote = $('morningSuggestNote');
+  const pNote = $('afternoonSuggestNote');
+
+  if (!HISTORY?.time?.label) {
+    if (box) box.style.display = 'none';
+    if (mNote) mNote.style.display = 'none';
+    if (pNote) pNote.style.display = 'none';
+    return;
+  }
+
+  const targetId = getTarget()?.id || 'self';
+  if (!applySuggestedTime._doneFor || applySuggestedTime._doneFor !== targetId) {
+    applySuggestedTime._doneFor = targetId;
     applyTimePreset(HISTORY.time);
+    return;
+  }
+
+  const freq = HISTORY.time.freq || 1;
+  if (box) {
+    box.style.display = 'block';
+    box.innerHTML = `<b>✨ Orario suggerito</b><br><span>Orario sottostante suggerito perché lavorato ${freq} volte negli ultimi giorni: ${esc(HISTORY.time.label)}. Puoi modificarlo dai selettori.</span>`;
+  }
+  if (mNote) {
+    mNote.style.display = MORNING_ON ? 'block' : 'none';
+    mNote.textContent = `Suggerito · ${freq} volte`;
+  }
+  if (pNote) {
+    pNote.style.display = AFTERNOON_ON ? 'block' : 'none';
+    pNote.textContent = `Suggerito · ${freq} volte`;
   }
 }
 
@@ -1290,8 +1356,8 @@ function renderWorkItems() {
       .concat(CANTIERI.map(c => `<option value="${c.id}" ${String(c.id)===String(w.cantiere_id)?'selected':''}>${esc(c.nome)}</option>`))
       .join('');
     const suggestions = [];
-    if (HISTORY.yesterdaySite) suggestions.push({ label: 'Cantiere di ieri', ...HISTORY.yesterdaySite });
-    if (HISTORY.topSite && (!HISTORY.yesterdaySite || String(HISTORY.topSite.id) !== String(HISTORY.yesterdaySite.id))) suggestions.push({ label: 'Più frequente ultima settimana', id: HISTORY.topSite.id, nome: HISTORY.topSite.nome, lavorazione: '' , freq: HISTORY.topSite.freq });
+    if (HISTORY.topSite) suggestions.push({ label: 'Più frequente ultimi 7 giorni', id: HISTORY.topSite.id, nome: HISTORY.topSite.nome, lavorazione: '', freq: HISTORY.topSite.freq });
+    if (HISTORY.yesterdaySite && (!HISTORY.topSite || String(HISTORY.topSite.id) !== String(HISTORY.yesterdaySite.id))) suggestions.push({ label: 'Cantiere del giorno precedente', ...HISTORY.yesterdaySite });
     return `
       <div class="card" style="margin-bottom:10px;padding:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -1366,8 +1432,8 @@ function renderTrattaItems() {
       `<option value="Guidatore" ${t.ruolo==='Guidatore'?'selected':''}>🚗 Guidatore</option>`,
       `<option value="Passeggero" ${t.ruolo==='Passeggero'?'selected':''}>🧑 Passeggero</option>`].join('');
     const suggestions = [];
-    if (HISTORY.yesterdayVehicle) suggestions.push({ label:'Mezzo guidato ieri', ...HISTORY.yesterdayVehicle });
-    if (HISTORY.topVehicle && (!HISTORY.yesterdayVehicle || String(HISTORY.topVehicle.id)!==String(HISTORY.yesterdayVehicle.id))) suggestions.push({ label:'Più guidato ultima settimana', id:HISTORY.topVehicle.id, desc:HISTORY.topVehicle.desc, freq:HISTORY.topVehicle.freq });
+    if (HISTORY.topVehicle) suggestions.push({ label:'Più guidato ultimi 7 giorni', id:HISTORY.topVehicle.id, desc:HISTORY.topVehicle.desc, freq:HISTORY.topVehicle.freq });
+    if (HISTORY.yesterdayVehicle && (!HISTORY.topVehicle || String(HISTORY.topVehicle.id)!==String(HISTORY.yesterdayVehicle.id))) suggestions.push({ label:'Mezzo guidato ieri', ...HISTORY.yesterdayVehicle });
     return `
       <div class="card" style="margin-bottom:10px;padding:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -1576,7 +1642,7 @@ async function submitPresence() {
 
   // === CASO ASSENTE ===
   if (IS_ASSENTE) {
-    if (!ASSENTE_ID) { alert('Cantiere ASSENTE mancante nel DB. Aggiungilo manualmente in Supabase.'); return; }
+    if (!ASSENTE_ID) { showToast('Cantiere ASSENTE mancante nel DB. Aggiungilo manualmente in Supabase.', 'danger'); return; }
     try {
       const { error } = await sb.from('presenze').insert({
         data_presenza: dataISO,
@@ -1600,14 +1666,14 @@ async function submitPresence() {
 
   // === CASO NORMALE: validazioni ===
   const t = getTimeData();
-  if (t.ore <= 0) { alert('Imposta almeno un turno di lavoro (Mattina e/o Pomeriggio)'); return; }
+  if (t.ore <= 0) { showToast('Imposta almeno un turno di lavoro (Mattina e/o Pomeriggio)', 'danger'); return; }
 
   const works = WORK_ITEMS.filter(w => w.cantiere_id && w.lavorazione?.trim());
-  if (!works.length) { alert('Inserisci almeno un cantiere con lavorazione'); return; }
+  if (!works.length) { showToast('Inserisci almeno un cantiere con lavorazione', 'danger'); return; }
 
   const tratteValid = TRATTA_ITEMS.filter(x => x.mezzo_id && x.ruolo);
   const tratteIncomplete = TRATTA_ITEMS.some(x => (x.mezzo_id && !x.ruolo) || (!x.mezzo_id && x.ruolo));
-  if (tratteIncomplete) { alert('Tratta incompleta: ogni tratta deve avere sia MEZZO che RUOLO'); return; }
+  if (tratteIncomplete) { showToast('Tratta incompleta: ogni tratta deve avere sia MEZZO che RUOLO', 'danger'); return; }
   if (!tratteValid.length) { showToast('Mezzo obbligatorio: inserisci almeno una tratta con ruolo', 'danger'); return; }
 
   const note = ($('notesInput')?.value || '').trim();
