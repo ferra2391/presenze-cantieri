@@ -61,7 +61,11 @@ radial-gradient(circle at 80% 80%, rgba(255,107,53,.10), transparent 50%);
 pointer-events: none; z-index: 0;
 }
 
-.container { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 16px 18px 80px; }
+.container {
+position: relative; z-index: 1;
+max-width: 720px; margin: 0 auto;
+padding: max(16px, env(safe-area-inset-top)) 18px 80px;
+}
 
 /* ============ TOPBAR ============ */
 .topbar {
@@ -470,11 +474,71 @@ box-shadow: 0 0 0 4px rgba(255,107,53,.12);
 .input-group select { cursor: pointer; }
 .input-group select option { background: var(–bg-light); }
 
-/* Autofill fix */
-input:-webkit-autofill {
+/* Autofill fix - iOS + Chrome + Safari */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
 -webkit-box-shadow: 0 0 0 1000px var(–bg-light) inset !important;
 -webkit-text-fill-color: #fff !important;
-transition: background-color 9999s ease-in-out 0s;
+caret-color: #fff;
+-webkit-background-clip: text !important;
+background-clip: text !important;
+transition: background-color 9999s ease-in-out 0s !important;
+}
+
+/* iOS Safari: forza reset di tutti gli input e button */
+input, textarea, select, button {
+-webkit-appearance: none !important;
+-moz-appearance: none !important;
+appearance: none !important;
+-webkit-text-fill-color: inherit;
+color: inherit;
+background-color: transparent;
+font-family: inherit;
+border-radius: 0;
+}
+
+/* Ribadisci background per input dell’app */
+.input-group input,
+.input-group textarea,
+.input-group select {
+background-color: var(–bg-light) !important;
+color: #fff !important;
+-webkit-text-fill-color: #fff !important;
+}
+
+/* Button - reset iOS default styles */
+button {
+cursor: pointer;
+user-select: none;
+-webkit-user-select: none;
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+}
+
+/* Pulsante primary deve restare arancione anche su iOS */
+.btn-primary {
+background: linear-gradient(135deg, var(–primary), var(–primary-dark)) !important;
+color: #fff !important;
+-webkit-text-fill-color: #fff !important;
+}
+.btn-secondary {
+background: var(–card-bg) !important;
+color: #fff !important;
+-webkit-text-fill-color: #fff !important;
+}
+.btn-success {
+background: linear-gradient(135deg, var(–success), #059669) !important;
+color: #fff !important;
+-webkit-text-fill-color: #fff !important;
+}
+.btn-danger {
+background: linear-gradient(135deg, var(–danger), #b91c1c) !important;
+color: #fff !important;
+-webkit-text-fill-color: #fff !important;
 }
 
 /* ============ WORK ITEM (cantieri + lavorazione) ============ */
@@ -537,8 +601,10 @@ margin-bottom: 6px; font-size: 13px;
 
 /* ============ LOGIN ============ */
 .login-page {
-min-height: 100vh; display: flex; align-items: center; justify-content: center;
-padding: 24px; position: relative; z-index: 1;
+min-height: 100vh; min-height: 100dvh;
+display: flex; align-items: center; justify-content: center;
+padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+position: relative; z-index: 1;
 }
 .login-card {
 width: 100%; max-width: 420px;
@@ -551,7 +617,8 @@ animation: fadeIn .4s ease;
 .login-logo {
 height: 70px; width: auto; display: block;
 margin: 0 auto 24px;
-filter: brightness(0) invert(1) drop-shadow(0 4px 12px rgba(255,255,255,.2));
+filter: brightness(0) invert(1);
+opacity: .95;
 }
 .login-card h2 {
 text-align: center; font-size: 24px; font-weight: 900;
