@@ -402,6 +402,24 @@
   .time-suggestion .big-time-inline{color:#fde68a;font-size:18px;font-weight:950;}
   .time-suggestion .edit-note{display:block;font-size:13px;font-weight:800;color:#e2e8f0;}
 
+
+  /* === PATCH V13 - MODIFICA PRESENZE ADMIN === */
+  .admin-edit-list{display:flex;flex-direction:column;gap:10px;margin-top:12px;max-height:520px;overflow:auto;}
+  .admin-pres-row{width:100%;border:2px solid rgba(255,255,255,.16);border-radius:16px;padding:12px;background:linear-gradient(135deg,rgba(30,41,59,.95),rgba(15,23,42,.92));color:#fff;text-align:left;font-family:inherit;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:all .18s ease;}
+  .admin-pres-row:hover{transform:translateY(-2px);border-color:var(--primary);box-shadow:0 10px 28px rgba(0,0,0,.35);}
+  .admin-pres-row .apr-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:5px;}
+  .admin-pres-row .apr-date{font-weight:950;color:#fde68a;font-size:14px;}
+  .admin-pres-row .apr-hours{font-weight:950;color:var(--accent);font-size:14px;white-space:nowrap;}
+  .admin-pres-row .apr-site{font-weight:950;font-size:15px;margin-bottom:3px;}
+  .admin-pres-row .apr-work{font-size:13px;color:var(--text-secondary);line-height:1.3;}
+  .admin-pres-row .apr-time{font-size:12px;color:#c7d2fe;font-weight:850;margin-top:5px;}
+  .admin-edit-section{margin-top:14px;padding:14px;border-radius:18px;background:rgba(15,23,42,.55);border:2px solid rgba(255,255,255,.12);}
+  .admin-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .admin-edit-grid .input-group{margin-top:0;}
+  .admin-edit-label{font-size:12px;font-weight:950;color:#fde68a;text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px;}
+  .admin-tratta-row{padding:12px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);margin-top:10px;}
+  .admin-edit-help{font-size:13px;line-height:1.35;color:var(--text-secondary);font-weight:800;margin-top:8px;}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -451,6 +469,7 @@
           <button id="assenteChip" class="chip" onclick="toggleAssente()">🚫 Assente</button>
           <button id="gestBtn" class="chip admin-only" style="display:none" onclick="openGestioneCantieri()">🛠️ Gestione Cantiere</button>
           <button id="selOpBtn" class="chip admin-only" style="display:none" onclick="openSelectOperaio()">👥 Seleziona Operaio</button>
+          <button id="editPresenceBtn" class="chip admin-only" style="display:none" onclick="openEditPresencePanel()">✏️ Modifica Presenza</button>
           <button id="clearOpBtn" class="chip admin-only" style="display:none" onclick="clearSelectedOperaio()">✖️ Annulla selezione</button>
         </div>
       </div>
@@ -486,6 +505,55 @@
         <div class="preview-actions">
           <button class="btn btn-secondary" onclick="closeSelectOperaio()">Chiudi</button>
           <button class="btn" onclick="confirmSelectOperaio()">Conferma</button>
+        </div>
+      </div>
+
+      <div class="card preview-card" id="editPresenceCard">
+        <div class="card-title"><span>✏️</span><span>Modifica presenza registrata</span></div>
+        <div class="admin-edit-help">Scegli un operaio: sotto compariranno le sue presenze. Tocca una riga per correggerla.</div>
+        <div class="input-group">
+          <span class="input-icon">👷</span>
+          <select id="adminEditUserSelect" onchange="loadAdminPresenceList()">
+            <option value="">— Seleziona operaio —</option>
+          </select>
+        </div>
+        <div class="preview-actions">
+          <button class="btn btn-secondary" onclick="closeEditPresencePanel()">Chiudi</button>
+          <button class="btn" onclick="loadAdminPresenceList()">Aggiorna elenco</button>
+        </div>
+        <div id="adminPresenceList" class="admin-edit-list"></div>
+
+        <div id="adminEditForm" class="admin-edit-section" style="display:none">
+          <div class="card-title" style="margin-bottom:8px"><span>📝</span><span id="adminEditFormTitle">Correggi presenza</span></div>
+          <input type="hidden" id="editPresenceId">
+          <div class="admin-edit-label">Dati presenza</div>
+          <div class="admin-edit-grid">
+            <div class="input-group"><span class="input-icon">📅</span><input id="editDataPresenza" type="date"></div>
+            <div class="input-group"><span class="input-icon">⏱️</span><input id="editOre" type="number" step="0.5" min="0" max="16" placeholder="Ore"></div>
+          </div>
+          <div class="input-group"><span class="input-icon">🏗️</span><select id="editCantiere"></select></div>
+          <div class="input-group"><span class="input-icon">📝</span><textarea id="editLavorazione" placeholder="Lavorazione"></textarea></div>
+          <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#fff"><input id="editIsAssente" type="checkbox" style="width:20px;height:20px;accent-color:var(--danger)"> Segna come assente</label>
+
+          <div class="admin-edit-label">Orari</div>
+          <div class="admin-edit-grid">
+            <div class="input-group"><span class="input-icon">🌅</span><input id="editMS" type="time"></div>
+            <div class="input-group"><span class="input-icon">🌅</span><input id="editME" type="time"></div>
+            <div class="input-group"><span class="input-icon">🌇</span><input id="editPS" type="time"></div>
+            <div class="input-group"><span class="input-icon">🌇</span><input id="editPE" type="time"></div>
+          </div>
+          <div class="admin-edit-help">Le ore possono essere modificate a mano. Gli orari vengono salvati nel formato standard usato dall'app.</div>
+
+          <div class="admin-edit-label">Note</div>
+          <div class="input-group"><span class="input-icon">✏️</span><textarea id="editNote" placeholder="Note"></textarea></div>
+
+          <div class="admin-edit-label">Mezzi / tratte</div>
+          <div id="adminEditTratteBox"></div>
+
+          <div class="preview-actions">
+            <button class="btn btn-secondary" onclick="cancelEditPresence()">Annulla</button>
+            <button class="btn btn-success" onclick="saveEditedPresence()">✓ Salva modifiche</button>
+          </div>
         </div>
       </div>
 
@@ -999,7 +1067,11 @@ async function postLogin() {
   // Mostra bottoni admin-only
   if (isAdmin() || isSub()) {
     $('selOpBtn').style.display = 'inline-flex';
-    if (isAdmin()) $('gestBtn').style.display = 'inline-flex';
+    if (isAdmin()) {
+      $('gestBtn').style.display = 'inline-flex';
+      const epb = $('editPresenceBtn');
+      if (epb) epb.style.display = 'inline-flex';
+    }
   }
 
   populateTimeSelects();
@@ -1886,6 +1958,270 @@ function clearSelectedOperaio() {
 
 function openGestioneCantieri() {
   alert('Gestione cantieri: funzione in arrivo. Per ora aggiungi i cantieri direttamente in Supabase → Table Editor → cantieri.');
+}
+
+
+// ============================================================
+// ADMIN: MODIFICA PRESENZA
+// ============================================================
+let ADMIN_EDIT_ROWS = [];
+let ADMIN_EDIT_TRATTE = [];
+let ADMIN_EDIT_SELECTED_USER = null;
+
+function fullNameUser(u) {
+  return `${u?.nome || ''}${u?.cognome ? ' ' + u.cognome : ''}`.trim();
+}
+
+function openEditPresencePanel() {
+  if (!isAdmin()) {
+    showToast('Funzione disponibile solo per amministratore', 'danger');
+    return;
+  }
+  closeSelectOperaio();
+  const card = $('editPresenceCard');
+  const sel = $('adminEditUserSelect');
+  if (!card || !sel) return;
+
+  sel.innerHTML = '<option value="">— Seleziona operaio —</option>' +
+    UTENTI.map(u => `<option value="${u.id}">${esc(fullNameUser(u))} · ${esc(u.ruolo || '')}</option>`).join('');
+
+  if (TARGET?.id) sel.value = TARGET.id;
+  $('adminPresenceList').innerHTML = '';
+  $('adminEditForm').style.display = 'none';
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (sel.value) loadAdminPresenceList();
+}
+
+function closeEditPresencePanel() {
+  const card = $('editPresenceCard');
+  if (card) card.style.display = 'none';
+  ADMIN_EDIT_ROWS = [];
+  ADMIN_EDIT_TRATTE = [];
+  ADMIN_EDIT_SELECTED_USER = null;
+}
+
+function cancelEditPresence() {
+  $('adminEditForm').style.display = 'none';
+  $('editPresenceId').value = '';
+}
+
+function cantiereNameFromId(id, rel) {
+  const c = CANTIERI.find(x => String(x.id) === String(id));
+  return c?.nome || rel?.nome || 'Cantiere non trovato';
+}
+
+function buildAdminCantiereOptions(selectedId) {
+  return ['<option value="">— Seleziona cantiere —</option>']
+    .concat(CANTIERI.map(c => `<option value="${c.id}" ${String(c.id) === String(selectedId) ? 'selected' : ''}>${esc(c.nome)}</option>`))
+    .join('');
+}
+
+function buildAdminMezzoOptions(selectedId) {
+  return ['<option value="">— Nessun mezzo —</option>']
+    .concat(MEZZI.map(m => {
+      const label = `${m.descrizione || ''}${m.targa ? ' (' + m.targa + ')' : ''}`.trim();
+      return `<option value="${m.id}" ${String(m.id) === String(selectedId) ? 'selected' : ''}>${esc(label)}</option>`;
+    }))
+    .join('');
+}
+
+async function loadAdminPresenceList() {
+  const userId = $('adminEditUserSelect')?.value;
+  const list = $('adminPresenceList');
+  const form = $('adminEditForm');
+  if (form) form.style.display = 'none';
+  if (!list) return;
+  if (!userId) {
+    list.innerHTML = '<div class="admin-edit-help">Seleziona prima un operaio.</div>';
+    return;
+  }
+
+  ADMIN_EDIT_SELECTED_USER = UTENTI.find(u => String(u.id) === String(userId)) || null;
+  list.innerHTML = '<div class="admin-edit-help">Caricamento presenze...</div>';
+
+  let { data, error } = await sb.from('presenze')
+    .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente,note,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,created_at,cantieri(nome)')
+    .eq('utente_id', userId)
+    .order('data_presenza', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1000);
+
+  if (error) {
+    const r2 = await sb.from('presenze')
+      .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente,note,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,created_at')
+      .eq('utente_id', userId)
+      .order('data_presenza', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1000);
+    data = r2.data || [];
+    error = r2.error;
+  }
+
+  if (error) {
+    list.innerHTML = `<div class="admin-edit-help">Errore caricamento: ${esc(error.message || error)}</div>`;
+    return;
+  }
+
+  ADMIN_EDIT_ROWS = data || [];
+  if (!ADMIN_EDIT_ROWS.length) {
+    list.innerHTML = '<div class="admin-edit-help">Nessuna presenza registrata per questo operaio.</div>';
+    return;
+  }
+
+  const who = fullNameUser(ADMIN_EDIT_SELECTED_USER);
+  list.innerHTML = `<div class="admin-edit-help">Presenze di <b>${esc(who)}</b>. Tocca una riga per modificarla.</div>` +
+    ADMIN_EDIT_ROWS.map(r => {
+      const cNome = cantiereNameFromId(r.cantiere_id, r.cantieri);
+      const stato = r.is_assente ? 'ASSENTE' : `${Number(r.ore || 0).toFixed(1)}h`;
+      return `<button type="button" class="admin-pres-row" onclick="openPresenceEdit('${r.id}')">
+        <div class="apr-top"><div class="apr-date">${esc(r.data_presenza)}</div><div class="apr-hours">${esc(stato)}</div></div>
+        <div class="apr-site">${r.is_assente ? '🚫 ' : '🏗️ '}${esc(cNome)}</div>
+        <div class="apr-work">${esc(r.lavorazione || '-')}</div>
+        <div class="apr-time">${esc(r.orari_display || '-')}</div>
+      </button>`;
+    }).join('');
+}
+
+async function openPresenceEdit(presenzaId) {
+  const row = ADMIN_EDIT_ROWS.find(r => String(r.id) === String(presenzaId));
+  if (!row) return;
+
+  $('editPresenceId').value = row.id;
+  $('adminEditFormTitle').textContent = `${fullNameUser(ADMIN_EDIT_SELECTED_USER)} · ${row.data_presenza}`;
+  $('editDataPresenza').value = row.data_presenza || '';
+  $('editCantiere').innerHTML = buildAdminCantiereOptions(row.cantiere_id);
+  $('editLavorazione').value = row.lavorazione || '';
+  $('editIsAssente').checked = !!row.is_assente;
+  $('editMS').value = cleanTimeValue(row.ora_inizio_mattina) || '';
+  $('editME').value = cleanTimeValue(row.ora_fine_mattina) || '';
+  $('editPS').value = cleanTimeValue(row.ora_inizio_pomeriggio) || '';
+  $('editPE').value = cleanTimeValue(row.ora_fine_pomeriggio) || '';
+  $('editOre').value = row.ore ?? 0;
+  $('editNote').value = row.note || '';
+
+  const { data, error } = await sb.from('presenza_tratte')
+    .select('id,presenza_id,ordine,mezzo_id,ruolo')
+    .eq('presenza_id', row.id)
+    .order('ordine', { ascending: true });
+
+  if (error) {
+    ADMIN_EDIT_TRATTE = [];
+    showToast('Non riesco a leggere le tratte mezzo di questa presenza', 'warn');
+  } else {
+    ADMIN_EDIT_TRATTE = data || [];
+  }
+  renderAdminTratteEditor();
+  $('adminEditForm').style.display = 'block';
+  $('adminEditForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderAdminTratteEditor() {
+  const box = $('adminEditTratteBox');
+  if (!box) return;
+  const rows = [];
+  for (let i = 0; i < 3; i++) {
+    const tr = ADMIN_EDIT_TRATTE.find(x => Number(x.ordine) === i + 1) || ADMIN_EDIT_TRATTE[i] || {};
+    rows.push(`<div class="admin-tratta-row">
+      <div class="admin-edit-label" style="margin-top:0">Tratta ${i + 1}</div>
+      <div class="input-group"><span class="input-icon">🚚</span><select id="editMezzo_${i}">${buildAdminMezzoOptions(tr.mezzo_id || '')}</select></div>
+      <div class="input-group"><span class="input-icon">👤</span><select id="editRuolo_${i}">
+        <option value="">— Ruolo —</option>
+        <option value="Guidatore" ${String(tr.ruolo || '') === 'Guidatore' ? 'selected' : ''}>🚗 Guidatore</option>
+        <option value="Passeggero" ${String(tr.ruolo || '') === 'Passeggero' ? 'selected' : ''}>🧑 Passeggero</option>
+      </select></div>
+    </div>`);
+  }
+  box.innerHTML = rows.join('');
+}
+
+function makeOrariDisplayFromEdit() {
+  const ms = $('editMS').value;
+  const me = $('editME').value;
+  const ps = $('editPS').value;
+  const pe = $('editPE').value;
+  const parts = [];
+  if (ms && me) parts.push(`${ms}-${me}`);
+  if (ps && pe) parts.push(`${ps}-${pe}`);
+  return parts.join(' + ');
+}
+
+async function saveEditedPresence() {
+  const id = $('editPresenceId').value;
+  if (!id) return;
+
+  const isAss = $('editIsAssente').checked;
+  const dataPresenza = $('editDataPresenza').value;
+  let cantiereId = $('editCantiere').value;
+  let lavorazione = ($('editLavorazione').value || '').trim();
+  let ore = Number($('editOre').value || 0);
+  let mS = $('editMS').value || null;
+  let mE = $('editME').value || null;
+  let pS = $('editPS').value || null;
+  let pE = $('editPE').value || null;
+  let orariDisplay = makeOrariDisplayFromEdit();
+
+  if (!dataPresenza) { showToast('Inserisci la data', 'danger'); return; }
+
+  if (isAss) {
+    if (!ASSENTE_ID) { showToast('Cantiere ASSENTE non trovato', 'danger'); return; }
+    cantiereId = ASSENTE_ID;
+    lavorazione = lavorazione || 'ASSENTE';
+    ore = 0;
+    mS = mE = pS = pE = null;
+    orariDisplay = '-';
+  } else {
+    if (!cantiereId) { showToast('Seleziona il cantiere', 'danger'); return; }
+    if (!lavorazione) { showToast('Inserisci la lavorazione', 'danger'); return; }
+    if (ore <= 0) { showToast('Inserisci ore maggiori di zero', 'danger'); return; }
+  }
+
+  const payload = {
+    data_presenza: dataPresenza,
+    cantiere_id: cantiereId,
+    lavorazione,
+    ora_inizio_mattina: mS,
+    ora_fine_mattina: mE,
+    ora_inizio_pomeriggio: pS,
+    ora_fine_pomeriggio: pE,
+    orari_display: orariDisplay,
+    ore,
+    is_assente: isAss,
+    note: ($('editNote').value || '').trim() || null,
+    updated_at: new Date().toISOString()
+  };
+
+  const { error } = await sb.from('presenze').update(payload).eq('id', id);
+  if (error) { handleSaveError(error); return; }
+
+  // Riscrivo le tratte collegate a questa presenza.
+  // Per assenze: nessuna tratta. Per presenze normali: salvo solo righe complete mezzo+ruolo.
+  const del = await sb.from('presenza_tratte').delete().eq('presenza_id', id);
+  if (del.error) { showToast('Presenza salvata, ma errore aggiornando le tratte', 'warn'); }
+
+  if (!isAss) {
+    const trRows = [];
+    for (let i = 0; i < 3; i++) {
+      const mezzoId = $(`editMezzo_${i}`)?.value || '';
+      const ruolo = $(`editRuolo_${i}`)?.value || '';
+      if (mezzoId && ruolo) {
+        trRows.push({ presenza_id: id, ordine: i + 1, mezzo_id: mezzoId, ruolo });
+      } else if (mezzoId || ruolo) {
+        showToast(`Tratta ${i + 1} incompleta: mezzo e ruolo sono entrambi obbligatori`, 'danger');
+        return;
+      }
+    }
+    if (trRows.length) {
+      const ins = await sb.from('presenza_tratte').insert(trRows);
+      if (ins.error) { showToast('Presenza salvata, ma errore salvando i mezzi', 'warn'); }
+    }
+  }
+
+  showToast('✓ Presenza modificata', 'success');
+  await Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]);
+  renderDateSelector();
+  renderMonthList();
+  await loadAdminPresenceList();
 }
 
 // ============================================================
