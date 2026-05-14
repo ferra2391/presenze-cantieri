@@ -520,9 +520,9 @@
         <span id="spin" class="spinner"></span>
       </div>
       <div class="nav">
-        <a href="presenze.html">Presenze</a>
-        <a href="operaio.html">Analisi per Operaio</a>
-        <a class="primary" href="cantiere.html">Analisi per Cantiere</a>
+        <a href="presenze">Presenze</a>
+        <a href="operaio">Analisi per Operaio</a>
+        <a class="primary" href="cantiere">Analisi per Cantiere</a>
       </div>
     </div>
     <div id="status"></div>
@@ -648,12 +648,97 @@
 
 <!-- Librerie -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <script>
 /* ====== CONFIG ====== */
-const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
+
+const SB_URL = 'https://usfpzdxvcexxzraxpjtu.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzZnB6ZHh2Y2V4eHpyYXhwanR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1ODM3NzYsImV4cCI6MjA5NDE1OTc3Nn0.cWfI8_OGRrE96PPIG1de8Xz1i2RzVK9g40HesqWdvfk';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+let UTENTI_CACHE = [];
+let CANTIERI_CACHE = [];
+
+function fullNameFromUser(u){
+  return [u?.nome, u?.cognome].filter(Boolean).join(' ').trim();
+}
+
+function normalizeTimeDisplay(s){
+  return String(s || '').replace(/(\d{2}:\d{2}):\d{2}/g, '$1');
+}
+
+function userNameById(id){
+  const u = UTENTI_CACHE.find(x => String(x.id) === String(id));
+  return fullNameFromUser(u) || String(id || '');
+}
+
+function cantiereNameById(id){
+  const c = CANTIERI_CACHE.find(x => String(x.id) === String(id));
+  return c?.nome || String(id || '');
+}
+
+async function loadLookups(){
+  const [uRes, cRes] = await Promise.all([
+    sb.from('utenti').select('id,nome,cognome,user_code,ruolo,attivo').order('nome'),
+    sb.from('cantieri').select('id,nome,codice,attivo').order('nome')
+  ]);
+  if(uRes.error) throw uRes.error;
+  if(cRes.error) throw cRes.error;
+  UTENTI_CACHE = uRes.data || [];
+  CANTIERI_CACHE = cRes.data || [];
+}
+
+async function fetchRowsFromServer(){
+  await loadLookups();
+
+  let all = [];
+  let from = 0;
+  const pageSize = 1000;
+  while(true){
+    let { data, error } = await sb.from('presenze')
+      .select('id,data_presenza,utente_id,cantiere_id,lavorazione,orari_display,ore,is_assente,note,created_at,utenti(nome,cognome,user_code),cantieri(nome)')
+      .order('data_presenza', { ascending: true })
+      .order('created_at', { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if(error){
+      const fallback = await sb.from('presenze')
+        .select('id,data_presenza,utente_id,cantiere_id,lavorazione,orari_display,ore,is_assente,note,created_at')
+        .order('data_presenza', { ascending: true })
+        .order('created_at', { ascending: true })
+        .range(from, from + pageSize - 1);
+      if(fallback.error) throw fallback.error;
+      data = fallback.data || [];
+    }
+
+    all = all.concat(data || []);
+    if(!data || data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return all.map(r => {
+    const u = Array.isArray(r.utenti) ? r.utenti[0] : r.utenti;
+    const c = Array.isArray(r.cantieri) ? r.cantieri[0] : r.cantieri;
+    const operaio = fullNameFromUser(u) || userNameById(r.utente_id);
+    const cantiere = r.is_assente ? 'ASSENTE' : (c?.nome || cantiereNameById(r.cantiere_id));
+    return {
+      id: r.id,
+      'Data Presenza': r.data_presenza,
+      'Data': r.data_presenza,
+      'Nome Operaio': operaio,
+      'Operaio': operaio,
+      'Cantiere': cantiere,
+      'Ore': r.ore ?? 0,
+      'Lavorazione': r.lavorazione || '',
+      'Orari': normalizeTimeDisplay(r.orari_display || ''),
+      'Note': r.note || '',
+      '__raw': r
+    };
+  });
+}
 
 /* ====== UTIL ====== */
 const pad = n => String(n).padStart(2,"0");
@@ -759,34 +844,12 @@ function setLoading(on){
 }
 
 /* ====== FETCH ====== */
-async function fetchRowsFromOpenSheet(sheetId){
-  const tabs = ["Presenze", "Storico"];
-  const allRows = [];
-  const loadedTabs = [];
-  
-  for(const tab of tabs){
-    try{
-      const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
-      const res = await fetch(url, { cache: "no-store" });
-      if(res.ok){
-        const rows = await res.json();
-        if(Array.isArray(rows) && rows.length > 0){
-          allRows.push(...rows);
-          loadedTabs.push(tab);
-        }
-      }
-    }catch(_e){
-      console.warn(`Tab "${tab}" non trovata o errore nel caricamento`);
-    }
-  }
-  
-  if(allRows.length === 0){
-    throw new Error("Nessun dato trovato nei fogli Presenze e Storico");
-  }
-  
-  statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (${loadedTabs.join(', ')}) - ${allRows.length} righe totali</span>`;
-  return allRows;
+async function fetchRowsFromOpenSheet(){
+  const rows = await fetchRowsFromServer();
+  statusEl.innerHTML = `<span class="ok">✓ Dati caricati dal server (${rows.length} righe totali)</span>`;
+  return rows;
 }
+
 
 /* ====== CANTIERI SELECTOR ====== */
 function populateCantieriSelector(){
@@ -1372,7 +1435,7 @@ async function carica(){
     const [Y,M]=getYM();
     state.Y=Y; state.M=M; state.holidays = italianHolidays(Y);
 
-    const rows = await fetchRowsFromOpenSheet(SHEET_ID);
+    const rows = await fetchRowsFromOpenSheet();
     
     // Salva tutti i dati grezzi per i grafici
     state.allData = rows;
