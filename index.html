@@ -159,6 +159,9 @@
   }
   .date-day.has-pres .corner-flag{ border-top-color: var(--success); }
   .date-day.no-pres  .corner-flag{ border-top-color: var(--danger);  }
+  .date-day.absent:not(.selected){ border-color:rgba(251,191,36,.55); box-shadow:0 0 18px rgba(251,191,36,.22); }
+  .date-day.absent .corner-flag{ border-top-color: var(--accent); }
+  .date-day .absent-mark{ position:absolute; top:2px; right:2px; font-size:8px; font-weight:950; color:#111827; z-index:2; pointer-events:none; }
   .date-day.disabled{
     pointer-events: none;
     opacity: .45;
@@ -338,7 +341,87 @@
   .summary-work { padding:10px 12px; margin-bottom:8px; background:linear-gradient(135deg, var(--bg-light), rgba(99,102,241,.05)); border:2px solid var(--border); border-radius:12px; transition:all .3s ease; }
   .summary-work:hover { transform: translateX(4px); border-color:rgba(255,255,255,.25); }
   .summary-work:last-child { margin-bottom:0; }
+
+
+  /* === PATCH V2 - UX DATABASE === */
+  .header-main{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:96px;}
+  .header-left{min-width:0;}
+  .worker-photo-wrap{width:128px;height:128px;min-width:128px;border-radius:28px;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.35);box-shadow:0 12px 36px rgba(0,0,0,.28);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .worker-photo-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+  .worker-photo-fallback{font-size:44px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35);}
+  @media(max-width:520px){.worker-photo-wrap{width:104px;height:104px;min-width:104px;border-radius:24px}.header h1{font-size:21px}}
+
+  .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.96);z-index:9999;width:min(460px,calc(100% - 24px));background:#111827;border:3px solid #fbbf24;border-radius:18px;padding:18px 20px;color:#fff;font-weight:950;font-size:15px;line-height:1.35;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.75);opacity:0;pointer-events:none;transition:all .18s ease;}
+  .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .toast.success{border-color:#10b981;background:#064e3b;}
+  .toast.warn{border-color:#fbbf24;background:#78350f;}
+  .toast.danger{border-color:#ef4444;background:#7f1d1d;}
+
+  .month-list{display:flex;max-height:0;overflow:hidden;transition:max-height .24s ease;}
+  .month-list.open{display:flex;max-height:520px;overflow:auto;}
+
+  .suggestion-panel{margin:12px 0 8px;padding:12px;border-radius:16px;background:linear-gradient(135deg,rgba(251,191,36,.13),rgba(99,102,241,.13));border:2px solid rgba(255,255,255,.16);box-shadow:0 6px 22px rgba(0,0,0,.25);}
+  .suggestion-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#fde68a;margin-bottom:8px;}
+  .suggestion-buttons{display:grid;grid-template-columns:1fr;gap:8px;}
+  .suggestion-btn{border:none;border-radius:14px;padding:11px 12px;background:linear-gradient(135deg,rgba(255,107,53,.9),rgba(99,102,241,.86));color:#fff;font-family:inherit;font-size:13px;font-weight:900;text-align:left;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:all .18s ease;}
+  .suggestion-btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.32);}
+  .suggestion-btn small{display:block;margin-top:3px;color:rgba(255,255,255,.82);font-size:10px;font-weight:800;}
+
+  .time-suggestion{margin-bottom:14px;padding:12px;border-radius:16px;border:2px solid rgba(251,191,36,.32);background:linear-gradient(135deg,rgba(251,191,36,.14),rgba(255,107,53,.10));}
+  .time-suggestion-main{display:flex;justify-content:space-between;gap:10px;align-items:center;}
+  .time-suggestion b{font-size:13px;}
+  .time-suggestion span{font-size:12px;color:var(--text-secondary);font-weight:700;}
+  .slot-suggest-note{margin-top:4px;padding:5px 8px;border-radius:999px;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.25);font-size:9px;font-weight:900;line-height:1.25;text-align:center;color:#fde68a;box-shadow:0 3px 10px rgba(0,0,0,.25);}
+  .mini-btn{border:none;border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.14);color:#fff;font-family:inherit;font-weight:900;cursor:pointer;border:1px solid rgba(255,255,255,.22);}
+  .mini-btn:hover{background:rgba(255,255,255,.24)}
+
+  .split-note{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);font-size:12px;color:var(--text-secondary);font-weight:750;line-height:1.35;}
+
+
+
+  /* === PATCH V10 === */
+  body{font-size:16px;}
+  .card-title{font-size:16px;}
+  .input-group input,.input-group textarea,.input-group select{font-size:15px;}
+  .chip,.btn{font-size:15px;}
+  .date-day.holiday:not(.selected){background:linear-gradient(135deg, rgba(220,38,38,.20), rgba(127,29,29,.12));border-color:rgba(248,113,113,.55);}
+  .date-day.holiday .day-name,.date-day.holiday .day-num{color:#fecaca;}
+  .holiday-dot{position:absolute;bottom:5px;width:6px;height:6px;border-radius:99px;background:#ef4444;box-shadow:0 0 12px rgba(239,68,68,.8);}
+  .confirm-overlay{position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:10000;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(8px);}
+  .confirm-overlay.show{display:flex;}
+  .confirm-box{width:min(460px,100%);background:#7f1d1d;border:4px solid #ef4444;border-radius:22px;padding:22px;color:#fff;text-align:center;box-shadow:0 28px 90px rgba(0,0,0,.78);}
+  .confirm-box h3{font-size:22px;margin-bottom:10px;font-weight:950;}
+  .confirm-box p{font-size:16px;line-height:1.35;font-weight:850;margin-bottom:18px;}
+  .confirm-actions{display:flex;gap:12px;}
+  .confirm-actions button{flex:1;border:none;border-radius:14px;padding:14px 12px;font-family:inherit;font-size:15px;font-weight:950;cursor:pointer;}
+  .confirm-no{background:#111827;color:#fff;border:2px solid rgba(255,255,255,.25)!important;}
+  .confirm-yes{background:#ef4444;color:#fff;box-shadow:0 8px 28px rgba(239,68,68,.45);}
+  .time-suggestion{border-color:rgba(251,191,36,.70);background:linear-gradient(135deg,rgba(251,191,36,.22),rgba(255,107,53,.16));box-shadow:0 8px 28px rgba(0,0,0,.28);}
+  .time-suggestion b{font-size:15px;color:#fff;}
+  .time-suggestion .big-time{display:block;margin:7px 0 4px;font-size:20px;font-weight:950;color:#fde68a;}
+  .time-suggestion .big-time-inline{color:#fde68a;font-size:18px;font-weight:950;}
+  .time-suggestion .edit-note{display:block;font-size:13px;font-weight:800;color:#e2e8f0;}
+
+
+  /* === PATCH V13 - MODIFICA PRESENZE ADMIN === */
+  .admin-edit-list{display:flex;flex-direction:column;gap:10px;margin-top:12px;max-height:520px;overflow:auto;}
+  .admin-pres-row{width:100%;border:2px solid rgba(255,255,255,.16);border-radius:16px;padding:12px;background:linear-gradient(135deg,rgba(30,41,59,.95),rgba(15,23,42,.92));color:#fff;text-align:left;font-family:inherit;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:all .18s ease;}
+  .admin-pres-row:hover{transform:translateY(-2px);border-color:var(--primary);box-shadow:0 10px 28px rgba(0,0,0,.35);}
+  .admin-pres-row .apr-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:5px;}
+  .admin-pres-row .apr-date{font-weight:950;color:#fde68a;font-size:14px;}
+  .admin-pres-row .apr-hours{font-weight:950;color:var(--accent);font-size:14px;white-space:nowrap;}
+  .admin-pres-row .apr-site{font-weight:950;font-size:15px;margin-bottom:3px;}
+  .admin-pres-row .apr-work{font-size:13px;color:var(--text-secondary);line-height:1.3;}
+  .admin-pres-row .apr-time{font-size:12px;color:#c7d2fe;font-weight:850;margin-top:5px;}
+  .admin-edit-section{margin-top:14px;padding:14px;border-radius:18px;background:rgba(15,23,42,.55);border:2px solid rgba(255,255,255,.12);}
+  .admin-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .admin-edit-grid .input-group{margin-top:0;}
+  .admin-edit-label{font-size:12px;font-weight:950;color:#fde68a;text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px;}
+  .admin-tratta-row{padding:12px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);margin-top:10px;}
+  .admin-edit-help{font-size:13px;line-height:1.35;color:var(--text-secondary);font-weight:800;margin-top:8px;}
+
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -358,10 +441,18 @@
   <div class="topbar"><button class="logout-btn" onclick="handleLogout()">Esci</button></div>
 
   <div class="header">
-    <h1>⚡ Presenze Cantiere</h1>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <div class="user-badge"><span>👷</span><span id="userName">-</span></div>
-      <div class="user-badge" id="compilingForBadge" style="display:none;background:rgba(251,191,36,.35)"><span>📝</span><span id="compilingFor">-</span></div>
+    <div class="header-main">
+      <div class="header-left">
+        <h1>⚡ Presenze Cantiere</h1>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <div class="user-badge"><span>👷</span><span id="userName">-</span></div>
+          <div class="user-badge" id="compilingForBadge" style="display:none;background:rgba(251,191,36,.35)"><span>📝</span><span id="compilingFor">-</span></div>
+        </div>
+      </div>
+      <div class="worker-photo-wrap" id="workerPhotoWrap">
+        <img id="workerPhoto" alt="Foto operaio" style="display:none" />
+        <div id="workerPhotoFallback" class="worker-photo-fallback">👷</div>
+      </div>
     </div>
   </div>
 
@@ -371,13 +462,14 @@
     <!-- Pagina 1: DATA -->
     <div class="view active" id="page1">
       <div class="card">
-        <div class="card-title"><span>📅</span><span>Seleziona la data</span></div>
+        <div class="card-title"><span>📅</span><span id="dateCardTitle">Seleziona la data</span></div>
         <div class="date-selector" id="dateSelector"></div>
         <div class="date-actions">
           <button id="repeatBtn" class="chip" onclick="repeatYesterday()" disabled title="Disponibile solo per la data di oggi">↻ Ripeti ieri</button>
           <button id="assenteChip" class="chip" onclick="toggleAssente()">🚫 Assente</button>
           <button id="gestBtn" class="chip admin-only" style="display:none" onclick="openGestioneCantieri()">🛠️ Gestione Cantiere</button>
           <button id="selOpBtn" class="chip admin-only" style="display:none" onclick="openSelectOperaio()">👥 Seleziona Operaio</button>
+          <button id="editPresenceBtn" class="chip admin-only" style="display:none" onclick="openEditPresencePanel()">✏️ Modifica Presenza</button>
           <button id="clearOpBtn" class="chip admin-only" style="display:none" onclick="clearSelectedOperaio()">✖️ Annulla selezione</button>
         </div>
       </div>
@@ -416,6 +508,55 @@
         </div>
       </div>
 
+      <div class="card preview-card" id="editPresenceCard">
+        <div class="card-title"><span>✏️</span><span>Modifica presenza registrata</span></div>
+        <div class="admin-edit-help">Scegli un operaio: sotto compariranno le sue presenze. Tocca una riga per correggerla.</div>
+        <div class="input-group">
+          <span class="input-icon">👷</span>
+          <select id="adminEditUserSelect" onchange="loadAdminPresenceList()">
+            <option value="">— Seleziona operaio —</option>
+          </select>
+        </div>
+        <div class="preview-actions">
+          <button class="btn btn-secondary" onclick="closeEditPresencePanel()">Chiudi</button>
+          <button class="btn" onclick="loadAdminPresenceList()">Aggiorna elenco</button>
+        </div>
+        <div id="adminPresenceList" class="admin-edit-list"></div>
+
+        <div id="adminEditForm" class="admin-edit-section" style="display:none">
+          <div class="card-title" style="margin-bottom:8px"><span>📝</span><span id="adminEditFormTitle">Correggi presenza</span></div>
+          <input type="hidden" id="editPresenceId">
+          <div class="admin-edit-label">Dati presenza</div>
+          <div class="admin-edit-grid">
+            <div class="input-group"><span class="input-icon">📅</span><input id="editDataPresenza" type="date"></div>
+            <div class="input-group"><span class="input-icon">⏱️</span><input id="editOre" type="number" step="0.5" min="0" max="16" placeholder="Ore"></div>
+          </div>
+          <div class="input-group"><span class="input-icon">🏗️</span><select id="editCantiere"></select></div>
+          <div class="input-group"><span class="input-icon">📝</span><textarea id="editLavorazione" placeholder="Lavorazione"></textarea></div>
+          <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#fff"><input id="editIsAssente" type="checkbox" style="width:20px;height:20px;accent-color:var(--danger)"> Segna come assente</label>
+
+          <div class="admin-edit-label">Orari</div>
+          <div class="admin-edit-grid">
+            <div class="input-group"><span class="input-icon">🌅</span><input id="editMS" type="time"></div>
+            <div class="input-group"><span class="input-icon">🌅</span><input id="editME" type="time"></div>
+            <div class="input-group"><span class="input-icon">🌇</span><input id="editPS" type="time"></div>
+            <div class="input-group"><span class="input-icon">🌇</span><input id="editPE" type="time"></div>
+          </div>
+          <div class="admin-edit-help">Le ore possono essere modificate a mano. Gli orari vengono salvati nel formato standard usato dall'app.</div>
+
+          <div class="admin-edit-label">Note</div>
+          <div class="input-group"><span class="input-icon">✏️</span><textarea id="editNote" placeholder="Note"></textarea></div>
+
+          <div class="admin-edit-label">Mezzi / tratte</div>
+          <div id="adminEditTratteBox"></div>
+
+          <div class="preview-actions">
+            <button class="btn btn-secondary" onclick="cancelEditPresence()">Annulla</button>
+            <button class="btn btn-success" onclick="saveEditedPresence()">✓ Salva modifiche</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <button id="monthToggle" class="month-toggle" type="button">
           <span class="month-title-text" id="monthTitle">📆 Presenze del mese</span>
@@ -434,6 +575,7 @@
         <div style="text-align:center;margin-bottom:12px;color:var(--text-secondary);font-size:13px;font-weight:700;">
           💡 Disattiva un turno se non lavori in quel momento
         </div>
+        <div id="timeSuggestion" class="time-suggestion" style="display:none"></div>
 
         <div class="time-picker">
           <div class="time-slot morning" id="morningSlot">
@@ -445,6 +587,7 @@
             <div class="slot-inner">
               <div class="slot-time" id="morningText">08:00 - 12:00</div>
               <div class="slot-hours" id="morningHours">4.0 h</div>
+              <div class="slot-suggest-note" id="morningSuggestNote" style="display:none"></div>
               <div class="time-selects">
                 <select id="mStart" onchange="updateTimes()"></select>
                 <span class="time-separator">-</span>
@@ -462,6 +605,7 @@
             <div class="slot-inner">
               <div class="slot-time" id="afternoonText">13:00 - 17:00</div>
               <div class="slot-hours" id="afternoonHours">4.0 h</div>
+              <div class="slot-suggest-note" id="afternoonSuggestNote" style="display:none"></div>
               <div class="time-selects">
                 <select id="pStart" onchange="updateTimes()"></select>
                 <span class="time-separator">-</span>
@@ -498,7 +642,7 @@
 
     <!-- Pagina 4: RIEPILOGO -->
     <div class="view" id="page4">
-      <div class="card">
+      <div class="card" id="mezziCard">
         <div class="card-title"><span>🚚</span><span>Mezzi / tratte</span></div>
         <div id="mezziItems"></div>
         <button class="chip" id="addTrattaBtn" onclick="addTrattaItem()" style="width:100%;margin-top:10px">
@@ -529,1411 +673,1715 @@
       </div>
 
       <div class="btn-group">
-        <button class="btn btn-secondary" onclick="prevPage(3)">← Indietro</button>
+        <button class="btn btn-secondary" onclick="backFromSummary()">← Indietro</button>
         <button class="btn btn-success" onclick="submitPresence()">✓ Conferma</button>
       </div>
     </div>
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+<div id="confirmOverlay" class="confirm-overlay"><div class="confirm-box"><h3 id="confirmTitle">Attenzione</h3><p id="confirmText">Confermi?</p><div class="confirm-actions"><button class="confirm-no" id="confirmNo" type="button">Annulla</button><button class="confirm-yes" id="confirmYes" type="button">Conferma</button></div></div></div>
+
 <div class="success-overlay" id="successOverlay">
   <div class="card"><h2>✨ Presenza registrata!</h2></div>
 </div>
 
 <script>
-  const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
-  const OS_BASE  = `https://opensheet.elk.sh/${SHEET_ID}/`;
-  const L0URL    = "https://script.google.com/macros/s/AKfycbz048Vl_WKsdbXixmOo6w5QdYLE0yOi2Ta4EOtwjge_edHCfP4nlHMJV5-OgSNSDb2R/exec";
-
-  let AUTH = { user:null, nome:null, ruolo:null };
-  let ALL_CRED_ROWS = [];
-  let ACTIVE_NOME = null;
-  let ADMIN_SELECTED = null;
-  let SELECTED_RUOLO = null;
-  let NUM_LAVORATORI = 1;
-
-  let selectedDate = new Date();
-  let currentPage = 1;
-  let SITE_OPTIONS = [];
-  let MEZZI_OPTIONS = [];
-  let tratteState = [];
-  let workState = [];
-  let LAST_PRESENZE = [];
-  let ABSENT_MODE = false;
-  let PREVIEW_DATA = null;
-  let MONTH_OPEN = false;
-  
-  let MORNING_ENABLED = true;
-  let AFTERNOON_ENABLED = true;
-  let LOCK_OTHER_DAYS = false;
-
-  const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
-
-  function pad2(n){return String(n).padStart(2,'0');}
-  function fmtISO(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
-  function fmtHuman(d){return d.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}
-  function toMinutes(hhmm){if(!hhmm) return 0; const [h,m]=hhmm.split(':').map(Number); return h*60+m;}
-  function diffHours(a,b){return Math.max(0,(toMinutes(b)-toMinutes(a)))/60;}
-  function sameYMD(a,b){return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();}
-  function addDays(d,n){const x=new Date(d); x.setDate(x.getDate()+n); x.setHours(0,0,0,0); return x;}
-  function startOfWeekMonday(d){const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x;}
-  function isWeekend(d){const g=d.getDay(); return g===0||g===6;}
-
-  function escHTML(s){
-    return String(s ?? '').replace(/[&<>"']/g, m => ({
-      '&':'&amp;',
-      '<':'&lt;',
-      '>':'&gt;',
-      '"':'&quot;',
-      "'":'&#039;'
-    }[m]));
-  }
-
-  function easterDate(year){
-    const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;
-    return new Date(year,month-1,day);
-  }
-
-  function isItalianHoliday(d){
-    const y=d.getFullYear();
-    const fixed=[[1,1],[1,6],[4,25],[5,1],[6,2],[8,15],[11,1],[12,8],[12,25],[12,26]];
-    for(const [mm,dd] of fixed){
-      if(sameYMD(d,new Date(y,mm-1,dd))) return true;
+// ============================================================
+// ERROR CATCHER GLOBALE
+// Se qualcosa si rompe, lo mostra a video invece di morire silenziosamente
+// ============================================================
+(function() {
+  function showErr(msg) {
+    let box = document.getElementById('__errbox');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = '__errbox';
+      box.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;z-index:99999;background:#dc2626;color:#fff;padding:14px;border-radius:10px;font-family:monospace;font-size:12px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:50vh;overflow:auto;';
+      document.body.appendChild(box);
     }
-    return sameYMD(d, addDays(easterDate(y),1));
+    box.innerHTML += '<div style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.2);">⚠ ' + msg + '</div>';
   }
-
-  function parseDateFlex(v){
-    if (v instanceof Date) return v;
-    if (typeof v!=='string') return new Date(NaN);
-    const s=v.trim();
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
-    const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
-    if(m){
-      const d=+m[1], mo=+m[2]-1, y=+m[3], hh=+(m[4]||0), mm=+(m[5]||0);
-      return new Date(y,mo,d,hh,mm);
-    }
-    return new Date(s);
-  }
-
-  function isAdmin(){ 
-    return String(AUTH.ruolo||'').trim().toLowerCase()==='amministratore'; 
-  }
-
-  function getRuoloCompilazione(){
-    if (isAdmin() && ADMIN_SELECTED) {
-      return String(SELECTED_RUOLO || '').trim().toLowerCase();
-    }
-    return String(AUTH.ruolo || '').trim().toLowerCase();
-  }
-
-  function isMezzoFacoltativo(){
-    const ruolo = getRuoloCompilazione();
-    return ruolo === 'tecnico' || ruolo === 'sub' || ruolo === 'amministratore';
-  }
-
-  function isToday(d){ 
-    const t=new Date(); 
-    t.setHours(0,0,0,0); 
-    return sameYMD(d,t); 
-  }
-
-  function isWorkingDay(d){
-    const w = d.getDay();
-    return w >= 1 && w <= 5 && !isItalianHoliday(d);
-  }
-
-  function previousWorkingDay(fromDate){
-    let d = addDays(fromDate, -1);
-    for (let i = 0; i < 7; i++){
-      if (isWorkingDay(d)) return d;
-      d = addDays(d, -1);
-    }
-    return null;
-  }
-
-  function mustBlockForPreviousWorkingDay(baseDate){
-    if (isAdmin()) return false;
-    const d = new Date(baseDate); 
-    d.setHours(0,0,0,0);
-    const prev = previousWorkingDay(d);
-    if (!prev) return false;
-    return !hasPresenceOnDate(prev);
-  }
-
-  function lockOtherDaysExceptToday(lock = true){
-    LOCK_OTHER_DAYS = !!lock;
-    const today = new Date(); 
-    today.setHours(0,0,0,0);
-    const todayISO = fmtISO(today);
-
-    document.querySelectorAll('.date-day').forEach(el=>{
-      const iso = el.dataset.date;
-      const isTodayCell = (iso === todayISO);
-
-      if(!isTodayCell){
-        el.classList.toggle('disabled', LOCK_OTHER_DAYS);
-        if (LOCK_OTHER_DAYS) {
-          el.setAttribute('aria-disabled','true');
-        } else {
-          el.removeAttribute('aria-disabled');
-        }
-      }
-    });
-  }
-
-  function toggleMorning(){
-    MORNING_ENABLED = document.getElementById('morningCheck').checked;
-    updateShiftUI();
-    updateTimes();
-  }
-  
-  function toggleAfternoon(){
-    AFTERNOON_ENABLED = document.getElementById('afternoonCheck').checked;
-    updateShiftUI();
-    updateTimes();
-  }
-  
-  function updateShiftUI(){
-    const morningSlot = document.getElementById('morningSlot');
-    const afternoonSlot = document.getElementById('afternoonSlot');
-    
-    morningSlot.classList.toggle('disabled', !MORNING_ENABLED);
-    afternoonSlot.classList.toggle('disabled', !AFTERNOON_ENABLED);
-    
-    document.getElementById('mStart').disabled = !MORNING_ENABLED;
-    document.getElementById('mEnd').disabled = !MORNING_ENABLED;
-    document.getElementById('pStart').disabled = !AFTERNOON_ENABLED;
-    document.getElementById('pEnd').disabled = !AFTERNOON_ENABLED;
-  }
-
-  function generateTimeOptions(minHour, maxHour) {
-    const options = [];
-    for(let h = minHour; h <= maxHour; h++) {
-      options.push(`${pad2(h)}:00`);
-      if(h < maxHour) options.push(`${pad2(h)}:30`);
-    }
-    return options;
-  }
-
-  function populateTimeSelects() {
-    const morningOptions = generateTimeOptions(6, 15);
-    const afternoonOptions = generateTimeOptions(12, 20);
-    
-    const mStart = document.getElementById('mStart');
-    const mEnd = document.getElementById('mEnd');
-    const pStart = document.getElementById('pStart');
-    const pEnd = document.getElementById('pEnd');
-    
-    mStart.innerHTML = morningOptions.map(t => `<option value="${t}">${t}</option>`).join('');
-    mEnd.innerHTML = morningOptions.map(t => `<option value="${t}">${t}</option>`).join('');
-    pStart.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}</option>`).join('');
-    pEnd.innerHTML = afternoonOptions.map(t => `<option value="${t}">${t}</option>`).join('');
-    
-    mStart.value = '08:00';
-    mEnd.value = '12:00';
-    pStart.value = '13:00';
-    pEnd.value = '17:00';
-  }
-
-  async function handleLogin(){
-    const btn = document.getElementById('loginBtn');
-    const errBox = document.getElementById('loginError');
-    errBox.style.display = 'none';
-
-    const u = (document.getElementById('loginUser').value || '').trim();
-    const p = document.getElementById('loginPass').value || '';
-
-    if(!u || !p){
-      errBox.textContent = 'Inserisci user e password';
-      errBox.style.display = 'block';
-      return;
-    }
-
-    const originalText = btn.textContent;
-    btn.disabled = true; 
-    btn.textContent = 'Verifico...';
-
-    try{
-      const ctrl = new AbortController();
-      const timer = setTimeout(()=>ctrl.abort(), 9000);
-      const res = await fetch(OS_BASE+'Credenziali', {signal: ctrl.signal, cache:'no-store'});
-      clearTimeout(timer);
-
-      if(!res.ok) throw new Error('HTTP '+res.status);
-
-      const rows = await res.json();
-      ALL_CRED_ROWS = rows || [];
-
-      await sleep(350);
-
-      const rec = rows.find(r => String(r.User||'').trim()===u && String(r.Password||'')===p);
-      if(!rec){ 
-        errBox.textContent='Credenziali errate'; 
-        errBox.style.display='block'; 
-        return; 
-      }
-
-      AUTH.user = rec.User;
-      AUTH.nome = rec.Nome || rec.User;
-      AUTH.ruolo = rec.Ruolo || '';
-      ACTIVE_NOME = AUTH.nome;
-
-      document.getElementById('userName').textContent = AUTH.nome;
-
-      showApp();
-      await postLoginInit();
-
-    }catch(e){
-      errBox.textContent = 'Accesso non riuscito. Verifica il foglio "Credenziali" e la pubblicazione.';
-      errBox.style.display = 'block';
-      console.error(e);
-    }finally{
-      btn.disabled = false; 
-      btn.textContent = originalText;
-    }
-  }
-
-  function handleLogout(){ 
-    AUTH={user:null,nome:null,ruolo:null}; 
-    ACTIVE_NOME=null; 
-    ADMIN_SELECTED=null; 
-    SELECTED_RUOLO=null;
-    NUM_LAVORATORI=1;
-    showLogin(); 
-  }
-
-  function showLogin(){ 
-    document.getElementById('loginPage').style.display='flex'; 
-    document.getElementById('appContainer').style.display='none'; 
-  }
-
-  function showApp(){   
-    document.getElementById('loginPage').style.display='none';  
-    document.getElementById('appContainer').style.display='block'; 
-  }
-
-  function setStep(p){
-    document.querySelectorAll('.step').forEach((el,i)=> el.classList.toggle('active', i<=p-1));
-    currentPage=p;
-    window.scrollTo({top:0,behavior:'smooth'});
-  }
-
-  function nextPage(p){
-    document.getElementById('page'+currentPage).classList.remove('active');
-    document.getElementById('page'+p).classList.add('active');
-    setStep(p);
-    updateSummary();
-  }
-
-  function prevPage(p){ 
-    nextPage(p); 
-  }
-
-  function initDateSelector(){
-    const cont = document.getElementById('dateSelector'); 
-    cont.innerHTML='';
-
-    const today = new Date(); 
-    today.setHours(0,0,0,0);
-
-    const start = startOfWeekMonday(addDays(today,-7));
-    const dayLabel=['L','M','M','G','V','S','D'];
-
-    for(let w=0; w<2; w++){
-      for(let i=0;i<7;i++){
-        const d = addDays(start, w*7+i);
-
-        const div=document.createElement('div'); 
-        div.className='date-day'; 
-        div.dataset.date=fmtISO(d);
-
-        if(isWeekend(d)) div.classList.add('weekend');
-        if(isItalianHoliday(d)) div.classList.add('holiday');
-        if(sameYMD(d,today)){ 
-          div.classList.add('today','selected'); 
-          selectedDate=today; 
-        }
-
-        div.innerHTML=`<div class="day-name">${dayLabel[i]}</div><div class="day-num">${d.getDate()}</div>`;
-
-        const flag = document.createElement('span'); 
-        flag.className = 'corner-flag'; 
-        div.appendChild(flag);
-
-        div.onclick=()=> selectDate(div,d);
-        cont.appendChild(div);
-      }
-    }
-  }
-
-  function hasPresenceOnDate(d){ 
-    return LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, d)); 
-  }
-
-  function updateDateIndicators(){
-    const today = new Date(); 
-    today.setHours(0,0,0,0);
-
-    document.querySelectorAll('.date-day').forEach(el=>{
-      const iso = el.dataset.date;
-      const d   = new Date(iso);
-
-      el.classList.remove('has-pres','no-pres');
-
-      if(d <= today){
-        if(hasPresenceOnDate(d)) {
-          el.classList.add('has-pres');
-        } else {
-          el.classList.add('no-pres');
-        }
-      }
-    });
-  }
-
-  function updateRepeatBtnState(){
-    const btn = document.getElementById('repeatBtn');
-    const enabled = isToday(selectedDate);
-
-    btn.disabled = !enabled;
-    btn.title = enabled ? 'Copia i dati di IERI e registra per OGGI' : 'Disponibile solo per la data di OGGI';
-  }
-
-  function selectDate(el,d){
-    if (LOCK_OTHER_DAYS && !isToday(d)) return;
-
-    document.querySelectorAll('.date-day').forEach(x=>x.classList.remove('selected'));
-
-    el.classList.add('selected'); 
-    selectedDate=d; 
-    ABSENT_MODE=false; 
-
-    updateAssenteChip(); 
-    renderMonthList();
-    updateDateIndicators();
-    updateRepeatBtnState();
-  }
-
-  function toggleAssente(){ 
-    ABSENT_MODE=!ABSENT_MODE; 
-    updateAssenteChip(); 
-    updateSummary();
-  }
-
-  function updateAssenteChip(){ 
-    document.getElementById('assenteChip').classList.toggle('active', ABSENT_MODE); 
-  }
-
-  function goFromPage1(){
-    const now = new Date(); 
-    now.setHours(0,0,0,0);
-
-    if (selectedDate <= now && hasPresenceOnDate(selectedDate)) {
-      const cont = confirm('⚠️ Per questo giorno risulta già una registrazione.\nVuoi continuare comunque e inserirne un\'altra?');
-      if (!cont) return;
-    }
-
-    if (mustBlockForPreviousWorkingDay(selectedDate)){
-      const prev = previousWorkingDay(selectedDate);
-      alert(`⚠️ Devi prima compilare il precedente giorno lavorativo: ${prev.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })} (anche come ASSENTE).`);
-      return;
-    }
-
-    if (isToday(selectedDate)) {
-      const missingDays = checkMissingWorkdays();
-
-      if (missingDays.length > 0) {
-        const dateList = missingDays
-          .map(d => d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }))
-          .join('\n• ');
-
-        alert(`⚠️ ATTENZIONE!\n\nDevi prima compilare le presenze per questi giorni:\n\n• ${dateList}\n\nCompila i giorni mancanti (anche come "Assente") prima di proseguire.`);
-        return;
-      }
-    }
-
-    ABSENT_MODE ? (updateSummary(), nextPage(4)) : nextPage(2);
-  }
-
-  function updateTimes(){
-    const ms=document.getElementById('mStart').value;
-    const me=document.getElementById('mEnd').value;
-    const ps=document.getElementById('pStart').value;
-    const pe=document.getElementById('pEnd').value;
-
-    document.getElementById('morningText').textContent = `${ms} - ${me}`;
-    document.getElementById('afternoonText').textContent = `${ps} - ${pe}`;
-
-    const hM = MORNING_ENABLED ? diffHours(ms,me) : 0;
-    const hP = AFTERNOON_ENABLED ? diffHours(ps,pe) : 0;
-    
-    document.getElementById('morningHours').textContent = `${hM.toFixed(1)} h`;
-    document.getElementById('afternoonHours').textContent = `${hP.toFixed(1)} h`;
-    document.getElementById('totalHours').textContent = (hM+hP).toFixed(1)+'h';
-
-    updateSummary();
-  }
-
-  function newWorkItem(){ 
-    return {id:crypto.randomUUID(), siteSelect:'', work:''}; 
-  }
-
-  async function loadCantieri(){
-    try{
-      const rows = await (await fetch(OS_BASE+'Cantieri', {cache:'no-store'})).json();
-
-      SITE_OPTIONS = rows
-        .map(r => r.Cantiere || r[Object.keys(r)[0]])
-        .map(x=>String(x||'').trim())
-        .filter(Boolean);
-
-    }catch(e){ 
-      console.error('loadCantieri error', e);
-      SITE_OPTIONS=[]; 
-    }
-
-    if (!workState.length) workState=[newWorkItem()];
-
-    renderWorkItems();
-  }
-
-  function renderWorkItems(){
-    const wrap=document.getElementById('workItems'); 
-    wrap.innerHTML='';
-
-    workState.forEach((it,idx)=>{
-      const el=document.createElement('div'); 
-      el.className='card'; 
-      el.style.padding='12px';
-
-      el.innerHTML=`
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <div style="font-weight:900">Cantiere ${idx+1}</div>
-          ${idx>0?`<button class="chip" onclick="removeWorkItem('${it.id}')">Rimuovi</button>`:''}
-        </div>
-        <div class="input-group"><span class="input-icon">🏷️</span>
-          <select onchange="onSel('${it.id}', this.value)">
-            <option value="">— Seleziona cantiere —</option>
-            ${SITE_OPTIONS.map(s=>`<option value="${escHTML(s)}" ${it.siteSelect===s?'selected':''}>${escHTML(s)}</option>`).join('')}
-          </select>
-        </div>
-        <div class="input-group"><span class="input-icon">📝</span>
-          <textarea placeholder="Descrivi la lavorazione..." oninput="onWork('${it.id}', this.value)">${escHTML(it.work||'')}</textarea>
-        </div>`;
-
-      wrap.appendChild(el);
-    });
-
-    document.getElementById('addWorkBtn').disabled = (workState.length>=3);
-    updateSummary();
-  }
-
-  function addWorkItem(){ 
-    if(workState.length<3){ 
-      workState.push(newWorkItem()); 
-      renderWorkItems(); 
-    } 
-  }
-
-  function removeWorkItem(id){ 
-    workState=workState.filter(w=>w.id!==id); 
-    if(workState.length===0) workState=[newWorkItem()]; 
-    renderWorkItems(); 
-  }
-
-  function onSel(id,v){ 
-    const it=workState.find(w=>w.id===id); 
-    if(!it) return; 
-    it.siteSelect=v||''; 
-    updateSummary(); 
-  }
-
-  function onWork(id,v){ 
-    const it=workState.find(w=>w.id===id); 
-    if(!it) return; 
-    it.work=v; 
-    updateSummary(); 
-  }
-
-  function newTrattaItem(){
-    return {
-      id: crypto.randomUUID(),
-      mezzo: '',
-      ruolo: ''
+  window.addEventListener('error', e => {
+    showErr((e.message || 'Errore') + ' · ' + (e.filename||'').split('/').pop() + ':' + (e.lineno||'?'));
+  });
+  window.addEventListener('unhandledrejection', e => {
+    showErr('Promise rejection: ' + (e.reason?.message || e.reason || 'sconosciuto'));
+  });
+  window.__showErr = showErr;
+})();
+</script>
+<script>
+// ============================================================
+// SUPABASE CLIENT
+// ============================================================
+const SB_URL = 'https://usfpzdxvcexxzraxpjtu.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzZnB6ZHh2Y2V4eHpyYXhwanR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1ODM3NzYsImV4cCI6MjA5NDE1OTc3Nn0.cWfI8_OGRrE96PPIG1de8Xz1i2RzVK9g40HesqWdvfk';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+// ============================================================
+// STATE
+// ============================================================
+let AUTH = null;          // utente loggato
+let TARGET = null;        // operaio per cui admin compila (null = sé)
+let NUM_LAVORATORI = 1;   // per ruolo Sub: numero lavoratori per cui compila
+
+let CANTIERI = [];        // [{id, nome}]
+let MEZZI = [];           // [{id, descrizione, targa, tipologia}]
+let UTENTI = [];          // tutti gli utenti (solo per admin/sub)
+let ASSENTE_ID = null;    // id del cantiere "ASSENTE"
+let SUGG = {};            // suggerimenti smart
+let HISTORY = { allRows: [], rows: [], byDate: {}, time: null, yesterdaySite: null, topSite: null, yesterdayVehicle: null, topVehicle: null }; // storico locale
+
+let CUR_PAGE = 1;
+let SEL_DATE = new Date();   // data selezionata
+let IS_ASSENTE = false;
+let DATE_PRES_MAP = {};      // { 'YYYY-MM-DD': 'pres'|'abs' }
+let PRES_DETAIL_MAP = {};    // { 'YYYY-MM-DD': [righe presenze con ore/cantiere/lavorazione] }
+
+// Form state
+let MORNING_ON = true;
+let AFTERNOON_ON = true;
+let WORK_ITEMS = [];     // [{cantiere_id, cantiere_nome, lavorazione}]
+let TRATTA_ITEMS = [];   // [{mezzo_id, mezzo_desc, ruolo}]
+
+const DAY_SHORT = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const DAY_LONG = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const MONTH_LONG = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MONTH_SHORT = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function $(id) { return document.getElementById(id); }
+function pad(n) { return String(n).padStart(2,'0'); }
+function fmtISO(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function fmtFull(d) { return `${DAY_LONG[d.getDay()]} ${d.getDate()} ${MONTH_LONG[d.getMonth()].toLowerCase()}`; }
+function diffH(a, b) {
+  const [h1,m1] = a.split(':').map(Number);
+  const [h2,m2] = b.split(':').map(Number);
+  return Math.max(0, (h2*60+m2 - h1*60 - m1) / 60);
+}
+function esc(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+function currentRole() { return String((TARGET || AUTH)?.ruolo || '').trim(); }
+function isOperaio() { return currentRole() === 'Operaio'; }
+function isAdmin() { return AUTH?.ruolo === 'Amministratore'; }
+function isSub() { return AUTH?.ruolo === 'Sub'; }
+function requiresMezzo() {
+  // Solo il ruolo Operaio deve compilare obbligatoriamente il mezzo.
+  // Tecnico, Sub e Amministratore proseguono senza scheda mezzi.
+  return currentRole() === 'Operaio';
+}
+
+function normalizeDate(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function isWeekendDate(d) { const dow = d.getDay(); return dow === 0 || dow === 6; }
+function easterDate(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+function isHolidayDate(d) {
+  const x = normalizeDate(d);
+  const md = `${pad(x.getMonth()+1)}-${pad(x.getDate())}`;
+  const fixed = new Set(['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26']);
+  if (fixed.has(md)) return true;
+  const easter = easterDate(x.getFullYear());
+  const easterMonday = new Date(easter); easterMonday.setDate(easter.getDate() + 1);
+  return sameDay(x, easter) || sameDay(x, easterMonday);
+}
+function isNonWorkingDate(d) { return isWeekendDate(d) || isHolidayDate(d); }
+function groupRowsByDate(rows) {
+  const out = {};
+  (rows || []).forEach(r => {
+    if (!out[r.data_presenza]) out[r.data_presenza] = [];
+    out[r.data_presenza].push(r);
+  });
+  return out;
+}
+function previousWorkday(d) {
+  const x = normalizeDate(d);
+  do { x.setDate(x.getDate() - 1); } while (isNonWorkingDate(x));
+  return x;
+}
+function sameDay(a,b){ return fmtISO(a) === fmtISO(b); }
+function startOfWeekMonday(d) {
+  const x = normalizeDate(d);
+  const dow = x.getDay();
+  const delta = dow === 0 ? -6 : 1 - dow;
+  x.setDate(x.getDate() + delta);
+  return x;
+}
+function mondayPreviousWeek(d) {
+  const x = startOfWeekMonday(d);
+  x.setDate(x.getDate() - 7);
+  return x;
+}
+function getTarget() { return TARGET || AUTH; }
+function showToast(msg, type='warn') {
+  const box = $('toast');
+  if (!box) { alert(msg); return; }
+  box.className = `toast ${type}`;
+  box.textContent = msg;
+  box.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => box.classList.remove('show'), 4000);
+}
+function showConfirmBanner(title, text) {
+  return new Promise(resolve => {
+    const ov = $('confirmOverlay');
+    const yes = $('confirmYes');
+    const no = $('confirmNo');
+    if (!ov || !yes || !no) { resolve(confirm(text)); return; }
+    $('confirmTitle').textContent = title;
+    $('confirmText').textContent = text;
+    ov.classList.add('show');
+    const cleanup = val => {
+      ov.classList.remove('show');
+      yes.onclick = null;
+      no.onclick = null;
+      resolve(val);
     };
+    yes.onclick = () => cleanup(true);
+    no.onclick = () => cleanup(false);
+  });
+}
+function photoFileNameForUser(user) {
+  // Mappa esplicita sui file realmente presenti in GitHub /operai
+  // Serve perché nel DB alcuni cognomi/nome file non coincidono al 100%.
+  const byCode = {
+    eddi: 'Edoardo Dignani.png',
+    maro: 'Mario Ronconi.png',
+    otot: 'Otello Otelli.png',
+    gent: 'Gentian.png',
+    kero: 'Kevin Ronconi.png',
+    ahaz: 'Ahmed Azrikem.png',
+    pata: 'Pasquale Tarantino.png',
+    maac: 'Samir Achlih.png',
+    siha: 'Harjinder Sing.png',
+    paim: 'Paolo Impellizzeri.png',
+    maez: 'Maja Ebuka Matthew Ezigbo.png',
+    gigr: 'Gianmario Grilli.png',
+    stam: 'Stefano Sampaolo.png',
+    staq: 'Stefano Aquilini.png',
+    mata: 'Massimo Tarantino.png',
+    emma: 'Emanuele Massucci.png',
+    dafe: 'Davide Ferrarini.png',
+    adbax: 'Abdelaziz Aqriqeb.png',
+    maru: 'Matteo Russo.png'
+  };
+  const code = String(user?.user_code || '').trim().toLowerCase();
+  return byCode[code] || '';
+}
+
+function setPhotoForUser(user) {
+  const img = $('workerPhoto');
+  const fb = $('workerPhotoFallback');
+  if (!img || !fb || !user) return;
+
+  // Su GitHub Pages il percorso giusto è questo, non /tree/main/operai.
+  const bases = [
+    'https://ferra2391.github.io/presenze-cantieri/operai/',
+    'https://raw.githubusercontent.com/ferra2391/presenze-cantieri/main/operai/'
+  ];
+
+  const full = `${user.nome || ''} ${user.cognome || ''}`.trim();
+  const first = String(user.nome || '').trim();
+  const code = String(user.user_code || '').trim();
+  const mapped = photoFileNameForUser(user);
+
+  const noAccents = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const titleLike = s => String(s || '').trim().replace(/\s+/g, ' ');
+  const slugDash = s => noAccents(s).trim().replace(/\s+/g, '-');
+  const slugUnd = s => noAccents(s).trim().replace(/\s+/g, '_');
+
+  const baseNames = [
+    mapped.replace(/\.(png|jpg|jpeg|webp)$/i, ''),
+    full,                         // esempio: Emanuele Massucci.png
+    titleLike(full),
+    slugDash(full),               // esempio: Emanuele-Massucci.png
+    slugDash(full).toLowerCase(),
+    slugUnd(full),                // esempio: Emanuele_Massucci.png
+    slugUnd(full).toLowerCase(),
+    first,
+    slugDash(first),
+    slugDash(first).toLowerCase(),
+    code,
+    code.toLowerCase()
+  ].filter(Boolean);
+
+  const unique = arr => [...new Set(arr.filter(Boolean))];
+  const exts = ['png','PNG','jpg','JPG','jpeg','JPEG','webp','WEBP'];
+  const urls = [];
+
+  // Prima prova il file mappato esatto, con spazi codificati in %20.
+  if (mapped) {
+    bases.forEach(base => urls.push(base + encodeURIComponent(mapped)));
   }
 
-  function ensureTratteState(){
-    if (!tratteState.length) {
-      tratteState = [newTrattaItem()];
-    }
-  }
-
-  async function loadMezzi(){
-    try{
-      const rows = await (await fetch(OS_BASE+'Mezzi', {cache:'no-store'})).json();
-
-      MEZZI_OPTIONS = rows.map(r => {
-        const mezzo = String(r.Mezzo || '').trim();
-        const targa = String(r.Targa || '').trim();
-        const tipologia = String(r.Tipologia || '').trim();
-        const label = [mezzo, targa].filter(Boolean).join(' - ');
-        return { mezzo, targa, tipologia, label };
-      }).filter(x => x.label);
-
-    }catch(e){
-      console.error('loadMezzi error', e);
-      MEZZI_OPTIONS = [];
-    }
-
-    renderMezziSelect();
-  }
-
-  function renderMezziSelect(){
-    renderTratteItems();
-  }
-
-  function renderTratteItems(){
-    ensureTratteState();
-
-    const wrap = document.getElementById('mezziItems');
-    if (!wrap) return;
-
-    wrap.innerHTML = '';
-
-    tratteState.forEach((it, idx) => {
-      const el = document.createElement('div');
-      el.className = 'card';
-      el.style.padding = '12px';
-
-      const mezzoOptions = MEZZI_OPTIONS.map(m => {
-        const label = m.tipologia ? `${m.label} (${m.tipologia})` : m.label;
-        return `<option value="${escHTML(m.label)}" ${it.mezzo === m.label ? 'selected' : ''}>${escHTML(label)}</option>`;
-      }).join('');
-
-      el.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <div style="font-weight:900">Tratta ${idx + 1}</div>
-          ${idx > 0 ? `<button class="chip" onclick="removeTrattaItem('${it.id}')">Rimuovi</button>` : ''}
-        </div>
-
-        <div class="input-group">
-          <span class="input-icon">🚗</span>
-          <select onchange="onTrattaMezzo('${it.id}', this.value)">
-            <option value="">— Seleziona mezzo —</option>
-            ${mezzoOptions}
-          </select>
-        </div>
-
-        <div class="input-group">
-          <span class="input-icon">🧭</span>
-          <select onchange="onTrattaRuolo('${it.id}', this.value)">
-            <option value="">— Guidatore o Passeggero —</option>
-            <option value="Guidatore" ${it.ruolo === 'Guidatore' ? 'selected' : ''}>Guidatore</option>
-            <option value="Passeggero" ${it.ruolo === 'Passeggero' ? 'selected' : ''}>Passeggero</option>
-          </select>
-        </div>
-      `;
-
-      wrap.appendChild(el);
+  unique(baseNames).forEach(name => {
+    exts.forEach(ext => {
+      bases.forEach(base => urls.push(`${base}${encodeURIComponent(name)}.${ext}`));
     });
-
-    const addBtn = document.getElementById('addTrattaBtn');
-    if (addBtn) addBtn.disabled = tratteState.length >= 3;
-
-    updateSummary();
-  }
-
-  function addTrattaItem(){
-    ensureTratteState();
-
-    if (tratteState.length < 3) {
-      tratteState.push(newTrattaItem());
-      renderTratteItems();
-    }
-  }
-
-  function removeTrattaItem(id){
-    tratteState = tratteState.filter(t => t.id !== id);
-
-    if (!tratteState.length) {
-      tratteState = [newTrattaItem()];
-    }
-
-    renderTratteItems();
-  }
-
-  function onTrattaMezzo(id, value){
-    const item = tratteState.find(t => t.id === id);
-    if (!item) return;
-
-    item.mezzo = String(value || '').trim();
-    updateSummary();
-  }
-
-  function onTrattaRuolo(id, value){
-    const item = tratteState.find(t => t.id === id);
-    if (!item) return;
-
-    item.ruolo = String(value || '').trim();
-    updateSummary();
-  }
-
-  function getTratteCompilate(){
-    ensureTratteState();
-
-    return tratteState
-      .map((t, index) => ({
-        index: index + 1,
-        mezzo: String(t.mezzo || '').trim(),
-        ruolo: String(t.ruolo || '').trim()
-      }))
-      .filter(t => t.mezzo || t.ruolo);
-  }
-
-  function getTratteComplete(){
-    return getTratteCompilate().filter(t => t.mezzo && t.ruolo);
-  }
-
-  function validateTratteMezzi(){
-    if (ABSENT_MODE) return true;
-
-    const tratteCompilate = getTratteCompilate();
-    const tratteComplete = getTratteComplete();
-
-    const incomplete = tratteCompilate.find(t => !t.mezzo || !t.ruolo);
-
-    if (incomplete) {
-      alert(`⚠️ TRATTA INCOMPLETA\n\nNella tratta ${incomplete.index} devi indicare sia:\n• Mezzo\n• Guidatore/Passeggero`);
-      return false;
-    }
-
-    if (!isMezzoFacoltativo() && tratteComplete.length === 0) {
-      alert('⚠️ MEZZO OBBLIGATORIO\n\nPer gli operai devi indicare almeno una tratta con:\n• Mezzo di trasporto usato\n• Guidatore o Passeggero');
-      return false;
-    }
-
-    return true;
-  }
-
-  async function loadPresenze(){
-    try{
-      const rows = await (await fetch(OS_BASE+'Presenze',{cache:'no-store'})).json();
-      const target = (ACTIVE_NOME||AUTH.nome||'').toLowerCase();
-
-      LAST_PRESENZE = rows.map(r=>{
-        const tratte = [
-          {
-            mezzo: r["Tratta 1 Mezzo"] || r["Mezzo"] || '',
-            ruolo: r["Tratta 1 Ruolo"] || r["Ruolo"] || r["Tipologia Guidatore"] || r["Ruolo mezzo"] || r["Guidatore/Passeggero"] || ''
-          },
-          {
-            mezzo: r["Tratta 2 Mezzo"] || '',
-            ruolo: r["Tratta 2 Ruolo"] || ''
-          },
-          {
-            mezzo: r["Tratta 3 Mezzo"] || '',
-            ruolo: r["Tratta 3 Ruolo"] || ''
-          }
-        ].filter(t => String(t.mezzo || '').trim() || String(t.ruolo || '').trim());
-
-        return {
-          dataPresenza: parseDateFlex(r["Data Presenza"]||r["Data"]||''),
-          cantiere: r["Cantiere"]||'',
-          lavorazione: r["Lavorazione"]||'',
-          ore: r["Ore"]||'',
-          orari: r["Orari"]||'',
-          tratte: tratte,
-          mezzo: r["Tratta 1 Mezzo"] || r["Mezzo"] || '',
-          ruoloMezzo: r["Tratta 1 Ruolo"] || r["Ruolo"] || r["Tipologia Guidatore"] || r["Ruolo mezzo"] || r["Guidatore/Passeggero"] || '',
-          nome: String(r["Nome Operaio"]||'')
-        };
-      })
-      .filter(x=>x.nome.toLowerCase()===target && !isNaN(x.dataPresenza))
-      .sort((a,b)=>b.dataPresenza-a.dataPresenza);
-
-    }catch(e){
-      console.error('loadPresenze error', e);
-      LAST_PRESENZE=[];
-    }
-  }
-
-  function setupMonthToggle(){
-    const btn   = document.getElementById('monthToggle');
-    const list  = document.getElementById('monthList');
-    const arrow = document.getElementById('monthArrow');
-
-    const apply = () => {
-      list.classList.toggle('open', MONTH_OPEN);
-      arrow.textContent = MONTH_OPEN ? '▲' : '▼';
-    };
-
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      MONTH_OPEN = !MONTH_OPEN;
-      apply();
-    });
-
-    apply();
-  }
-
-  function safeParseFloat(x){ 
-    const n = parseFloat(String(x).replace(',','.')); 
-    return isNaN(n) ? 0 : n; 
-  }
-
-  async function renderMonthList(){
-    const list=document.getElementById('monthList'); 
-    list.innerHTML='';
-
-    const y=selectedDate.getFullYear();
-    const m=selectedDate.getMonth();
-    const days=new Date(y,m+1,0).getDate();
-
-    const today=new Date(); 
-    today.setHours(0,0,0,0);
-
-    document.getElementById('monthTitle').textContent = `📆 Presenze mese ${selectedDate.toLocaleDateString('it-IT',{month:'long'})}`;
-
-    for(let d=1; d<=days; d++){
-      const dt=new Date(y,m,d);
-      const entries=LAST_PRESENZE.filter(p=> sameYMD(p.dataPresenza, dt));
-
-      const item=document.createElement('div');
-      item.className='month-item';
-
-      if(isWeekend(dt)) item.classList.add('weekend');
-      if(isItalianHoliday(dt)) item.classList.add('holiday');
-      if(sameYMD(dt,today)) item.classList.add('today');
-      if(dt>today) item.classList.add('future');
-
-      let innerList = '';
-
-      if(entries.length){
-        innerList = entries.map(e => {
-          const cant = (e.cantiere||'').trim() || '—';
-          const lav  = (e.lavorazione||'').trim() || '';
-          const orari = (e.orari||'').trim();
-
-          return `
-            <div class="mi-entry">
-              <div class="mi-cant">${escHTML(cant)}</div>
-              <div class="mi-lav">${escHTML(lav).replace(/\n/g,'<br>')}</div>
-              ${orari ? `<div class="mi-orari">⏰ ${escHTML(orari)}</div>` : ''}
-            </div>
-          `;
-        }).join('');
-      } else if(dt<today){
-        innerList = `<span class="badge-missing">NON COMPILATO</span>`;
-      } else {
-        innerList = '';
-      }
-
-      const totalHours = entries.reduce((acc, e)=> acc + safeParseFloat(e.ore), 0);
-
-      item.innerHTML = `
-        <div class="mi-left">
-          <div class="mi-date">
-            <div>${pad2(d)}</div>
-            <div style="font-size:10px;opacity:.8">${dt.toLocaleDateString('it-IT',{month:'short'})}</div>
-          </div>
-          <div class="mi-main">
-            ${innerList}
-          </div>
-        </div>
-        <div class="mi-right">
-          ${dt>today?'<span class="badge-future">FUTURO</span>': `<div class="mi-ore">${entries.length? (totalHours.toFixed(2)+'h') : '-'}</div>`}
-        </div>`;
-
-      list.appendChild(item);
-    }
-  }
-
-  function updateSummary(){
-    const summaryDate = document.getElementById('summaryDate');
-    if (!summaryDate) return;
-
-    document.getElementById('summaryDate').textContent = fmtHuman(selectedDate);
-
-    const tratteComplete = getTratteComplete();
-
-    const mezziTxt = tratteComplete.length
-      ? tratteComplete.map(t => `<div>${t.index}. ${escHTML(t.mezzo)}</div>`).join('')
-      : '-';
-
-    const ruoliTxt = tratteComplete.length
-      ? tratteComplete.map(t => `<div>${t.index}. ${escHTML(t.ruolo)}</div>`).join('')
-      : '-';
-
-    document.getElementById('summaryMezzo').innerHTML = mezziTxt;
-    document.getElementById('summaryRuoloMezzo').innerHTML = ruoliTxt;
-
-    const worksBox=document.getElementById('summaryWorks'); 
-    worksBox.innerHTML='';
-
-    if(ABSENT_MODE){
-      document.getElementById('summaryTime').textContent='—';
-      document.getElementById('summaryHours').textContent='0.0h';
-
-      const div=document.createElement('div'); 
-      div.className='summary-work';
-      div.innerHTML = `<div><strong>Cantiere:</strong> ASSENTE</div><div><strong>Lavorazione:</strong> ASSENTE</div>`;
-      worksBox.appendChild(div);
-
-      document.getElementById('summaryNotes').textContent = (document.getElementById('notesInput').value||'-') || '-';
-      return;
-    }
-
-    const ms=document.getElementById('mStart').value;
-    const me=document.getElementById('mEnd').value;
-    const ps=document.getElementById('pStart').value;
-    const pe=document.getElementById('pEnd').value;
-    
-    let orariParts = [];
-
-    if(MORNING_ENABLED) orariParts.push(`${ms}-${me}`);
-    if(AFTERNOON_ENABLED) orariParts.push(`${ps}-${pe}`);
-    
-    document.getElementById('summaryTime').textContent = orariParts.join(' + ') || '—';
-    
-    const hM = MORNING_ENABLED ? diffHours(ms,me) : 0;
-    const hP = AFTERNOON_ENABLED ? diffHours(ps,pe) : 0;
-    const tot = hM + hP;
-    
-    document.getElementById('summaryHours').textContent = tot.toFixed(1)+'h';
-
-    workState.forEach((w,i)=>{
-      const name=(w.siteSelect||'').trim()||'-';
-      const lav=(w.work||'').trim()||'-';
-
-      const div=document.createElement('div'); 
-      div.className='summary-work';
-
-      div.innerHTML=`<div><strong>Cantiere ${i+1}:</strong> ${escHTML(name)}</div><div><strong>Lavorazione:</strong> ${escHTML(lav)}</div>`;
-
-      worksBox.appendChild(div);
-    });
-
-    const note = (document.getElementById('notesInput').value||'').trim();
-    document.getElementById('summaryNotes').textContent = note || '-';
-  }
-
-  async function repeatYesterday(){
-    if(!isToday(selectedDate)){
-      alert('"Ripeti ieri" è disponibile solo quando stai compilando OGGI.');
-      return;
-    }
-
-    if (!LAST_PRESENZE.length) { 
-      await loadPresenze(); 
-    }
-
-    const today = new Date(); 
-    today.setHours(0,0,0,0);
-
-    const yest = addDays(today, -1);
-    const found = LAST_PRESENZE.find(p=> sameYMD(p.dataPresenza,yest));
-
-    if(!found){ 
-      alert('Nessuna presenza trovata per ieri'); 
-      return; 
-    }
-
-    PREVIEW_DATA = found;
-
-    document.getElementById('previewDate').textContent = fmtHuman(today);
-    document.getElementById('previewTime').textContent = found.orari || '-';
-    document.getElementById('previewHours').textContent = found.ore ? found.ore + 'h' : '-';
-    document.getElementById('previewSite').textContent = found.cantiere || '-';
-    document.getElementById('previewWork').textContent = found.lavorazione || '-';
-    document.getElementById('previewNotes').textContent = '-';
-
-    const trattePreview = Array.isArray(found.tratte) ? found.tratte : [];
-
-    document.getElementById('previewMezzo').textContent = trattePreview.length
-      ? trattePreview.map((t, i) => `${i + 1}. ${t.mezzo || '-'}`).join(' / ')
-      : (found.mezzo || '-');
-
-    document.getElementById('previewRuoloMezzo').textContent = trattePreview.length
-      ? trattePreview.map((t, i) => `${i + 1}. ${t.ruolo || '-'}`).join(' / ')
-      : (found.ruoloMezzo || '-');
-
-    document.getElementById('previewCard').classList.add('show');
-    document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    lockOtherDaysExceptToday(true);
-  }
-  
-  function confirmRepeat(){
-    if(!PREVIEW_DATA) return;
-
-    const parts = (PREVIEW_DATA.orari||'').split('+').map(s=>s.trim()).filter(Boolean);
-    
-    MORNING_ENABLED = false;
-    AFTERNOON_ENABLED = false;
-    
-    const [m1,p1] = parts;
-
-    if(m1){ 
-      const [a,b] = m1.split('-'); 
-      if (a && b) {
-        document.getElementById('mStart').value = a; 
-        document.getElementById('mEnd').value = b;
-        MORNING_ENABLED = true;
-      }
-    }
-
-    if(p1){ 
-      const [c,d] = p1.split('-'); 
-      if (c && d) {
-        document.getElementById('pStart').value = c; 
-        document.getElementById('pEnd').value = d;
-        AFTERNOON_ENABLED = true;
-      }
-    }
-    
-    document.getElementById('morningCheck').checked = MORNING_ENABLED;
-    document.getElementById('afternoonCheck').checked = AFTERNOON_ENABLED;
-
-    updateShiftUI();
-
-    workState = [newWorkItem()];
-
-    const cantiere = PREVIEW_DATA.cantiere || '';
-
-    if(SITE_OPTIONS.includes(cantiere)){ 
-      workState[0].siteSelect = cantiere; 
-      workState[0].work = PREVIEW_DATA.lavorazione || ''; 
-    } else { 
-      workState[0].siteSelect=''; 
-      workState[0].work = PREVIEW_DATA.lavorazione || ''; 
-    }
-
-    if (Array.isArray(PREVIEW_DATA.tratte) && PREVIEW_DATA.tratte.length) {
-      tratteState = PREVIEW_DATA.tratte.slice(0, 3).map(t => ({
-        id: crypto.randomUUID(),
-        mezzo: String(t.mezzo || '').trim(),
-        ruolo: String(t.ruolo || '').trim()
-      }));
-    } else {
-      tratteState = [{
-        id: crypto.randomUUID(),
-        mezzo: PREVIEW_DATA.mezzo || '',
-        ruolo: PREVIEW_DATA.ruoloMezzo || ''
-      }];
-    }
-
-    renderWorkItems();
-    renderTratteItems();
-    updateTimes();
-
-    document.getElementById('previewCard').classList.remove('show');
-    PREVIEW_DATA = null;
-
-    lockOtherDaysExceptToday(false);
-
-    nextPage(2);
-  }
-  
-  function cancelRepeat(){ 
-    document.getElementById('previewCard').classList.remove('show'); 
-    PREVIEW_DATA = null; 
-    lockOtherDaysExceptToday(false); 
-  }
-
-  function showAdminUI(){
-    if(!isAdmin()) return;
-
-    document.querySelectorAll('.admin-only').forEach(el=> { 
-      el.style.display = ''; 
-      el.style.removeProperty('display'); 
-    });
-  }
-
-  function openGestioneCantieri(){ 
-    window.location.href = "https://ferra2391.github.io/presenze-cantieri/presenze.html"; 
-  }
-
-  function openSelectOperaio(){
-    if(!isAdmin()) return;
-
-    const select = document.getElementById('operaioSelect');
-    select.innerHTML = '<option value="">— Seleziona —</option>';
-
-    const operaiSub = (ALL_CRED_ROWS||[]).filter(r => {
-      const ruolo = String(r.Ruolo||'').trim().toLowerCase();
-      return ruolo === 'operaio' || ruolo === 'sub' || ruolo === 'tecnico';
-    });
-
-    if(!operaiSub.length){
-      select.innerHTML = '<option value="">Nessun operaio/sub trovato</option>';
-    }else{
-      operaiSub.forEach(r=>{
-        const nome = (r.Nome && r.Nome.trim()) ? r.Nome.trim() : String(r.User||'').trim();
-        const ruolo = String(r.Ruolo||'').trim();
-
-        const option = document.createElement('option');
-
-        option.value = JSON.stringify({nome: nome, ruolo: ruolo});
-        option.textContent = `${nome} (${ruolo})`;
-
-        select.appendChild(option);
-      });
-    }
-
-    document.getElementById('numLavoratoriGroup').style.display = 'none';
-    document.getElementById('numLavoratori').value = '1';
-
-    const card=document.getElementById('selectOperaioCard');
-    card.classList.add('show');
-    card.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  }
-
-  function onOperaioSelectChange(){
-    const select = document.getElementById('operaioSelect');
-    const value = select.value;
-
-    if(!value){
-      document.getElementById('numLavoratoriGroup').style.display = 'none';
-      return;
-    }
-
-    try{
-      const data = JSON.parse(value);
-      const ruolo = String(data.ruolo||'').trim().toLowerCase();
-
-      if(ruolo === 'sub'){
-        document.getElementById('numLavoratoriGroup').style.display = 'block';
-      }else{
-        document.getElementById('numLavoratoriGroup').style.display = 'none';
-        document.getElementById('numLavoratori').value = '1';
-      }
-    }catch{ 
-      document.getElementById('numLavoratoriGroup').style.display = 'none'; 
-    }
-  }
-
-  function closeSelectOperaio(){ 
-    document.getElementById('selectOperaioCard').classList.remove('show'); 
-  }
-
-  async function confirmSelectOperaio(){
-    const select = document.getElementById('operaioSelect');
-    const value = select.value;
-
-    if(!value){ 
-      alert('Seleziona un operaio o sub'); 
-      return; 
-    }
-
-    try{
-      const data = JSON.parse(value);
-      const nome = data.nome;
-      const ruolo = String(data.ruolo||'').trim().toLowerCase();
-
-      ADMIN_SELECTED = nome; 
-      SELECTED_RUOLO = ruolo; 
-      ACTIVE_NOME = nome;
-
-      NUM_LAVORATORI = (ruolo==='sub') 
-        ? Math.max(1, Math.min(20, parseInt(document.getElementById('numLavoratori').value)||1)) 
-        : 1;
-
-      document.getElementById('compilingFor').textContent = `Compilando per: ${nome}${ruolo === 'sub' ? ` (${NUM_LAVORATORI} lav.)` : ''}`;
-      document.getElementById('compilingForBadge').style.display = 'inline-flex';
-
-      closeSelectOperaio();
-
-      await loadPresenze();
-      await renderMonthList();
-
-      updateDateIndicators();
-
-      alert(`Selezionato: ${nome} (${data.ruolo})${ruolo === 'sub' ? ` - ${NUM_LAVORATORI} lavoratori` : ''}`);
-
-    }catch(e){ 
-      alert('Errore nella selezione'); 
-      console.error(e); 
-    }
-  }
-
-  async function clearSelectedOperaio(){
-    ADMIN_SELECTED = null; 
-    SELECTED_RUOLO = null; 
-    NUM_LAVORATORI = 1; 
-    ACTIVE_NOME = AUTH.nome;
-
-    document.getElementById('compilingForBadge').style.display = 'none';
-
-    await loadPresenze(); 
-    await renderMonthList(); 
-
-    updateDateIndicators();
-
-    alert('Selezione operaio annullata.');
-  }
-
-  function checkMissingWorkdays(){
-    const missing = [];
-
-    const target = new Date(selectedDate);
-    target.setHours(0,0,0,0);
-
-    let lastPresenza = null;
-
-    for(const p of LAST_PRESENZE){
-      if(p.dataPresenza < target){ 
-        lastPresenza = p.dataPresenza; 
-        break; 
-      }
-    }
-
-    if(!lastPresenza) return [];
-
-    let checkDate = new Date(lastPresenza);
-    checkDate.setDate(checkDate.getDate() + 1);
-
-    while(checkDate < target){
-      const dayOfWeek = checkDate.getDay();
-
-      if(dayOfWeek >= 1 && dayOfWeek <= 5){
-        if(!isItalianHoliday(checkDate)){
-          const hasPresenza = LAST_PRESENZE.some(p => sameYMD(p.dataPresenza, checkDate));
-          if(!hasPresenza){ 
-            missing.push(new Date(checkDate)); 
-          }
-        }
-      }
-
-      checkDate.setDate(checkDate.getDate() + 1);
-    }
-
-    return missing;
-  }
-
-  async function submitPresence(){
-    if (mustBlockForPreviousWorkingDay(selectedDate)){
-      const prev = previousWorkingDay(selectedDate);
-
-      alert(`⚠️ Devi prima compilare il precedente giorno lavorativo: ${prev.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })} (anche come ASSENTE).`);
-      return;
-    }
-
-    if (!validateTratteMezzi()) {
-      return;
-    }
-
-    const tratteComplete = getTratteComplete();
-    const primaTratta = tratteComplete[0] || { mezzo: '', ruolo: '' };
-
-    const overlay = document.getElementById('successOverlay');
-    const notes = (document.getElementById('notesInput').value||'').trim();
-
-    if (isToday(selectedDate)) {
-      const missingDays = checkMissingWorkdays();
-
-      if (missingDays.length > 0) {
-        const dateList = missingDays
-          .map(d => d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }))
-          .join('\n• ');
-
-        alert(`⚠️ ATTENZIONE!\n\nDevi prima compilare le presenze per questi giorni:\n\n• ${dateList}\n\nCompila i giorni mancanti (anche come "Assente") prima di proseguire.`);
-        return;
-      }
-    }
-
-    overlay.classList.add('show');
-
-    const isAdminActing = isAdmin() && !!ADMIN_SELECTED;
-    const USERID = isAdminActing ? "Admin" : (AUTH.user||"");
-    const NOME_OPERAIO = isAdminActing ? ADMIN_SELECTED : (AUTH.nome||AUTH.user||"");
-
-    const ruoloCompilazione = getRuoloCompilazione();
-    const isSub = ruoloCompilazione === 'sub';
-    const numRighe = isSub ? NUM_LAVORATORI : 1;
-
-    const payloads = [];
-
-    if(ABSENT_MODE){
-      for(let i=0;i<numRighe;i++){
-        payloads.push({ 
-          dataISO: fmtISO(selectedDate), 
-          orari: "-", 
-          operaio: NOME_OPERAIO, 
-          user: USERID,
-          ruoloCompilazione: ruoloCompilazione,
-          cantiere:"ASSENTE", 
-          lavorazione:"ASSENTE", 
-          ore:0, 
-          note: notes,
-          mezzo: '',
-          ruoloMezzo: '',
-          tratte: []
-        });
-      }
-    }else{
-      const ms=document.getElementById('mStart').value;
-      const me=document.getElementById('mEnd').value;
-      const ps=document.getElementById('pStart').value;
-      const pe=document.getElementById('pEnd').value;
-      
-      const hM = MORNING_ENABLED ? diffHours(ms,me) : 0;
-      const hP = AFTERNOON_ENABLED ? diffHours(ps,pe) : 0;
-      const tot = hM + hP;
-
-      if (tot <= 0) {
-        overlay.classList.remove('show');
-        alert('⚠️ ORARIO NON VALIDO\n\nDevi avere almeno un turno attivo con ore maggiori di zero.');
-        return;
-      }
-      
-      let orariParts = [];
-
-      if(MORNING_ENABLED) orariParts.push(`${ms}-${me}`);
-      if(AFTERNOON_ENABLED) orariParts.push(`${ps}-${pe}`);
-
-      const orariStr = orariParts.join(' + ');
-      
-      const lavori=workState.map(w=>({
-        cantiere:(w.siteSelect||'').trim(), 
-        lavorazione:(w.work||'').trim()
-      })).filter(x=>x.cantiere||x.lavorazione);
-      
-      const invalidItems = workState.filter(w => {
-        const hasCantiere = (w.siteSelect || '').trim() !== '';
-        const hasLavorazione = (w.work || '').trim() !== '';
-
-        return hasCantiere !== hasLavorazione || (!hasCantiere && !hasLavorazione);
-      });
-      
-      if(invalidItems.length > 0 || lavori.length === 0){
-        overlay.classList.remove('show');
-
-        alert('⚠️ CAMPI OBBLIGATORI\n\nDevi compilare ENTRAMBI i campi per ogni cantiere:\n• Nome cantiere\n• Descrizione lavorazione\n\nSe non hai altri cantieri, rimuovili.');
-        return;
-      }
-      
-      const quota = tot / lavori.length;
-
-      for(const w of lavori){
-        for(let i=0;i<numRighe;i++){
-          payloads.push({ 
-            dataISO: fmtISO(selectedDate), 
-            orari: orariStr, 
-            operaio: NOME_OPERAIO, 
-            user: USERID,
-            ruoloCompilazione: ruoloCompilazione,
-            cantiere:w.cantiere, 
-            lavorazione:w.lavorazione, 
-            ore:Number(quota.toFixed(2)), 
-            note: notes,
-            mezzo: primaTratta.mezzo,
-            ruoloMezzo: primaTratta.ruolo,
-            tratte: tratteComplete
-          });
-        }
-      }
-    }
-
-    try {
-      await fetch(L0URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payloads)
-      });
-
-      await sleep(1000); 
-
-    } catch (e) {
-      console.error('Errore di rete:', e);
-      alert('Errore di connessione durante il salvataggio. Riprova.');
-      overlay.classList.remove('show');
-      return;
-    }
-
-    await loadPresenze();
-    await renderMonthList();
-
-    updateDateIndicators();
-
-    await sleep(600);
-
-    overlay.classList.remove('show');
-    nextPage(1);
-  }
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    showLogin();
-
-    document.getElementById('loginUser').addEventListener('keypress', e=>{ 
-      if(e.key==='Enter') handleLogin(); 
-    });
-
-    document.getElementById('loginPass').addEventListener('keypress', e=>{ 
-      if(e.key==='Enter') handleLogin(); 
-    });
-
-    document.getElementById('previewCard')?.classList.remove('show');
-
-    setupMonthToggle();
   });
 
-  async function postLoginInit(){
-    populateTimeSelects();
-    initDateSelector();
+  let idx = 0;
+  fb.textContent = (user.nome ? user.nome[0] : '👷').toUpperCase();
+  img.removeAttribute('src');
+  img.style.display = 'none';
+  fb.style.display = 'block';
 
-    await loadCantieri();
-    await loadMezzi();
-    await loadPresenze();
-    await renderMonthList();
+  img.onerror = () => {
+    idx++;
+    if (idx < urls.length) {
+      img.src = urls[idx];
+    } else {
+      img.style.display = 'none';
+      fb.style.display = 'block';
+    }
+  };
+  img.onload = () => {
+    img.style.display = 'block';
+    fb.style.display = 'none';
+  };
 
-    updateDateIndicators();
-    showAdminUI();
+  if (urls.length) img.src = urls[0];
+}
+function setSelectValue(id, val) { const el = $(id); if (el && val) el.value = val; }
+function applyTimePreset(preset) {
+  if (!preset) return;
+  MORNING_ON = !!(preset.mS && preset.mE);
+  AFTERNOON_ON = !!(preset.pS && preset.pE);
+  if (preset.mS) setSelectValue('mStart', preset.mS);
+  if (preset.mE) setSelectValue('mEnd', preset.mE);
+  if (preset.pS) setSelectValue('pStart', preset.pS);
+  if (preset.pE) setSelectValue('pEnd', preset.pE);
+  $('morningCheck').checked = MORNING_ON;
+  $('afternoonCheck').checked = AFTERNOON_ON;
+  $('morningSlot').classList.toggle('disabled', !MORNING_ON);
+  $('afternoonSlot').classList.toggle('disabled', !AFTERNOON_ON);
+  applySuggestedTime();
+  updateTimes();
+}
+function cleanTimeValue(v) {
+  if (!v) return null;
+  const m = String(v).match(/(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return `${pad(Number(m[1]))}:${m[2]}`;
+}
 
-    if (!workState.length) workState=[newWorkItem()];
-    ensureTratteState();
+function parseTimePreset(row) {
+  if (!row) return null;
+  let mS = cleanTimeValue(row.ora_inizio_mattina);
+  let mE = cleanTimeValue(row.ora_fine_mattina);
+  let pS = cleanTimeValue(row.ora_inizio_pomeriggio);
+  let pE = cleanTimeValue(row.ora_fine_pomeriggio);
+  const display = row.orari_display || row.orari || '';
+  const parts = display.split(/\s*\+\s*/);
+  const parseR = s => {
+    const m = String(s || '').match(/(\d{1,2}:\d{2})(?::\d{2})?\s*-\s*(\d{1,2}:\d{2})(?::\d{2})?/);
+    return m ? [cleanTimeValue(m[1]), cleanTimeValue(m[2])] : null;
+  };
+  if ((!mS || !mE) && parts[0]) { const r = parseR(parts[0]); if (r) { mS = r[0]; mE = r[1]; } }
+  if ((!pS || !pE) && parts[1]) { const r = parseR(parts[1]); if (r) { pS = r[0]; pE = r[1]; } }
+  const label = [mS && mE ? `${mS}-${mE}` : '', pS && pE ? `${pS}-${pE}` : ''].filter(Boolean).join(' + ');
+  return { mS, mE, pS, pE, label };
+}
+function modeBy(rows, keyFn) {
+  const m = new Map();
+  rows.forEach(r => {
+    const k = keyFn(r);
+    if (!k) return;
+    const cur = m.get(k.key) || { ...k, freq: 0 };
+    cur.freq += 1;
+    m.set(k.key, cur);
+  });
+  return [...m.values()].sort((a,b) => b.freq - a.freq)[0] || null;
+}
+function splitHoursSmart(total, count) {
+  if (count <= 1) return [Number(total.toFixed(2))];
+  const step = 0.5;
+  const base = Math.floor((total / count) / step) * step;
+  const arr = Array(count).fill(Number(base.toFixed(2)));
+  const used = base * (count - 1);
+  arr[count - 1] = Number((total - used).toFixed(2));
+  return arr;
+}
 
-    renderWorkItems();
-    renderTratteItems();
 
-    updateShiftUI();
-    updateTimes();
-    updateSummary();
-    updateRepeatBtnState();
-    lockOtherDaysExceptToday(false);
+// ============================================================
+// LOGIN
+// ============================================================
+async function handleLogin() {
+  const btn = $('loginBtn');
+  const err = $('loginError');
+  const u = ($('loginUser').value||'').trim().toLowerCase();
+  const p = ($('loginPass').value||'').trim();
+  err.style.display = 'none';
+  if (!u || !p) { err.textContent = 'Inserisci username e password'; err.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Accesso...';
+  try {
+    const { data, error } = await sb.from('utenti')
+      .select('id,user_code,nome,cognome,ruolo,password')
+      .eq('user_code', u).eq('attivo', true).maybeSingle();
+    if (error) { err.textContent = 'Errore: ' + error.message; err.style.display = 'block'; return; }
+    if (!data) { err.textContent = 'Utente non trovato'; err.style.display = 'block'; return; }
+    if (data.password !== p) { err.textContent = 'Password errata'; err.style.display = 'block'; return; }
+    AUTH = data;
+    $('loginPage').style.display = 'none';
+    $('appContainer').style.display = 'block';
+    await postLogin();
+  } catch (e) {
+    console.error(e);
+    err.textContent = 'Errore di connessione';
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entra';
+  }
+}
+
+function handleLogout() {
+  if (!confirm('Vuoi uscire?')) return;
+  AUTH = null; TARGET = null;
+  CANTIERI = []; MEZZI = []; UTENTI = []; SUGG = {};
+  $('appContainer').style.display = 'none';
+  $('loginPage').style.display = 'flex';
+  $('loginUser').value = '';
+  $('loginPass').value = '';
+}
+
+// ============================================================
+// POST LOGIN INIT
+// ============================================================
+async function postLogin() {
+  const fullname = AUTH.nome + (AUTH.cognome ? ' ' + AUTH.cognome : '');
+  $('userName').textContent = fullname;
+  setPhotoForUser(AUTH);
+
+  // Mostra bottoni admin-only
+  if (isAdmin() || isSub()) {
+    $('selOpBtn').style.display = 'inline-flex';
+    if (isAdmin()) {
+      $('gestBtn').style.display = 'inline-flex';
+      const epb = $('editPresenceBtn');
+      if (epb) epb.style.display = 'inline-flex';
+    }
   }
 
-  window.handleLogin = handleLogin;
-  window.handleLogout = handleLogout;
-  window.nextPage = nextPage;
-  window.prevPage = prevPage;
-  window.goFromPage1 = goFromPage1;
-  window.toggleAssente = toggleAssente;
-  window.toggleMorning = toggleMorning;
-  window.toggleAfternoon = toggleAfternoon;
-  window.repeatYesterday = repeatYesterday;
-  window.confirmRepeat = confirmRepeat;
-  window.cancelRepeat = cancelRepeat;
-  window.addWorkItem = addWorkItem;
-  window.removeWorkItem = removeWorkItem;
-  window.onSel = onSel;
-  window.onWork = onWork;
-  window.submitPresence = submitPresence;
-  window.updateSummary = updateSummary;
-  window.updateTimes = updateTimes;
+  populateTimeSelects();
+  await Promise.all([loadCantieri(), loadMezzi(), loadUtenti()]);
+  await loadSuggerimenti();
+  await loadHistory();
+  await loadPresMap();
+  renderDateSelector();
+  renderMonthList();
+  initWorkItems();
+  initTrattaItems();
+  updateTimes();
+  showPage(1);
+}
 
-  window.addTrattaItem = addTrattaItem;
-  window.removeTrattaItem = removeTrattaItem;
-  window.onTrattaMezzo = onTrattaMezzo;
-  window.onTrattaRuolo = onTrattaRuolo;
+// ============================================================
+// DATA LOADING
+// ============================================================
+async function loadCantieri() {
+  const { data } = await sb.from('cantieri').select('id,nome,attivo').order('nome');
+  const all = data || [];
+  CANTIERI = all.filter(c => c.nome !== 'ASSENTE');
+  const ass = all.find(c => c.nome === 'ASSENTE');
+  ASSENTE_ID = ass?.id || null;
+}
 
-  window.openGestioneCantieri = openGestioneCantieri;
-  window.openSelectOperaio = openSelectOperaio;
-  window.closeSelectOperaio = closeSelectOperaio;
-  window.onOperaioSelectChange = onOperaioSelectChange;
-  window.confirmSelectOperaio = confirmSelectOperaio;
-  window.clearSelectedOperaio = clearSelectedOperaio;
+async function loadMezzi() {
+  const { data } = await sb.from('mezzi').select('id,descrizione,targa,tipologia').eq('attivo', true).order('descrizione');
+  MEZZI = data || [];
+}
+
+async function loadUtenti() {
+  if (!isAdmin() && !isSub()) return;
+  const { data } = await sb.from('utenti').select('id,user_code,nome,cognome,ruolo').eq('attivo', true).order('nome');
+  UTENTI = (data || []).filter(u => u.user_code !== 'admin');
+}
+
+async function loadSuggerimenti() {
+  const target = TARGET || AUTH;
+  try {
+    const { data } = await sb.rpc('get_suggerimenti_operaio', { p_user_code: target.user_code });
+    SUGG = data || {};
+  } catch (e) { SUGG = {}; }
+}
+
+
+async function loadHistory() {
+  const target = getTarget();
+  if (!target) return;
+
+  const basis = normalizeDate(SEL_DATE || new Date());
+  const y = previousWorkday(basis);
+  const yIso = fmtISO(y);
+  const mondayPrev = mondayPreviousWeek(basis);
+
+  HISTORY = {
+    allRows: [], rows: [], byDate: {}, time: null,
+    yesterdaySite: null, topSite: null,
+    yesterdayVehicle: null, topVehicle: null,
+    meta: {
+      from: fmtISO(mondayPrev),
+      fallback60: false,
+      presenzeError: null,
+      tratteError: null,
+      rowsCount: 0,
+      tratteCount: 0,
+      targetUser: target.user_code || target.id
+    }
+  };
+
+  const siteNameById = id => {
+    const c = CANTIERI.find(x => String(x.id) === String(id));
+    return c?.nome || '';
+  };
+
+  const mezzoDescById = id => {
+    const m = MEZZI.find(x => String(x.id) === String(id));
+    if (!m) return String(id || 'Mezzo');
+    return `${m.descrizione || ''}${m.targa ? ' (' + m.targa + ')' : ''}`.trim();
+  };
+
+  const rowToSite = r => {
+    if (!r || !r.cantiere_id) return null;
+    const nome = siteNameById(r.cantiere_id) || `Cantiere ${String(r.cantiere_id).slice(0, 8)}`;
+    return { id: r.cantiere_id, nome, lavorazione: r.lavorazione || '' };
+  };
+
+  function isDriverRole(role) {
+    const s = String(role || '').toLowerCase().trim();
+    return s === 'guidatore' || s === 'driver' || s.includes('guid');
+  }
+
+  async function fetchPresenzePlain(fromDate, fallback=false) {
+    let q = sb.from('presenze')
+      .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente,created_at')
+      .eq('utente_id', target.id)
+      .lt('data_presenza', fmtISO(basis))
+      .gte('data_presenza', fmtISO(fromDate))
+      .order('data_presenza', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (fallback) q = q.limit(180);
+    const { data, error } = await q;
+    if (error) {
+      HISTORY.meta.presenzeError = error.message || String(error);
+      return [];
+    }
+    return data || [];
+  }
+
+  async function fetchTratteByPresenze(rowsForTratte) {
+    const ids = [...new Set(rowsForTratte.map(r => r.id).filter(Boolean))];
+    if (!ids.length) return [];
+
+    // Niente join annidati: uso gli ID presenza già presi da presenze.
+    // È più robusto con Supabase/RLS e con le relazioni non esposte.
+    const { data, error } = await sb.from('presenza_tratte')
+      .select('presenza_id,mezzo_id,ruolo,ordine')
+      .in('presenza_id', ids);
+
+    if (error) {
+      HISTORY.meta.tratteError = error.message || String(error);
+      return [];
+    }
+
+    const dateByPres = new Map(rowsForTratte.map(r => [String(r.id), r.data_presenza]));
+    return (data || []).map(x => ({
+      ...x,
+      data_presenza: dateByPres.get(String(x.presenza_id)),
+      desc: mezzoDescById(x.mezzo_id)
+    }));
+  }
+
+  try {
+    let allRows = await fetchPresenzePlain(mondayPrev, false);
+
+    // Se dal lunedì della settimana precedente non trova niente, allargo SOLO per suggerimenti.
+    if (!allRows.length) {
+      const from60 = new Date(basis);
+      from60.setDate(from60.getDate() - 60);
+      HISTORY.meta.from = fmtISO(from60);
+      HISTORY.meta.fallback60 = true;
+      allRows = await fetchPresenzePlain(from60, true);
+    }
+
+    HISTORY.allRows = allRows;
+    HISTORY.byDate = groupRowsByDate(allRows);
+
+    const rows = allRows.filter(r => !r.is_assente);
+    HISTORY.rows = rows;
+    HISTORY.meta.rowsCount = rows.length;
+
+    // Cantiere giorno lavorativo precedente.
+    const yRows = rows.filter(r => r.data_presenza === yIso);
+    HISTORY.yesterdaySite = rowToSite(yRows[0]);
+
+    // Cantiere più frequente negli ultimi 7 giorni prima della data selezionata.
+    const from7 = new Date(basis);
+    from7.setDate(from7.getDate() - 7);
+    const rows7 = rows.filter(r => {
+      const d = normalizeDate(new Date(r.data_presenza));
+      return d >= from7 && d < basis;
+    });
+    const rowsForSite = rows7.length ? rows7 : rows;
+    HISTORY.topSite = modeBy(rowsForSite, r => {
+      const site = rowToSite(r);
+      return site ? { key: String(site.id), id: site.id, nome: site.nome } : null;
+    });
+
+    // Ultimo fallback dalla RPC vecchia, se esiste.
+    if (!HISTORY.topSite && SUGG?.top_cantieri?.length) {
+      const s = SUGG.top_cantieri[0];
+      HISTORY.topSite = { id: s.id, nome: s.nome, freq: s.freq || 1 };
+    }
+
+    // Orario più frequente, sempre dal vero storico presenze.
+    const timeRows = rows.filter(r => String(r.orari_display || '').trim() && String(r.orari_display || '').trim() !== '-');
+    const topTime = modeBy(timeRows, r => {
+      const p = parseTimePreset(r);
+      return p?.label ? { key: p.label, ...p } : null;
+    });
+    const lastTime = timeRows[0] ? parseTimePreset(timeRows[0]) : null;
+    HISTORY.time = topTime || (lastTime?.label ? { ...lastTime, freq: 1, key: lastTime.label } : null);
+
+    // Mezzi: interrogazione robusta su presenza_tratte partendo dagli ID delle presenze trovate.
+    const trAll = await fetchTratteByPresenze(allRows);
+    HISTORY.meta.tratteCount = trAll.length;
+    const trDrivers = trAll.filter(x => isDriverRole(x.ruolo));
+
+    const yTr = trDrivers.find(x => x.data_presenza === yIso);
+    HISTORY.yesterdayVehicle = yTr ? { id: yTr.mezzo_id, desc: yTr.desc } : null;
+
+    const trDrivers7 = trDrivers.filter(x => {
+      if (!x.data_presenza) return false;
+      const d = normalizeDate(new Date(x.data_presenza));
+      return d >= from7 && d < basis;
+    });
+    const trForVehicle = trDrivers7.length ? trDrivers7 : trDrivers;
+    HISTORY.topVehicle = modeBy(trForVehicle, x => {
+      return x.mezzo_id ? { key: String(x.mezzo_id), id: x.mezzo_id, desc: x.desc } : null;
+    });
+  } catch(e) {
+    HISTORY.meta.presenzeError = HISTORY.meta.presenzeError || (e?.message || String(e));
+    console.warn('loadHistory', e);
+  }
+}
+
+async function loadPresMap() {
+  const target = TARGET || AUTH;
+  const from = new Date(); from.setDate(from.getDate() - 120);
+
+  let { data, error } = await sb.from('presenze')
+    .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente,cantieri(nome)')
+    .eq('utente_id', target.id)
+    .gte('data_presenza', fmtISO(from))
+    .order('data_presenza', { ascending: false });
+
+  // Fallback se la relazione cantieri(nome) non è esposta in Supabase.
+  if (error) {
+    const r2 = await sb.from('presenze')
+      .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente')
+      .eq('utente_id', target.id)
+      .gte('data_presenza', fmtISO(from))
+      .order('data_presenza', { ascending: false });
+    data = r2.data || [];
+  }
+
+  DATE_PRES_MAP = {};
+  PRES_DETAIL_MAP = {};
+  (data || []).forEach(r => {
+    const iso = r.data_presenza;
+    DATE_PRES_MAP[iso] = r.is_assente ? 'abs' : 'pres';
+    if (!PRES_DETAIL_MAP[iso]) PRES_DETAIL_MAP[iso] = [];
+    PRES_DETAIL_MAP[iso].push(r);
+  });
+}
+
+// ============================================================
+// DATE SELECTOR (striscia 10 giorni)
+// ============================================================
+function renderDateSelector() {
+  const cont = $('dateSelector');
+  cont.innerHTML = '';
+  const today = normalizeDate(new Date());
+  const title = $('dateCardTitle');
+  if (title) title.textContent = `Seleziona la data - Mese ${MONTH_LONG[SEL_DATE.getMonth()].toUpperCase()}`;
+  const currentMonday = new Date(today);
+  const dow = currentMonday.getDay();
+  const deltaToMonday = (dow === 0 ? -6 : 1 - dow);
+  currentMonday.setDate(currentMonday.getDate() + deltaToMonday);
+  const start = new Date(currentMonday); start.setDate(currentMonday.getDate() - 7);
+
+  for (let i = 0; i < 21; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const iso = fmtISO(d);
+    const dow = d.getDay();
+    const isWeekend = (dow === 0 || dow === 6);
+    const isToday = sameDay(d, today);
+    const isSel = fmtISO(SEL_DATE) === iso;
+    const isFuture = d > today;
+
+    const cell = document.createElement('div');
+    cell.className = 'date-day';
+    if (isWeekend) cell.classList.add('weekend');
+    if (isHolidayDate(d)) cell.classList.add('holiday');
+    if (isToday) cell.classList.add('today');
+    if (isSel) cell.classList.add('selected');
+    if (isFuture) cell.classList.add('future');
+
+    const state = DATE_PRES_MAP[iso];
+    if (state === 'pres') cell.classList.add('has-pres');
+    else if (state === 'abs') cell.classList.add('absent');
+    else if (!isNonWorkingDate(d) && d <= today) cell.classList.add('no-pres');
+
+    cell.innerHTML = `
+      <span class="day-name">${DAY_SHORT[dow]}</span>
+      <span class="day-num">${d.getDate()}</span>
+      ${isHolidayDate(d) ? '<span class="holiday-dot"></span>' : ''}
+      <span class="corner-flag"></span>
+      ${state === 'abs' ? '<span class="absent-mark">A</span>' : ''}
+    `;
+    cell.onclick = () => {
+      SEL_DATE = new Date(d);
+      IS_ASSENTE = false;
+      updateAssenteChip();
+      renderDateSelector();
+      updateRepeatBtn();
+      applySuggestedTime._appliedKey = null;
+    };
+    cont.appendChild(cell);
+  }
+  updateRepeatBtn();
+}
+
+function getYesterdayPresenceForRepeat() {
+  const yIso = fmtISO(previousWorkday(SEL_DATE));
+  return (HISTORY.rows || []).find(r => r.data_presenza === yIso) || null;
+}
+function updateRepeatBtn() {
+  const today = normalizeDate(new Date());
+  const isToday = fmtISO(SEL_DATE) === fmtISO(today);
+  const ok = isToday && !!getYesterdayPresenceForRepeat();
+  const btn = $('repeatBtn');
+  if (!btn) return;
+  btn.disabled = !ok;
+  btn.title = ok ? 'Ripeti la presenza del giorno lavorativo precedente' : 'Disponibile solo se esiste una presenza precedente';
+}
+
+// ============================================================
+// MONTH LIST
+// ============================================================
+let MONTH_OPEN = false;
+function monthToggleBtn() {
+  MONTH_OPEN = !MONTH_OPEN;
+  const list = $('monthList');
+  list.classList.toggle('open', MONTH_OPEN);
+  $('monthArrow').textContent = MONTH_OPEN ? '▲' : '▼';
+}
+
+function renderMonthList() {
+  const btn = $('monthToggle');
+  if (btn) btn.onclick = monthToggleBtn;
+  MONTH_OPEN = false;
+  const list = $('monthList');
+  list.classList.remove('open');
+  $('monthArrow').textContent = '▼';
+
+  const now = new Date();
+  $('monthTitle').textContent = `📆 Presenze di ${MONTH_LONG[now.getMonth()]}`;
+
+  const items = Object.entries(PRES_DETAIL_MAP)
+    .filter(([iso]) => {
+      const d = new Date(iso);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    })
+    .sort((a,b) => b[0].localeCompare(a[0]));
+
+  if (!items.length) {
+    list.innerHTML = '<div style="padding:14px;color:var(--text-secondary);font-size:13px;text-align:center;">Nessuna presenza questo mese</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(([iso, rows]) => {
+    const d = new Date(iso);
+    const label = `${DAY_SHORT[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
+    const first = rows[0] || {};
+    const isAbs = rows.some(r => r.is_assente);
+    const body = isAbs
+      ? '<div class="mi-entry"><span class="badge-missing">ASSENTE</span><span class="mi-lav">Nessuna lavorazione</span></div>'
+      : rows.map(r => {
+          const c = CANTIERI.find(x => String(x.id) === String(r.cantiere_id));
+          const cNome = c?.nome || r.cantieri?.nome || 'Cantiere non trovato';
+          const ore = Number(r.ore || 0);
+          return `<div class="mi-entry" style="margin-bottom:6px;">
+            <div class="mi-cant" style="text-align:left;">${esc(cNome)}</div>
+            <div class="mi-lav">${esc(r.lavorazione || '-')}</div>
+            <div class="mi-orari" style="text-align:left;color:#fde68a;font-weight:900;">${ore.toFixed(1)}h · ${esc(r.orari_display || '')}</div>
+          </div>`;
+        }).join('');
+    return `<div class="month-item" style="align-items:flex-start;">
+      <div class="mi-left">
+        <div class="mi-date">${label}</div>
+        <div class="mi-main">${body}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// PAGINE WIZARD
+// ============================================================
+function showPage(n) {
+  CUR_PAGE = n;
+  ['page1','page2','page3','page4'].forEach((id, i) => {
+    const el = $(id);
+    if (el) el.classList.toggle('active', i + 1 === n);
+  });
+  // Step indicator (4 step)
+  const steps = document.querySelectorAll('.step-indicator .step');
+  steps.forEach((s, i) => s.classList.toggle('active', i + 1 === n));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (n === 2) applySuggestedTime();
+  if (n === 3) renderWorkItems();
+  if (n === 4) { renderTrattaItems(); updateSummary(); }
+}
+
+function firstMissingWorkdayFromPreviousMonday(selectedDate) {
+  const today = normalizeDate(new Date());
+  const selected = normalizeDate(selectedDate);
+  const start = mondayPreviousWeek(today);
+  const end = previousWorkday(selected);
+  if (end < start) return null;
+  for (let d = new Date(start); d <= end && d <= today; d.setDate(d.getDate() + 1)) {
+    if (isNonWorkingDate(d)) continue;
+    const iso = fmtISO(d);
+    if (!DATE_PRES_MAP[iso]) return new Date(d);
+  }
+  return null;
+}
+
+async function checkDateRules() {
+  const today = normalizeDate(new Date());
+  const s = normalizeDate(SEL_DATE);
+  const iso = fmtISO(s);
+  if (s > today) { showToast('Non puoi compilare una data nel futuro', 'danger'); return false; }
+  if (DATE_PRES_MAP[iso]) { showToast('Presenza già registrata per questa data', 'warn'); return false; }
+
+  const missing = firstMissingWorkdayFromPreviousMonday(s);
+  if (missing) {
+    showToast(`Manca una presenza dal controllo settimanale: ${fmtFull(missing)}. Compila prima quella.`, 'danger');
+    return false;
+  }
+
+  if (isHolidayDate(s)) {
+    return await showConfirmBanner('Giorno festivo', `Stai compilando una presenza per ${fmtFull(s)}, che risulta festivo. Confermi di voler procedere?`);
+  }
+  return true;
+}
+
+async function goFromPage1() {
+  if (!(await checkDateRules())) return;
+  await loadHistory();
+  updateRepeatBtn();
+  renderWorkItems();
+  renderTrattaItems();
+  applySuggestedTime._appliedKey = null;
+  if (IS_ASSENTE) {
+    showPage(4);
+    return;
+  }
+  showPage(2);
+}
+
+function nextPage(n) {
+  if (CUR_PAGE === 2 && n === 3) {
+    const t = getTimeData();
+    if (t.ore <= 0) { showToast('Imposta almeno un turno di lavoro', 'danger'); return; }
+  }
+  if (CUR_PAGE === 3 && n === 4) {
+    const works = WORK_ITEMS.filter(w => w.cantiere_id && w.lavorazione?.trim());
+    if (!works.length) { showToast('Inserisci almeno un cantiere con lavorazione', 'danger'); return; }
+    if (WORK_ITEMS.some(w => !w.cantiere_id || !w.lavorazione?.trim())) { showToast('Completa o rimuovi i cantieri vuoti', 'danger'); return; }
+  }
+  showPage(n);
+}
+function prevPage(n) { showPage(n); }
+
+function backFromSummary() {
+  if (IS_ASSENTE) {
+    IS_ASSENTE = false;
+    updateAssenteChip();
+    initTrattaItems();
+    showPage(1);
+    return;
+  }
+  showPage(3);
+}
+
+// ============================================================
+// TOGGLE ASSENTE
+// ============================================================
+function toggleAssente() {
+  IS_ASSENTE = !IS_ASSENTE;
+  updateAssenteChip();
+}
+function updateAssenteChip() {
+  $('assenteChip').classList.toggle('active', IS_ASSENTE);
+  $('assenteChip').textContent = IS_ASSENTE ? '🚫 ASSENTE (premi Avanti)' : '🚫 Assente';
+}
+
+// ============================================================
+// TIME PICKERS
+// ============================================================
+function genTimes(min, max) {
+  const a = [];
+  for (let h = min; h <= max; h++) {
+    a.push(`${pad(h)}:00`);
+    if (h < max) a.push(`${pad(h)}:30`);
+  }
+  return a;
+}
+
+function populateTimeSelects() {
+  const ms = genTimes(6, 15), ps = genTimes(12, 20);
+  const pop = (id, opts, def) => {
+    const s = $(id);
+    if (!s) return;
+    s.innerHTML = opts.map(t => `<option>${t}</option>`).join('');
+    s.value = def;
+  };
+  pop('mStart', ms, '08:00');
+  pop('mEnd',   ms, '12:00');
+  pop('pStart', ps, '13:00');
+  pop('pEnd',   ps, '17:00');
+}
+
+function toggleMorning() {
+  MORNING_ON = $('morningCheck').checked;
+  $('morningSlot').classList.toggle('disabled', !MORNING_ON);
+  updateTimes();
+}
+function toggleAfternoon() {
+  AFTERNOON_ON = $('afternoonCheck').checked;
+  $('afternoonSlot').classList.toggle('disabled', !AFTERNOON_ON);
+  updateTimes();
+}
+
+function updateTimes() {
+  const mS = $('mStart')?.value || '08:00';
+  const mE = $('mEnd')?.value || '12:00';
+  const pS = $('pStart')?.value || '13:00';
+  const pE = $('pEnd')?.value || '17:00';
+
+  const mH = MORNING_ON ? diffH(mS, mE) : 0;
+  const pH = AFTERNOON_ON ? diffH(pS, pE) : 0;
+  const tot = parseFloat((mH + pH).toFixed(2));
+
+  if ($('morningText')) $('morningText').textContent = `${mS} - ${mE}`;
+  if ($('morningHours')) $('morningHours').textContent = mH.toFixed(1) + ' h';
+  if ($('afternoonText')) $('afternoonText').textContent = `${pS} - ${pE}`;
+  if ($('afternoonHours')) $('afternoonHours').textContent = pH.toFixed(1) + ' h';
+  if ($('totalHours')) $('totalHours').textContent = tot.toFixed(1) + 'h';
+}
+
+function getTimeData() {
+  const mS = $('mStart')?.value || '08:00';
+  const mE = $('mEnd')?.value || '12:00';
+  const pS = $('pStart')?.value || '13:00';
+  const pE = $('pEnd')?.value || '17:00';
+  const mH = MORNING_ON ? diffH(mS, mE) : 0;
+  const pH = AFTERNOON_ON ? diffH(pS, pE) : 0;
+  const ore = parseFloat((mH + pH).toFixed(2));
+  const parts = [];
+  if (MORNING_ON) parts.push(`${mS}-${mE}`);
+  if (AFTERNOON_ON) parts.push(`${pS}-${pE}`);
+  return {
+    mS: MORNING_ON ? mS : null,
+    mE: MORNING_ON ? mE : null,
+    pS: AFTERNOON_ON ? pS : null,
+    pE: AFTERNOON_ON ? pE : null,
+    ore,
+    orari: parts.join(' + ')
+  };
+}
+
+
+function applySuggestedTime() {
+  const box = $('timeSuggestion');
+  const mNote = $('morningSuggestNote');
+  const pNote = $('afternoonSuggestNote');
+
+  if (!HISTORY?.time?.label) {
+    if (box) {
+      box.style.display = 'block';
+      box.innerHTML = `
+        <div style="font-weight:950;font-size:15px;">✨ Orario proposto:</div>
+        <div style="margin-top:8px;font-size:15px;font-weight:850;color:#e2e8f0;line-height:1.25;">
+          Nessuno storico trovato. Puoi compilare manualmente.
+        </div>`;
+    }
+    if (mNote) mNote.style.display = 'none';
+    if (pNote) pNote.style.display = 'none';
+    return;
+  }
+
+  const targetId = getTarget()?.id || 'self';
+  const key = `${targetId}|${HISTORY.time.label}`;
+  if (applySuggestedTime._appliedKey !== key) {
+    applySuggestedTime._appliedKey = key;
+    const preset = { ...HISTORY.time };
+    MORNING_ON = !!(preset.mS && preset.mE);
+    AFTERNOON_ON = !!(preset.pS && preset.pE);
+    if (preset.mS) setSelectValue('mStart', preset.mS);
+    if (preset.mE) setSelectValue('mEnd', preset.mE);
+    if (preset.pS) setSelectValue('pStart', preset.pS);
+    if (preset.pE) setSelectValue('pEnd', preset.pE);
+    if ($('morningCheck')) $('morningCheck').checked = MORNING_ON;
+    if ($('afternoonCheck')) $('afternoonCheck').checked = AFTERNOON_ON;
+    if ($('morningSlot')) $('morningSlot').classList.toggle('disabled', !MORNING_ON);
+    if ($('afternoonSlot')) $('afternoonSlot').classList.toggle('disabled', !AFTERNOON_ON);
+    updateTimes();
+  }
+
+  const freq = HISTORY.time.freq || 1;
+  if (box) {
+    box.style.display = 'block';
+    box.innerHTML = `
+  <div style="font-weight:950;font-size:15px;">
+    ✨ Orario proposto:
+  </div>
+  <div style="margin-top:8px;font-size:20px;font-weight:950;color:#fde68a;line-height:1.25;">
+    ${esc(HISTORY.time.label)}
+  </div>
+  <div class="time-manual-note">Puoi modificare l’orario direttamente nei riquadri sotto.</div>
+`;
+  }
+  if (mNote) {
+    mNote.style.display = MORNING_ON ? 'block' : 'none';
+    mNote.textContent = `Suggerito · ${freq} volte`;
+  }
+  if (pNote) {
+    pNote.style.display = AFTERNOON_ON ? 'block' : 'none';
+    pNote.textContent = `Suggerito · ${freq} volte`;
+  }
+}
+
+// ============================================================
+// WORK ITEMS (cantieri + lavorazioni)
+// ============================================================
+function initWorkItems() {
+  WORK_ITEMS = [{ cantiere_id: null, cantiere_nome: '', lavorazione: '' }];
+  renderWorkItems();
+}
+
+function renderWorkItems() {
+  const cont = $('workItems');
+  if (!cont) return;
+
+  cont.innerHTML = WORK_ITEMS.map((w, i) => {
+    const opts = ['<option value="">— Seleziona cantiere —</option>']
+      .concat(CANTIERI.map(c => `<option value="${c.id}" ${String(c.id)===String(w.cantiere_id)?'selected':''}>${esc(c.nome)}</option>`))
+      .join('');
+    const suggestions = [];
+    if (HISTORY.topSite) suggestions.push({ label: 'Più frequente ultimi 7 giorni', id: HISTORY.topSite.id, nome: HISTORY.topSite.nome, lavorazione: '', freq: HISTORY.topSite.freq });
+    if (HISTORY.yesterdaySite && (!HISTORY.topSite || String(HISTORY.topSite.id) !== String(HISTORY.yesterdaySite.id))) suggestions.push({ label: 'Cantiere del giorno precedente', ...HISTORY.yesterdaySite });
+    return `
+      <div class="card" style="margin-bottom:10px;padding:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <b style="color:var(--primary);font-size:13px;">CANTIERE ${i+1}</b>
+          ${WORK_ITEMS.length > 1 ? `<button onclick="removeWorkItem(${i})" style="background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;">✕ Rimuovi</button>` : ''}
+        </div>
+        ${suggestions.length ? `<div class="suggestion-panel">
+          <div class="suggestion-title">⭐ Suggerimenti cantiere</div>
+          <div class="suggestion-buttons">
+            ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickWork(${i}, '${s.id}', '${esc(s.nome)}', '${esc(s.lavorazione || '')}')">${esc(s.nome)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
+          </div>
+        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">⭐ Suggerimenti cantiere</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico cantiere trovato per questo utente.</div></div>`}
+        <div class="input-group">
+          <span class="input-icon">🏗️</span>
+          <select onchange="setWorkCantiere(${i}, this.value, this.options[this.selectedIndex].text)">${opts}</select>
+        </div>
+        <div class="input-group" style="margin-bottom:0;">
+          <span class="input-icon">📝</span>
+          <textarea placeholder="Descrivi la lavorazione svolta..." rows="2" oninput="WORK_ITEMS[${i}].lavorazione = this.value">${esc(w.lavorazione)}</textarea>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const btn = $('addWorkBtn');
+  if (btn) btn.disabled = WORK_ITEMS.length >= 3;
+}
+
+function addWorkItem() {
+  if (WORK_ITEMS.length >= 3) return;
+  WORK_ITEMS.push({ cantiere_id: null, cantiere_nome: '', lavorazione: '' });
+  renderWorkItems();
+}
+function removeWorkItem(i) {
+  WORK_ITEMS.splice(i, 1);
+  renderWorkItems();
+}
+function setWorkCantiere(i, id, nome) {
+  WORK_ITEMS[i].cantiere_id = id || null;
+  WORK_ITEMS[i].cantiere_nome = id ? nome : '';
+  renderWorkItems();
+}
+function quickPickWork(i, id, nome, lavorazione='') {
+  WORK_ITEMS[i].cantiere_id = id;
+  WORK_ITEMS[i].cantiere_nome = nome;
+  if (lavorazione && !WORK_ITEMS[i].lavorazione) WORK_ITEMS[i].lavorazione = lavorazione;
+  renderWorkItems();
+}
+
+// ============================================================
+// TRATTA ITEMS (mezzi)
+// ============================================================
+function initTrattaItems() {
+  TRATTA_ITEMS = [{ mezzo_id: null, mezzo_desc: '', ruolo: '' }];
+  renderTrattaItems();
+}
+
+function renderTrattaItems() {
+  const cont = $('mezziItems');
+  const card = $('mezziCard');
+  const btn = $('addTrattaBtn');
+  if (!cont) return;
+
+  if (IS_ASSENTE || !requiresMezzo()) {
+    if (card) card.style.display = 'none';
+    if (btn) btn.style.display = 'none';
+    if (!requiresMezzo()) TRATTA_ITEMS = [];
+    cont.innerHTML = '';
+    return;
+  }
+
+  if (card) card.style.display = 'block';
+  if (btn) btn.style.display = 'block';
+  cont.innerHTML = TRATTA_ITEMS.map((t, i) => {
+    const optsMezzo = ['<option value="">— Seleziona mezzo —</option>']
+      .concat(MEZZI.map(m => `<option value="${m.id}" ${String(m.id)===String(t.mezzo_id)?'selected':''}>${esc(m.descrizione)} (${esc(m.targa||'')})</option>`))
+      .join('');
+    const optsRuolo = ['<option value="">— Ruolo —</option>',
+      `<option value="Guidatore" ${t.ruolo==='Guidatore'?'selected':''}>🚗 Guidatore</option>`,
+      `<option value="Passeggero" ${t.ruolo==='Passeggero'?'selected':''}>🧑 Passeggero</option>`].join('');
+    const suggestions = [];
+    if (HISTORY.topVehicle) suggestions.push({ label:'Più guidato ultimi 7 giorni', id:HISTORY.topVehicle.id, desc:HISTORY.topVehicle.desc, freq:HISTORY.topVehicle.freq });
+    if (HISTORY.yesterdayVehicle && (!HISTORY.topVehicle || String(HISTORY.topVehicle.id)!==String(HISTORY.yesterdayVehicle.id))) suggestions.push({ label:'Mezzo guidato ieri', ...HISTORY.yesterdayVehicle });
+    return `
+      <div class="card" style="margin-bottom:10px;padding:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <b style="color:var(--secondary-light);font-size:13px;">TRATTA ${i+1}</b>
+          ${TRATTA_ITEMS.length > 1 ? `<button onclick="removeTrattaItem(${i})" style="background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;">✕ Rimuovi</button>` : ''}
+        </div>
+        ${suggestions.length ? `<div class="suggestion-panel">
+          <div class="suggestion-title">🚚 Suggerimenti mezzo</div>
+          <div class="suggestion-buttons">
+            ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickTratta(${i}, '${s.id}', '${esc(s.desc)}')">${esc(s.desc)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
+          </div>
+        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">🚚 Suggerimenti mezzo</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico mezzo guidato trovato per questo utente.</div></div>`}
+        <div class="input-group">
+          <span class="input-icon">🚛</span>
+          <select onchange="setTrattaMezzo(${i}, this.value, this.options[this.selectedIndex].text)">${optsMezzo}</select>
+        </div>
+        <div class="input-group" style="margin-bottom:0;">
+          <span class="input-icon">👤</span>
+          <select onchange="setTrattaRuolo(${i}, this.value)">${optsRuolo}</select>
+        </div>
+      </div>
+    `;
+  }).join('');
+  const addBtn = $('addTrattaBtn');
+  if (addBtn) addBtn.disabled = TRATTA_ITEMS.length >= 3;
+}
+
+function addTrattaItem() {
+  if (TRATTA_ITEMS.length >= 3) return;
+  TRATTA_ITEMS.push({ mezzo_id: null, mezzo_desc: '', ruolo: '' });
+  renderTrattaItems();
+}
+function removeTrattaItem(i) {
+  TRATTA_ITEMS.splice(i, 1);
+  renderTrattaItems();
+}
+function setTrattaMezzo(i, id, desc) {
+  TRATTA_ITEMS[i].mezzo_id = id || null;
+  TRATTA_ITEMS[i].mezzo_desc = id ? desc : '';
+  updateSummary();
+}
+function setTrattaRuolo(i, r) {
+  TRATTA_ITEMS[i].ruolo = r;
+  updateSummary();
+}
+function quickPickTratta(i, id, desc) {
+  TRATTA_ITEMS[i].mezzo_id = id;
+  TRATTA_ITEMS[i].mezzo_desc = desc;
+  TRATTA_ITEMS[i].ruolo = 'Guidatore';
+  renderTrattaItems();
+  updateSummary();
+}
+
+// ============================================================
+// SUMMARY (pagina 4)
+// ============================================================
+function updateSummary() {
+  $('summaryDate').textContent = fmtFull(SEL_DATE);
+  const t = getTimeData();
+  if (IS_ASSENTE) {
+    $('summaryTime').textContent = 'Assente';
+    $('summaryHours').textContent = '0.0h';
+    $('summaryMezzo').textContent = '-';
+    $('summaryRuoloMezzo').textContent = '-';
+    $('summaryWorks').innerHTML = '<div class="summary-work">🚫 <b>ASSENTE</b> — Nessuna lavorazione</div>';
+    const noteA = $('notesInput')?.value || '';
+    $('summaryNotes').textContent = noteA || '-';
+    renderTrattaItems();
+    return;
+  }
+  $('summaryTime').textContent = t.orari || '—';
+  $('summaryHours').textContent = t.ore.toFixed(1) + 'h';
+
+  const w = WORK_ITEMS.filter(x => x.cantiere_id && x.lavorazione?.trim());
+  const splits = splitHoursSmart(t.ore, Math.max(1, w.length));
+  $('summaryWorks').innerHTML = w.length
+    ? w.map((x,idx) => `<div class="summary-work">📍 <b>${esc(x.cantiere_nome)}</b> — ${esc(x.lavorazione)}<br><span style="color:var(--accent);font-weight:900;font-size:12px;">Ore attribuite: ${splits[idx].toFixed(1)}h</span></div>`).join('')
+    : '<div style="color:var(--text-secondary);font-size:13px;">Nessun cantiere</div>';
+
+  const tr = TRATTA_ITEMS.filter(x => x.mezzo_id && x.ruolo);
+  $('summaryMezzo').textContent = tr.length ? tr.map(x => x.mezzo_desc).join(' · ') : '-';
+  $('summaryRuoloMezzo').textContent = tr.length ? tr.map(x => x.ruolo).join(' · ') : '-';
+
+  const note = $('notesInput')?.value || '';
+  $('summaryNotes').textContent = note || '-';
+}
+
+// ============================================================
+// RIPETI IERI
+// ============================================================
+function repeatYesterday() {
+  const u = getYesterdayPresenceForRepeat();
+  if (!u) {
+    showToast('Nessuna presenza del giorno lavorativo precedente da ripetere', 'warn');
+    return;
+  }
+  const cant = CANTIERI.find(c => c.id === u.cantiere_id);
+  $('previewDate').textContent = fmtFull(new Date());
+  $('previewSite').textContent = cant?.nome || '—';
+  $('previewWork').textContent = u.lavorazione || '—';
+  $('previewTime').textContent = u.orari_display || u.orari || '—';
+  $('previewHours').textContent = (u.ore || 0).toFixed(1) + 'h';
+  $('previewMezzo').textContent = '(verranno chiesti)';
+  $('previewRuoloMezzo').textContent = '(verranno chiesti)';
+  $('previewNotes').textContent = '-';
+  $('previewCard').style.display = 'block';
+  $('previewCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelRepeat() {
+  $('previewCard').style.display = 'none';
+}
+
+function confirmRepeat() {
+  const u = getYesterdayPresenceForRepeat();
+  if (!u) return;
+  const cant = CANTIERI.find(c => c.id === u.cantiere_id);
+  // Compila
+  SEL_DATE = new Date();
+  IS_ASSENTE = false;
+  WORK_ITEMS = [{ cantiere_id: u.cantiere_id, cantiere_nome: cant?.nome || '', lavorazione: u.lavorazione || '' }];
+  // Orari
+  const parts = (u.orari_display || '').split(/\s*\+\s*/);
+  const parseR = s => { const m = s.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/); return m ? [m[1],m[2]] : null; };
+  MORNING_ON = !!parts[0];
+  AFTERNOON_ON = !!parts[1];
+  if (parts[0]) { const r = parseR(parts[0]); if (r) { $('mStart').value = r[0]; $('mEnd').value = r[1]; } }
+  if (parts[1]) { const r = parseR(parts[1]); if (r) { $('pStart').value = r[0]; $('pEnd').value = r[1]; } }
+  $('morningCheck').checked = MORNING_ON;
+  $('afternoonCheck').checked = AFTERNOON_ON;
+  $('morningSlot').classList.toggle('disabled', !MORNING_ON);
+  $('afternoonSlot').classList.toggle('disabled', !AFTERNOON_ON);
+  updateTimes();
+  $('previewCard').style.display = 'none';
+  // Tratta vuota da compilare
+  initTrattaItems();
+  // Va alla pagina mezzi
+  showPage(4);
+}
+
+// ============================================================
+// ADMIN: SELEZIONA OPERAIO
+// ============================================================
+function openSelectOperaio() {
+  const sel = $('operaioSelect');
+  sel.innerHTML = '<option value="">— Seleziona —</option>' +
+    UTENTI.map(u => `<option value="${u.id}">${esc(u.nome + (u.cognome ? ' '+u.cognome : ''))} · ${u.ruolo}</option>`).join('');
+  $('selectOperaioCard').style.display = 'block';
+  $('numLavoratoriGroup').style.display = 'none';
+}
+
+function closeSelectOperaio() {
+  $('selectOperaioCard').style.display = 'none';
+}
+
+function onOperaioSelectChange() {
+  const id = $('operaioSelect').value;
+  const u = UTENTI.find(x => x.id === id);
+  // Solo se ruolo Sub: mostra n. lavoratori
+  if (u && u.ruolo === 'Sub' && isAdmin()) {
+    $('numLavoratoriGroup').style.display = 'block';
+  } else {
+    $('numLavoratoriGroup').style.display = 'none';
+  }
+}
+
+async function confirmSelectOperaio() {
+  const id = $('operaioSelect').value;
+  if (!id) { alert('Seleziona un operaio'); return; }
+  const u = UTENTI.find(x => x.id === id);
+  TARGET = u;
+  NUM_LAVORATORI = parseInt($('numLavoratori').value || '1', 10);
+  const fullname = u.nome + (u.cognome ? ' '+u.cognome : '');
+  $('compilingFor').textContent = fullname + (u.ruolo === 'Sub' ? ` (×${NUM_LAVORATORI})` : '');
+  $('compilingForBadge').style.display = 'inline-flex';
+  $('clearOpBtn').style.display = 'inline-flex';
+  closeSelectOperaio();
+  setPhotoForUser(TARGET);
+  await Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]);
+  applySuggestedTime._appliedKey = null;
+  renderDateSelector();
+  renderMonthList();
+}
+
+function clearSelectedOperaio() {
+  TARGET = null; NUM_LAVORATORI = 1;
+  $('compilingForBadge').style.display = 'none';
+  $('clearOpBtn').style.display = 'none';
+  setPhotoForUser(AUTH);
+  Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]).then(() => {
+    applySuggestedTime._appliedKey = null;
+    renderDateSelector();
+    renderMonthList();
+  });
+}
+
+function openGestioneCantieri() {
+  window.open('https://ferra2391.github.io/presenze-cantieri/presenze', '_blank');
+}
+
+
+// ============================================================
+// ADMIN: MODIFICA PRESENZA
+// ============================================================
+let ADMIN_EDIT_ROWS = [];
+let ADMIN_EDIT_TRATTE = [];
+let ADMIN_EDIT_SELECTED_USER = null;
+
+function fullNameUser(u) {
+  return `${u?.nome || ''}${u?.cognome ? ' ' + u.cognome : ''}`.trim();
+}
+
+function openEditPresencePanel() {
+  if (!isAdmin()) {
+    showToast('Funzione disponibile solo per amministratore', 'danger');
+    return;
+  }
+  closeSelectOperaio();
+  const card = $('editPresenceCard');
+  const sel = $('adminEditUserSelect');
+  if (!card || !sel) return;
+
+  sel.innerHTML = '<option value="">— Seleziona operaio —</option>' +
+    UTENTI.map(u => `<option value="${u.id}">${esc(fullNameUser(u))} · ${esc(u.ruolo || '')}</option>`).join('');
+
+  if (TARGET?.id) sel.value = TARGET.id;
+  $('adminPresenceList').innerHTML = '';
+  $('adminEditForm').style.display = 'none';
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (sel.value) loadAdminPresenceList();
+}
+
+function closeEditPresencePanel() {
+  const card = $('editPresenceCard');
+  if (card) card.style.display = 'none';
+  ADMIN_EDIT_ROWS = [];
+  ADMIN_EDIT_TRATTE = [];
+  ADMIN_EDIT_SELECTED_USER = null;
+}
+
+function cancelEditPresence() {
+  $('adminEditForm').style.display = 'none';
+  $('editPresenceId').value = '';
+}
+
+function cantiereNameFromId(id, rel) {
+  const c = CANTIERI.find(x => String(x.id) === String(id));
+  return c?.nome || rel?.nome || 'Cantiere non trovato';
+}
+
+function buildAdminCantiereOptions(selectedId) {
+  return ['<option value="">— Seleziona cantiere —</option>']
+    .concat(CANTIERI.map(c => `<option value="${c.id}" ${String(c.id) === String(selectedId) ? 'selected' : ''}>${esc(c.nome)}</option>`))
+    .join('');
+}
+
+function buildAdminMezzoOptions(selectedId) {
+  return ['<option value="">— Nessun mezzo —</option>']
+    .concat(MEZZI.map(m => {
+      const label = `${m.descrizione || ''}${m.targa ? ' (' + m.targa + ')' : ''}`.trim();
+      return `<option value="${m.id}" ${String(m.id) === String(selectedId) ? 'selected' : ''}>${esc(label)}</option>`;
+    }))
+    .join('');
+}
+
+async function loadAdminPresenceList() {
+  const userId = $('adminEditUserSelect')?.value;
+  const list = $('adminPresenceList');
+  const form = $('adminEditForm');
+  if (form) form.style.display = 'none';
+  if (!list) return;
+  if (!userId) {
+    list.innerHTML = '<div class="admin-edit-help">Seleziona prima un operaio.</div>';
+    return;
+  }
+
+  ADMIN_EDIT_SELECTED_USER = UTENTI.find(u => String(u.id) === String(userId)) || null;
+  list.innerHTML = '<div class="admin-edit-help">Caricamento presenze...</div>';
+
+  let { data, error } = await sb.from('presenze')
+    .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente,note,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,created_at,cantieri(nome)')
+    .eq('utente_id', userId)
+    .order('data_presenza', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1000);
+
+  if (error) {
+    const r2 = await sb.from('presenze')
+      .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,is_assente,note,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,created_at')
+      .eq('utente_id', userId)
+      .order('data_presenza', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1000);
+    data = r2.data || [];
+    error = r2.error;
+  }
+
+  if (error) {
+    list.innerHTML = `<div class="admin-edit-help">Errore caricamento: ${esc(error.message || error)}</div>`;
+    return;
+  }
+
+  ADMIN_EDIT_ROWS = data || [];
+  if (!ADMIN_EDIT_ROWS.length) {
+    list.innerHTML = '<div class="admin-edit-help">Nessuna presenza registrata per questo operaio.</div>';
+    return;
+  }
+
+  const who = fullNameUser(ADMIN_EDIT_SELECTED_USER);
+  list.innerHTML = `<div class="admin-edit-help">Presenze di <b>${esc(who)}</b>. Tocca una riga per modificarla.</div>` +
+    ADMIN_EDIT_ROWS.map(r => {
+      const cNome = cantiereNameFromId(r.cantiere_id, r.cantieri);
+      const stato = r.is_assente ? 'ASSENTE' : `${Number(r.ore || 0).toFixed(1)}h`;
+      return `<button type="button" class="admin-pres-row" onclick="openPresenceEdit('${r.id}')">
+        <div class="apr-top"><div class="apr-date">${esc(r.data_presenza)}</div><div class="apr-hours">${esc(stato)}</div></div>
+        <div class="apr-site">${r.is_assente ? '🚫 ' : '🏗️ '}${esc(cNome)}</div>
+        <div class="apr-work">${esc(r.lavorazione || '-')}</div>
+        <div class="apr-time">${esc(r.orari_display || '-')}</div>
+      </button>`;
+    }).join('');
+}
+
+async function openPresenceEdit(presenzaId) {
+  const row = ADMIN_EDIT_ROWS.find(r => String(r.id) === String(presenzaId));
+  if (!row) return;
+
+  $('editPresenceId').value = row.id;
+  $('adminEditFormTitle').textContent = `${fullNameUser(ADMIN_EDIT_SELECTED_USER)} · ${row.data_presenza}`;
+  $('editDataPresenza').value = row.data_presenza || '';
+  $('editCantiere').innerHTML = buildAdminCantiereOptions(row.cantiere_id);
+  $('editLavorazione').value = row.lavorazione || '';
+  $('editIsAssente').checked = !!row.is_assente;
+  $('editMS').value = cleanTimeValue(row.ora_inizio_mattina) || '';
+  $('editME').value = cleanTimeValue(row.ora_fine_mattina) || '';
+  $('editPS').value = cleanTimeValue(row.ora_inizio_pomeriggio) || '';
+  $('editPE').value = cleanTimeValue(row.ora_fine_pomeriggio) || '';
+  $('editOre').value = row.ore ?? 0;
+  $('editNote').value = row.note || '';
+
+  const { data, error } = await sb.from('presenza_tratte')
+    .select('id,presenza_id,ordine,mezzo_id,ruolo')
+    .eq('presenza_id', row.id)
+    .order('ordine', { ascending: true });
+
+  if (error) {
+    ADMIN_EDIT_TRATTE = [];
+    showToast('Non riesco a leggere le tratte mezzo di questa presenza', 'warn');
+  } else {
+    ADMIN_EDIT_TRATTE = data || [];
+  }
+  renderAdminTratteEditor();
+  $('adminEditForm').style.display = 'block';
+  $('adminEditForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderAdminTratteEditor() {
+  const box = $('adminEditTratteBox');
+  if (!box) return;
+  const rows = [];
+  for (let i = 0; i < 3; i++) {
+    const tr = ADMIN_EDIT_TRATTE.find(x => Number(x.ordine) === i + 1) || ADMIN_EDIT_TRATTE[i] || {};
+    rows.push(`<div class="admin-tratta-row">
+      <div class="admin-edit-label" style="margin-top:0">Tratta ${i + 1}</div>
+      <div class="input-group"><span class="input-icon">🚚</span><select id="editMezzo_${i}">${buildAdminMezzoOptions(tr.mezzo_id || '')}</select></div>
+      <div class="input-group"><span class="input-icon">👤</span><select id="editRuolo_${i}">
+        <option value="">— Ruolo —</option>
+        <option value="Guidatore" ${String(tr.ruolo || '') === 'Guidatore' ? 'selected' : ''}>🚗 Guidatore</option>
+        <option value="Passeggero" ${String(tr.ruolo || '') === 'Passeggero' ? 'selected' : ''}>🧑 Passeggero</option>
+      </select></div>
+    </div>`);
+  }
+  box.innerHTML = rows.join('');
+}
+
+function makeOrariDisplayFromEdit() {
+  const ms = $('editMS').value;
+  const me = $('editME').value;
+  const ps = $('editPS').value;
+  const pe = $('editPE').value;
+  const parts = [];
+  if (ms && me) parts.push(`${ms}-${me}`);
+  if (ps && pe) parts.push(`${ps}-${pe}`);
+  return parts.join(' + ');
+}
+
+async function saveEditedPresence() {
+  const id = $('editPresenceId').value;
+  if (!id) return;
+
+  const isAss = $('editIsAssente').checked;
+  const dataPresenza = $('editDataPresenza').value;
+  let cantiereId = $('editCantiere').value;
+  let lavorazione = ($('editLavorazione').value || '').trim();
+  let ore = Number($('editOre').value || 0);
+  let mS = $('editMS').value || null;
+  let mE = $('editME').value || null;
+  let pS = $('editPS').value || null;
+  let pE = $('editPE').value || null;
+  let orariDisplay = makeOrariDisplayFromEdit();
+
+  if (!dataPresenza) { showToast('Inserisci la data', 'danger'); return; }
+
+  if (isAss) {
+    if (!ASSENTE_ID) { showToast('Cantiere ASSENTE non trovato', 'danger'); return; }
+    cantiereId = ASSENTE_ID;
+    lavorazione = lavorazione || 'ASSENTE';
+    ore = 0;
+    mS = mE = pS = pE = null;
+    orariDisplay = '-';
+  } else {
+    if (!cantiereId) { showToast('Seleziona il cantiere', 'danger'); return; }
+    if (!lavorazione) { showToast('Inserisci la lavorazione', 'danger'); return; }
+    if (ore <= 0) { showToast('Inserisci ore maggiori di zero', 'danger'); return; }
+  }
+
+  const payload = {
+    data_presenza: dataPresenza,
+    cantiere_id: cantiereId,
+    lavorazione,
+    ora_inizio_mattina: mS,
+    ora_fine_mattina: mE,
+    ora_inizio_pomeriggio: pS,
+    ora_fine_pomeriggio: pE,
+    orari_display: orariDisplay,
+    ore,
+    is_assente: isAss,
+    note: ($('editNote').value || '').trim() || null,
+    updated_at: new Date().toISOString()
+  };
+
+  const { error } = await sb.from('presenze').update(payload).eq('id', id);
+  if (error) { handleSaveError(error); return; }
+
+  // Riscrivo le tratte collegate a questa presenza.
+  // Per assenze: nessuna tratta. Per presenze normali: salvo solo righe complete mezzo+ruolo.
+  const del = await sb.from('presenza_tratte').delete().eq('presenza_id', id);
+  if (del.error) { showToast('Presenza salvata, ma errore aggiornando le tratte', 'warn'); }
+
+  if (!isAss) {
+    const trRows = [];
+    for (let i = 0; i < 3; i++) {
+      const mezzoId = $(`editMezzo_${i}`)?.value || '';
+      const ruolo = $(`editRuolo_${i}`)?.value || '';
+      if (mezzoId && ruolo) {
+        trRows.push({ presenza_id: id, ordine: i + 1, mezzo_id: mezzoId, ruolo });
+      } else if (mezzoId || ruolo) {
+        showToast(`Tratta ${i + 1} incompleta: mezzo e ruolo sono entrambi obbligatori`, 'danger');
+        return;
+      }
+    }
+    if (trRows.length) {
+      const ins = await sb.from('presenza_tratte').insert(trRows);
+      if (ins.error) { showToast('Presenza salvata, ma errore salvando i mezzi', 'warn'); }
+    }
+  }
+
+  showToast('✓ Presenza modificata', 'success');
+  await Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]);
+  renderDateSelector();
+  renderMonthList();
+  await loadAdminPresenceList();
+}
+
+// ============================================================
+// SUBMIT PRESENZA
+// ============================================================
+async function submitPresence() {
+  const target = TARGET || AUTH;
+  const dataISO = fmtISO(SEL_DATE);
+  if (DATE_PRES_MAP[dataISO]) { showToast('Presenza già registrata per questa data', 'warn'); return; }
+
+  // === CASO ASSENTE ===
+  if (IS_ASSENTE) {
+    if (!ASSENTE_ID) { showToast('Cantiere ASSENTE mancante nel DB. Aggiungilo manualmente in Supabase.', 'danger'); return; }
+    try {
+      const { error } = await sb.from('presenze').insert({
+        data_presenza: dataISO,
+        utente_id: target.id,
+        cantiere_id: ASSENTE_ID,
+        lavorazione: 'ASSENTE',
+        orari_display: '-',
+        ore: 0,
+        is_assente: true,
+        note: ($('notesInput')?.value || '').trim() || null,
+        inserted_by_id: AUTH.id !== target.id ? AUTH.id : null,
+        source: 'app',
+      });
+      if (error) throw error;
+      onSaveOK('Assenza registrata');
+    } catch (e) {
+      handleSaveError(e);
+    }
+    return;
+  }
+
+  // === CASO NORMALE: validazioni ===
+  const t = getTimeData();
+  if (t.ore <= 0) { showToast('Imposta almeno un turno di lavoro (Mattina e/o Pomeriggio)', 'danger'); return; }
+
+  const works = WORK_ITEMS.filter(w => w.cantiere_id && w.lavorazione?.trim());
+  if (!works.length) { showToast('Inserisci almeno un cantiere con lavorazione', 'danger'); return; }
+
+  const tratteValid = requiresMezzo() ? TRATTA_ITEMS.filter(x => x.mezzo_id && x.ruolo) : [];
+  const tratteIncomplete = requiresMezzo() && TRATTA_ITEMS.some(x => (x.mezzo_id && !x.ruolo) || (!x.mezzo_id && x.ruolo));
+  if (tratteIncomplete) { showToast('Tratta incompleta: ogni tratta deve avere sia MEZZO che RUOLO', 'danger'); return; }
+  if (requiresMezzo() && !tratteValid.length) { showToast('Mezzo obbligatorio: inserisci almeno una tratta con ruolo', 'danger'); return; }
+
+  const note = ($('notesInput')?.value || '').trim();
+  const oreSplits = splitHoursSmart(t.ore, works.length);
+
+  try {
+    const inserted = [];
+    for (let wi = 0; wi < works.length; wi++) {
+      const w = works[wi];
+      const row = {
+        data_presenza: dataISO,
+        utente_id: target.id,
+        cantiere_id: w.cantiere_id,
+        lavorazione: w.lavorazione.trim(),
+        ora_inizio_mattina: t.mS,
+        ora_fine_mattina: t.mE,
+        ora_inizio_pomeriggio: t.pS,
+        ora_fine_pomeriggio: t.pE,
+        orari_display: t.orari,
+        ore: oreSplits[wi],
+        is_assente: false,
+        note: note || null,
+        inserted_by_id: AUTH.id !== target.id ? AUTH.id : null,
+        source: 'app',
+      };
+      const { data, error } = await sb.from('presenze').insert(row).select().single();
+      if (error) throw error;
+      inserted.push(data);
+    }
+
+    // Tratte: associate alla prima presenza
+    if (tratteValid.length && inserted.length) {
+      const trRows = tratteValid.map((tr, i) => ({
+        presenza_id: inserted[0].id,
+        ordine: i + 1,
+        mezzo_id: tr.mezzo_id,
+        ruolo: tr.ruolo,
+      }));
+      await sb.from('presenza_tratte').insert(trRows);
+    }
+
+    onSaveOK('Presenza registrata');
+  } catch (e) {
+    handleSaveError(e);
+  }
+}
+
+function handleSaveError(e) {
+  console.error('Save error:', e);
+  const msg = e?.message || JSON.stringify(e) || 'errore sconosciuto';
+  if (msg.includes('idx_presenze_no_dup') || msg.includes('duplicate key'))
+    showToast('Presenza già registrata per questa data', 'warn');
+  else if (msg.includes('row-level security'))
+    showToast('Errore permessi DB. Contatta l\'amministratore.', 'danger');
+  else
+    showToast('Errore durante il salvataggio: ' + msg.slice(0, 200), 'danger');
+}
+
+function onSaveOK(msg) {
+  showToast('✓ ' + msg, 'success');
+  // Reset immediato, senza pause artificiali
+  SEL_DATE = new Date();
+  IS_ASSENTE = false;
+  if ($('notesInput')) $('notesInput').value = '';
+  MORNING_ON = true; AFTERNOON_ON = true;
+  if ($('morningCheck')) $('morningCheck').checked = true;
+  if ($('afternoonCheck')) $('afternoonCheck').checked = true;
+  if ($('morningSlot')) $('morningSlot').classList.remove('disabled');
+  if ($('afternoonSlot')) $('afternoonSlot').classList.remove('disabled');
+  populateTimeSelects();
+  updateTimes();
+  initWorkItems();
+  initTrattaItems();
+  Promise.all([loadSuggerimenti(), loadHistory(), loadPresMap()]).then(() => {
+    applySuggestedTime._appliedKey = null;
+    renderDateSelector();
+    renderMonthList();
+    updateAssenteChip();
+    showPage(1);
+  });
+}
+
+// ============================================================
+// KEYBOARD
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const u = $('loginUser'); const p = $('loginPass');
+  if (u) u.addEventListener('keypress', e => { if (e.key === 'Enter') p?.focus(); });
+  if (p) p.addEventListener('keypress', e => { if (e.key === 'Enter') handleLogin(); });
+});
 </script>
+
 </body>
 </html>
