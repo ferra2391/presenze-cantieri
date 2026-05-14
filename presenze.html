@@ -672,14 +672,18 @@
   </div>
 
   <!-- Librerie -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
   /* ============ CONFIG & UTIL ============ */
-  const SHEET_ID = "1WLK8tqQPAddqOm1DkTAOdtG5iFS9nYQFc3pxL0Fdc70";
-  const GAS_URL  = "https://script.google.com/macros/s/AKfycbyd_Cm47Z7STtVkIQEPVyU8Cu4Rl2JMUDaPqPt3IwQ/exec";
-  const TAB_CANDIDATES = ["Foglio1","Presenze","Sheet1","Foglio 1"];
+  const SB_URL = 'https://usfpzdxvcexxzraxpjtu.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzZnB6ZHh2Y2V4eHpyYXhwanR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1ODM3NzYsImV4cCI6MjA5NDE1OTc3Nn0.cWfI8_OGRrE96PPIG1de8Xz1i2RzVK9g40HesqWdvfk';
+  const sb = supabase.createClient(SB_URL, SB_KEY);
+
+  let CANTIERI = [];
+  let ROW_BY_ID = new Map();
 
   const pad = n => String(n).padStart(2,"0");
 
@@ -690,7 +694,7 @@
     if(v instanceof Date) return v;
     const s = String(v).trim();
     if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const [Y,M,D]=s.split("T")[0].split("-").map(Number); return new Date(Y,M-1,D); }
-    if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ /]/).map(Number); return new Date(y,m-1,d); }
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const [d,m,y]=s.split(/[ \/]/).map(Number); return new Date(y,m-1,d); }
     const t = new Date(s); return isNaN(t) ? null : t;
   }
 
@@ -733,18 +737,70 @@
     return n;
   }
 
-  /* ============ FETCH DATA ============ */
-  async function fetchRowsFromOpenSheet(sheetId){
-    for(const tab of TAB_CANDIDATES){
-      try{
-        const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab)}`;
-        const res = await fetch(url, { cache: "no-store" });
-        if(!res.ok) continue;
-        const rows = await res.json();
-        if(Array.isArray(rows) && rows.length > 0) return rows;
-      }catch(e){ continue; }
+  async function loadCantieri(){
+    const { data, error } = await sb.from('cantieri').select('id,nome,attivo').order('nome');
+    if(error) throw error;
+    CANTIERI = data || [];
+  }
+
+  function cantiereNameById(id){
+    const c = CANTIERI.find(x => String(x.id) === String(id));
+    return c?.nome || '';
+  }
+
+  function cantiereIdByName(name){
+    const n = normalize(name);
+    const found = CANTIERI.find(c => normalize(c.nome) === n);
+    return found?.id || null;
+  }
+
+  function normalizeTimeDisplay(s){
+    return String(s || '').replace(/(\d{2}:\d{2}):\d{2}/g, '$1');
+  }
+
+  async function fetchRowsFromServer(year, month){
+    const from = `${year}-${pad(month)}-01`;
+    const toDate = new Date(year, month, 1);
+    const to = `${toDate.getFullYear()}-${pad(toDate.getMonth()+1)}-01`;
+
+    await loadCantieri();
+
+    let { data, error } = await sb.from('presenze')
+      .select('id,data_presenza,utente_id,cantiere_id,lavorazione,orari_display,ore,is_assente,note,created_at,utenti(nome,cognome,user_code),cantieri(nome)')
+      .gte('data_presenza', from)
+      .lt('data_presenza', to)
+      .order('data_presenza', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if(error){
+      const r2 = await sb.from('presenze')
+        .select('id,data_presenza,utente_id,cantiere_id,lavorazione,orari_display,ore,is_assente,note,created_at')
+        .gte('data_presenza', from)
+        .lt('data_presenza', to)
+        .order('data_presenza', { ascending: true })
+        .order('created_at', { ascending: true });
+      if(r2.error) throw r2.error;
+      data = r2.data || [];
     }
-    throw new Error(`Impossibile caricare dati. Tab provati: ${TAB_CANDIDATES.join(", ")}`);
+
+    return (data || []).map(r => {
+      const u = Array.isArray(r.utenti) ? r.utenti[0] : r.utenti;
+      const c = Array.isArray(r.cantieri) ? r.cantieri[0] : r.cantieri;
+      const operaio = [u?.nome, u?.cognome].filter(Boolean).join(' ').trim() || r.utente_id;
+      const cantiere = r.is_assente ? 'ASSENTE' : (c?.nome || cantiereNameById(r.cantiere_id) || r.cantiere_id);
+      return {
+        id: r.id,
+        data: r.data_presenza,
+        operaio,
+        cantiere,
+        cantiere_id: r.cantiere_id,
+        ore: r.ore,
+        lavorazione: r.lavorazione || '',
+        orari: normalizeTimeDisplay(r.orari_display || ''),
+        note: r.note || '',
+        is_assente: !!r.is_assente
+      };
+    });
   }
 
   /* ============ MESE & RENDER ============ */
@@ -964,31 +1020,30 @@
         return;
       }
 
-      const rows = await fetchRowsFromOpenSheet(SHEET_ID);
-      rows.forEach((r,idx)=>{ r.__row = idx + 2; });
+      const rows = await fetchRowsFromServer(Y, M);
+      ROW_BY_ID = new Map(rows.map(r => [String(r.id), r]));
 
       const byOpDay = {};
       rows.forEach(r=>{
-        const dataVal = pick(r, "Data Presenza", "Data");
-        const dt = parseDateAny(dataVal);
+        const dt = parseDateAny(r.data);
         if(!dt) return;
-        const [Yf, Mf] = [dt.getFullYear(), dt.getMonth()+1];
-        if(Yf!==Y || Mf!==M) return;
-
-        const op  = String(pick(r, "Nome Operaio", "Operaio") || "").trim();
+        const op = String(r.operaio || "").trim();
         if(!op) return;
         const d = dt.getDate();
 
-        const cantiere = String(pick(r, "Cantiere") || "").trim();
-        const oreRaw   = pick(r, "Ore");
-        const ore      = (oreRaw!=="" && oreRaw!=null) ? Number(String(oreRaw).replace(",", ".")) : null;
-        const lav      = String(pick(r, "Lavorazione") || "");
-        const orari    = String(pick(r, "Orari") || "");
-        const note     = String(pick(r, "Note") || "");
-
         byOpDay[op] ??= {};
         byOpDay[op][d] ??= [];
-        byOpDay[op][d].push({ id: r.__row, cantiere, ore, lavorazione: lav, orari, note });
+        byOpDay[op][d].push({
+          id: r.id,
+          data: r.data,
+          cantiere: r.cantiere,
+          cantiere_id: r.cantiere_id,
+          ore: r.ore,
+          lavorazione: r.lavorazione,
+          orari: r.orari,
+          note: r.note,
+          is_assente: r.is_assente
+        });
       });
 
       let operai = Object.keys(byOpDay).sort((a,b)=>a.localeCompare(b,'it'));
@@ -1001,7 +1056,7 @@
       renderBodyHalf("tbodyA", Y, M, 1, 15, operai, byOpDay);
       renderBodyHalf("tbodyB", Y, M, 16, 31, operai, byOpDay);
 
-      statusEl.innerHTML = `<span class="ok">✓ Dati caricati con successo (${rows.length} righe processate)</span>`;
+      statusEl.innerHTML = `<span class="ok">✓ Dati caricati dal server (${rows.length} presenze)</span>`;
     }catch(err){
       console.error(err);
       statusEl.innerHTML = `<span class="error">✗ Errore nel caricamento dati: ${err.message}</span>`;
@@ -1020,25 +1075,34 @@
   const modLav  = document.getElementById('mod_lavorazione');
   const modNote = document.getElementById('mod_note');
 
-  function openEdit(id){
-    fetch(`${GAS_URL}?getPresenza=1&id=${encodeURIComponent(id)}`)
-      .then(res => res.json())
-      .then(obj=>{
-        modId.value = obj.id || id;
-        const d = parseDateAny(obj.data);
-        modData.value = toISODateInput(d);
-        modOre.value  = (obj.ore!=null && !isNaN(obj.ore)) ? obj.ore : "";
-        modCant.value = obj.cantiere || "";
-        modLav.value  = obj.lavorazione || "";
-        modNote.value = obj.note || "";
-        overlay.style.display='block';
-        modal.style.display='block';
-      })
-      .catch(_=>{
-        modId.value = id;
-        overlay.style.display='block';
-        modal.style.display='block';
-      });
+  async function openEdit(id){
+    let obj = ROW_BY_ID.get(String(id));
+    if(!obj){
+      const { data, error } = await sb.from('presenze')
+        .select('id,data_presenza,cantiere_id,lavorazione,ore,note,is_assente,cantieri(nome)')
+        .eq('id', id)
+        .maybeSingle();
+      if(error){ alert('Errore lettura presenza: ' + error.message); return; }
+      const c = Array.isArray(data?.cantieri) ? data.cantieri[0] : data?.cantieri;
+      obj = {
+        id: data.id,
+        data: data.data_presenza,
+        cantiere_id: data.cantiere_id,
+        cantiere: data.is_assente ? 'ASSENTE' : (c?.nome || cantiereNameById(data.cantiere_id)),
+        ore: data.ore,
+        lavorazione: data.lavorazione,
+        note: data.note || ''
+      };
+    }
+
+    modId.value = obj.id || id;
+    modData.value = toISODateInput(parseDateAny(obj.data));
+    modOre.value  = (obj.ore!=null && !isNaN(obj.ore)) ? obj.ore : "";
+    modCant.value = obj.cantiere || "";
+    modLav.value  = obj.lavorazione || "";
+    modNote.value = obj.note || "";
+    overlay.style.display='block';
+    modal.style.display='block';
   }
 
   function closeEdit(){
@@ -1050,32 +1114,45 @@
   overlay.addEventListener('click', closeEdit);
   window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEdit(); });
 
-  document.getElementById('btnSave').addEventListener('click', ()=>{
-    const payload = {
-      modifica: 1,
-      id: String(modId.value || "").trim(),
-      data: modData.value || "",
-      orari: "",
-      cantiere: modCant.value || "",
-      lavorazione: modLav.value || "",
-      ore: modOre.value || "",
-      note: modNote.value || ""
-    };
+  document.getElementById('btnSave').addEventListener('click', async ()=>{
+    try{
+      const id = String(modId.value || "").trim();
+      if(!id){ alert('ID presenza mancante.'); return; }
 
-    fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(payload)
-    })
-    .then(() => {
+      const cantText = String(modCant.value || '').trim();
+      let cantiereId = cantiereIdByName(cantText);
+      const isAssente = normalize(cantText) === 'assente';
+      if(isAssente){
+        cantiereId = cantiereIdByName('ASSENTE') || cantiereId;
+      }
+      if(!cantiereId){
+        alert('Cantiere non trovato. Scrivi il nome esattamente come presente nell’elenco cantieri.');
+        return;
+      }
+
+      const ore = modOre.value === '' ? 0 : Number(String(modOre.value).replace(',', '.'));
+      if(isNaN(ore)){ alert('Ore non valide.'); return; }
+
+      const payload = {
+        data_presenza: modData.value || null,
+        cantiere_id: cantiereId,
+        lavorazione: modLav.value || (isAssente ? 'ASSENTE' : ''),
+        ore,
+        note: modNote.value || null,
+        is_assente: isAssente,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await sb.from('presenze').update(payload).eq('id', id);
+      if(error) throw error;
+
       closeEdit();
-      statusEl.innerHTML = '<span class="ok">✓ Modifiche salvate! Ricarico...</span>';
-      setTimeout(carica, 900);
-    })
-    .catch(err => {
+      statusEl.innerHTML = '<span class="ok">✓ Modifiche salvate. Ricarico...</span>';
+      await carica();
+    }catch(err){
       console.error(err);
-      alert("Errore durante il salvataggio.");
-    });
+      alert('Errore durante il salvataggio: ' + (err.message || err));
+    }
   });
 
   /* ============ EXPORT PDF ============ */
