@@ -374,6 +374,30 @@
 
   .split-note{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);font-size:12px;color:var(--text-secondary);font-weight:750;line-height:1.35;}
 
+
+
+  /* === PATCH V10 === */
+  body{font-size:16px;}
+  .card-title{font-size:16px;}
+  .input-group input,.input-group textarea,.input-group select{font-size:15px;}
+  .chip,.btn{font-size:15px;}
+  .date-day.holiday:not(.selected){background:linear-gradient(135deg, rgba(220,38,38,.20), rgba(127,29,29,.12));border-color:rgba(248,113,113,.55);}
+  .date-day.holiday .day-name,.date-day.holiday .day-num{color:#fecaca;}
+  .holiday-dot{position:absolute;bottom:5px;width:6px;height:6px;border-radius:99px;background:#ef4444;box-shadow:0 0 12px rgba(239,68,68,.8);}
+  .confirm-overlay{position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:10000;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(8px);}
+  .confirm-overlay.show{display:flex;}
+  .confirm-box{width:min(460px,100%);background:#7f1d1d;border:4px solid #ef4444;border-radius:22px;padding:22px;color:#fff;text-align:center;box-shadow:0 28px 90px rgba(0,0,0,.78);}
+  .confirm-box h3{font-size:22px;margin-bottom:10px;font-weight:950;}
+  .confirm-box p{font-size:16px;line-height:1.35;font-weight:850;margin-bottom:18px;}
+  .confirm-actions{display:flex;gap:12px;}
+  .confirm-actions button{flex:1;border:none;border-radius:14px;padding:14px 12px;font-family:inherit;font-size:15px;font-weight:950;cursor:pointer;}
+  .confirm-no{background:#111827;color:#fff;border:2px solid rgba(255,255,255,.25)!important;}
+  .confirm-yes{background:#ef4444;color:#fff;box-shadow:0 8px 28px rgba(239,68,68,.45);}
+  .time-suggestion{border-color:rgba(251,191,36,.70);background:linear-gradient(135deg,rgba(251,191,36,.22),rgba(255,107,53,.16));box-shadow:0 8px 28px rgba(0,0,0,.28);}
+  .time-suggestion b{font-size:15px;color:#fff;}
+  .time-suggestion .big-time{display:block;margin:7px 0 4px;font-size:20px;font-weight:950;color:#fde68a;}
+  .time-suggestion .edit-note{display:block;font-size:13px;font-weight:800;color:#e2e8f0;}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -585,6 +609,7 @@
 </div>
 
 <div id="toast" class="toast"></div>
+<div id="confirmOverlay" class="confirm-overlay"><div class="confirm-box"><h3 id="confirmTitle">Attenzione</h3><p id="confirmText">Confermi?</p><div class="confirm-actions"><button class="confirm-no" id="confirmNo" type="button">Annulla</button><button class="confirm-yes" id="confirmYes" type="button">Conferma</button></div></div></div>
 
 <div class="success-overlay" id="successOverlay">
   <div class="card"><h2>✨ Presenza registrata!</h2></div>
@@ -667,15 +692,50 @@ function diffH(a, b) {
   return Math.max(0, (h2*60+m2 - h1*60 - m1) / 60);
 }
 function esc(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
-function isOperaio() { const r = (TARGET||AUTH)?.ruolo; return r === 'Operaio' || r === 'Tecnico'; }
+function isOperaio() { return ((TARGET||AUTH)?.ruolo) === 'Operaio'; }
 function isAdmin() { return AUTH?.ruolo === 'Amministratore'; }
 function isSub() { return AUTH?.ruolo === 'Sub'; }
 
 function normalizeDate(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
 function isWeekendDate(d) { const dow = d.getDay(); return dow === 0 || dow === 6; }
+function easterDate(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+function isHolidayDate(d) {
+  const x = normalizeDate(d);
+  const md = `${pad(x.getMonth()+1)}-${pad(x.getDate())}`;
+  const fixed = new Set(['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26']);
+  if (fixed.has(md)) return true;
+  const easter = easterDate(x.getFullYear());
+  const easterMonday = new Date(easter); easterMonday.setDate(easter.getDate() + 1);
+  return sameDay(x, easter) || sameDay(x, easterMonday);
+}
+function isNonWorkingDate(d) { return isWeekendDate(d) || isHolidayDate(d); }
+function groupRowsByDate(rows) {
+  const out = {};
+  (rows || []).forEach(r => {
+    if (!out[r.data_presenza]) out[r.data_presenza] = [];
+    out[r.data_presenza].push(r);
+  });
+  return out;
+}
 function previousWorkday(d) {
   const x = normalizeDate(d);
-  do { x.setDate(x.getDate() - 1); } while (isWeekendDate(x));
+  do { x.setDate(x.getDate() - 1); } while (isNonWorkingDate(x));
   return x;
 }
 function sameDay(a,b){ return fmtISO(a) === fmtISO(b); }
@@ -700,6 +760,25 @@ function showToast(msg, type='warn') {
   box.classList.add('show');
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => box.classList.remove('show'), 4000);
+}
+function showConfirmBanner(title, text) {
+  return new Promise(resolve => {
+    const ov = $('confirmOverlay');
+    const yes = $('confirmYes');
+    const no = $('confirmNo');
+    if (!ov || !yes || !no) { resolve(confirm(text)); return; }
+    $('confirmTitle').textContent = title;
+    $('confirmText').textContent = text;
+    ov.classList.add('show');
+    const cleanup = val => {
+      ov.classList.remove('show');
+      yes.onclick = null;
+      no.onclick = null;
+      resolve(val);
+    };
+    yes.onclick = () => cleanup(true);
+    no.onclick = () => cleanup(false);
+  });
 }
 function photoFileNameForUser(user) {
   // Mappa esplicita sui file realmente presenti in GitHub /operai
@@ -925,9 +1004,10 @@ async function postLogin() {
 // DATA LOADING
 // ============================================================
 async function loadCantieri() {
-  const { data } = await sb.from('cantieri').select('id,nome').eq('attivo', true).order('nome');
-  CANTIERI = (data || []).filter(c => c.nome !== 'ASSENTE');
-  const ass = (data || []).find(c => c.nome === 'ASSENTE');
+  const { data } = await sb.from('cantieri').select('id,nome,attivo').order('nome');
+  const all = data || [];
+  CANTIERI = all.filter(c => c.nome !== 'ASSENTE');
+  const ass = all.find(c => c.nome === 'ASSENTE');
   ASSENTE_ID = ass?.id || null;
 }
 
@@ -945,10 +1025,9 @@ async function loadUtenti() {
 async function loadSuggerimenti() {
   const target = TARGET || AUTH;
   try {
-    const { data, error } = await sb.rpc('get_suggerimenti_operaio', { p_user_code: target.user_code });
-    if (error) { console.error('loadSuggerimenti RPC error:', error); SUGG = {}; return; }
+    const { data } = await sb.rpc('get_suggerimenti_operaio', { p_user_code: target.user_code });
     SUGG = data || {};
-  } catch (e) { console.error('loadSuggerimenti exception:', e); SUGG = {}; }
+  } catch (e) { SUGG = {}; }
 }
 
 
@@ -965,7 +1044,15 @@ async function loadHistory() {
     allRows: [], rows: [], byDate: {}, time: null,
     yesterdaySite: null, topSite: null,
     yesterdayVehicle: null, topVehicle: null,
-    meta: { from: fmtISO(mondayPrev), fallback60: false, tratteError: null, presenzeError: null, rowsCount: 0 }
+    meta: {
+      from: fmtISO(mondayPrev),
+      fallback60: false,
+      presenzeError: null,
+      tratteError: null,
+      rowsCount: 0,
+      tratteCount: 0,
+      targetUser: target.user_code || target.id
+    }
   };
 
   const siteNameById = id => {
@@ -973,102 +1060,78 @@ async function loadHistory() {
     return c?.nome || '';
   };
 
-  const rowToSite = r => {
-    if (!r || !r.cantiere_id) return null;
-    const nome = siteNameById(r.cantiere_id) || r.cantieri?.nome || `Cantiere ${String(r.cantiere_id).slice(0,8)}`;
-    return { id: r.cantiere_id, nome, lavorazione: r.lavorazione || '' };
+  const mezzoDescById = id => {
+    const m = MEZZI.find(x => String(x.id) === String(id));
+    if (!m) return String(id || 'Mezzo');
+    return `${m.descrizione || ''}${m.targa ? ' (' + m.targa + ')' : ''}`.trim();
   };
 
-  async function fetchPresenze(fromDate, limitFallback=false) {
-    // Prima provo la query con relazione cantieri(nome), poi fallback diretto.
-    const selectJoin = 'id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente,created_at,cantieri(nome)';
-    let q = sb.from('presenze')
-      .select(selectJoin)
-      .eq('utente_id', target.id)
-      .lt('data_presenza', fmtISO(basis))
-      .gte('data_presenza', fmtISO(fromDate))
-      .order('data_presenza', { ascending: false })
-      .order('created_at', { ascending: false });
-    if (limitFallback) q = q.limit(120);
-    let { data, error } = await q;
-
-    if (error) {
-      HISTORY.meta.presenzeError = error.message || String(error);
-      let q2 = sb.from('presenze')
-        .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente,created_at')
-        .eq('utente_id', target.id)
-        .lt('data_presenza', fmtISO(basis))
-        .gte('data_presenza', fmtISO(fromDate))
-        .order('data_presenza', { ascending: false })
-        .order('created_at', { ascending: false });
-      if (limitFallback) q2 = q2.limit(120);
-      const r2 = await q2;
-      data = r2.data || [];
-      if (r2.error) HISTORY.meta.presenzeError = r2.error.message || String(r2.error);
-    }
-    return data || [];
-  }
+  const rowToSite = r => {
+    if (!r || !r.cantiere_id) return null;
+    const nome = siteNameById(r.cantiere_id) || `Cantiere ${String(r.cantiere_id).slice(0, 8)}`;
+    return { id: r.cantiere_id, nome, lavorazione: r.lavorazione || '' };
+  };
 
   function isDriverRole(role) {
     const s = String(role || '').toLowerCase().trim();
     return s === 'guidatore' || s === 'driver' || s.includes('guid');
   }
 
-  function vehicleFromJoinedRow(x) {
-    if (!x) return null;
-    let m = null;
-    if (x.mezzi) m = Array.isArray(x.mezzi) ? x.mezzi[0] : x.mezzi;
-    if (!m) m = MEZZI.find(mm => String(mm.id) === String(x.mezzo_id));
-    if (!m && !x.mezzo_id) return null;
-    const desc = m
-      ? `${m.descrizione || ''}${m.targa ? ' (' + m.targa + ')' : ''}`.trim()
-      : String(x.mezzo_id || 'Mezzo');
-    return { id: x.mezzo_id || m?.id, desc };
-  }
-
-  async function fetchTratteJoin(fromDate) {
-    const { data, error } = await sb.from('presenza_tratte')
-      .select('presenza_id,mezzo_id,ruolo,mezzi(id,descrizione,targa),presenze!inner(id,data_presenza,utente_id,is_assente)')
-      .eq('presenze.utente_id', target.id)
-      .eq('presenze.is_assente', false)
-      .lt('presenze.data_presenza', fmtISO(basis))
-      .gte('presenze.data_presenza', fmtISO(fromDate));
-
+  async function fetchPresenzePlain(fromDate, fallback=false) {
+    let q = sb.from('presenze')
+      .select('id,data_presenza,cantiere_id,lavorazione,orari_display,ore,ora_inizio_mattina,ora_fine_mattina,ora_inizio_pomeriggio,ora_fine_pomeriggio,is_assente,created_at')
+      .eq('utente_id', target.id)
+      .lt('data_presenza', fmtISO(basis))
+      .gte('data_presenza', fmtISO(fromDate))
+      .order('data_presenza', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (fallback) q = q.limit(180);
+    const { data, error } = await q;
     if (error) {
-      HISTORY.meta.tratteError = error.message || String(error);
-      return null;
+      HISTORY.meta.presenzeError = error.message || String(error);
+      return [];
     }
     return data || [];
   }
 
-  async function fetchTratteFallback(rows) {
-    const ids = rows.map(r => r.id).filter(Boolean);
+  async function fetchTratteByPresenze(rowsForTratte) {
+    const ids = [...new Set(rowsForTratte.map(r => r.id).filter(Boolean))];
     if (!ids.length) return [];
+
+    // Niente join annidati: uso gli ID presenza già presi da presenze.
+    // È più robusto con Supabase/RLS e con le relazioni non esposte.
     const { data, error } = await sb.from('presenza_tratte')
-      .select('presenza_id,mezzo_id,ruolo')
+      .select('presenza_id,mezzo_id,ruolo,ordine')
       .in('presenza_id', ids);
+
     if (error) {
       HISTORY.meta.tratteError = error.message || String(error);
       return [];
     }
-    const dateByPres = new Map(rows.map(r => [String(r.id), r.data_presenza]));
-    return (data || []).map(x => ({ ...x, presenze: { data_presenza: dateByPres.get(String(x.presenza_id)) } }));
+
+    const dateByPres = new Map(rowsForTratte.map(r => [String(r.id), r.data_presenza]));
+    return (data || []).map(x => ({
+      ...x,
+      data_presenza: dateByPres.get(String(x.presenza_id)),
+      desc: mezzoDescById(x.mezzo_id)
+    }));
   }
 
   try {
-    let allRows = await fetchPresenze(mondayPrev, false);
+    let allRows = await fetchPresenzePlain(mondayPrev, false);
 
-    // Suggerimenti: se non ci sono presenze dal lunedì della settimana precedente,
-    // allargo agli ultimi 60 giorni SOLO per suggerire, non per i blocchi di compilazione.
+    // Se dal lunedì della settimana precedente non trova niente, allargo SOLO per suggerimenti.
     if (!allRows.length) {
       const from60 = new Date(basis);
       from60.setDate(from60.getDate() - 60);
       HISTORY.meta.from = fmtISO(from60);
       HISTORY.meta.fallback60 = true;
-      allRows = await fetchPresenze(from60, true);
+      allRows = await fetchPresenzePlain(from60, true);
     }
 
     HISTORY.allRows = allRows;
+    HISTORY.byDate = groupRowsByDate(allRows);
+
     const rows = allRows.filter(r => !r.is_assente);
     HISTORY.rows = rows;
     HISTORY.meta.rowsCount = rows.length;
@@ -1076,10 +1139,8 @@ async function loadHistory() {
     // Cantiere giorno lavorativo precedente.
     const yRows = rows.filter(r => r.data_presenza === yIso);
     HISTORY.yesterdaySite = rowToSite(yRows[0]);
-    if (yRows[0] && !SUGG?.ultima_presenza) SUGG.ultima_presenza = yRows[0];
 
-    // Cantiere più frequente: prima ultimi 7 giorni reali prima della data selezionata,
-    // poi fallback a tutto lo storico caricato.
+    // Cantiere più frequente negli ultimi 7 giorni prima della data selezionata.
     const from7 = new Date(basis);
     from7.setDate(from7.getDate() - 7);
     const rows7 = rows.filter(r => {
@@ -1092,38 +1153,41 @@ async function loadHistory() {
       return site ? { key: String(site.id), id: site.id, nome: site.nome } : null;
     });
 
-    // Ultimo fallback dalla RPC vecchia, se esiste ancora.
+    // Ultimo fallback dalla RPC vecchia, se esiste.
     if (!HISTORY.topSite && SUGG?.top_cantieri?.length) {
       const s = SUGG.top_cantieri[0];
       HISTORY.topSite = { id: s.id, nome: s.nome, freq: s.freq || 1 };
     }
 
-    // Orario più frequente.
-    const topTime = modeBy(rows, r => {
+    // Orario più frequente, sempre dal vero storico presenze.
+    const timeRows = rows.filter(r => String(r.orari_display || '').trim() && String(r.orari_display || '').trim() !== '-');
+    const topTime = modeBy(timeRows, r => {
       const p = parseTimePreset(r);
       return p?.label ? { key: p.label, ...p } : null;
     });
-    const lastTime = rows[0] ? parseTimePreset(rows[0]) : null;
+    const lastTime = timeRows[0] ? parseTimePreset(timeRows[0]) : null;
     HISTORY.time = topTime || (lastTime?.label ? { ...lastTime, freq: 1, key: lastTime.label } : null);
 
-    // Mezzi: prima join diretta, poi fallback su ID presenze.
-    let trAll = await fetchTratteJoin(HISTORY.meta.fallback60 ? new Date(HISTORY.meta.from) : mondayPrev);
-    if (!trAll) trAll = await fetchTratteFallback(rows);
-    const trDrivers = (trAll || []).filter(x => isDriverRole(x.ruolo));
+    // Mezzi: interrogazione robusta su presenza_tratte partendo dagli ID delle presenze trovate.
+    const trAll = await fetchTratteByPresenze(allRows);
+    HISTORY.meta.tratteCount = trAll.length;
+    const trDrivers = trAll.filter(x => isDriverRole(x.ruolo));
 
-    const yTr = trDrivers.find(x => {
-      const p = Array.isArray(x.presenze) ? x.presenze[0] : x.presenze;
-      return p?.data_presenza === yIso;
+    const yTr = trDrivers.find(x => x.data_presenza === yIso);
+    HISTORY.yesterdayVehicle = yTr ? { id: yTr.mezzo_id, desc: yTr.desc } : null;
+
+    const trDrivers7 = trDrivers.filter(x => {
+      if (!x.data_presenza) return false;
+      const d = normalizeDate(new Date(x.data_presenza));
+      return d >= from7 && d < basis;
     });
-    HISTORY.yesterdayVehicle = vehicleFromJoinedRow(yTr);
-
-    HISTORY.topVehicle = modeBy(trDrivers, x => {
-      const v = vehicleFromJoinedRow(x);
-      return v ? { key: String(v.id), id: v.id, desc: v.desc } : null;
+    const trForVehicle = trDrivers7.length ? trDrivers7 : trDrivers;
+    HISTORY.topVehicle = modeBy(trForVehicle, x => {
+      return x.mezzo_id ? { key: String(x.mezzo_id), id: x.mezzo_id, desc: x.desc } : null;
     });
   } catch(e) {
     HISTORY.meta.presenzeError = HISTORY.meta.presenzeError || (e?.message || String(e));
-    console.error('loadHistory exception:', e);
+    console.warn('loadHistory', e);
   }
 }
 
@@ -1184,6 +1248,7 @@ function renderDateSelector() {
     const cell = document.createElement('div');
     cell.className = 'date-day';
     if (isWeekend) cell.classList.add('weekend');
+    if (isHolidayDate(d)) cell.classList.add('holiday');
     if (isToday) cell.classList.add('today');
     if (isSel) cell.classList.add('selected');
     if (isFuture) cell.classList.add('future');
@@ -1196,6 +1261,7 @@ function renderDateSelector() {
     cell.innerHTML = `
       <span class="day-name">${DAY_SHORT[dow]}</span>
       <span class="day-num">${d.getDate()}</span>
+      ${isHolidayDate(d) ? '<span class="holiday-dot"></span>' : ''}
       <span class="corner-flag"></span>
     `;
     cell.onclick = () => {
@@ -1204,20 +1270,25 @@ function renderDateSelector() {
       updateAssenteChip();
       renderDateSelector();
       updateRepeatBtn();
+      applySuggestedTime._appliedKey = null;
     };
     cont.appendChild(cell);
   }
   updateRepeatBtn();
 }
 
+function getYesterdayPresenceForRepeat() {
+  const yIso = fmtISO(previousWorkday(SEL_DATE));
+  return (HISTORY.rows || []).find(r => r.data_presenza === yIso) || null;
+}
 function updateRepeatBtn() {
   const today = normalizeDate(new Date());
   const isToday = fmtISO(SEL_DATE) === fmtISO(today);
-  const ok = isToday && !!SUGG?.ultima_presenza;
+  const ok = isToday && !!getYesterdayPresenceForRepeat();
   const btn = $('repeatBtn');
   if (!btn) return;
   btn.disabled = !ok;
-  btn.title = ok ? 'Ripeti l’ultima presenza disponibile' : 'Disponibile solo se esiste una presenza precedente';
+  btn.title = ok ? 'Ripeti la presenza del giorno lavorativo precedente' : 'Disponibile solo se esiste una presenza precedente';
 }
 
 // ============================================================
@@ -1301,17 +1372,18 @@ function showPage(n) {
 function firstMissingWorkdayFromPreviousMonday(selectedDate) {
   const today = normalizeDate(new Date());
   const selected = normalizeDate(selectedDate);
-  const start = mondayPreviousWeek(selected);
+  const start = mondayPreviousWeek(today);
   const end = previousWorkday(selected);
+  if (end < start) return null;
   for (let d = new Date(start); d <= end && d <= today; d.setDate(d.getDate() + 1)) {
-    if (isWeekendDate(d)) continue;
+    if (isNonWorkingDate(d)) continue;
     const iso = fmtISO(d);
     if (!DATE_PRES_MAP[iso]) return new Date(d);
   }
   return null;
 }
 
-function checkDateRules() {
+async function checkDateRules() {
   const today = normalizeDate(new Date());
   const s = normalizeDate(SEL_DATE);
   const iso = fmtISO(s);
@@ -1323,12 +1395,17 @@ function checkDateRules() {
     showToast(`Manca una presenza dal controllo settimanale: ${fmtFull(missing)}. Compila prima quella.`, 'danger');
     return false;
   }
+
+  if (isHolidayDate(s)) {
+    return await showConfirmBanner('Giorno festivo', `Stai compilando una presenza per ${fmtFull(s)}, che risulta festivo. Confermi di voler procedere?`);
+  }
   return true;
 }
 
 async function goFromPage1() {
-  if (!checkDateRules()) return;
+  if (!(await checkDateRules())) return;
   await loadHistory();
+  updateRepeatBtn();
   renderWorkItems();
   renderTrattaItems();
   applySuggestedTime._appliedKey = null;
@@ -1460,7 +1537,7 @@ function applySuggestedTime() {
   if (!HISTORY?.time?.label) {
     if (box) {
       box.style.display = 'block';
-      box.innerHTML = `<b>✨ Orario suggerito</b><br><span>Nessuno storico orari trovato su Supabase dal lunedì della settimana precedente. Puoi compilare manualmente.</span>`;
+      box.innerHTML = `<b>✨ Orario suggerito</b><br><span>Nessuno storico orari trovato per questo utente. Puoi impostare gli orari manualmente.</span>`;
     }
     if (mNote) mNote.style.display = 'none';
     if (pNote) pNote.style.display = 'none';
@@ -1488,7 +1565,7 @@ function applySuggestedTime() {
   const freq = HISTORY.time.freq || 1;
   if (box) {
     box.style.display = 'block';
-    box.innerHTML = `<b>✨ Orario suggerito</b><br><span>Orario sottostante già impostato perché lavorato ${freq} volte dal lunedì della settimana precedente: ${esc(HISTORY.time.label)}. Puoi comunque modificarlo.</span>`;
+    box.innerHTML = `<b>✨ ORARIO PROPOSTO</b><span class="big-time">${esc(HISTORY.time.label)}</span><span class="edit-note">Già impostato nei riquadri sotto perché è l'orario più ricorrente (${freq} volte). Se oggi è diverso, modifica direttamente i campi blu/arancio.</span>`;
   }
   if (mNote) {
     mNote.style.display = MORNING_ON ? 'block' : 'none';
@@ -1526,11 +1603,11 @@ function renderWorkItems() {
           ${WORK_ITEMS.length > 1 ? `<button onclick="removeWorkItem(${i})" style="background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;">✕ Rimuovi</button>` : ''}
         </div>
         ${suggestions.length ? `<div class="suggestion-panel">
-          <div class="suggestion-title">⭐ Suggerimenti cantiere da Supabase</div>
+          <div class="suggestion-title">⭐ Suggerimenti cantiere</div>
           <div class="suggestion-buttons">
             ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickWork(${i}, '${s.id}', '${esc(s.nome)}', '${esc(s.lavorazione || '')}')">${esc(s.nome)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
           </div>
-        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">⭐ Suggerimenti cantiere da Supabase</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico cantiere trovato su Supabase per questo utente nel periodo caricato. Controlla che in presenze ci siano righe con lo stesso utente_id.</div></div>`}
+        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">⭐ Suggerimenti cantiere</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico cantiere trovato per questo utente.</div></div>`}
         <div class="input-group">
           <span class="input-icon">🏗️</span>
           <select onchange="setWorkCantiere(${i}, this.value, this.options[this.selectedIndex].text)">${opts}</select>
@@ -1602,11 +1679,11 @@ function renderTrattaItems() {
           ${TRATTA_ITEMS.length > 1 ? `<button onclick="removeTrattaItem(${i})" style="background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;">✕ Rimuovi</button>` : ''}
         </div>
         ${suggestions.length ? `<div class="suggestion-panel">
-          <div class="suggestion-title">🚚 Suggerimenti mezzo da Supabase</div>
+          <div class="suggestion-title">🚚 Suggerimenti mezzo</div>
           <div class="suggestion-buttons">
             ${suggestions.map(s => `<button type="button" class="suggestion-btn" onclick="quickPickTratta(${i}, '${s.id}', '${esc(s.desc)}')">${esc(s.desc)}<small>${esc(s.label)}${s.freq ? ' · '+s.freq+' volte' : ''}</small></button>`).join('')}
           </div>
-        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">🚚 Suggerimenti mezzo da Supabase</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico mezzo guidato trovato su Supabase. Se hai appena registrato una tratta, controlla che in presenza_tratte il ruolo sia Guidatore e che la SELECT sia permessa dalle policy RLS.</div></div>`}
+        </div>` : `<div class="suggestion-panel"><div class="suggestion-title">🚚 Suggerimenti mezzo</div><div style="font-size:12px;font-weight:800;color:var(--text-secondary);line-height:1.35;">Nessuno storico mezzo guidato trovato per questo utente.</div></div>`}
         <div class="input-group">
           <span class="input-icon">🚛</span>
           <select onchange="setTrattaMezzo(${i}, this.value, this.options[this.selectedIndex].text)">${optsMezzo}</select>
@@ -1686,11 +1763,11 @@ function updateSummary() {
 // RIPETI IERI
 // ============================================================
 function repeatYesterday() {
-  if (!SUGG?.ultima_presenza) {
-    alert('Nessuna presenza precedente da ripetere');
+  const u = getYesterdayPresenceForRepeat();
+  if (!u) {
+    showToast('Nessuna presenza del giorno lavorativo precedente da ripetere', 'warn');
     return;
   }
-  const u = SUGG.ultima_presenza;
   const cant = CANTIERI.find(c => c.id === u.cantiere_id);
   $('previewDate').textContent = fmtFull(new Date());
   $('previewSite').textContent = cant?.nome || '—';
@@ -1709,8 +1786,8 @@ function cancelRepeat() {
 }
 
 function confirmRepeat() {
-  if (!SUGG?.ultima_presenza) return;
-  const u = SUGG.ultima_presenza;
+  const u = getYesterdayPresenceForRepeat();
+  if (!u) return;
   const cant = CANTIERI.find(c => c.id === u.cantiere_id);
   // Compila
   SEL_DATE = new Date();
