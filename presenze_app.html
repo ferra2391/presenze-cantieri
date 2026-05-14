@@ -642,7 +642,7 @@
 
     <!-- Pagina 4: RIEPILOGO -->
     <div class="view" id="page4">
-      <div class="card">
+      <div class="card" id="mezziCard">
         <div class="card-title"><span>🚚</span><span>Mezzi / tratte</span></div>
         <div id="mezziItems"></div>
         <button class="chip" id="addTrattaBtn" onclick="addTrattaItem()" style="width:100%;margin-top:10px">
@@ -764,9 +764,15 @@ function diffH(a, b) {
   return Math.max(0, (h2*60+m2 - h1*60 - m1) / 60);
 }
 function esc(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
-function isOperaio() { return ((TARGET||AUTH)?.ruolo) === 'Operaio'; }
+function currentRole() { return String((TARGET || AUTH)?.ruolo || '').trim(); }
+function isOperaio() { return currentRole() === 'Operaio'; }
 function isAdmin() { return AUTH?.ruolo === 'Amministratore'; }
 function isSub() { return AUTH?.ruolo === 'Sub'; }
+function requiresMezzo() {
+  // Solo il ruolo Operaio deve compilare obbligatoriamente il mezzo.
+  // Tecnico, Sub e Amministratore proseguono senza scheda mezzi.
+  return currentRole() === 'Operaio';
+}
 
 function normalizeDate(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
 function isWeekendDate(d) { const dow = d.getDay(); return dow === 0 || dow === 6; }
@@ -1625,11 +1631,11 @@ function applySuggestedTime() {
   if (!HISTORY?.time?.label) {
     if (box) {
       box.style.display = 'block';
-      box.innerHTML = `<b>✨ Orario proposto:</b>
-      <div style="margin-top:6px;font-size:18px;font-weight:950;color:#fde68a;">
-        ${esc(HISTORY.time.label)}
-  </div>
-  <div class="time-manual-note">Puoi modificare l’orario direttamente nei riquadri sotto.</div>`;
+      box.innerHTML = `
+        <div style="font-weight:950;font-size:15px;">✨ Orario proposto:</div>
+        <div style="margin-top:8px;font-size:15px;font-weight:850;color:#e2e8f0;line-height:1.25;">
+          Nessuno storico trovato. Puoi compilare manualmente.
+        </div>`;
     }
     if (mNote) mNote.style.display = 'none';
     if (pNote) pNote.style.display = 'none';
@@ -1755,13 +1761,20 @@ function initTrattaItems() {
 
 function renderTrattaItems() {
   const cont = $('mezziItems');
+  const card = $('mezziCard');
+  const btn = $('addTrattaBtn');
   if (!cont) return;
-  if (IS_ASSENTE) {
-    cont.innerHTML = '<div style="padding:12px;color:var(--text-secondary);font-weight:800;text-align:center;">Assenza selezionata: nessun mezzo richiesto.</div>';
-    const btn = $('addTrattaBtn'); if (btn) btn.style.display = 'none';
+
+  if (IS_ASSENTE || !requiresMezzo()) {
+    if (card) card.style.display = 'none';
+    if (btn) btn.style.display = 'none';
+    if (!requiresMezzo()) TRATTA_ITEMS = [];
+    cont.innerHTML = '';
     return;
   }
-  const btn = $('addTrattaBtn'); if (btn) btn.style.display = 'block';
+
+  if (card) card.style.display = 'block';
+  if (btn) btn.style.display = 'block';
   cont.innerHTML = TRATTA_ITEMS.map((t, i) => {
     const optsMezzo = ['<option value="">— Seleziona mezzo —</option>']
       .concat(MEZZI.map(m => `<option value="${m.id}" ${String(m.id)===String(t.mezzo_id)?'selected':''}>${esc(m.descrizione)} (${esc(m.targa||'')})</option>`))
@@ -2275,10 +2288,10 @@ async function submitPresence() {
   const works = WORK_ITEMS.filter(w => w.cantiere_id && w.lavorazione?.trim());
   if (!works.length) { showToast('Inserisci almeno un cantiere con lavorazione', 'danger'); return; }
 
-  const tratteValid = TRATTA_ITEMS.filter(x => x.mezzo_id && x.ruolo);
-  const tratteIncomplete = TRATTA_ITEMS.some(x => (x.mezzo_id && !x.ruolo) || (!x.mezzo_id && x.ruolo));
+  const tratteValid = requiresMezzo() ? TRATTA_ITEMS.filter(x => x.mezzo_id && x.ruolo) : [];
+  const tratteIncomplete = requiresMezzo() && TRATTA_ITEMS.some(x => (x.mezzo_id && !x.ruolo) || (!x.mezzo_id && x.ruolo));
   if (tratteIncomplete) { showToast('Tratta incompleta: ogni tratta deve avere sia MEZZO che RUOLO', 'danger'); return; }
-  if (!tratteValid.length) { showToast('Mezzo obbligatorio: inserisci almeno una tratta con ruolo', 'danger'); return; }
+  if (requiresMezzo() && !tratteValid.length) { showToast('Mezzo obbligatorio: inserisci almeno una tratta con ruolo', 'danger'); return; }
 
   const note = ($('notesInput')?.value || '').trim();
   const oreSplits = splitHoursSmart(t.ore, works.length);
