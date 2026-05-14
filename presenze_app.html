@@ -159,6 +159,7 @@
   }
   .date-day.has-pres .corner-flag{ border-top-color: var(--success); }
   .date-day.no-pres  .corner-flag{ border-top-color: var(--danger);  }
+  .date-day.absent .corner-flag{ border-top-color: var(--danger); }
   .date-day.disabled{
     pointer-events: none;
     opacity: .45;
@@ -396,6 +397,7 @@
   .time-suggestion{border-color:rgba(251,191,36,.70);background:linear-gradient(135deg,rgba(251,191,36,.22),rgba(255,107,53,.16));box-shadow:0 8px 28px rgba(0,0,0,.28);}
   .time-suggestion b{font-size:15px;color:#fff;}
   .time-suggestion .big-time{display:block;margin:7px 0 4px;font-size:20px;font-weight:950;color:#fde68a;}
+  .time-suggestion .big-time-inline{color:#fde68a;font-size:18px;font-weight:950;}
   .time-suggestion .edit-note{display:block;font-size:13px;font-weight:800;color:#e2e8f0;}
 
 </style>
@@ -897,18 +899,29 @@ function applyTimePreset(preset) {
   applySuggestedTime();
   updateTimes();
 }
+function cleanTimeValue(v) {
+  if (!v) return null;
+  const m = String(v).match(/(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return `${pad(Number(m[1]))}:${m[2]}`;
+}
+
 function parseTimePreset(row) {
   if (!row) return null;
-  let mS = row.ora_inizio_mattina || null;
-  let mE = row.ora_fine_mattina || null;
-  let pS = row.ora_inizio_pomeriggio || null;
-  let pE = row.ora_fine_pomeriggio || null;
+  let mS = cleanTimeValue(row.ora_inizio_mattina);
+  let mE = cleanTimeValue(row.ora_fine_mattina);
+  let pS = cleanTimeValue(row.ora_inizio_pomeriggio);
+  let pE = cleanTimeValue(row.ora_fine_pomeriggio);
   const display = row.orari_display || row.orari || '';
   const parts = display.split(/\s*\+\s*/);
-  const parseR = s => { const m = String(s||'').match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/); return m ? [m[1],m[2]] : null; };
+  const parseR = s => {
+    const m = String(s || '').match(/(\d{1,2}:\d{2})(?::\d{2})?\s*-\s*(\d{1,2}:\d{2})(?::\d{2})?/);
+    return m ? [cleanTimeValue(m[1]), cleanTimeValue(m[2])] : null;
+  };
   if ((!mS || !mE) && parts[0]) { const r = parseR(parts[0]); if (r) { mS = r[0]; mE = r[1]; } }
   if ((!pS || !pE) && parts[1]) { const r = parseR(parts[1]); if (r) { pS = r[0]; pE = r[1]; } }
-  return { mS, mE, pS, pE, label: [mS&&mE ? `${mS}-${mE}` : '', pS&&pE ? `${pS}-${pE}` : ''].filter(Boolean).join(' + ') };
+  const label = [mS && mE ? `${mS}-${mE}` : '', pS && pE ? `${pS}-${pE}` : ''].filter(Boolean).join(' + ');
+  return { mS, mE, pS, pE, label };
 }
 function modeBy(rows, keyFn) {
   const m = new Map();
@@ -1256,7 +1269,7 @@ function renderDateSelector() {
     const state = DATE_PRES_MAP[iso];
     if (state === 'pres') cell.classList.add('has-pres');
     else if (state === 'abs') cell.classList.add('absent');
-    else if (!isWeekend && d <= today) cell.classList.add('no-pres');
+    else if (!isNonWorkingDate(d) && d <= today) cell.classList.add('no-pres');
 
     cell.innerHTML = `
       <span class="day-name">${DAY_SHORT[dow]}</span>
@@ -1565,7 +1578,7 @@ function applySuggestedTime() {
   const freq = HISTORY.time.freq || 1;
   if (box) {
     box.style.display = 'block';
-    box.innerHTML = `<b>✨ ORARIO PROPOSTO</b><span class="big-time">${esc(HISTORY.time.label)}</span><span class="edit-note">Già impostato nei riquadri sotto perché è l'orario più ricorrente (${freq} volte). Se oggi è diverso, modifica direttamente i campi blu/arancio.</span>`;
+    box.innerHTML = `<b>✨ Orario proposto: <span class="big-time-inline">${esc(HISTORY.time.label)}</span></b>`;
   }
   if (mNote) {
     mNote.style.display = MORNING_ON ? 'block' : 'none';
