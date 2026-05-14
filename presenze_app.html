@@ -159,7 +159,9 @@
   }
   .date-day.has-pres .corner-flag{ border-top-color: var(--success); }
   .date-day.no-pres  .corner-flag{ border-top-color: var(--danger);  }
-  .date-day.absent .corner-flag{ border-top-color: var(--danger); }
+  .date-day.absent:not(.selected){ border-color:rgba(251,191,36,.55); box-shadow:0 0 18px rgba(251,191,36,.22); }
+  .date-day.absent .corner-flag{ border-top-color: var(--accent); }
+  .date-day .absent-mark{ position:absolute; top:2px; right:2px; font-size:8px; font-weight:950; color:#111827; z-index:2; pointer-events:none; }
   .date-day.disabled{
     pointer-events: none;
     opacity: .45;
@@ -1276,6 +1278,7 @@ function renderDateSelector() {
       <span class="day-num">${d.getDate()}</span>
       ${isHolidayDate(d) ? '<span class="holiday-dot"></span>' : ''}
       <span class="corner-flag"></span>
+      ${state === 'abs' ? '<span class="absent-mark">A</span>' : ''}
     `;
     cell.onclick = () => {
       SEL_DATE = new Date(d);
