@@ -1625,13 +1625,11 @@ function applySuggestedTime() {
   if (!HISTORY?.time?.label) {
     if (box) {
       box.style.display = 'block';
-      box.innerHTML = `
-  <b>✨ Orario proposto:</b>
-  <div style="margin-top:6px;font-size:18px;font-weight:950;color:#fde68a;">
-    ${esc(HISTORY.time.label)}
+      box.innerHTML = `<b>✨ Orario proposto:</b>
+      <div style="margin-top:6px;font-size:18px;font-weight:950;color:#fde68a;">
+        ${esc(HISTORY.time.label)}
   </div>
-  <div class="time-manual-note">Puoi modificare l’orario direttamente nei riquadri sotto.</div>
-`;
+  <div class="time-manual-note">Puoi modificare l’orario direttamente nei riquadri sotto.</div>`;
     }
     if (mNote) mNote.style.display = 'none';
     if (pNote) pNote.style.display = 'none';
