@@ -683,6 +683,7 @@
   const sb = supabase.createClient(SB_URL, SB_KEY);
 
   let CANTIERI = [];
+  let UTENTI = [];
   let ROW_BY_ID = new Map();
 
   const pad = n => String(n).padStart(2,"0");
@@ -743,6 +744,17 @@
     CANTIERI = data || [];
   }
 
+  async function loadUtenti(){
+    const { data, error } = await sb.from('utenti').select('id,nome,cognome,user_code,attivo').order('nome');
+    if(error) throw error;
+    UTENTI = data || [];
+  }
+
+  function userNameById(id){
+    const u = UTENTI.find(x => String(x.id) === String(id));
+    return [u?.nome, u?.cognome].filter(Boolean).join(' ').trim();
+  }
+
   function cantiereNameById(id){
     const c = CANTIERI.find(x => String(x.id) === String(id));
     return c?.nome || '';
@@ -763,7 +775,7 @@
     const toDate = new Date(year, month, 1);
     const to = `${toDate.getFullYear()}-${pad(toDate.getMonth()+1)}-01`;
 
-    await loadCantieri();
+    await Promise.all([loadCantieri(), loadUtenti()]);
 
     let { data, error } = await sb.from('presenze')
       .select('id,data_presenza,utente_id,cantiere_id,lavorazione,orari_display,ore,is_assente,note,created_at,utenti(nome,cognome,user_code),cantieri(nome)')
@@ -786,7 +798,7 @@
     return (data || []).map(r => {
       const u = Array.isArray(r.utenti) ? r.utenti[0] : r.utenti;
       const c = Array.isArray(r.cantieri) ? r.cantieri[0] : r.cantieri;
-      const operaio = [u?.nome, u?.cognome].filter(Boolean).join(' ').trim() || r.utente_id;
+      const operaio = [u?.nome, u?.cognome].filter(Boolean).join(' ').trim() || userNameById(r.utente_id) || r.utente_id;
       const cantiere = r.is_assente ? 'ASSENTE' : (c?.nome || cantiereNameById(r.cantiere_id) || r.cantiere_id);
       return {
         id: r.id,
