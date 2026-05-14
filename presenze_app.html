@@ -1657,7 +1657,15 @@ function applySuggestedTime() {
   const freq = HISTORY.time.freq || 1;
   if (box) {
     box.style.display = 'block';
-    box.innerHTML = `<b>✨ Orario proposto: <span class="big-time-inline">${esc(HISTORY.time.label)}</span></b>`;
+    box.innerHTML = `
+  <div style="font-weight:950;font-size:15px;">
+    ✨ Orario proposto:
+  </div>
+  <div style="margin-top:8px;font-size:20px;font-weight:950;color:#fde68a;line-height:1.25;">
+    ${esc(HISTORY.time.label)}
+  </div>
+  <div class="time-manual-note">Puoi modificare l’orario direttamente nei riquadri sotto.</div>
+`;
   }
   if (mNote) {
     mNote.style.display = MORNING_ON ? 'block' : 'none';
