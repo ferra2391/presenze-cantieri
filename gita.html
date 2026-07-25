@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Valnerina · Domenica 26 luglio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --nera:#0B2224;
+  --nera-2:#123033;
+  --acqua:#3FB496;
+  --acqua-hi:#7FE8CC;
+  --calcare:#EDEAE0;
+  --pietra:#8CA09A;
+  --allerta:#F2C14E;
+  --allerta-dim:#5A4A1E;
+  --linea:rgba(237,234,224,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--nera);
+  color:var(--calcare);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.55;
+  padding-bottom:64px;
+  overflow-x:hidden;
+}
+.wrap{max-width:640px;margin:0 auto;padding:0 20px}
+
+/* ---------- HERO ---------- */
+.hero{padding:52px 0 40px;position:relative}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--acqua);margin-bottom:18px;
+}
+.hero h1{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:700;font-size:clamp(38px,11vw,60px);line-height:.94;
+  letter-spacing:-.03em;margin-bottom:14px;
+}
+.hero h1 em{font-style:normal;color:var(--acqua)}
+.hero p{color:var(--pietra);font-size:15.5px;max-width:34ch}
+
+.figures{display:flex;gap:26px;margin-top:30px;flex-wrap:wrap}
+.fig{border-top:2px solid var(--acqua);padding-top:10px;min-width:118px}
+.fig b{
+  display:block;font-family:'Bricolage Grotesque',sans-serif;
+  font-size:30px;font-weight:700;line-height:1;letter-spacing:-.02em;
+}
+.fig span{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--pietra)}
+
+/* ---------- SECTIONS ---------- */
+section{padding:40px 0 8px}
+.shead{display:flex;align-items:baseline;gap:12px;margin-bottom:22px}
+.shead h2{
+  font-family:'Bricolage Grotesque',sans-serif;font-weight:600;
+  font-size:23px;letter-spacing:-.015em;
+}
+.shead i{
+  flex:1;height:1px;background:var(--linea);font-style:normal;
+}
+.shead u{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;
+  color:var(--pietra);text-decoration:none;text-transform:uppercase;
+}
+
+/* ---------- TASK CARDS ---------- */
+.task{
+  background:var(--nera-2);border:1px solid var(--linea);border-radius:14px;
+  padding:16px 16px 14px;margin-bottom:12px;
+  transition:opacity .25s,border-color .25s;
+}
+.task.done{opacity:.42}
+.task.done .tname{text-decoration:line-through}
+.trow{display:flex;gap:13px;align-items:flex-start}
+.box{
+  flex:none;width:23px;height:23px;border-radius:7px;margin-top:1px;
+  border:2px solid var(--allerta);background:transparent;cursor:pointer;
+  display:grid;place-items:center;padding:0;transition:background .2s;
+}
+.box:focus-visible{outline:2px solid var(--acqua-hi);outline-offset:2px}
+.box svg{width:13px;height:13px;opacity:0;transition:opacity .2s}
+.task.done .box{background:var(--allerta)}
+.task.done .box svg{opacity:1}
+.tname{font-weight:600;font-size:16px;letter-spacing:-.01em}
+.tnote{color:var(--pietra);font-size:13.5px;margin-top:3px}
+.tnote b{color:var(--allerta);font-weight:600}
+.acts{display:flex;gap:8px;margin-top:12px;padding-left:36px;flex-wrap:wrap}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.04em;
+  padding:8px 13px;border-radius:9px;text-decoration:none;
+  border:1px solid var(--linea);color:var(--calcare);background:rgba(237,234,224,.04);
+}
+.btn:active{background:rgba(237,234,224,.12)}
+.btn.key{background:var(--allerta);color:#2A2208;border-color:var(--allerta);font-weight:700}
+.btn.map{color:var(--acqua-hi);border-color:rgba(63,180,150,.35)}
+
+/* ---------- TIMELINE ---------- */
+.rail{position:relative;padding-left:34px}
+.rail::before{
+  content:'';position:absolute;left:7px;top:6px;bottom:34px;width:2px;
+  background:linear-gradient(180deg,var(--acqua),rgba(63,180,150,.25));
+}
+.stop{position:relative;margin-bottom:26px}
+.dot{
+  position:absolute;left:-34px;top:5px;width:16px;height:16px;border-radius:50%;
+  background:var(--nera);border:2px solid var(--acqua);
+}
+.stop.big .dot{background:var(--acqua);box-shadow:0 0 0 5px rgba(63,180,150,.16)}
+
+/* il ponte ha la pedata discontinua: il binario si spezza */
+.stop.gap::before{
+  content:'';position:absolute;left:-28px;top:0;bottom:-26px;width:4px;
+  background:repeating-linear-gradient(180deg,var(--acqua) 0 7px,transparent 7px 15px);
+}
+.stop.gap .dot{border-style:dashed}
+
+.when{
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;
+  color:var(--acqua-hi);letter-spacing:.03em;
+}
+.what{
+  font-family:'Bricolage Grotesque',sans-serif;font-weight:600;font-size:19px;
+  letter-spacing:-.015em;margin:2px 0 5px;
+}
+.where{color:var(--pietra);font-size:13px;font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.desc{font-size:14.5px;color:#CFD8D4;margin-bottom:10px}
+.desc strong{color:var(--calcare)}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{
+  font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 9px;
+  border-radius:6px;background:rgba(63,180,150,.12);color:var(--acqua-hi);
+}
+.leg{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--pietra);
+  padding:5px 0 5px 2px;letter-spacing:.02em;
+}
+
+/* ---------- WARN ---------- */
+.warn{
+  border-left:3px solid var(--allerta);background:rgba(242,193,78,.09);
+  padding:13px 15px;border-radius:0 11px 11px 0;margin:10px 0;
+  font-size:14px;color:#F0E4C4;
+}
+.warn b{color:var(--allerta)}
+
+/* ---------- TABLE ---------- */
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{
+  text-align:left;font-family:'JetBrains Mono',monospace;font-weight:500;
+  font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--pietra);
+  padding-bottom:9px;border-bottom:1px solid var(--linea);
+}
+th:last-child,td:last-child{text-align:right}
+td{padding:11px 0;border-bottom:1px solid var(--linea)}
+td.n{font-family:'JetBrains Mono',monospace;white-space:nowrap}
+tr.tot td{
+  border-bottom:none;padding-top:16px;font-weight:700;font-size:18px;
+  font-family:'Bricolage Grotesque',sans-serif;color:var(--acqua-hi);
+}
+tr.tot td:first-child{font-family:'Inter',sans-serif;font-size:14px;color:var(--calcare)}
+
+/* ---------- KIT ---------- */
+.kit{display:flex;flex-direction:column;gap:2px}
+.kitem{
+  display:flex;gap:12px;align-items:center;padding:11px 4px;
+  border-bottom:1px solid var(--linea);cursor:pointer;
+}
+.kitem:last-child{border-bottom:none}
+.kbox{
+  flex:none;width:20px;height:20px;border-radius:6px;border:2px solid var(--pietra);
+  background:transparent;display:grid;place-items:center;padding:0;
+}
+.kbox svg{width:11px;height:11px;opacity:0}
+.kitem.done .kbox{background:var(--acqua);border-color:var(--acqua)}
+.kitem.done .kbox svg{opacity:1}
+.kitem.done span{opacity:.4;text-decoration:line-through}
+.kitem span{font-size:14.5px}
+.kitem em{font-style:normal;color:var(--pietra);font-size:12.5px;display:block}
+
+/* ---------- DETAILS ---------- */
+details{
+  background:var(--nera-2);border:1px solid var(--linea);
+  border-radius:14px;padding:0;margin-bottom:11px;overflow:hidden;
+}
+summary{
+  padding:15px 16px;cursor:pointer;font-weight:600;font-size:15.5px;
+  list-style:none;display:flex;justify-content:space-between;gap:10px;align-items:center;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';font-family:'JetBrains Mono',monospace;color:var(--acqua);font-size:19px}
+details[open] summary::after{content:'–'}
+.dbody{padding:0 16px 16px;font-size:14.5px;color:#CFD8D4}
+.dbody p{margin-bottom:9px}
+.dbody p:last-child{margin-bottom:0}
+
+footer{
+  margin-top:44px;padding-top:22px;border-top:1px solid var(--linea);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pietra);
+  line-height:1.8;
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">Domenica 26 luglio · Civitanova → Terni</div>
+  <h1>Giù per la<br><em>Valnerina</em></h1>
+  <p>Una discesa sola, dall'alta valle a Marmore. Quattro tappe, nessun zigzag.</p>
+  <div class="figures">
+    <div class="fig"><b>175 m</b><span>di vuoto sotto</span></div>
+    <div class="fig"><b>165 m</b><span>d'acqua davanti</span></div>
+    <div class="fig"><b>415 km</b><span>~6 h di guida</span></div>
+  </div>
+</header>
+
+<section>
+  <div class="shead"><h2>Stasera</h2><i></i><u id="cnt">0/3</u></div>
+
+  <div class="task" data-k="t1">
+    <div class="trow">
+      <button class="box" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#2A2208" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div>
+        <div class="tname">Biglietti ponte tibetano</div>
+        <div class="tnote">Fascia <b>10:00–10:59</b> · Andata e Ritorno via ponte · 30 € a testa. Se è a zero prendi le 11:00 e slitta tutto di un'ora.</div>
+      </div>
+    </div>
+    <div class="acts">
+      <a class="btn key" href="https://www.visitsellano.info/acquista-ticket" target="_blank" rel="noopener">Compra online</a>
+      <a class="btn" href="tel:+393807672966">380 767 2966</a>
+      <a class="btn" href="https://www.visitsellano.info/it/top-menu/webcam" target="_blank" rel="noopener">Webcam meteo</a>
+    </div>
+  </div>
+
+  <div class="task" data-k="t2">
+    <div class="trow">
+      <button class="box" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#2A2208" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div>
+        <div class="tname">Tavolo all'Osteria dello Sportello</div>
+        <div class="tnote">Domenica <b>13:45, due persone</b>. Chiedi un tavolo in terrazza. 4,7 su 1239 recensioni: senza prenotazione non si entra.</div>
+      </div>
+    </div>
+    <div class="acts">
+      <a class="btn key" href="tel:+393477366202">Chiama 347 736 6202</a>
+      <a class="btn map" href="https://maps.google.com/?cid=9608370714899354249" target="_blank" rel="noopener">Maps</a>
+    </div>
+  </div>
+
+  <div class="task" data-k="t3">
+    <div class="trow">
+      <button class="box" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#2A2208" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div>
+        <div class="tname">Biglietti Cascata delle Marmore</div>
+        <div class="tnote">Facoltativi ma saltano la coda. ~12 € a testa su TicketOne. <b>Sconto col biglietto delle Mummie</b>, quindi valuta anche di farli in cassa.</div>
+      </div>
+    </div>
+    <div class="acts">
+      <a class="btn key" href="https://cascatadellemarmore.info/" target="_blank" rel="noopener">Sito ufficiale</a>
+      <a class="btn" href="tel:+390744675610">0744 67561</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>La giornata</h2><i></i><u>07:00 → 21:45</u></div>
+
+  <div class="rail">
+
+    <div class="stop">
+      <div class="dot"></div>
+      <div class="when">07:00</div>
+      <div class="what">Sveglia, con calma</div>
+      <div class="desc">Colazione a casa. Il pieno fallo stasera, così non perdi tempo.</div>
+    </div>
+
+    <div class="leg">↓ 07:45 partenza · SS77 → Muccia → Visso → Triponzo → Borgo Cerreto · 1 h 55</div>
+
+    <div class="stop big gap">
+      <div class="dot"></div>
+      <div class="when">09:40 → 12:30</div>
+      <div class="what">Ponte Tibetano di Sellano</div>
+      <div class="where">Parcheggio campo sportivo · 06030 Sellano PG</div>
+      <div class="desc">517 m di lunghezza, 175 m di altezza, 1023 passi. <strong>L'imbrago si ritira all'infopoint, non alla stazione di partenza</strong> — poi 150 m a piedi nel centro storico. Attraversata ~40 min, mezz'ora a Montesanto, ritorno via ponte.</div>
+      <div class="warn"><b>Al tornello ti bloccano se:</b> scarpe a suola piatta o senza lacci, maglietta che non copre i fianchi, girovita oltre 120 cm o coscia oltre 66 cm. <b>Solo pagamenti con carta</b>, niente contanti.</div>
+      <div class="chips">
+        <span class="chip">60 € in due</span>
+        <span class="chip">10:00 fascia</span>
+        <span class="chip">2 h 30 sul posto</span>
+      </div>
+      <div class="acts" style="padding-left:0">
+        <a class="btn map" href="https://maps.google.com/?cid=11964094165157905351" target="_blank" rel="noopener">Apri in Maps</a>
+        <a class="btn" href="tel:+393807672966">Chiama</a>
+      </div>
+    </div>
+
+    <div class="leg">↓ SS209 Valnerina verso sud · 1 h 15 · si scende lungo il Nera</div>
+
+    <div class="stop big">
+      <div class="dot"></div>
+      <div class="when">13:45 → 15:30</div>
+      <div class="what">Pranzo · Osteria dello Sportello</div>
+      <div class="where">Via dello Sportello 12, Casteldilago · Arrone TR</div>
+      <div class="desc">Domenica servono fino alle 16:00, quindi nessuna fretta. Palazzo antico, terrazza con vista sulla valle. Cucina tradizionale rivista; la parmigiana è quella che citano tutti.</div>
+      <div class="chips">
+        <span class="chip">30–40 € a testa</span>
+        <span class="chip">prenotato</span>
+      </div>
+      <div class="acts" style="padding-left:0">
+        <a class="btn map" href="https://maps.google.com/?cid=9608370714899354249" target="_blank" rel="noopener">Apri in Maps</a>
+        <a class="btn" href="tel:+393477366202">347 736 6202</a>
+      </div>
+    </div>
+
+    <div class="leg">↑ 6 km indietro verso nord · 12 min</div>
+
+    <div class="stop">
+      <div class="dot"></div>
+      <div class="when">15:45 → 16:20</div>
+      <div class="what">Cripta · Museo delle Mummie</div>
+      <div class="where">Via della Torre, loc. Precetto · Ferentillo TR</div>
+      <div class="desc">Sotto la chiesa di Santo Stefano: 24 corpi mummificati naturalmente dal terreno, più i due sposi cinesi del Giubileo del 1750. Visita rapida, mezz'ora scarsa. <strong>Riapre alle 15:00, chiude alle 19:00.</strong></div>
+      <div class="warn"><b>Conserva il biglietto:</b> dà diritto allo sconto alle Marmore.</div>
+      <div class="chips">
+        <span class="chip">7 € in due</span>
+        <span class="chip">30 min</span>
+      </div>
+      <div class="acts" style="padding-left:0">
+        <a class="btn map" href="https://maps.google.com/?cid=13046060454544274632" target="_blank" rel="noopener">Apri in Maps</a>
+        <a class="btn" href="tel:+393286864226">328 686 4226</a>
+      </div>
+    </div>
+
+    <div class="leg">↓ 13 km · 18 min</div>
+
+    <div class="stop big">
+      <div class="dot"></div>
+      <div class="when">16:40 → 19:15</div>
+      <div class="what">Cascata delle Marmore</div>
+      <div class="where">Belvedere Superiore · Vocabolo Cascata, Marmore TR</div>
+      <div class="desc">Domenica di luglio l'acqua è <strong>rilasciata in continuo dalle 10:00 alle 19:00</strong>: arrivi e la trovi già a pieno regime, nessun orario da rincorrere. Scendete il Sentiero 1 verso il Belvedere Inferiore e risalite con la navetta.</div>
+      <div class="warn"><b>Vi bagnate sul serio.</b> K-way in zaino e una maglietta di cambio lasciata in auto. Il <b>Balcone degli Innamorati</b>, dietro il getto, è visitabile solo su prenotazione: prova a chiedere in cassa.</div>
+      <div class="chips">
+        <span class="chip">~24 € in due</span>
+        <span class="chip">parcheggio ~8 €</span>
+        <span class="chip">2 h 30</span>
+      </div>
+      <div class="acts" style="padding-left:0">
+        <a class="btn map" href="https://maps.google.com/?cid=12561242561598824323" target="_blank" rel="noopener">Apri in Maps</a>
+        <a class="btn" href="tel:+390744675610">0744 67561</a>
+      </div>
+    </div>
+
+    <div class="leg">↓ Terni → Spoleto → Foligno → SS77 · 2 h 30</div>
+
+    <div class="stop">
+      <div class="dot"></div>
+      <div class="when">21:45</div>
+      <div class="what">A casa</div>
+      <div class="desc">Fine.</div>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>Costi</h2><i></i><u>in due</u></div>
+  <table>
+    <thead><tr><th>Voce</th><th>Totale</th></tr></thead>
+    <tbody>
+      <tr><td>Ponte tibetano · A/R via ponte<br><span style="color:var(--pietra);font-size:12.5px">30 € × 2</span></td><td class="n">60 €</td></tr>
+      <tr><td>Museo delle Mummie<br><span style="color:var(--pietra);font-size:12.5px">3,50 € × 2</span></td><td class="n">7 €</td></tr>
+      <tr><td>Pranzo osteria<br><span style="color:var(--pietra);font-size:12.5px">30–40 € × 2</span></td><td class="n">60–80 €</td></tr>
+      <tr><td>Cascata delle Marmore<br><span style="color:var(--pietra);font-size:12.5px">~12 € × 2, meno sconto</span></td><td class="n">~22 €</td></tr>
+      <tr><td>Carburante<br><span style="color:var(--pietra);font-size:12.5px">~415 km</span></td><td class="n">~52 €</td></tr>
+      <tr><td>Parcheggio Marmore + caffè</td><td class="n">~18 €</td></tr>
+      <tr class="tot"><td>Giornata completa</td><td class="n">220–240 €</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <div class="shead"><h2>Da caricare in auto</h2><i></i><u id="kcnt">0/8</u></div>
+  <div class="kit">
+    <div class="kitem" data-k="k1"><button class="kbox" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#0B2224" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Scarpe chiuse con lacci, suola tacchettata<em>Per entrambi. Le sneaker a suola piatta vi bloccano al tornello.</em></span></div>
+    <div class="kitem" data-k="k2"><button class="kbox" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#0B2224" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Pantaloni lunghi<em>L'imbrago ha due cosciali e una cintura in vita: sfrega.</em></span></div>
+    <div class="kitem" data-k="k3"><button class="kbox" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#0B2224" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Magliette da infilare nei pantaloni<em>Devono coprire pancia e fianchi, è nel regolamento.</em></span></div>
+    <div class="kitem" data-k="k4"><button class="kbox" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#0B2224" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>K-way leggero × 2<em>Per le Marmore, non per la pioggia.</em></span></div>
+    <div class="kitem" data-k="k5"><button class="kbox" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#0B2224" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Cambio di maglietta da lasciare in auto</span></div>
+    <div class="kitem" data-k="k6"><button class="kbox" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#0B2224" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Zainetto, acqua, cappellini, crema solare</span></div>
+    <div class="kitem" data-k="k7"><button class="kbox" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#0B2224" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Carte di credito<em>A Sellano il contante non è accettato.</em></span></div>
+    <div class="kitem" data-k="k8"><button class="kbox" aria-label="Fatto"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2" stroke="#0B2224" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Powerbank<em>Il QR del ponte si scansiona dallo schermo, a luminosità massima.</em></span></div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>Se qualcosa salta</h2><i></i><u>piani B</u></div>
+
+  <details>
+    <summary>La fascia delle 10:00 è esaurita</summary>
+    <div class="dbody">
+      <p>Prendi le <strong>11:00–11:59</strong> e sposta tutto avanti di un'ora: pranzo alle 14:45, mummie alle 16:30, Marmore dalle 17:15.</p>
+      <p>Quando prenoti l'osteria avvisali dell'orario tardo — domenica chiudono la sala alle 16:00 e devono saperlo.</p>
+      <p>Alle Marmore arrivi comunque con acqua fino alle 19:00.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Sul ponte si è fatto tardi</summary>
+    <div class="dbody">
+      <p>Se esci da Sellano dopo le 13:15, salta l'ordine e vai <strong>dritto alle Marmore</strong> (aperte fino alle 22:30), poi mummie e pranzo tardo non funzionano più.</p>
+      <p>Meglio: chiama l'osteria dalla macchina e sposta a un orario realistico. Sono flessibili fino alle 16:00.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Piove o c'è vento a Sellano</summary>
+    <div class="dbody">
+      <p>Con pioggia normale l'impianto resta aperto. Con vento forte, temporale o fulmini possono <strong>bloccare l'accesso senza preavviso</strong>, anche solo per un'ora.</p>
+      <p>Il biglietto non è rimborsabile e non si cambia data. Se non ti presenti e l'impianto è aperto, l'ingresso è perso.</p>
+      <p>Guarda le webcam in diretta prima di partire.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Variante: la cascata di notte</summary>
+    <div class="dbody">
+      <p>Domenica di luglio c'è un <strong>secondo rilascio dalle 21:00 alle 22:00, con la cascata illuminata</strong>. Il parco resta aperto fino alle 22:30.</p>
+      <p>Cenate in zona Marmore o Piediluco, vi godete il notturno e rientrate verso l'una.</p>
+      <p>Sono circa 7 ore di guida in un giorno. Decidete a fine pomeriggio in base a come state, non adesso.</p>
+    </div>
+  </details>
+</section>
+
+<footer>
+  Ponte tibetano · 380 767 2966<br>
+  Museo Mummie · 328 686 4226<br>
+  Osteria dello Sportello · 347 736 6202<br>
+  Cascata delle Marmore · 0744 67561<br><br>
+  Orari e tariffe verificati il 25 luglio 2026. Riconferma sui siti ufficiali prima di partire.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var mem = {};
+  var hasStore = typeof window.storage !== 'undefined';
+
+  async function load(key){
+    if(!hasStore) return mem[key] || false;
+    try{
+      var r = await window.storage.get('valnerina:'+key);
+      return r && r.value === 'true';
+    }catch(e){ return false; }
+  }
+  async function save(key, val){
+    mem[key] = val;
+    if(!hasStore) return;
+    try{ await window.storage.set('valnerina:'+key, String(val)); }
+    catch(e){ /* la spunta resta comunque per questa sessione */ }
+  }
+
+  function count(sel, cls, out){
+    var all = document.querySelectorAll(sel);
+    var n = document.querySelectorAll(sel+'.'+cls).length;
+    document.getElementById(out).textContent = n+'/'+all.length;
+  }
+
+  // Task cards
+  document.querySelectorAll('.task').forEach(function(el){
+    var k = el.dataset.k;
+    load(k).then(function(v){
+      if(v) el.classList.add('done');
+      count('.task','done','cnt');
+    });
+    el.querySelector('.box').addEventListener('click', function(){
+      el.classList.toggle('done');
+      save(k, el.classList.contains('done'));
+      count('.task','done','cnt');
+    });
+  });
+
+  // Kit checklist
+  document.querySelectorAll('.kitem').forEach(function(el){
+    var k = el.dataset.k;
+    load(k).then(function(v){
+      if(v) el.classList.add('done');
+      count('.kitem','done','kcnt');
+    });
+    el.addEventListener('click', function(){
+      el.classList.toggle('done');
+      save(k, el.classList.contains('done'));
+      count('.kitem','done','kcnt');
+    });
+  });
+})();
+</script>
+</body>
+</html>
